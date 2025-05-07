@@ -13,7 +13,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: APP_NAME,
-  description: 'Manage your AI powered virtual assistants.',
+  description: 'Gestiona tus asistentes virtuales impulsados por IA.',
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark"> {/* Enforce dark mode at html level */}
+    <html lang="es" className="dark"> {/* Enforce dark mode at html level and set lang to Spanish */}
       <body className={`${inter.className} antialiased`}>
         <AppProvider>
           <AppLayout>

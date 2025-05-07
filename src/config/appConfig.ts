@@ -1,56 +1,57 @@
-import type { SubscriptionPlanDetails, AssistantPurpose } from '@/types';
-import { Bot, DatabaseZap, FileSpreadsheet, UserCog, Users, DollarSign, CheckCircle2, Mail, MessageSquare } from 'lucide-react';
 
-export const APP_NAME = "AssistAI Manager";
+import type { SubscriptionPlanDetails, AssistantPurpose } from '@/types';
+import { FileSpreadsheet, DatabaseZap, UserCog, Users, Mail } from 'lucide-react';
+
+export const APP_NAME = "Gestor AssistAI";
 export const MAX_WIZARD_STEPS = 4;
 
 export const assistantPurposesConfig: AssistantPurpose[] = [
-  { id: "import_db_google_sheets", name: "Import from Google Sheets", description: "Connect and use data from an existing Google Sheet.", icon: FileSpreadsheet },
-  { id: "import_db_excel", name: "Import from Excel", description: "Upload an Excel file to use as your database.", icon: FileSpreadsheet },
-  { id: "create_smart_db", name: "Create Smart Database", description: "Let AI help you build an intelligent database.", icon: DatabaseZap },
-  { id: "notify_owner", name: "Communicate with Owner", description: "Assistant will send updates and alerts to you via WhatsApp.", icon: UserCog },
-  { id: "notify_clients", name: "Communicate with Clients", description: "Assistant will interact with your clients via WhatsApp.", icon: Users },
+  { id: "import_db_google_sheets", name: "Importar desde Hojas de cálculo de Google", description: "Conecta y usa datos de una Hoja de cálculo de Google existente.", icon: FileSpreadsheet },
+  { id: "import_db_excel", name: "Importar desde Excel", description: "Sube un archivo de Excel para usarlo como tu base de datos.", icon: FileSpreadsheet },
+  { id: "create_smart_db", name: "Crear Base de Datos Inteligente", description: "Deja que la IA te ayude a construir una base de datos inteligente.", icon: DatabaseZap },
+  { id: "notify_owner", name: "Comunicarse con el Propietario", description: "El asistente te enviará actualizaciones y alertas vía WhatsApp.", icon: UserCog },
+  { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: Users },
 ];
 
 export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
   { 
     id: "free", 
-    name: "Free Tier", 
+    name: "Nivel Gratuito", 
     priceMonthly: 0, 
     assistantLimit: 1, 
-    features: ["Basic assistant features", "Limited interactions", "Community support"] 
+    features: ["Funciones básicas de asistente", "Interacciones limitadas", "Soporte comunitario"] 
   },
   { 
     id: "standard_39", 
-    name: "Standard Plan", 
+    name: "Plan Estándar", 
     priceMonthly: 39, 
     assistantLimit: 1, 
-    features: ["Full assistant features", "Increased interactions", "Email support"] 
+    features: ["Funciones completas de asistente", "Mayor cantidad de interacciones", "Soporte por correo electrónico"] 
   },
   { 
     id: "premium_179", 
-    name: "Premium Plan (per Assistant)", 
+    name: "Plan Premium (por Asistente)", 
     priceMonthly: 179, 
     assistantLimit: 1, // This is per assistant
-    features: ["All Standard features", "Priority support", "Advanced analytics (soon)"] 
+    features: ["Todas las funciones Estándar", "Soporte prioritario", "Analíticas avanzadas (próximamente)"] 
   },
   { 
     id: "business_270", 
-    name: "Business Plan", 
+    name: "Plan de Negocios", 
     priceMonthly: 270, 
     assistantLimit: 5, 
-    features: ["Up to 5 assistants", "All Premium features", "Dedicated account manager"] 
+    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado"] 
   },
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
-  1: "Configure Your Assistant",
-  2: "Set Up Database",
-  3: "Account Authentication",
-  4: "Choose Your Plan",
+  1: "Configura tu Asistente",
+  2: "Configura la Base de Datos",
+  3: "Autenticación de Cuenta",
+  4: "Elige tu Plan",
 };
 
 export const AUTH_METHODS = [
-  { id: "google", name: "Sign in with Google", icon: Mail },
-  { id: "microsoft", name: "Sign in with Microsoft", icon: Mail },
+  { id: "google", name: "Iniciar sesión con Google", icon: Mail },
+  { id: "microsoft", name: "Iniciar sesión con Microsoft", icon: Mail },
 ];

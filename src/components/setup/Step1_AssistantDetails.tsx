@@ -24,16 +24,16 @@ const Step1AssistantDetails = () => {
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
-        <CardTitle>Define Your Assistant</CardTitle>
-        <CardDescription>Give your assistant a name and select what it should do.</CardDescription>
+        <CardTitle>Define tu Asistente</CardTitle>
+        <CardDescription>Dale un nombre a tu asistente y selecciona qué debería hacer.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="assistantName" className="text-base">Assistant Name</Label>
+          <Label htmlFor="assistantName" className="text-base">Nombre del Asistente</Label>
           <Input
             id="assistantName"
             type="text"
-            placeholder="e.g., My Sales Helper"
+            placeholder="Ej: Mi Ayudante de Ventas"
             value={assistantName}
             onChange={handleNameChange}
             className="text-base"
@@ -42,7 +42,7 @@ const Step1AssistantDetails = () => {
         </div>
 
         <div className="space-y-3">
-          <Label className="text-base block mb-2">Assistant Purposes</Label>
+          <Label className="text-base block mb-2">Propósitos del Asistente</Label>
           {assistantPurposesConfig.map((purpose) => {
             const Icon = purpose.icon;
             return (

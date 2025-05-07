@@ -52,7 +52,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
             <CardTitle className="text-xl">{assistant.name}</CardTitle>
           </div>
           <Badge variant={assistant.phoneLinked ? "default" : "secondary"} className={cn(assistant.phoneLinked && "bg-green-600 text-white")}>
-            {assistant.phoneLinked ? "Active" : "Inactive"}
+            {assistant.phoneLinked ? "Activo" : "Inactivo"}
           </Badge>
         </div>
         {assistant.phoneLinked && (
@@ -64,7 +64,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
       <CardContent className="flex-grow space-y-3">
         <div>
           <h4 className="text-sm font-semibold mb-1.5 text-foreground flex items-center gap-1.5">
-            <Zap size={16} className="text-accent" /> Purposes:
+            <Zap size={16} className="text-accent" /> Propósitos:
           </h4>
           <div className="flex flex-wrap gap-2">
             {purposes.length > 0 ? purposes.map(purpose => {
@@ -76,13 +76,13 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                   {purpose.name}
                 </Badge>
               );
-            }) : <p className="text-xs text-muted-foreground">No purposes defined.</p>}
+            }) : <p className="text-xs text-muted-foreground">No se han definido propósitos.</p>}
           </div>
         </div>
         {assistant.databaseId && (
           <div>
              <h4 className="text-sm font-semibold mb-1.5 text-foreground flex items-center gap-1.5">
-              <Database size={16} className="text-accent" /> Linked Database:
+              <Database size={16} className="text-accent" /> Base de Datos Vinculada:
             </h4>
             {/* In real app, fetch DB name from userProfile.databases based on assistant.databaseId */}
             <Badge variant="outline">{assistant.databaseId.substring(0,15)}...</Badge> 
@@ -96,18 +96,18 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                     id={`advanced-view-${assistant.id}`}
                     checked={isAdvancedView}
                     onCheckedChange={setIsAdvancedView}
-                    aria-label="Toggle advanced node view"
+                    aria-label="Alternar vista de nodo avanzada"
                 />
                 <Label htmlFor={`advanced-view-${assistant.id}`} className="text-sm flex items-center gap-1 cursor-pointer">
                     {isAdvancedView ? <ParticleIcon/> : <Settings size={14}/>}
-                    {isAdvancedView ? "Node View" : "Basic View"}
+                    {isAdvancedView ? "Vista de Nodo" : "Vista Básica"}
                 </Label>
             </div>
         ): ( <div className="h-6 w-28 bg-muted rounded-md animate-pulse" /> /* Placeholder for switch */)}
         
         <Button variant="outline" size="sm" onClick={() => onReconfigure(assistant.id)} className="transition-transform transform hover:scale-105 w-full sm:w-auto">
           <Settings size={16} className="mr-2" />
-          Reconfigure
+          Reconfigurar
         </Button>
       </CardFooter>
     </Card>

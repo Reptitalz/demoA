@@ -14,11 +14,11 @@ const SetupProgressBar = () => {
     <div className="mb-8">
       <div className="flex justify-between items-center mb-2">
         <p className="text-sm font-medium text-foreground">
-          Step {currentStep} of {maxSteps}: {WIZARD_STEP_TITLES[currentStep] || `Step ${currentStep}`}
+          Paso {currentStep} de {maxSteps}: {WIZARD_STEP_TITLES[currentStep] || `Paso ${currentStep}`}
         </p>
         <p className="text-sm text-muted-foreground">{Math.round(progressPercentage)}%</p>
       </div>
-      <Progress value={progressPercentage} aria-label={`Setup progress: ${currentStep} of ${maxSteps} steps complete`} className="h-2 [&>div]:bg-primary" />
+      <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentStep} de ${maxSteps} pasos completados`} className="h-2 [&>div]:bg-primary" />
     </div>
   );
 };

@@ -15,10 +15,10 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
 
   const getSourceName = (source: DatabaseConfig['source']) => {
     switch(source) {
-      case 'excel': return 'Excel File';
-      case 'google_sheets': return 'Google Sheets';
-      case 'smart_db': return 'Smart Database';
-      default: return 'Unknown Source';
+      case 'excel': return 'Archivo Excel';
+      case 'google_sheets': return 'Hojas de Google';
+      case 'smart_db': return 'Base de Datos Inteligente';
+      default: return 'Fuente Desconocida';
     }
   };
 
@@ -36,7 +36,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         </div>
         {database.details && typeof database.details === 'string' && (
             <CardDescription className="text-sm pt-1 truncate" title={database.details}>
-                Source: {database.details.length > 30 ? `${database.details.substring(0,30)}...` : database.details}
+                Fuente: {database.details.length > 30 ? `${database.details.substring(0,30)}...` : database.details}
             </CardDescription>
         )}
       </CardHeader>

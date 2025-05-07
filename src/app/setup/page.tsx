@@ -23,24 +23,24 @@ const SetupPage = () => {
   const getValidationMessage = (): string => {
      switch (currentStep) {
       case 1:
-        if (!assistantName.trim()) return "Please enter an assistant name.";
-        if (selectedPurposes.size === 0) return "Please select at least one purpose for your assistant.";
+        if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
+        if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
         break;
       case 2:
-        if (!databaseOption.type) return "Please select a database option.";
+        if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
         if (databaseOption.type && (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") && !databaseOption.name?.trim()) {
-            return `Please provide a name/link for your ${databaseOption.type === "google_sheets" ? "Google Sheet" : "Smart Database"}.`;
+            return `Por favor, proporciona un nombre/enlace para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
         }
-        if (databaseOption.type === "excel" && !databaseOption.file) return "Please upload an Excel file.";
+        if (databaseOption.type === "excel" && !databaseOption.file) return "Por favor, sube un archivo de Excel.";
         break;
       case 3:
-        if (!authMethod) return "Please authenticate your account.";
+        if (!authMethod) return "Por favor, autentica tu cuenta.";
         break;
       case 4: 
-        if (!selectedPlan) return "Please select a subscription plan.";
+        if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
         break;
     }
-    return "Please complete the current step.";
+    return "Por favor, completa el paso actual.";
   };
 
   const isStepValid = (): boolean => {
@@ -55,7 +55,7 @@ const SetupPage = () => {
         if (databaseOption.type === "excel") {
           return !!databaseOption.file;
         }
-        return true; // Should not happen if type is one of the above
+        return true; 
       case 3:
         return !!authMethod;
       case 4:
@@ -72,7 +72,7 @@ const SetupPage = () => {
       }
     } else {
       toast({
-        title: "Validation Error",
+        title: "Error de Validación",
         description: getValidationMessage(),
         variant: "destructive",
       });
@@ -84,7 +84,7 @@ const SetupPage = () => {
   };
 
   const handleCompleteSetup = () => {
-    if (!isStepValid()) { // Final validation before completing
+    if (!isStepValid()) { 
       toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
       return;
     }
@@ -101,23 +101,21 @@ const SetupPage = () => {
       const dbId = `db_${Date.now()}`;
       newDatabases.push({
         id: dbId,
-        name: databaseOption.name || `My ${databaseOption.type.replace('_', ' ')}`,
+        name: databaseOption.name || `Mi ${databaseOption.type.replace('_', ' ')}`,
         source: databaseOption.type,
         details: databaseOption.type === 'excel' && databaseOption.file ? databaseOption.file.name : databaseOption.name,
       });
       newAssistant.databaseId = dbId;
     }
 
-    // Find existing user profile to update or create a new one
-    // For this SPA mock, we're typically updating the global state's userProfile
     const updatedAssistants = [...state.userProfile.assistants, newAssistant];
     const updatedDatabases = [...state.userProfile.databases, ...newDatabases];
 
     const userProfile: UserProfile = {
-      ...state.userProfile, // Preserve any existing user details if reconfiguring/adding
+      ...state.userProfile, 
       isAuthenticated: true,
       authProvider: authMethod || state.userProfile.authProvider,
-      email: authMethod === "google" ? "user@google.com" : authMethod === "microsoft" ? "user@microsoft.com" : state.userProfile.email, 
+      email: authMethod === "google" ? "usuario@google.com" : authMethod === "microsoft" ? "usuario@microsoft.com" : state.userProfile.email, 
       currentPlan: selectedPlan,
       assistants: updatedAssistants,
       databases: updatedDatabases,
@@ -125,11 +123,11 @@ const SetupPage = () => {
 
     dispatch({ type: 'COMPLETE_SETUP', payload: userProfile });
     toast({
-      title: "Setup Complete!",
-      description: "Your AssistAI Manager is ready.",
+      title: "¡Configuración Completa!",
+      description: "Tu Gestor AssistAI está listo.",
       action: (
         <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard')}>
-          Go to Dashboard
+          Ir al Panel
         </Button>
       ),
     });
@@ -155,7 +153,7 @@ const SetupPage = () => {
     <PageContainer>
       <div className="space-y-8">
         <SetupProgressBar />
-        <div className="min-h-[300px]"> {/* Ensure consistent height for step content */}
+        <div className="min-h-[300px]"> 
          {renderStepContent()}
         </div>
         <div className="flex justify-between items-center pt-6 border-t">
@@ -165,16 +163,15 @@ const SetupPage = () => {
             disabled={currentStep === 1}
             className="transition-transform transform hover:scale-105"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+            <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
           </Button>
-          {/* The "Complete Setup" button is inside Step4, so only show "Next" for other steps */}
           {currentStep < maxSteps && (
             <Button 
               onClick={handleNext} 
               className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105"
-              disabled={!isStepValid()} // Disable if current step not valid for "Next"
+              disabled={!isStepValid()} 
             >
-              Next <ArrowRight className="ml-2 h-4 w-4" />
+              Siguiente <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           )}
         </div>

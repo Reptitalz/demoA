@@ -16,22 +16,22 @@ const DashboardSummary = () => {
     <div className="grid gap-4 grid-cols-2 mb-8">
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.1s"}}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Current Plan</CardTitle>
+          <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
           <Package className="h-5 w-5 text-primary" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-accent">
-            {planDetails ? planDetails.name : "N/A"}
+            {planDetails ? planDetails.name : "N/D"}
           </div>
           <p className="text-xs text-muted-foreground">
-            {planDetails ? `$${planDetails.priceMonthly}/month` : "No active plan"}
+            {planDetails ? `$${planDetails.priceMonthly}/mes` : "Sin plan activo"}
           </p>
         </CardContent>
       </Card>
 
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.2s"}}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Assistants</CardTitle>
+          <CardTitle className="text-sm font-medium">Asistentes Activos</CardTitle>
           <Bot className="h-5 w-5 text-primary" />
         </CardHeader>
         <CardContent>
@@ -39,7 +39,7 @@ const DashboardSummary = () => {
             {assistants.length}
           </div>
           <p className="text-xs text-muted-foreground">
-            {planDetails ? `of ${planDetails.assistantLimit === "unlimited" ? "Unlimited" : planDetails.assistantLimit} allowed` : "N/A"}
+            {planDetails ? `de ${planDetails.assistantLimit === "unlimited" ? "Ilimitados" : planDetails.assistantLimit} permitidos` : "N/D"}
           </p>
         </CardContent>
       </Card>

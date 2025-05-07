@@ -13,6 +13,8 @@ import { PlusCircle, ListTree, Settings, Database as DatabaseIcon, Bot as BotIco
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { subscriptionPlansConfig } from '@/config/appConfig'; // Import for plan limit check
+import { Card, CardContent } from '@/components/ui/card';
+
 
 const DashboardPage = () => {
   const { state, dispatch } = useApp();
@@ -51,9 +53,9 @@ const DashboardPage = () => {
         dispatch({type: 'SET_SUBSCRIPTION_PLAN', payload: userProfile.currentPlan || null});
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
         router.push('/setup'); 
-         toast({ title: "Reconfiguring Assistant", description: `Loading settings for ${assistant.name} into setup wizard. You are on step 1.` });
+         toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name} en el asistente de configuración. Estás en el paso 1.` });
     } else {
-        toast({ title: "Error", description: "Assistant not found.", variant: "destructive"});
+        toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
     }
   };
 
@@ -63,8 +65,8 @@ const DashboardPage = () => {
 
     if (planDetails && planDetails.assistantLimit !== "unlimited" && userProfile.assistants.length >= planDetails.assistantLimit) {
       toast({
-        title: "Assistant Limit Reached",
-        description: `You've reached the ${userProfile.assistants.length} assistant limit for your current plan (${planDetails.name}). Please upgrade to add more assistants.`,
+        title: "Límite de Asistentes Alcanzado",
+        description: `Has alcanzado el límite de ${userProfile.assistants.length} asistentes para tu plan actual (${planDetails.name}). Por favor, actualiza tu plan para añadir más asistentes.`,
         variant: "destructive",
       });
       return;
@@ -85,7 +87,7 @@ const DashboardPage = () => {
   if (!isSetupComplete) {
     return (
       <PageContainer className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-150px)]">
-        <p className="text-lg mb-4">Redirecting to setup...</p>
+        <p className="text-lg mb-4">Redirigiendo a la configuración...</p>
         <LoadingSpinner size={32} />
       </PageContainer>
     );
@@ -94,8 +96,8 @@ const DashboardPage = () => {
   return (
     <PageContainer className="space-y-8">
       <div className="animate-fadeIn">
-        <h2 className="text-3xl font-bold tracking-tight mb-1 text-foreground">Welcome, {userProfile.email || "User"}!</h2>
-        <p className="text-muted-foreground">Here's an overview of your AssistAI Manager.</p>
+        <h2 className="text-3xl font-bold tracking-tight mb-1 text-foreground">¡Bienvenido/a, {userProfile.email || "Usuario/a"}!</h2>
+        <p className="text-muted-foreground">Aquí tienes un resumen de tu Gestor AssistAI.</p>
       </div>
       
       <DashboardSummary />
@@ -103,10 +105,10 @@ const DashboardPage = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
           <h3 className="text-2xl font-semibold flex items-center gap-2">
-            <ListTree className="text-primary" /> Your Assistants
+            <ListTree className="text-primary" /> Tus Asistentes
           </h3>
           <Button onClick={handleAddNewAssistant} className="transition-transform transform hover:scale-105">
-            <PlusCircle size={18} className="mr-2" /> Add New
+            <PlusCircle size={18} className="mr-2" /> Añadir Nuevo
           </Button>
         </div>
         {userProfile.assistants.length > 0 ? (
@@ -124,8 +126,8 @@ const DashboardPage = () => {
           <Card className="text-center py-10 animate-fadeIn" style={{animationDelay: "0.4s"}}>
             <CardContent className="flex flex-col items-center gap-4">
               <BotIcon size={48} className="text-muted-foreground" />
-              <p className="text-muted-foreground">You haven't configured any assistants yet.</p>
-              <Button onClick={handleAddNewAssistant}>Create Your First Assistant</Button>
+              <p className="text-muted-foreground">Aún no has configurado ningún asistente.</p>
+              <Button onClick={handleAddNewAssistant}>Crea tu Primer Asistente</Button>
             </CardContent>
           </Card>
         )}
@@ -133,7 +135,7 @@ const DashboardPage = () => {
 
       <div className="space-y-6">
          <h3 className="text-2xl font-semibold flex items-center gap-2 animate-fadeIn" style={{animationDelay: `${0.5 + userProfile.assistants.length * 0.1}s`}}>
-            <DatabaseIcon className="text-primary" /> Linked Databases
+            <DatabaseIcon className="text-primary" /> Bases de Datos Vinculadas
           </h3>
         {userProfile.databases.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-1"> 
@@ -145,7 +147,7 @@ const DashboardPage = () => {
            <Card className="text-center py-10 animate-fadeIn" style={{animationDelay: `${0.6 + userProfile.assistants.length * 0.1}s`}}>
             <CardContent className="flex flex-col items-center gap-4">
               <DatabaseIcon size={48} className="text-muted-foreground" />
-              <p className="text-muted-foreground">No databases linked or created yet.</p>
+              <p className="text-muted-foreground">No hay bases de datos vinculadas o creadas aún.</p>
             </CardContent>
           </Card>
         )}

@@ -11,9 +11,9 @@ import { FileSpreadsheet, DatabaseZap, Upload } from "lucide-react";
 import type { DatabaseSource } from "@/types";
 
 const databaseOptionsConfig = [
-  { id: "google_sheets", name: "Import from Google Sheets", icon: FileSpreadsheet, requiresInput: true, inputPlaceholder: "Google Sheet Link or ID" },
-  { id: "excel", name: "Import from Excel", icon: FileSpreadsheet, requiresInput: false, requiresFile: true },
-  { id: "smart_db", name: "Create Smart Database", icon: DatabaseZap, requiresInput: true, inputPlaceholder: "Smart Database Name" },
+  { id: "google_sheets" as DatabaseSource, name: "Importar desde Hojas de cálculo de Google", icon: FileSpreadsheet, requiresInput: true, inputPlaceholder: "Enlace o ID de Hoja de Google" },
+  { id: "excel" as DatabaseSource, name: "Importar desde Excel", icon: FileSpreadsheet, requiresInput: false, requiresFile: true },
+  { id: "smart_db" as DatabaseSource, name: "Crear Base de Datos Inteligente", icon: DatabaseZap, requiresInput: true, inputPlaceholder: "Nombre de Base de Datos Inteligente" },
 ];
 
 const Step2DatabaseConfig = () => {
@@ -23,12 +23,11 @@ const Step2DatabaseConfig = () => {
   const [fileName, setFileName] = useState('');
 
   useEffect(() => {
-    // Initialize inputValue if a database option is already selected (e.g., on back navigation or reconfigure)
     if (databaseOption.type && (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") && databaseOption.name) {
       setInputValue(databaseOption.name);
     } else if (databaseOption.type === "excel" && databaseOption.file) {
       setFileName(databaseOption.file.name);
-    } else { // Reset if type is null or doesn't match current values
+    } else {
       setInputValue('');
       setFileName('');
     }
@@ -37,7 +36,6 @@ const Step2DatabaseConfig = () => {
   const handleOptionChange = (value: string) => {
     const selectedConfig = databaseOptionsConfig.find(opt => opt.id === value);
     if (selectedConfig) {
-      // Reset input value and file name when changing option type
       setInputValue(''); 
       setFileName('');
       dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: value as DatabaseSource, name: '', file: null } });
@@ -65,15 +63,15 @@ const Step2DatabaseConfig = () => {
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
-        <CardTitle>Set Up Your Database</CardTitle>
-        <CardDescription>Choose how to provide data for your assistant.</CardDescription>
+        <CardTitle>Configura tu Base de Datos</CardTitle>
+        <CardDescription>Elige cómo proporcionar datos para tu asistente.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <RadioGroup
           value={databaseOption.type || ""}
           onValueChange={handleOptionChange}
           className="space-y-3"
-          aria-label="Database Options"
+          aria-label="Opciones de Base de Datos"
         >
           {databaseOptionsConfig.map((option) => {
             const Icon = option.icon;
@@ -94,13 +92,13 @@ const Step2DatabaseConfig = () => {
         {selectedDbConfig && (selectedDbConfig.requiresInput || selectedDbConfig.requiresFile) && (
           <div className="space-y-2 pt-4 border-t mt-4">
             <Label htmlFor="dbDetailsInput" className="text-base">
-              {selectedDbConfig.inputPlaceholder || "Details"}
+              {selectedDbConfig.inputPlaceholder || "Detalles"}
             </Label>
             {selectedDbConfig.requiresFile && (
               <div className="flex items-center space-x-2">
                 <Button variant="outline" asChild>
                   <Label htmlFor="fileUpload" className="cursor-pointer">
-                    <Upload className="mr-2 h-4 w-4" /> Choose File
+                    <Upload className="mr-2 h-4 w-4" /> Elegir Archivo
                   </Label>
                 </Button>
                 <Input id="fileUpload" type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" aria-describedby="fileNameDisplay"/>

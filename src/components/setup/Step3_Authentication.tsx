@@ -15,14 +15,14 @@ const Step3Authentication = () => {
     dispatch({ type: 'SET_AUTH_METHOD', payload: methodId });
     // In a real app, this would trigger the OAuth flow
     // For now, we just set it in state and simulate success
-    console.log(`Simulating authentication with ${methodId}`);
+    console.log(`Simulando autenticación con ${methodId}`);
   };
 
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
-        <CardTitle>Account Authentication</CardTitle>
-        <CardDescription>Sign in to save your assistant configuration.</CardDescription>
+        <CardTitle>Autenticación de Cuenta</CardTitle>
+        <CardDescription>Inicia sesión para guardar la configuración de tu asistente.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {AUTH_METHODS.map((method) => {
@@ -44,7 +44,7 @@ const Step3Authentication = () => {
         })}
         {authMethod && (
           <p className="text-sm text-center text-green-500 flex items-center justify-center gap-1 pt-2">
-            <CheckCircle2 size={16} /> Successfully authenticated with {authMethod}.
+            <CheckCircle2 size={16} /> Autenticado exitosamente con {authMethod}.
           </p>
         )}
       </CardContent>

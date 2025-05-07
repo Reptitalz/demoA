@@ -29,15 +29,15 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
-        <CardTitle>Choose Your Plan</CardTitle>
-        <CardDescription>Select a plan that best suits your needs.</CardDescription>
+        <CardTitle>Elige tu Plan</CardTitle>
+        <CardDescription>Selecciona el plan que mejor se adapte a tus necesidades.</CardDescription>
       </CardHeader>
       <CardContent>
         <RadioGroup
           value={selectedPlan || ""}
           onValueChange={(value) => handlePlanSelect(value as SubscriptionPlanType)}
           className="space-y-4"
-          aria-label="Subscription Plans"
+          aria-label="Planes de Suscripción"
         >
           {subscriptionPlansConfig.map((plan) => {
             const Icon = planIcons[plan.id];
@@ -60,10 +60,10 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
                   <div className="text-right">
                     <p className={cn("text-xl font-bold", isSelected ? "text-accent-foreground" : "text-primary")}>
                       ${plan.priceMonthly}
-                      <span className={cn("text-sm font-normal", isSelected ? "text-accent-foreground/80" : "text-muted-foreground")}>/mo</span>
+                      <span className={cn("text-sm font-normal", isSelected ? "text-accent-foreground/80" : "text-muted-foreground")}>/mes</span>
                     </p>
                     <p className={cn("text-xs", isSelected ? "text-accent-foreground/80" : "text-muted-foreground")}>
-                      {plan.assistantLimit} {typeof plan.assistantLimit === 'number' && plan.assistantLimit === 1 ? 'Assistant' : 'Assistants'}
+                      {plan.assistantLimit === "unlimited" ? "Ilimitados" : plan.assistantLimit} {typeof plan.assistantLimit === 'number' && plan.assistantLimit === 1 ? 'Asistente' : 'Asistentes'}
                     </p>
                   </div>
                 </div>
@@ -87,7 +87,7 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
           disabled={!selectedPlan}
           aria-disabled={!selectedPlan}
         >
-          Complete Setup & Proceed
+          Completar Configuración y Continuar
         </Button>
       </CardFooter>
     </Card>

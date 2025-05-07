@@ -26,7 +26,7 @@ export default function HomePage() {
     <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]"> {/* Adjust height based on header/footer */}
       <div className="flex flex-col items-center gap-4">
         <LoadingSpinner size={48} />
-        <p className="text-muted-foreground">Initializing AssistAI Manager...</p>
+        <p className="text-muted-foreground">Iniciando Gestor AssistAI...</p>
       </div>
     </PageContainer>
   );

@@ -1,13 +1,40 @@
+
 "use client"
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, CaptionProps } from "react-day-picker"
+import { es } from 'date-fns/locale'; // Import Spanish locale
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
+
+// Spanish month names and weekday abbreviations
+const meses = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+const diasSemana = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"]; // Domingo a Sábado
+
+function formatCaption(date: Date, options?: { locale?: Locale }): string {
+  const month = meses[date.getMonth()];
+  const year = date.getFullYear();
+  return `${month} ${year}`;
+}
+
+function CustomCaption(props: CaptionProps) {
+  const { displayMonth } = props;
+  return (
+    <div className="flex justify-center pt-1 relative items-center">
+      <span className="text-sm font-medium">
+        {formatCaption(displayMonth)}
+      </span>
+    </div>
+  );
+}
+
 
 function Calendar({
   className,
@@ -17,13 +44,14 @@ function Calendar({
 }: CalendarProps) {
   return (
     <DayPicker
+      locale={es} // Set Spanish locale
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        caption_label: "text-sm font-medium sr-only", // Hide default caption label, use CustomCaption
+        caption_dropdowns: "flex gap-1",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -55,16 +83,18 @@ function Calendar({
       }}
       components={{
         IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+          <ChevronLeft className={cn("h-4 w-4", className)} {...props} aria-label="Mes anterior" />
         ),
         IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+          <ChevronRight className={cn("h-4 w-4", className)} {...props} aria-label="Mes siguiente" />
         ),
+        Caption: CustomCaption, // Use custom caption
       }}
+      formatters={{ formatWeekdayName: (day) => diasSemana[day.getDay()] }} // Format weekday names
       {...props}
     />
   )
 }
-Calendar.displayName = "Calendar"
+Calendar.displayName = "Calendario" // Changed display name for clarity if needed
 
 export { Calendar }
