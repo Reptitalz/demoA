@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark"> {/* Enforce dark mode at html level and set lang to Spanish */}
+    <html lang="es" className="dark">
       <body className={`${inter.className} antialiased`}>
         <AppProvider>
           <AppLayout>
@@ -33,3 +33,4 @@ export default function RootLayout({
     </html>
   );
 }
+
