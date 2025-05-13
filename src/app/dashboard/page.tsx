@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { FaPlusCircle, FaSitemap, FaCog, FaDatabase, FaRobot, FaSignOutAlt } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { subscriptionPlansConfig } from '@/config/appConfig';
+import { subscriptionPlansConfig, APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { auth, signOut } from '@/lib/firebase';
 
@@ -126,7 +126,7 @@ const DashboardPage = () => {
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">Aquí tienes un resumen de tu Gestor AssistAI.</p>
+        <p className="text-xs text-muted-foreground">Aquí tienes un resumen de tu {APP_NAME}.</p>
       </div>
       
       <DashboardSummary />

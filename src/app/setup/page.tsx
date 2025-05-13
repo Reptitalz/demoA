@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa'; 
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast"; 
+import { APP_NAME } from '@/config/appConfig';
 
 const SetupPage = () => {
   const { state, dispatch } = useApp();
@@ -133,7 +134,7 @@ const SetupPage = () => {
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
     toast({
       title: "¡Configuración Completa!",
-      description: "Tu Gestor AssistAI está listo.",
+      description: `Tu ${APP_NAME} está listo.`,
       action: (
         <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard')}>
           Ir al Panel

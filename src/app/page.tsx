@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { APP_NAME } from '@/config/appConfig';
 
 export default function HomePage() {
   const { state, dispatch } = useApp();
@@ -35,8 +36,9 @@ export default function HomePage() {
     <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]"> {/* Adjust height based on header/footer */}
       <div className="flex flex-col items-center gap-4">
         <LoadingSpinner size={48} />
-        <p className="text-muted-foreground">Iniciando Gestor AssistAI...</p>
+        <p className="text-muted-foreground">Iniciando {APP_NAME}...</p>
       </div>
     </PageContainer>
   );
 }
+

@@ -2,7 +2,7 @@
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType } from '@/types';
 import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaEnvelope, FaUserTimes, FaGoogle } from 'react-icons/fa';
 
-export const APP_NAME = "Gestor AssistAI";
+export const APP_NAME = "Hey Manito!";
 export const MAX_WIZARD_STEPS = 4;
 
 export const assistantPurposesConfig: AssistantPurpose[] = [
@@ -55,3 +55,4 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
   { id: "no_account", name: "Iniciar sesión sin cuenta", icon: FaUserTimes },
 ];
+
