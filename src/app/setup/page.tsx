@@ -10,7 +10,7 @@ import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Home } from 'lucide-react'; // Added Home icon
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast"; 
 
@@ -108,7 +108,29 @@ const SetupPage = () => {
       newAssistant.databaseId = dbId;
     }
 
-    const updatedAssistants = [...state.userProfile.assistants, newAssistant];
+    // Check if we are editing or adding. For this simplified example, we assume adding.
+    // A more robust solution would involve passing an assistantId if editing.
+    const existingAssistantIndex = state.userProfile.assistants.findIndex(
+      // This condition for finding an existing assistant to update is a placeholder.
+      // In a real scenario, you'd likely have an `editingAssistantId` in the wizard state.
+      // For now, if the name matches an existing assistant and the wizard was initiated from reconfigure,
+      // it might be an update. However, without a clear ID, we'll treat it as new.
+      // The reconfigure logic in dashboard.tsx currently just resets the wizard with assistant details,
+      // so this `handleCompleteSetup` will always create a "new" assistant with a new ID.
+      // This is acceptable for the current scope.
+      asst => asst.name === assistantName && state.isSetupComplete 
+    );
+
+    let updatedAssistants;
+    if (existingAssistantIndex > -1 && state.userProfile.assistants[existingAssistantIndex].id) {
+      // This path is unlikely to be hit with current reconfigure logic, but kept for conceptual integrity
+      updatedAssistants = state.userProfile.assistants.map((asst, index) => 
+        index === existingAssistantIndex ? { ...asst, ...newAssistant, id: asst.id } : asst
+      );
+    } else {
+      updatedAssistants = [...state.userProfile.assistants, newAssistant];
+    }
+    
     const updatedDatabases = [...state.userProfile.databases, ...newDatabases];
 
     const userProfile: UserProfile = {
@@ -157,14 +179,26 @@ const SetupPage = () => {
          {renderStepContent()}
         </div>
         <div className="flex justify-between items-center pt-6 border-t">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className="transition-transform transform hover:scale-105"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
-          </Button>
+          <div className="flex gap-2">
+            {state.isSetupComplete && (
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard')}
+                className="transition-transform transform hover:scale-105"
+              >
+                <Home className="mr-2 h-4 w-4" /> Volver al Panel
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className="transition-transform transform hover:scale-105"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+            </Button>
+          </div>
+          
           {currentStep < maxSteps && (
             <Button 
               onClick={handleNext} 
@@ -174,6 +208,7 @@ const SetupPage = () => {
               Siguiente <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           )}
+          {/* The "Completar Configuración" button is rendered within Step4SubscriptionPlan when currentStep === maxSteps */}
         </div>
       </div>
     </PageContainer>
