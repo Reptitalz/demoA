@@ -23,25 +23,33 @@ type Action =
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
   | { type: 'REMOVE_ASSISTANT'; payload: string } // assistant ID
-  | { type: 'ADD_DATABASE'; payload: DatabaseConfig };
+  | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
+  | { type: 'LOGOUT_USER' };
 
+
+const initialWizardState: WizardState = {
+  currentStep: 1,
+  maxSteps: MAX_WIZARD_STEPS,
+  assistantName: '',
+  selectedPurposes: new Set(),
+  databaseOption: { type: null },
+  authMethod: null,
+  selectedPlan: null,
+};
+
+const initialUserProfileState: UserProfile = {
+  isAuthenticated: false,
+  authProvider: null,
+  email: undefined,
+  currentPlan: null,
+  assistants: [],
+  databases: [],
+  firebaseUid: undefined,
+};
 
 const initialState: AppState = {
-  wizard: {
-    currentStep: 1,
-    maxSteps: MAX_WIZARD_STEPS,
-    assistantName: '',
-    selectedPurposes: new Set(),
-    databaseOption: { type: null },
-    authMethod: null,
-    selectedPlan: null,
-  },
-  userProfile: {
-    isAuthenticated: false,
-    currentPlan: null,
-    assistants: [],
-    databases: [],
-  },
+  wizard: initialWizardState,
+  userProfile: initialUserProfileState,
   isSetupComplete: false,
   isLoading: true, // Start with loading true to check localStorage
 };
@@ -86,17 +94,17 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...state, 
         userProfile: action.payload, 
         isSetupComplete: true, 
-        wizard: initialState.wizard // Reset wizard
+        wizard: initialWizardState // Reset wizard
       };
     case 'RESET_WIZARD':
-      return { ...state, wizard: initialState.wizard };
+      return { ...state, wizard: initialWizardState };
     case 'LOAD_STATE': {
       const loadedWizardPurposes = action.payload.wizard?.selectedPurposes;
       const wizardSelectedPurposesSet = Array.isArray(loadedWizardPurposes) 
         ? new Set(loadedWizardPurposes as AssistantPurposeType[]) 
         : new Set<AssistantPurposeType>();
 
-      const loadedUserProfile = action.payload.userProfile || initialState.userProfile;
+      const loadedUserProfile = action.payload.userProfile || initialUserProfileState;
       const assistantsWithSetPurposes = (loadedUserProfile.assistants || []).map(assistant => ({
         ...assistant,
         purposes: Array.isArray(assistant.purposes) 
@@ -108,12 +116,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...initialState, 
         ...action.payload, 
         userProfile: {
-          ...initialState.userProfile,
+          ...initialUserProfileState,
           ...loadedUserProfile,
           assistants: assistantsWithSetPurposes,
         },
         wizard: {
-          ...initialState.wizard, 
+          ...initialWizardState, 
           ...action.payload.wizard, 
           selectedPurposes: wizardSelectedPurposesSet,
         },
@@ -130,6 +138,11 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.filter(a => a.id !== action.payload) }};
     case 'ADD_DATABASE':
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
+    case 'LOGOUT_USER':
+      return {
+        ...initialState,
+        isLoading: false, // Keep isLoading false as we've initialized
+      };
     default:
       return state;
   }
@@ -160,13 +173,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           ...state,
           wizard: {
             ...state.wizard,
-            selectedPurposes: Array.from(state.wizard.selectedPurposes),
+            selectedPurposes: Array.from(state.wizard.selectedPurposes), // Serialize Set to Array
           },
           userProfile: {
             ...state.userProfile,
             assistants: state.userProfile.assistants.map(assistant => ({
               ...assistant,
-              purposes: Array.from(assistant.purposes), 
+              purposes: Array.from(assistant.purposes), // Serialize Set to Array for each assistant
             })),
           }
         };
