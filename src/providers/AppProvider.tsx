@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, SubscriptionPlanType, DatabaseSource, AssistantConfig, DatabaseConfig } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, SubscriptionPlanType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 
 type Action =
@@ -14,7 +14,7 @@ type Action =
   | { type: 'UPDATE_ASSISTANT_NAME'; payload: string }
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: { type: DatabaseSource | null; name?: string; file?: File | null } }
-  | { type: 'SET_AUTH_METHOD'; payload: "google" | "microsoft" | null }
+  | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'SET_SUBSCRIPTION_PLAN'; payload: SubscriptionPlanType | null }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
@@ -101,11 +101,11 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...assistant,
         purposes: Array.isArray(assistant.purposes) 
           ? new Set(assistant.purposes as AssistantPurposeType[])
-          : new Set<AssistantPurposeType>(), // Ensure purposes is a Set
+          : new Set<AssistantPurposeType>(), 
       }));
 
       return { 
-        ...initialState, // Ensure all parts of state are initialized
+        ...initialState, 
         ...action.payload, 
         userProfile: {
           ...initialState.userProfile,
@@ -166,7 +166,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             ...state.userProfile,
             assistants: state.userProfile.assistants.map(assistant => ({
               ...assistant,
-              purposes: Array.from(assistant.purposes), // Convert Set to Array
+              purposes: Array.from(assistant.purposes), 
             })),
           }
         };

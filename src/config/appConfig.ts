@@ -1,6 +1,6 @@
 
-import type { SubscriptionPlanDetails, AssistantPurpose } from '@/types';
-import { FileSpreadsheet, DatabaseZap, UserCog, Users, Mail } from 'lucide-react';
+import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType } from '@/types';
+import { FileSpreadsheet, DatabaseZap, UserCog, Users, Mail, UserX } from 'lucide-react';
 
 export const APP_NAME = "Gestor AssistAI";
 export const MAX_WIZARD_STEPS = 4;
@@ -51,7 +51,7 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   4: "Elige tu Plan",
 };
 
-export const AUTH_METHODS = [
+export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "google", name: "Iniciar sesión con Google", icon: Mail },
-  { id: "microsoft", name: "Iniciar sesión con Microsoft", icon: Mail },
+  { id: "no_account", name: "Iniciar sesión sin cuenta", icon: UserX },
 ];

@@ -1,4 +1,5 @@
 
+
 export type AssistantPurposeType = "import_db_google_sheets" | "import_db_excel" | "create_smart_db" | "notify_owner" | "notify_clients";
 
 export interface AssistantPurpose {
@@ -36,13 +37,16 @@ export interface SubscriptionPlanDetails {
   features: string[];
 }
 
+export type AuthProviderType = "google" | "no_account";
+
 export interface UserProfile {
   isAuthenticated: boolean;
-  authProvider?: "google" | "microsoft";
+  authProvider?: AuthProviderType;
   email?: string;
   currentPlan: SubscriptionPlanType | null;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
+  firebaseUid?: string; // Optional: store Firebase UID
 }
 
 // For wizard state
@@ -56,7 +60,7 @@ export interface WizardState {
     name?: string; // For smart_db or uploaded file
     file?: File | null; // For excel upload
   };
-  authMethod: "google" | "microsoft" | null;
+  authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
 }
 
