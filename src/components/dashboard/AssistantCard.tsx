@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Settings, Zap, MessageCircle, Phone, Database, Eye, Waypoints, MessageSquare } from "lucide-react";
+import { Bot, Settings, Zap, MessageCircle, Phone, Database, Eye, Waypoints, MessageSquare, Share2 } from "lucide-react";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import AssistantNodeViewDialog from "./AssistantNodeViewDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -23,10 +24,14 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
   const [isAdvancedView, setIsAdvancedView] = useState(false);
   const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
   const [clientMounted, setClientMounted] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setClientMounted(true); 
   }, []);
+
+  const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
+  const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
 
   const handleReconfigureClick = () => {
     if (isAdvancedView) {
@@ -36,11 +41,41 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
     }
   };
 
+  const handleShareOnWhatsApp = async () => {
+    if (!cleanedPhoneNumberForWhatsApp) {
+        toast({ title: "Error", description: "Número de WhatsApp no disponible para este asistente.", variant: "destructive"});
+        return;
+    }
+
+    const shareData = {
+      title: `Chatea con ${assistant.name}`,
+      text: `Inicia una conversación con ${assistant.name} en WhatsApp.`,
+      url: whatsappUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast({ title: "Compartido Exitosamente", description: "El enlace de WhatsApp ha sido compartido." });
+      } else {
+        throw new Error("navigator.share no está disponible"); // Fallback to clipboard
+      }
+    } catch (err) {
+      // Fallback to clipboard copy
+      try {
+        await navigator.clipboard.writeText(whatsappUrl);
+        toast({ title: "Enlace Copiado", description: "Enlace de WhatsApp copiado al portapapeles." });
+      } catch (copyError) {
+        toast({ title: "Error al Copiar", description: "No se pudo copiar el enlace.", variant: "destructive" });
+      }
+    }
+  };
+
+
   const purposes = Array.from(assistant.purposes).map(pid => 
     assistantPurposesConfig.find(p => p.id === pid)
   ).filter(p => p);
 
-  const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
 
   return (
     <>
@@ -61,7 +96,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 <Phone size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
               </div>
               <a
-                href={`https://wa.me/${cleanedPhoneNumberForWhatsApp}`}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs"
@@ -101,9 +136,9 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-3 border-t pt-3 sm:pt-4">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 border-t pt-3 sm:pt-4">
           {clientMounted ? (
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2 self-center sm:self-auto">
                   <Switch
                       id={`advanced-view-${assistant.id}`}
                       checked={isAdvancedView}
@@ -116,17 +151,29 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                       {isAdvancedView ? "Vista de Nodos" : "Vista Básica"}
                   </Label>
               </div>
-          ): ( <div className="h-5 w-24 sm:h-6 sm:w-28 bg-muted rounded-md animate-pulse" /> /* Placeholder for switch */)}
+          ): ( <div className="h-5 w-24 sm:h-6 sm:w-28 bg-muted rounded-md animate-pulse self-center sm:self-auto" /> /* Placeholder for switch */)}
           
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleReconfigureClick} 
-            className="transition-transform transform hover:scale-105 w-full sm:w-auto text-xs px-2 py-1 sm:px-3 sm:py-1.5"
-          >
-            <Settings size={14} className="mr-1.5 sm:mr-2" />
-            Reconfigurar
-          </Button>
+          <div className="flex flex-col gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleReconfigureClick} 
+              className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+            >
+              <Settings size={14} className="mr-1.5 sm:mr-2" />
+              Reconfigurar
+            </Button>
+            {assistant.phoneLinked && (
+              <Button
+                size="sm"
+                onClick={handleShareOnWhatsApp}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+              >
+                <Share2 size={14} className="mr-1.5 sm:mr-2" />
+                Compartir por WhatsApp
+              </Button>
+            )}
+          </div>
         </CardFooter>
       </Card>
 
