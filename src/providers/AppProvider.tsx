@@ -90,22 +90,36 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     case 'RESET_WIZARD':
       return { ...state, wizard: initialState.wizard };
-    case 'LOAD_STATE':
-      // Ensure selectedPurposes is always a Set, even if localStorage is empty or malformed for this field.
-      const loadedSelectedPurposes = action.payload.wizard?.selectedPurposes;
-      const selectedPurposesSet = Array.isArray(loadedSelectedPurposes) 
-        ? new Set(loadedSelectedPurposes as AssistantPurposeType[]) 
-        : new Set<AssistantPurposeType>(); // Default to empty set if not an array
+    case 'LOAD_STATE': {
+      const loadedWizardPurposes = action.payload.wizard?.selectedPurposes;
+      const wizardSelectedPurposesSet = Array.isArray(loadedWizardPurposes) 
+        ? new Set(loadedWizardPurposes as AssistantPurposeType[]) 
+        : new Set<AssistantPurposeType>();
+
+      const loadedUserProfile = action.payload.userProfile || initialState.userProfile;
+      const assistantsWithSetPurposes = (loadedUserProfile.assistants || []).map(assistant => ({
+        ...assistant,
+        purposes: Array.isArray(assistant.purposes) 
+          ? new Set(assistant.purposes as AssistantPurposeType[])
+          : new Set<AssistantPurposeType>(), // Ensure purposes is a Set
+      }));
 
       return { 
+        ...initialState, // Ensure all parts of state are initialized
         ...action.payload, 
+        userProfile: {
+          ...initialState.userProfile,
+          ...loadedUserProfile,
+          assistants: assistantsWithSetPurposes,
+        },
         wizard: {
-          ...initialState.wizard, // Start with default wizard state
-          ...action.payload.wizard, // Override with loaded wizard state
-          selectedPurposes: selectedPurposesSet, // Ensure it's a Set
+          ...initialState.wizard, 
+          ...action.payload.wizard, 
+          selectedPurposes: wizardSelectedPurposesSet,
         },
         isLoading: false 
       };
+    }
     case 'UPDATE_USER_PROFILE':
       return { ...state, userProfile: { ...state.userProfile, ...action.payload }};
     case 'ADD_ASSISTANT':
@@ -131,28 +145,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const parsedState = JSON.parse(persistedState);
         dispatch({ type: 'LOAD_STATE', payload: parsedState });
       } else {
-        dispatch({ type: 'LOAD_STATE', payload: initialState }); // Load initial state if nothing in LS
+        dispatch({ type: 'LOAD_STATE', payload: initialState }); 
       }
     } catch (error) {
-      console.error("Failed to load state from localStorage", error);
-      dispatch({ type: 'LOAD_STATE', payload: initialState }); // Fallback to initial state on error
+      console.error("Error al cargar estado desde localStorage", error);
+      dispatch({ type: 'LOAD_STATE', payload: initialState }); 
     }
   }, []);
 
   useEffect(() => {
-    if (!state.isLoading) { // Only save state if not in initial loading phase
+    if (!state.isLoading) { 
       try {
-        // Convert Set to array for JSON serialization
         const serializableState = {
           ...state,
           wizard: {
             ...state.wizard,
             selectedPurposes: Array.from(state.wizard.selectedPurposes),
           },
+          userProfile: {
+            ...state.userProfile,
+            assistants: state.userProfile.assistants.map(assistant => ({
+              ...assistant,
+              purposes: Array.from(assistant.purposes), // Convert Set to Array
+            })),
+          }
         };
         localStorage.setItem('assistAIManagerState', JSON.stringify(serializableState));
       } catch (error) {
-        console.error("Failed to save state to localStorage", error);
+        console.error("Error al guardar estado en localStorage", error);
       }
     }
   }, [state]);
@@ -167,7 +187,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 export const useApp = () => {
   const context = useContext(AppContext);
   if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
+    throw new Error('useApp debe ser usado dentro de un AppProvider');
   }
   return context;
 };
