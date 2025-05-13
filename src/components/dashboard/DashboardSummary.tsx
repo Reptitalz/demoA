@@ -4,7 +4,16 @@
 import { useApp } from "@/providers/AppProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { subscriptionPlansConfig } from "@/config/appConfig";
-import { Bot, Package } from "lucide-react";
+import { Bot, Package, ExternalLink } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import PlanViewer from "./PlanViewer"; // New component to display plans
 
 const DashboardSummary = () => {
   const { state } = useApp();
@@ -14,20 +23,36 @@ const DashboardSummary = () => {
 
   return (
     <div className="grid gap-4 grid-cols-2 mb-8">
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.1s"}}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
-          <Package className="h-5 w-5 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-accent">
-            {planDetails ? planDetails.name : "N/D"}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {planDetails ? `$${planDetails.priceMonthly}/mes` : "Sin plan activo"}
-          </p>
-        </CardContent>
-      </Card>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn cursor-pointer" style={{animationDelay: "0.1s"}}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
+              <div className="flex items-center gap-1 text-primary">
+                <Package className="h-5 w-5" />
+                <ExternalLink className="h-3 w-3 opacity-70" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-accent">
+                {planDetails ? planDetails.name : "N/D"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {planDetails ? `$${planDetails.priceMonthly}/mes` : "Sin plan activo"}
+              </p>
+            </CardContent>
+          </Card>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[525px] bg-card">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Detalles de tu Plan y Otras Opciones</DialogTitle>
+            <DialogDescription>
+              Aquí puedes ver tu plan actual y explorar otras opciones de suscripción.
+            </DialogDescription>
+          </DialogHeader>
+          <PlanViewer currentPlanId={currentPlan} allPlans={subscriptionPlansConfig} />
+        </DialogContent>
+      </Dialog>
 
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.2s"}}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -48,3 +73,4 @@ const DashboardSummary = () => {
 };
 
 export default DashboardSummary;
+
