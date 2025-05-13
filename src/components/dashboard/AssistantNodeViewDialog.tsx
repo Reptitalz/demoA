@@ -4,7 +4,9 @@
 import type { AssistantConfig } from "@/types";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { FaRobot, FaCommentDots } from "react-icons/fa";
+import { PlusCircle, Link as LinkIcon } from "lucide-react"; // Using Lucide icons
 import React from 'react';
 
 interface AssistantNodeViewDialogProps {
@@ -23,8 +25,19 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
   const centerNodeSize = 90;
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center p-4 min-h-[400px] bg-muted/30 rounded-lg shadow-inner">
-      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" aria-hidden="true">
+    <div className="relative w-full h-full flex items-center justify-center p-4 min-h-[400px] bg-muted/30 rounded-lg shadow-inner overflow-hidden">
+      {/* Grid Background SVG */}
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 z-0 pointer-events-none">
+        <defs>
+          <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="hsl(var(--border))" strokeOpacity="0.5" strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#gridPattern)" />
+      </svg>
+      
+      {/* Connection Lines SVG (existing) */}
+      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-[5]" aria-hidden="true">
         {purposes.map((_, index) => {
           const angle = angleStep * index - 90; 
           const x = radius * Math.cos(angle * Math.PI / 180);
@@ -44,7 +57,18 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
           );
         })}
       </svg>
+
+      {/* Configuration Buttons Toolbar */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col sm:flex-row gap-2">
+        <Button variant="outline" size="sm" className="text-xs shadow-md">
+          <PlusCircle className="mr-1.5 h-3.5 w-3.5" /> Agregar Propósito
+        </Button>
+        <Button variant="outline" size="sm" className="text-xs shadow-md">
+          <LinkIcon className="mr-1.5 h-3.5 w-3.5" /> Vincular Base de Datos
+        </Button>
+      </div>
       
+      {/* Central Node */}
       <div 
         className="absolute top-1/2 left-1/2 bg-card border-2 border-primary rounded-full shadow-xl flex flex-col items-center justify-center p-2 text-center z-10"
         style={{
@@ -58,6 +82,7 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
         <span className="text-xs font-semibold text-foreground truncate w-full px-1">{assistant.name}</span>
       </div>
 
+      {/* Purpose Nodes */}
       {purposes.map((purpose, index) => {
         if (!purpose) return null;
         const Icon = purpose.icon || FaCommentDots;
@@ -103,3 +128,4 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
 };
 
 export default AssistantNodeViewDialog;
+
