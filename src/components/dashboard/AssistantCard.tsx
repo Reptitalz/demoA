@@ -56,19 +56,20 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
             </Badge>
           </div>
           {assistant.phoneLinked && (
-            <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
-              <div className="flex items-center gap-1">
+            <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-2">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Phone size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
               </div>
               <a
                 href={`https://wa.me/${cleanedPhoneNumberForWhatsApp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 transition-colors ml-2 p-1 rounded-full hover:bg-primary/10"
+                className="flex items-center gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs"
                 aria-label="Iniciar chat de WhatsApp"
                 title="Iniciar chat de WhatsApp"
               >
                 <MessageSquare size={14} />
+                <span>Chatear</span>
               </a>
             </CardDescription>
           )}
@@ -108,7 +109,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                       checked={isAdvancedView}
                       onCheckedChange={setIsAdvancedView}
                       aria-label="Alternar vista de nodo avanzada"
-                      className="h-4 w-8 sm:h-5 sm:w-10 data-[state=checked]:sm:translate-x-5 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0" // smaller switch
+                      className="h-4 w-8 sm:h-5 sm:w-10 data-[state=checked]:sm:translate-x-5 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0" 
                   />
                   <Label htmlFor={`advanced-view-${assistant.id}`} className="text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 cursor-pointer">
                       {isAdvancedView ? <Waypoints size={12}/> : <Eye size={12}/>}
