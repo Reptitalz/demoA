@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaEye, FaRoute, FaWhatsapp, FaShareAlt } from "react-icons/fa";
+import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaEye, FaRoute, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -20,10 +20,13 @@ interface AssistantCardProps {
   animationDelay?: string;
 }
 
+const INITIAL_PURPOSES_TO_SHOW = 2;
+
 const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: AssistantCardProps) => {
   const [isAdvancedView, setIsAdvancedView] = useState(false);
   const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
   const [clientMounted, setClientMounted] = useState(false);
+  const [showAllPurposes, setShowAllPurposes] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,9 +74,11 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
   };
 
 
-  const purposes = Array.from(assistant.purposes).map(pid => 
+  const allPurposes = Array.from(assistant.purposes).map(pid => 
     assistantPurposesConfig.find(p => p.id === pid)
   ).filter(p => p);
+
+  const displayedPurposes = showAllPurposes ? allPurposes : allPurposes.slice(0, INITIAL_PURPOSES_TO_SHOW);
 
 
   return (
@@ -110,11 +115,24 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
         </CardHeader>
         <CardContent className="flex-grow space-y-2.5 sm:space-y-3">
           <div>
-            <h4 className="text-xs sm:text-sm font-semibold mb-1 sm:mb-1.5 text-foreground flex items-center gap-1 sm:gap-1.5">
-              <FaBolt size={14} className="text-accent" /> Propósitos:
-            </h4>
+            <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+              <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
+                <FaBolt size={14} className="text-accent" /> Propósitos:
+              </h4>
+              {allPurposes.length > INITIAL_PURPOSES_TO_SHOW && (
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  onClick={() => setShowAllPurposes(!showAllPurposes)}
+                  className="text-xs p-0 h-auto text-accent hover:text-accent/80"
+                >
+                  {showAllPurposes ? "Ver menos" : "Ver más"}
+                  {showAllPurposes ? <FaChevronUp className="ml-1 h-3 w-3" /> : <FaChevronDown className="ml-1 h-3 w-3" />}
+                </Button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {purposes.length > 0 ? purposes.map(purpose => {
+              {displayedPurposes.length > 0 ? displayedPurposes.map(purpose => {
                 if (!purpose) return null;
                 const Icon = purpose.icon || FaCommentDots;
                 return (
@@ -196,3 +214,4 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
 };
 
 export default AssistantCard;
+
