@@ -103,6 +103,9 @@ body {
 }
 
 @layer base {
+  html {
+    font-size: 15px; /* Adjust global rem baseline for smaller text and UI elements */
+  }
   * {
     @apply border-border;
   }
