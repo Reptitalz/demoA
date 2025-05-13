@@ -8,6 +8,57 @@ body {
 
 @layer base {
   :root {
+    /* Light Theme Variables */
+    --background: 0 0% 98%; /* Almost white */
+    --foreground: 240 10% 3.9%; /* Dark gray */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 145 63% 49%; /* WhatsApp Green */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 0 0% 94%; /* Light Gray */
+    --secondary-foreground: 240 5% 25%;
+
+    --muted: 0 0% 90%; /* Lighter Gray */
+    --muted-foreground: 240 5% 45%;
+
+    --accent: 74 100% 50%; /* Electric Lime */
+    --accent-foreground: 240 10% 5%; /* Very dark text on Electric Lime */
+
+    --destructive: 0 84.2% 60.2%; /* Standard destructive red */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 89.8%; /* Light border */
+    --input: 0 0% 93.3%; /* Light input background */
+    --ring: 74 100% 50%; /* Electric Lime for focus rings */
+
+    --radius: 0.5rem;
+
+    /* Sidebar variables for light theme */
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 240 10% 10%;
+    --sidebar-primary: 145 63% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 74 100% 50%;
+    --sidebar-accent-foreground: 240 10% 5%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 74 100% 50%;
+
+    /* Chart colors for light theme */
+    --chart-1: 145 63% 49%;
+    --chart-2: 74 100% 50%;
+    --chart-3: 210 30% 50%;
+    --chart-4: 30 80% 50%;
+    --chart-5: 280 70% 55%;
+  }
+
+  .dark {
+    /* Dark Theme Variables */
     --background: 220 10% 10%; /* Dark Slate Blue/Near Black */
     --foreground: 210 30% 95%; /* Very Light Gray/Almost White */
 
@@ -35,56 +86,8 @@ body {
     --border: 220 10% 30%;
     --input: 220 10% 22%;
     --ring: 74 100% 50%; /* Electric Lime for focus rings */
-
-    --radius: 0.5rem;
-
-    /* Sidebar variables, themed for dark mode by default */
-    --sidebar-background: 220 10% 8%;
-    --sidebar-foreground: 210 30% 90%;
-    --sidebar-primary: 145 63% 49%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 74 100% 50%;
-    --sidebar-accent-foreground: 240 10% 5%;
-    --sidebar-border: 220 10% 25%;
-    --sidebar-ring: 74 100% 50%;
-
-    --chart-1: 145 63% 49%;
-    --chart-2: 74 100% 50%;
-    --chart-3: 210 30% 70%;
-    --chart-4: 30 80% 60%;
-    --chart-5: 280 70% 65%;
-  }
-
-  .dark {
-    /* Same as :root for a consistent dark theme */
-    --background: 220 10% 10%;
-    --foreground: 210 30% 95%;
-
-    --card: 220 10% 15%;
-    --card-foreground: 210 30% 95%;
-
-    --popover: 220 10% 12%;
-    --popover-foreground: 210 30% 95%;
-
-    --primary: 145 63% 49%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 10% 25%;
-    --secondary-foreground: 210 30% 85%;
-
-    --muted: 220 10% 20%;
-    --muted-foreground: 210 30% 60%;
-
-    --accent: 74 100% 50%;
-    --accent-foreground: 240 10% 5%;
-
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 220 10% 30%;
-    --input: 220 10% 22%;
-    --ring: 74 100% 50%;
     
+    /* Sidebar variables, themed for dark mode */
     --sidebar-background: 220 10% 8%;
     --sidebar-foreground: 210 30% 90%;
     --sidebar-primary: 145 63% 49%;
@@ -94,6 +97,7 @@ body {
     --sidebar-border: 220 10% 25%;
     --sidebar-ring: 74 100% 50%;
     
+    /* Chart colors for dark theme */
     --chart-1: 145 63% 49%;
     --chart-2: 74 100% 50%;
     --chart-3: 210 30% 70%;

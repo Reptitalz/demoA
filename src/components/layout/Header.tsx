@@ -1,8 +1,8 @@
-
 "use client";
 import Link from 'next/link';
 import { FaRobot } from 'react-icons/fa';
 import { APP_NAME } from '@/config/appConfig';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 const Header = () => {
   return (
@@ -12,7 +12,7 @@ const Header = () => {
           <FaRobot size={28} />
           <h1 className="text-xl font-bold text-foreground">{APP_NAME}</h1>
         </Link>
-        {/* Placeholder for user profile/actions */}
+        <ThemeToggle />
       </div>
     </header>
   );

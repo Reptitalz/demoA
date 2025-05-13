@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google'; // Using Inter for a more modern feel
 import './globals.css';
 import { AppProvider } from '@/providers/AppProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 
@@ -22,15 +23,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <AppProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
-        </AppProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AppProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </AppProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-
