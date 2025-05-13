@@ -87,8 +87,10 @@ const DashboardPage = () => {
     try {
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
+      // isSetupComplete state is preserved by the LOGOUT_USER action in AppProvider
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go to auth step
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      router.push('/'); 
+      router.push('/setup'); 
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
@@ -106,7 +108,7 @@ const DashboardPage = () => {
   if (!userProfile.isAuthenticated) { 
     return (
       <PageContainer className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-150px)]">
-        <p className="text-base mb-3">Redirigiendo...</p>
+        <p className="text-xs mb-3">Redirigiendo...</p>
         <LoadingSpinner size={28} />
       </PageContainer>
     );

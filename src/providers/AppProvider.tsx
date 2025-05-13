@@ -109,7 +109,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...assistant,
         purposes: Array.isArray(assistant.purposes) 
           ? new Set(assistant.purposes as AssistantPurposeType[])
-          : new Set<AssistantPurposeType>(), 
+          // Handle cases where purposes might be stored as an object (e.g. from older state versions)
+          : (typeof assistant.purposes === 'object' && assistant.purposes !== null && !(assistant.purposes instanceof Set)) 
+            ? new Set(Object.keys(assistant.purposes) as AssistantPurposeType[])
+            : new Set<AssistantPurposeType>(), 
       }));
 
       return { 
@@ -140,8 +143,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
     case 'LOGOUT_USER':
       return {
-        ...initialState,
-        isLoading: false, // Keep isLoading false as we've initialized
+        ...state, // Preserve existing state like isSetupComplete
+        userProfile: initialUserProfileState, // Reset only user profile
+        wizard: initialWizardState, // Reset wizard state, including currentStep
+        isLoading: false,
       };
     default:
       return state;
@@ -156,6 +161,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const persistedState = localStorage.getItem('assistAIManagerState');
       if (persistedState) {
         const parsedState = JSON.parse(persistedState);
+        // Ensure selectedPurposes in assistants are Sets after loading
+        if (parsedState.userProfile && parsedState.userProfile.assistants) {
+          parsedState.userProfile.assistants = parsedState.userProfile.assistants.map((asst: AssistantConfig) => ({
+            ...asst,
+            purposes: new Set(asst.purposes),
+          }));
+        }
+        // Ensure selectedPurposes in wizard is a Set
+        if (parsedState.wizard && parsedState.wizard.selectedPurposes) {
+          parsedState.wizard.selectedPurposes = new Set(parsedState.wizard.selectedPurposes);
+        }
         dispatch({ type: 'LOAD_STATE', payload: parsedState });
       } else {
         dispatch({ type: 'LOAD_STATE', payload: initialState }); 
