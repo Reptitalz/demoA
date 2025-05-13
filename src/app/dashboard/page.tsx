@@ -23,10 +23,16 @@ const DashboardPage = () => {
   const { userProfile, isSetupComplete, isLoading } = state;
 
   useEffect(() => {
-    if (!isLoading && !userProfile.isAuthenticated) { // Check isAuthenticated for redirect
+    if (!isLoading && !userProfile.isAuthenticated) {
+      // User is not authenticated.
+      // If setup was already complete, send them to step 3 (Auth) of setup.
+      // Otherwise (setup not complete), send them to setup (will start at step 1).
+      if (isSetupComplete) { 
+         dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
+      }
       router.replace('/setup');
     }
-  }, [isLoading, userProfile.isAuthenticated, router]);
+  }, [isLoading, userProfile.isAuthenticated, isSetupComplete, router, dispatch]);
 
 
   const handleReconfigureAssistant = (assistantId: string) => {

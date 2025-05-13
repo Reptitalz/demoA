@@ -8,18 +8,27 @@ import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 export default function HomePage() {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const router = useRouter();
 
   useEffect(() => {
     if (!state.isLoading) { // Only redirect after initial state load
       if (state.isSetupComplete) {
-        router.replace('/dashboard');
+        if (!state.userProfile.isAuthenticated) {
+          // Setup is complete, but user is not authenticated.
+          // Send them to the login step (Step 3) of the setup wizard.
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
+          router.replace('/setup');
+        } else {
+          // Setup is complete and user is authenticated.
+          router.replace('/dashboard');
+        }
       } else {
+        // Setup is not complete.
         router.replace('/setup');
       }
     }
-  }, [state.isSetupComplete, state.isLoading, router]);
+  }, [state.isLoading, state.isSetupComplete, state.userProfile.isAuthenticated, router, dispatch]);
 
   // Display a loading indicator while checking state
   return (
