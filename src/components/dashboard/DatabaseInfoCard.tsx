@@ -3,10 +3,10 @@
 import type { DatabaseConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Database, FileSpreadsheet, DatabaseZap, Link as LinkIcon } from "lucide-react";
+import { FaDatabase, FaFileExcel, FaBrain, FaLink } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import DatabaseConnectionsDialog from "./DatabaseConnectionsDialog"; // New component
+import DatabaseConnectionsDialog from "./DatabaseConnectionsDialog"; 
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -16,7 +16,7 @@ interface DatabaseInfoCardProps {
 const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardProps) => {
   const [isConnectionsDialogOpen, setIsConnectionsDialogOpen] = useState(false);
 
-  const Icon = database.source === "excel" || database.source === "google_sheets" ? FileSpreadsheet : DatabaseZap;
+  const Icon = database.source === "excel" || database.source === "google_sheets" ? FaFileExcel : FaBrain;
 
   const getSourceName = (source: DatabaseConfig['source']) => {
     switch(source) {
@@ -33,7 +33,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Database className="h-8 w-8 text-primary" />
+              <FaDatabase className="h-8 w-8 text-primary" />
               <CardTitle className="text-xl truncate" title={database.name}>{database.name.length > 20 ? `${database.name.substring(0,20)}...` : database.name}</CardTitle>
             </div>
             <Badge variant="outline" className="flex items-center gap-1.5 whitespace-nowrap">
@@ -58,7 +58,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
             onClick={() => setIsConnectionsDialogOpen(true)}
             className="w-full transition-transform transform hover:scale-105"
           >
-            <LinkIcon size={16} className="mr-2" />
+            <FaLink size={16} className="mr-2" />
             Ver Conexiones
           </Button>
         </CardFooter>

@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Settings, Zap, MessageCircle, Phone, Database, Eye, Waypoints, MessageSquare, Share2 } from "lucide-react";
+import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaEye, FaRoute, FaWhatsapp, FaShareAlt } from "react-icons/fa";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -58,10 +58,9 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
         await navigator.share(shareData);
         toast({ title: "Compartido Exitosamente", description: "El enlace de WhatsApp ha sido compartido." });
       } else {
-        throw new Error("navigator.share no está disponible"); // Fallback to clipboard
+        throw new Error("navigator.share no está disponible"); 
       }
     } catch (err) {
-      // Fallback to clipboard copy
       try {
         await navigator.clipboard.writeText(whatsappUrl);
         toast({ title: "Enlace Copiado", description: "Enlace de WhatsApp copiado al portapapeles." });
@@ -83,7 +82,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Bot className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <FaRobot className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
               <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
             </div>
             <Badge variant={assistant.phoneLinked ? "default" : "secondary"} className={cn(assistant.phoneLinked && "bg-green-600 text-white", "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1")}>
@@ -93,7 +92,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
           {assistant.phoneLinked && (
             <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-2">
               <div className="flex items-center gap-1 text-muted-foreground">
-                <Phone size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
+                <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
               </div>
               <a
                 href={whatsappUrl}
@@ -103,7 +102,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 aria-label="Iniciar chat de WhatsApp"
                 title="Iniciar chat de WhatsApp"
               >
-                <MessageSquare size={14} />
+                <FaWhatsapp size={14} />
                 <span>Chatear</span>
               </a>
             </CardDescription>
@@ -112,12 +111,12 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
         <CardContent className="flex-grow space-y-2.5 sm:space-y-3">
           <div>
             <h4 className="text-xs sm:text-sm font-semibold mb-1 sm:mb-1.5 text-foreground flex items-center gap-1 sm:gap-1.5">
-              <Zap size={14} className="text-accent" /> Propósitos:
+              <FaBolt size={14} className="text-accent" /> Propósitos:
             </h4>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {purposes.length > 0 ? purposes.map(purpose => {
                 if (!purpose) return null;
-                const Icon = purpose.icon || MessageCircle;
+                const Icon = purpose.icon || FaCommentDots;
                 return (
                   <Badge key={purpose.id} variant="secondary" className="flex items-center gap-1 sm:gap-1.5 py-0.5 px-1.5 sm:py-1 sm:px-2.5 text-xs">
                     <Icon size={12} />
@@ -130,7 +129,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
           {assistant.databaseId && (
             <div>
                <h4 className="text-xs sm:text-sm font-semibold mb-1 sm:mb-1.5 text-foreground flex items-center gap-1 sm:gap-1.5">
-                <Database size={14} className="text-accent" /> Base de Datos Vinculada:
+                <FaDatabase size={14} className="text-accent" /> Base de Datos Vinculada:
               </h4>
               <Badge variant="outline" className="text-xs py-0.5 px-1.5 sm:py-1 sm:px-2">{assistant.databaseId.substring(0,15)}...</Badge> 
             </div>
@@ -147,7 +146,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                       className="h-4 w-8 sm:h-5 sm:w-10 data-[state=checked]:sm:translate-x-5 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0" 
                   />
                   <Label htmlFor={`advanced-view-${assistant.id}`} className="text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 cursor-pointer">
-                      {isAdvancedView ? <Waypoints size={12}/> : <Eye size={12}/>}
+                      {isAdvancedView ? <FaRoute size={12}/> : <FaEye size={12}/>}
                       {isAdvancedView ? "Vista de Nodos" : "Vista Básica"}
                   </Label>
               </div>
@@ -160,7 +159,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
               onClick={handleReconfigureClick} 
               className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
             >
-              <Settings size={14} className="mr-1.5 sm:mr-2" />
+              <FaCog size={14} className="mr-1.5 sm:mr-2" />
               Reconfigurar
             </Button>
             {assistant.phoneLinked && (
@@ -169,7 +168,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 onClick={handleShareOnWhatsApp}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
               >
-                <Share2 size={14} className="mr-1.5 sm:mr-2" />
+                <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
               </Button>
             )}

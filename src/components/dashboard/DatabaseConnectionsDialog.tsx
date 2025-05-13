@@ -3,10 +3,10 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card"; // Renamed to avoid conflict
+import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/providers/AppProvider";
-import { Bot, Database as DatabaseIcon, FileSpreadsheet, DatabaseZap, Link2Off, Link2 } from "lucide-react";
+import { FaRobot, FaDatabase, FaFileExcel, FaBrain, FaUnlink, FaLink } from "react-icons/fa";
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 
 interface DatabaseConnectionsDialogProps {
@@ -18,11 +18,11 @@ const getDatabaseIcon = (source: DatabaseSource) => {
   switch (source) {
     case "excel":
     case "google_sheets":
-      return FileSpreadsheet;
+      return FaFileExcel;
     case "smart_db":
-      return DatabaseZap;
+      return FaBrain; // Changed from DatabaseZap to FaBrain for smart_db
     default:
-      return DatabaseIcon;
+      return FaDatabase;
   }
 };
 
@@ -44,7 +44,7 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
       <DialogContent className="max-w-lg md:max-w-xl lg:max-w-2xl min-h-[70vh] bg-card flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
-            <Link2 size={24} className="text-primary" />
+            <FaLink size={24} className="text-primary" />
             Conexiones de Bases de Datos y Asistentes
           </DialogTitle>
           <DialogDescription>
@@ -54,7 +54,7 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
         <ScrollArea className="flex-grow pr-4 -mr-2 mt-4">
           {databases.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-10">
-              <DatabaseIcon size={48} className="mb-4" />
+              <FaDatabase size={48} className="mb-4" />
               <p>No hay bases de datos configuradas.</p>
             </div>
           ) : (
@@ -76,7 +76,7 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
                     </CardHeader>
                     <CardContent>
                       <h4 className="text-sm font-semibold mb-2 text-foreground flex items-center gap-1.5">
-                        <Bot size={16} className="text-accent" /> Asistentes Vinculados:
+                        <FaRobot size={16} className="text-accent" /> Asistentes Vinculados:
                       </h4>
                       {linkedAssistants.length > 0 ? (
                         <ul className="space-y-1 list-disc list-inside pl-1 text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
                         </ul>
                       ) : (
                         <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                          <Link2Off size={14} /> No hay asistentes vinculados a esta base de datos.
+                          <FaUnlink size={14} /> No hay asistentes vinculados a esta base de datos.
                         </p>
                       )}
                     </CardContent>

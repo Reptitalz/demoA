@@ -1,16 +1,16 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType } from '@/types';
-import { FileSpreadsheet, DatabaseZap, UserCog, Users, Mail, UserX } from 'lucide-react';
+import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaEnvelope, FaUserTimes, FaGoogle } from 'react-icons/fa';
 
 export const APP_NAME = "Gestor AssistAI";
 export const MAX_WIZARD_STEPS = 4;
 
 export const assistantPurposesConfig: AssistantPurpose[] = [
-  { id: "import_db_google_sheets", name: "Importar desde Hojas de cálculo de Google", description: "Conecta y usa datos de una Hoja de cálculo de Google existente.", icon: FileSpreadsheet },
-  { id: "import_db_excel", name: "Importar desde Excel", description: "Sube un archivo de Excel para usarlo como tu base de datos.", icon: FileSpreadsheet },
-  { id: "create_smart_db", name: "Crear Base de Datos Inteligente", description: "Deja que la IA te ayude a construir una base de datos inteligente.", icon: DatabaseZap },
-  { id: "notify_owner", name: "Comunicarse con el Propietario", description: "El asistente te enviará actualizaciones y alertas vía WhatsApp.", icon: UserCog },
-  { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: Users },
+  { id: "import_db_google_sheets", name: "Importar desde Hojas de cálculo de Google", description: "Conecta y usa datos de una Hoja de cálculo de Google existente.", icon: FaFileExcel },
+  { id: "import_db_excel", name: "Importar desde Excel", description: "Sube un archivo de Excel para usarlo como tu base de datos.", icon: FaFileExcel },
+  { id: "create_smart_db", name: "Crear Base de Datos Inteligente", description: "Deja que la IA te ayude a construir una base de datos inteligente.", icon: FaBrain },
+  { id: "notify_owner", name: "Comunicarse con el Propietario", description: "El asistente te enviará actualizaciones y alertas vía WhatsApp.", icon: FaUserCog },
+  { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: FaUsers },
 ];
 
 export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
@@ -52,6 +52,6 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
 };
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
-  { id: "google", name: "Iniciar sesión con Google", icon: Mail },
-  { id: "no_account", name: "Iniciar sesión sin cuenta", icon: UserX },
+  { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
+  { id: "no_account", name: "Iniciar sesión sin cuenta", icon: FaUserTimes },
 ];

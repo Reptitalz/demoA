@@ -7,13 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileSpreadsheet, DatabaseZap, Upload } from "lucide-react";
+import { FaFileExcel, FaBrain, FaUpload } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
 
 const databaseOptionsConfig = [
-  { id: "google_sheets" as DatabaseSource, name: "Importar desde Hojas de cálculo de Google", icon: FileSpreadsheet, requiresInput: true, inputPlaceholder: "Enlace o ID de Hoja de Google" },
-  { id: "excel" as DatabaseSource, name: "Importar desde Excel", icon: FileSpreadsheet, requiresInput: false, requiresFile: true },
-  { id: "smart_db" as DatabaseSource, name: "Crear Base de Datos Inteligente", icon: DatabaseZap, requiresInput: true, inputPlaceholder: "Nombre de Base de Datos Inteligente" },
+  { id: "google_sheets" as DatabaseSource, name: "Importar desde Hojas de cálculo de Google", icon: FaFileExcel, requiresInput: true, inputPlaceholder: "Enlace o ID de Hoja de Google" },
+  { id: "excel" as DatabaseSource, name: "Importar desde Excel", icon: FaFileExcel, requiresInput: false, requiresFile: true },
+  { id: "smart_db" as DatabaseSource, name: "Crear Base de Datos Inteligente", icon: FaBrain, requiresInput: true, inputPlaceholder: "Nombre de Base de Datos Inteligente" },
 ];
 
 const Step2DatabaseConfig = () => {
@@ -98,7 +98,7 @@ const Step2DatabaseConfig = () => {
               <div className="flex items-center space-x-2">
                 <Button variant="outline" asChild>
                   <Label htmlFor="fileUpload" className="cursor-pointer">
-                    <Upload className="mr-2 h-4 w-4" /> Elegir Archivo
+                    <FaUpload className="mr-2 h-4 w-4" /> Elegir Archivo
                   </Label>
                 </Button>
                 <Input id="fileUpload" type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" aria-describedby="fileNameDisplay"/>

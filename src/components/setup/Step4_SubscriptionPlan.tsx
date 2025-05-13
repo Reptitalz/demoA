@@ -8,14 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { subscriptionPlansConfig } from "@/config/appConfig";
 import type { SubscriptionPlanType } from "@/types";
-import { CheckCircle, ListChecks, TrendingUp, Briefcase } from "lucide-react";
+import { FaCheckCircle, FaTasks, FaChartLine, FaBriefcase } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
-  free: CheckCircle,
-  standard_39: ListChecks,
-  premium_179: TrendingUp,
-  business_270: Briefcase,
+  free: FaCheckCircle,
+  standard_39: FaTasks,
+  premium_179: FaChartLine,
+  business_270: FaBriefcase,
 };
 
 const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => void }) => {
@@ -48,12 +48,12 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
                 htmlFor={`plan-${plan.id}`}
                 className={cn(
                   "flex flex-col p-3 border rounded-lg hover:bg-muted/50 transition-all duration-200 cursor-pointer",
-                  isSelected && "bg-muted/50 border-primary ring-1 ring-primary" 
+                  isSelected && "bg-primary/10 border-primary ring-1 ring-primary" 
                 )}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} className={cn(isSelected && "border-primary-foreground text-primary-foreground bg-primary", "h-3.5 w-3.5 sm:h-4 sm:w-4")} />
+                    <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} className={cn(isSelected && "border-primary text-primary bg-primary", "h-3.5 w-3.5 sm:h-4 sm:w-4")} />
                     <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6 text-primary")} /> 
                     <span className="font-semibold text-sm sm:text-base">{plan.name}</span> 
                   </div>
@@ -70,7 +70,7 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
                 <ul className="mt-2 pl-6 sm:pl-7 space-y-1 text-xs sm:text-sm">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center">
-                      <CheckCircle className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-green-500")} /> 
+                      <FaCheckCircle className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-green-500")} /> 
                       {feature} 
                     </li>
                   ))}
@@ -82,7 +82,7 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
       </CardContent>
       <CardFooter>
         <Button 
-          className="w-full text-sm sm:text-base py-3 transition-transform transform hover:scale-105" 
+          className="w-full text-sm sm:text-base py-2.5 transition-transform transform hover:scale-105" 
           onClick={onCompleteSetup}
           disabled={!selectedPlan}
           aria-disabled={!selectedPlan}
@@ -95,4 +95,3 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
 };
 
 export default Step4SubscriptionPlan;
-

@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import { DayPicker, CaptionProps } from "react-day-picker"
 import { es } from 'date-fns/locale'; // Import Spanish locale
 
@@ -83,10 +83,10 @@ function Calendar({
       }}
       components={{
         IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} aria-label="Mes anterior" />
+          <FaChevronLeft className={cn("h-4 w-4", className)} {...props} aria-label="Mes anterior" />
         ),
         IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} aria-label="Mes siguiente" />
+          <FaChevronRight className={cn("h-4 w-4", className)} {...props} aria-label="Mes siguiente" />
         ),
         Caption: CustomCaption, // Use custom caption
       }}

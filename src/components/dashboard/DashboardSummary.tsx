@@ -4,7 +4,7 @@
 import { useApp } from "@/providers/AppProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { subscriptionPlansConfig } from "@/config/appConfig";
-import { Bot, Package, ExternalLink } from "lucide-react";
+import { FaRobot, FaBoxOpen, FaExternalLinkAlt } from "react-icons/fa";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import PlanViewer from "./PlanViewer"; // New component to display plans
+import PlanViewer from "./PlanViewer"; 
 
 const DashboardSummary = () => {
   const { state } = useApp();
@@ -29,8 +29,8 @@ const DashboardSummary = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
               <div className="flex items-center gap-1 text-primary">
-                <Package className="h-5 w-5" />
-                <ExternalLink className="h-3 w-3 opacity-70" />
+                <FaBoxOpen className="h-5 w-5" />
+                <FaExternalLinkAlt className="h-3 w-3 opacity-70" />
               </div>
             </CardHeader>
             <CardContent>
@@ -57,7 +57,7 @@ const DashboardSummary = () => {
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.2s"}}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Asistentes Activos</CardTitle>
-          <Bot className="h-5 w-5 text-primary" />
+          <FaRobot className="h-5 w-5 text-primary" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-accent">
@@ -73,4 +73,3 @@ const DashboardSummary = () => {
 };
 
 export default DashboardSummary;
-

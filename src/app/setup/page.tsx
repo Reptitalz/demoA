@@ -10,7 +10,7 @@ import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Home } from 'lucide-react'; 
+import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa'; 
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast"; 
 
@@ -124,7 +124,7 @@ const SetupPage = () => {
     const updatedDatabases = [...state.userProfile.databases, ...newDatabases];
 
     const finalUserProfile: UserProfile = {
-      ...state.userProfile, // This includes isAuthenticated, authProvider, email, firebaseUid set by Step 3
+      ...state.userProfile, 
       currentPlan: selectedPlan,
       assistants: updatedAssistants,
       databases: updatedDatabases,
@@ -167,13 +167,13 @@ const SetupPage = () => {
         </div>
         <div className="flex justify-between items-center pt-5 border-t">
           <div className="flex gap-2">
-            {state.isSetupComplete && (
+            {state.isSetupComplete && ( // Show "Volver al Panel" only if setup was already complete (editing/adding new from dashboard)
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard')}
                 className="transition-transform transform hover:scale-105 text-xs sm:text-sm"
               >
-                <Home className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Volver al Panel
+                <FaHome className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Volver al Panel
               </Button>
             )}
             <Button
@@ -182,7 +182,7 @@ const SetupPage = () => {
               disabled={currentStep === 1}
               className="transition-transform transform hover:scale-105 text-xs sm:text-sm"
             >
-              <ArrowLeft className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Anterior
+              <FaArrowLeft className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Anterior
             </Button>
           </div>
           
@@ -192,7 +192,7 @@ const SetupPage = () => {
               className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs sm:text-sm"
               disabled={!isStepValid()} 
             >
-              Siguiente <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Siguiente <FaArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           )}
         </div>

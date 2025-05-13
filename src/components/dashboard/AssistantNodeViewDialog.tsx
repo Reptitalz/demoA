@@ -4,7 +4,7 @@
 import type { AssistantConfig } from "@/types";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, MessageCircle } from "lucide-react";
+import { FaRobot, FaCommentDots } from "react-icons/fa";
 import React from 'react';
 
 interface AssistantNodeViewDialogProps {
@@ -18,17 +18,15 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
 
   const numPurposes = purposes.length;
   const angleStep = numPurposes > 0 ? 360 / numPurposes : 0;
-  // Adjust radius and node sizes for better visualization
-  const radius = numPurposes > 1 ? Math.min(120 + numPurposes * 5, 200) : 0; // Dynamic radius
-  const nodeSize = 80; // Diameter of purpose nodes
-  const centerNodeSize = 90; // Diameter of center assistant node
+  const radius = numPurposes > 1 ? Math.min(120 + numPurposes * 5, 200) : 0; 
+  const nodeSize = 80; 
+  const centerNodeSize = 90;
 
   return (
     <div className="relative w-full h-full flex items-center justify-center p-4 min-h-[400px] bg-muted/30 rounded-lg shadow-inner">
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" aria-hidden="true">
-        {/* Connection Lines */}
         {purposes.map((_, index) => {
-          const angle = angleStep * index - 90; // Start from top
+          const angle = angleStep * index - 90; 
           const x = radius * Math.cos(angle * Math.PI / 180);
           const y = radius * Math.sin(angle * Math.PI / 180);
           return (
@@ -41,13 +39,12 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
               stroke="hsl(var(--primary))"
               strokeWidth="2"
               strokeDasharray="4 4"
-              className="opacity-70 animate-pulse-slow" // Slower pulse
+              className="opacity-70 animate-pulse-slow"
             />
           );
         })}
       </svg>
       
-      {/* Central Assistant Node */}
       <div 
         className="absolute top-1/2 left-1/2 bg-card border-2 border-primary rounded-full shadow-xl flex flex-col items-center justify-center p-2 text-center z-10"
         style={{
@@ -57,15 +54,14 @@ const AssistantNodeViewDialog: React.FC<AssistantNodeViewDialogProps> = ({ assis
         }}
         title={assistant.name}
       >
-        <Bot className="h-8 w-8 text-primary mb-1" />
+        <FaRobot className="h-8 w-8 text-primary mb-1" />
         <span className="text-xs font-semibold text-foreground truncate w-full px-1">{assistant.name}</span>
       </div>
 
-      {/* Purpose Nodes */}
       {purposes.map((purpose, index) => {
         if (!purpose) return null;
-        const Icon = purpose.icon || MessageCircle;
-        const angle = angleStep * index - 90; // Start from top
+        const Icon = purpose.icon || FaCommentDots;
+        const angle = angleStep * index - 90; 
         const x = radius * Math.cos(angle * Math.PI / 180);
         const y = radius * Math.sin(angle * Math.PI / 180);
         

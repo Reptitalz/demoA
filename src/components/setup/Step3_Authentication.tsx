@@ -5,7 +5,7 @@ import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AUTH_METHODS } from "@/config/appConfig";
-import { CheckCircle2 } from 'lucide-react';
+import { FaCheckCircle } from 'react-icons/fa';
 import { auth, googleProvider, signInWithPopup, type FirebaseUser } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
@@ -25,7 +25,7 @@ const Step3Authentication = () => {
         payload: { 
           isAuthenticated: true, 
           authProvider: "google", 
-          email: user.email || "usuario@google.com", // Use actual email
+          email: user.email || "usuario@google.com", 
           firebaseUid: user.uid,
         } 
       });
@@ -41,7 +41,7 @@ const Step3Authentication = () => {
     dispatch({ 
       type: 'UPDATE_USER_PROFILE', 
       payload: { 
-        isAuthenticated: true, // Consider if this should be false or true based on flow
+        isAuthenticated: true, 
         authProvider: "no_account", 
         email: "usuario@sin.cuenta",
         firebaseUid: undefined,
@@ -78,18 +78,18 @@ const Step3Authentication = () => {
             >
               <Icon className={`mr-3 h-5 w-5 ${isSelected ? 'text-primary-foreground': 'text-primary'}`} />
               {method.name}
-              {isSelected && <CheckCircle2 className="ml-auto h-5 w-5 text-primary-foreground" />}
+              {isSelected && <FaCheckCircle className="ml-auto h-5 w-5 text-primary-foreground" />}
             </Button>
           );
         })}
         {authMethod === "google" && state.userProfile.email && state.userProfile.email !== "usuario@sin.cuenta" && (
           <p className="text-sm text-center text-green-500 flex items-center justify-center gap-1 pt-2">
-            <CheckCircle2 size={16} /> Autenticado con Google como {state.userProfile.email}.
+            <FaCheckCircle size={16} /> Autenticado con Google como {state.userProfile.email}.
           </p>
         )}
         {authMethod === "no_account" && (
           <p className="text-sm text-center text-blue-500 flex items-center justify-center gap-1 pt-2">
-            <CheckCircle2 size={16} /> Procediendo sin vincular una cuenta.
+            <FaCheckCircle size={16} /> Procediendo sin vincular una cuenta.
           </p>
         )}
       </CardContent>

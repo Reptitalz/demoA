@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ListTree, Settings, Database as DatabaseIcon, Bot as BotIcon, LogOut } from 'lucide-react';
+import { FaPlusCircle, FaSitemap, FaCog, FaDatabase, FaRobot, FaSignOutAlt } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { subscriptionPlansConfig } from '@/config/appConfig';
@@ -34,7 +34,7 @@ const DashboardPage = () => {
     if (assistant) {
         dispatch({ type: 'RESET_WIZARD' }); 
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
-        // Ensure assistant.purposes is iterable (e.g., an array or Set)
+        
         const purposesArray = Array.isArray(assistant.purposes) 
           ? assistant.purposes 
           : (assistant.purposes instanceof Set ? Array.from(assistant.purposes) : []);
@@ -47,7 +47,6 @@ const DashboardPage = () => {
             const db = userProfile.databases.find(d => d.id === assistant.databaseId);
             if (db) {
                 let filePayload: File | undefined = undefined;
-                // This mock file logic is simplified for display, real reconfigure would need robust file handling
                 dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, file: filePayload }});
             }
         }
@@ -83,7 +82,7 @@ const DashboardPage = () => {
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      router.push('/'); // Redirect to home, which will then redirect to setup if not authenticated
+      router.push('/'); 
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
@@ -98,7 +97,7 @@ const DashboardPage = () => {
     );
   }
 
-  if (!userProfile.isAuthenticated) { // Also check this for rendering
+  if (!userProfile.isAuthenticated) { 
     return (
       <PageContainer className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-150px)]">
         <p className="text-base mb-3">Redirigiendo...</p>
@@ -114,7 +113,7 @@ const DashboardPage = () => {
           <h2 className="text-2xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.email || "Usuario/a"}!</h2>
           {userProfile.isAuthenticated && (
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs">
-              <LogOut size={14} className="mr-1.5" />
+              <FaSignOutAlt size={14} className="mr-1.5" />
               Cerrar Sesión
             </Button>
           )}
@@ -127,10 +126,10 @@ const DashboardPage = () => {
       <div className="space-y-5">
         <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
           <h3 className="text-xl font-semibold flex items-center gap-1.5">
-            <ListTree size={20} className="text-primary" /> Tus Asistentes
+            <FaSitemap size={20} className="text-primary" /> Tus Asistentes
           </h3>
           <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs">
-            <PlusCircle size={15} className="mr-1.5" /> Añadir Nuevo
+            <FaPlusCircle size={15} className="mr-1.5" /> Añadir Nuevo
           </Button>
         </div>
         {userProfile.assistants.length > 0 ? (
@@ -147,7 +146,7 @@ const DashboardPage = () => {
         ) : (
           <Card className="text-center py-8 animate-fadeIn" style={{animationDelay: "0.4s"}}>
             <CardContent className="flex flex-col items-center gap-3">
-              <BotIcon size={40} className="text-muted-foreground" />
+              <FaRobot size={40} className="text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Aún no has configurado ningún asistente.</p>
               <Button onClick={handleAddNewAssistant} size="sm" className="text-xs">Crea tu Primer Asistente</Button>
             </CardContent>
@@ -157,7 +156,7 @@ const DashboardPage = () => {
 
       <div className="space-y-5">
          <h3 className="text-xl font-semibold flex items-center gap-1.5 animate-fadeIn" style={{animationDelay: `${0.5 + userProfile.assistants.length * 0.1}s`}}>
-            <DatabaseIcon size={20} className="text-primary" /> Bases de Datos Vinculadas
+            <FaDatabase size={20} className="text-primary" /> Bases de Datos Vinculadas
           </h3>
         {userProfile.databases.length > 0 ? (
           <div className="grid gap-5 md:grid-cols-1"> 
@@ -168,7 +167,7 @@ const DashboardPage = () => {
         ) : (
            <Card className="text-center py-8 animate-fadeIn" style={{animationDelay: `${0.6 + userProfile.assistants.length * 0.1}s`}}>
             <CardContent className="flex flex-col items-center gap-3">
-              <DatabaseIcon size={40} className="text-muted-foreground" />
+              <FaDatabase size={40} className="text-muted-foreground" />
               <p className="text-xs text-muted-foreground">No hay bases de datos vinculadas o creadas aún.</p>
             </CardContent>
           </Card>
