@@ -34,7 +34,7 @@ const DashboardSummary = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-accent">
+              <div className="text-2xl font-bold text-primary">
                 {planDetails ? planDetails.name : "N/D"}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -60,7 +60,7 @@ const DashboardSummary = () => {
           <FaRobot className="h-5 w-5 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-accent">
+          <div className="text-2xl font-bold text-primary">
             {assistants.length}
           </div>
           <p className="text-xs text-muted-foreground">
