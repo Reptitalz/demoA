@@ -23,18 +23,11 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     features: ["Funciones básicas de asistente", "Interacciones limitadas", "Soporte comunitario"] 
   },
   { 
-    id: "standard_39", 
-    name: "Plan Estándar", 
-    priceMonthly: 39, 
-    assistantLimit: 1, 
-    features: ["Funciones completas de asistente", "Mayor cantidad de interacciones", "Soporte por correo electrónico"] 
-  },
-  { 
     id: "premium_179", 
-    name: "Plan Premium (por Asistente)", 
+    name: "Plan Premium (1er mes $39)", 
     priceMonthly: 179, 
     assistantLimit: 1, // This is per assistant
-    features: ["Todas las funciones Estándar", "Soporte prioritario", "Analíticas avanzadas (próximamente)"] 
+    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)"] 
   },
   { 
     id: "business_270", 
@@ -59,8 +52,7 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
 
 export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   free: FaCheckCircle,
-  standard_39: FaTasks,
+  // standard_39 icon (FaTasks) is removed
   premium_179: FaChartLine,
   business_270: FaBriefcase,
 };
-

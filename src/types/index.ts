@@ -27,7 +27,7 @@ export interface AssistantConfig {
   databaseId?: string; // Link to a DatabaseConfig
 }
 
-export type SubscriptionPlanType = "free" | "standard_39" | "premium_179" | "business_270";
+export type SubscriptionPlanType = "free" | "premium_179" | "business_270"; // Removed "standard_39"
 
 export interface SubscriptionPlanDetails {
   id: SubscriptionPlanType;
@@ -72,4 +72,3 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean; // For global loading states
 }
-
