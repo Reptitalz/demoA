@@ -215,3 +215,5 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
 
 export default AssistantCard;
 
+
+    
