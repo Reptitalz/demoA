@@ -143,8 +143,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3 border-t pt-3 sm:pt-4"> {/* Changed justify-between to justify-end */}
-          <div className="flex flex-col gap-2 w-full sm:w-auto">
+        <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
             <Button 
               variant="outline" 
               size="sm" 
@@ -164,7 +163,6 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 Compartir por WhatsApp
               </Button>
             )}
-          </div>
         </CardFooter>
       </Card>
     </>
@@ -172,3 +170,4 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
 };
 
 export default AssistantCard;
+
