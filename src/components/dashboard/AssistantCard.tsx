@@ -4,14 +4,10 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaEye, FaRoute, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { assistantPurposesConfig } from "@/config/appConfig";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import AssistantNodeViewDialog from "./AssistantNodeViewDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface AssistantCardProps {
@@ -23,8 +19,6 @@ interface AssistantCardProps {
 const INITIAL_PURPOSES_TO_SHOW = 2;
 
 const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: AssistantCardProps) => {
-  const [isAdvancedView, setIsAdvancedView] = useState(false);
-  const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
   const [clientMounted, setClientMounted] = useState(false);
   const [showAllPurposes, setShowAllPurposes] = useState(false);
   const { toast } = useToast();
@@ -37,11 +31,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
 
   const handleReconfigureClick = () => {
-    if (isAdvancedView) {
-      setIsAdvancedModalOpen(true);
-    } else {
-      onReconfigure(assistant.id);
-    }
+    onReconfigure(assistant.id);
   };
 
   const handleShareOnWhatsApp = async () => {
@@ -153,23 +143,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 border-t pt-3 sm:pt-4">
-          {clientMounted ? (
-              <div className="flex items-center space-x-1.5 sm:space-x-2 self-center sm:self-auto">
-                  <Switch
-                      id={`advanced-view-${assistant.id}`}
-                      checked={isAdvancedView}
-                      onCheckedChange={setIsAdvancedView}
-                      aria-label="Alternar vista de nodo avanzada"
-                      className="h-4 w-8 sm:h-5 sm:w-10 data-[state=checked]:sm:translate-x-5 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0" 
-                  />
-                  <Label htmlFor={`advanced-view-${assistant.id}`} className="text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 cursor-pointer">
-                      {isAdvancedView ? <FaRoute size={12}/> : <FaEye size={12}/>}
-                      {isAdvancedView ? "Vista de Nodos" : "Vista Básica"}
-                  </Label>
-              </div>
-          ): ( <div className="h-5 w-24 sm:h-6 sm:w-28 bg-muted rounded-md animate-pulse self-center sm:self-auto" /> /* Placeholder for switch */)}
-          
+        <CardFooter className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3 border-t pt-3 sm:pt-4"> {/* Changed justify-between to justify-end */}
           <div className="flex flex-col gap-2 w-full sm:w-auto">
             <Button 
               variant="outline" 
@@ -193,27 +167,8 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
           </div>
         </CardFooter>
       </Card>
-
-      {isAdvancedView && assistant && (
-        <Dialog open={isAdvancedModalOpen} onOpenChange={setIsAdvancedModalOpen}>
-          <DialogContent className="max-w-md sm:max-w-xl md:max-w-2xl min-h-[50vh] sm:min-h-[60vh] bg-card flex flex-col p-4 sm:p-6">
-            <DialogHeader>
-              <DialogTitle className="text-xl sm:text-2xl">Vista Avanzada de Nodos: {assistant.name}</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm">
-                Visualiza las funciones y conexiones de tu asistente.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex-grow overflow-auto p-1 sm:p-2">
-              <AssistantNodeViewDialog assistant={assistant} />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </>
   );
 };
 
 export default AssistantCard;
-
-
-    
