@@ -86,7 +86,7 @@ export default function MarketingPage() {
       {/* Pricing Section */}
       <section id="pricing" className="w-full mt-16 sm:mt-20 scroll-mt-20">
         <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Planes y Precios</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {subscriptionPlansConfig.map((plan) => {
             const Icon = planIcons[plan.id] || FaRocket; // Fallback icon
             return <PricingPlanCard key={plan.id} plan={plan} icon={<Icon size={28} className="text-primary mb-2" />} />;
