@@ -3,10 +3,11 @@
 
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { APP_NAME } from '@/config/appConfig';
+import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
+import { APP_NAME, subscriptionPlansConfig, planIcons } from '@/config/appConfig';
+import type { SubscriptionPlanDetails } from '@/types';
 import Link from 'next/link';
-import { FaRocket, FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine } from 'react-icons/fa';
+import { FaRocket, FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine, FaCheckCircle } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function MarketingPage() {
@@ -17,7 +18,7 @@ export default function MarketingPage() {
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
         Bienvenido a <span className="text-primary">{APP_NAME}</span>
       </h1>
-      <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-xl lg:max-w-2xl">
+      <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-xl lg:max-w-2xl mx-auto">
         La solución definitiva para gestionar tus asistentes de IA de forma inteligente y eficiente, automatizando la comunicación y optimizando tus procesos.
       </p>
       <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-12">
@@ -33,11 +34,11 @@ export default function MarketingPage() {
       </p>
 
       {/* Placeholder Image Section */}
-      <div className="my-10 sm:my-16 w-full max-w-2xl aspect-video bg-muted rounded-lg shadow-xl overflow-hidden">
+      <div className="my-10 sm:my-16 w-full max-w-2xl lg:max-w-3xl aspect-video bg-muted rounded-lg shadow-xl overflow-hidden mx-auto">
         <Image
             data-ai-hint="app dashboard interface"
-            src="https://placehold.co/800x450.png" // Placeholder for an app screenshot or demo
-            alt="Demostración de Hey Manito!"
+            src="https://placehold.co/800x450.png" 
+            alt={`Demostración de ${APP_NAME}`}
             width={800}
             height={450}
             className="object-cover w-full h-full"
@@ -48,7 +49,7 @@ export default function MarketingPage() {
       {/* Features Section */}
       <section id="features" className="w-full mt-12 sm:mt-16 scroll-mt-20">
         <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Características Principales</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-left">
           <FeatureCard
             icon={<FaCogs size={24} className="text-primary mb-3" />}
             title="Configuración Sencilla"
@@ -82,10 +83,21 @@ export default function MarketingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="w-full mt-16 sm:mt-20 scroll-mt-20">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Planes y Precios</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {subscriptionPlansConfig.map((plan) => {
+            const Icon = planIcons[plan.id] || FaRocket; // Fallback icon
+            return <PricingPlanCard key={plan.id} plan={plan} icon={<Icon size={28} className="text-primary mb-2" />} />;
+          })}
+        </div>
+      </section>
+
       {/* Call to Action Section */}
       <section className="w-full mt-16 sm:mt-20 py-10 sm:py-12 bg-card rounded-lg shadow-xl">
          <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">¿Listo para Empezar?</h2>
-         <p className="text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
+         <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
            Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas.
          </p>
          <Button asChild size="lg" className="text-sm sm:text-base px-8 sm:px-10 py-3 transition-transform transform hover:scale-105">
@@ -113,3 +125,42 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
     </CardContent>
   </Card>
 );
+
+interface PricingPlanCardProps {
+  plan: SubscriptionPlanDetails;
+  icon: React.ReactNode;
+}
+
+const PricingPlanCard = ({ plan, icon }: PricingPlanCardProps) => (
+  <Card className="shadow-lg hover:shadow-primary/20 hover:border-primary transition-all duration-300 flex flex-col text-left">
+    <CardHeader className="pb-4 items-start">
+      <div className="flex items-center gap-3 w-full">
+        {icon}
+        <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
+      </div>
+      <p className="text-3xl sm:text-4xl font-bold text-primary pt-2">
+        ${plan.priceMonthly}
+        <span className="text-sm font-normal text-muted-foreground">/mes</span>
+      </p>
+    </CardHeader>
+    <CardContent className="flex-grow space-y-3">
+      <p className="text-sm font-semibold text-foreground">
+        {plan.assistantLimit === "unlimited" ? "Asistentes Ilimitados" : `${plan.assistantLimit} ${plan.assistantLimit === 1 ? 'Asistente' : 'Asistentes'}`}
+      </p>
+      <ul className="space-y-1.5 text-xs sm:text-sm text-muted-foreground">
+        {plan.features.map((feature, idx) => (
+          <li key={idx} className="flex items-start">
+            <FaCheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 mt-0.5 shrink-0 text-green-500" />
+            {feature}
+          </li>
+        ))}
+      </ul>
+    </CardContent>
+    <CardFooter className="pt-4">
+      <Button asChild size="lg" className="w-full text-sm sm:text-base transition-transform transform hover:scale-105">
+        <Link href="/app">Elegir Plan</Link>
+      </Button>
+    </CardFooter>
+  </Card>
+);
+

@@ -1,6 +1,7 @@
 
-import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType } from '@/types';
-import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaEnvelope, FaUserTimes, FaGoogle } from 'react-icons/fa';
+import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
+import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaTasks, FaChartLine, FaBriefcase } from 'react-icons/fa';
+import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
 export const MAX_WIZARD_STEPS = 4;
@@ -55,4 +56,11 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
   { id: "no_account", name: "Iniciar sesión sin cuenta", icon: FaUserTimes },
 ];
+
+export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
+  free: FaCheckCircle,
+  standard_39: FaTasks,
+  premium_179: FaChartLine,
+  business_270: FaBriefcase,
+};
 
