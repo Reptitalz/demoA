@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect } from 'react';
@@ -9,7 +10,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaSitemap, FaCog, FaDatabase, FaRobot, FaSignOutAlt } from 'react-icons/fa';
+import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaSignOutAlt } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { subscriptionPlansConfig, APP_NAME } from '@/config/appConfig';
@@ -24,11 +25,10 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (!isLoading && !userProfile.isAuthenticated) {
-      // User is not authenticated.
-      // If setup was already complete, send them to step 3 (Auth) of setup.
-      // Otherwise (setup not complete), send them to setup (will start at step 1).
       if (isSetupComplete) { 
          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
+         dispatch({ type: 'SET_IS_RECONFIGURING', payload: false }); // Ensure not in reconfiguring mode
+         dispatch({ type: 'SET_EDITING_ASSISTANT_ID', payload: null });
       }
       router.replace('/setup');
     }
@@ -39,6 +39,8 @@ const DashboardPage = () => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
     if (assistant) {
         dispatch({ type: 'RESET_WIZARD' }); 
+        dispatch({ type: 'SET_IS_RECONFIGURING', payload: true });
+        dispatch({ type: 'SET_EDITING_ASSISTANT_ID', payload: assistant.id });
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
         
         const purposesArray = Array.isArray(assistant.purposes) 
@@ -52,15 +54,23 @@ const DashboardPage = () => {
         if(assistant.databaseId) {
             const db = userProfile.databases.find(d => d.id === assistant.databaseId);
             if (db) {
-                let filePayload: File | undefined = undefined;
-                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, file: filePayload }});
+                // For reconfig, we only pre-fill if a DB exists. 
+                // The user can change/remove it in the wizard.
+                // We don't pass the file itself, just its info if it was an Excel type.
+                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, file: undefined }});
             }
         }
-        dispatch({type: 'SET_AUTH_METHOD', payload: userProfile.authProvider || null});
-        dispatch({type: 'SET_SUBSCRIPTION_PLAN', payload: userProfile.currentPlan || null});
+        // Pre-fill current plan when reconfiguring
+        if (userProfile.currentPlan) {
+            dispatch({ type: 'SET_SUBSCRIPTION_PLAN', payload: userProfile.currentPlan });
+        }
+
+        // Auth method is not part of reconfigure wizard, so we don't set it here for the wizard.
+        // dispatch({type: 'SET_AUTH_METHOD', payload: userProfile.authProvider || null}); 
+        
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
         router.push('/setup'); 
-        toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name} en el asistente de configuración. Estás en el paso 1.` });
+        toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name} en el asistente. Estás en el paso 1.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
     }
@@ -79,7 +89,7 @@ const DashboardPage = () => {
       return;
     }
     
-    dispatch({ type: 'RESET_WIZARD' }); 
+    dispatch({ type: 'RESET_WIZARD' }); // This also sets isReconfiguring to false
     router.push('/setup');
   };
 
@@ -87,8 +97,7 @@ const DashboardPage = () => {
     try {
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
-      // isSetupComplete state is preserved by the LOGOUT_USER action in AppProvider
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go to auth step
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); 
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
       router.push('/setup'); 
     } catch (error) {
@@ -186,3 +195,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+

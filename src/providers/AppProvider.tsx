@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -24,17 +25,21 @@ type Action =
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
   | { type: 'REMOVE_ASSISTANT'; payload: string } // assistant ID
   | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
-  | { type: 'LOGOUT_USER' };
+  | { type: 'LOGOUT_USER' }
+  | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
+  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
 
 
 const initialWizardState: WizardState = {
   currentStep: 1,
-  maxSteps: MAX_WIZARD_STEPS,
+  maxSteps: MAX_WIZARD_STEPS, // This will be dynamically adjusted by SetupPage if reconfiguring
   assistantName: '',
   selectedPurposes: new Set(),
   databaseOption: { type: null },
   authMethod: null,
   selectedPlan: null,
+  isReconfiguring: false,
+  editingAssistantId: null,
 };
 
 const initialUserProfileState: UserProfile = {
@@ -60,11 +65,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
-    case 'NEXT_WIZARD_STEP':
-      if (state.wizard.currentStep < state.wizard.maxSteps) {
-        return { ...state, wizard: { ...state.wizard, currentStep: state.wizard.currentStep + 1 } };
-      }
-      return state;
+    case 'NEXT_WIZARD_STEP': {
+      // Max steps check will be handled in SetupPage based on isReconfiguring
+      return { ...state, wizard: { ...state.wizard, currentStep: state.wizard.currentStep + 1 } };
+    }
     case 'PREVIOUS_WIZARD_STEP':
       if (state.wizard.currentStep > 1) {
         return { ...state, wizard: { ...state.wizard, currentStep: state.wizard.currentStep - 1 } };
@@ -94,10 +98,21 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...state, 
         userProfile: action.payload, 
         isSetupComplete: true, 
-        wizard: initialWizardState // Reset wizard
+        wizard: { // Reset wizard and reconfiguration flags
+          ...initialWizardState,
+          isReconfiguring: false,
+          editingAssistantId: null,
+        } 
       };
     case 'RESET_WIZARD':
-      return { ...state, wizard: initialWizardState };
+      return { 
+        ...state, 
+        wizard: {
+          ...initialWizardState,
+          isReconfiguring: false, // Ensure flags are reset
+          editingAssistantId: null,
+        }
+      };
     case 'LOAD_STATE': {
       const loadedWizardPurposes = action.payload.wizard?.selectedPurposes;
       const wizardSelectedPurposesSet = Array.isArray(loadedWizardPurposes) 
@@ -109,7 +124,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...assistant,
         purposes: Array.isArray(assistant.purposes) 
           ? new Set(assistant.purposes as AssistantPurposeType[])
-          // Handle cases where purposes might be stored as an object (e.g. from older state versions)
           : (typeof assistant.purposes === 'object' && assistant.purposes !== null && !(assistant.purposes instanceof Set)) 
             ? new Set(Object.keys(assistant.purposes) as AssistantPurposeType[])
             : new Set<AssistantPurposeType>(), 
@@ -127,6 +141,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...initialWizardState, 
           ...action.payload.wizard, 
           selectedPurposes: wizardSelectedPurposesSet,
+          isReconfiguring: action.payload.wizard?.isReconfiguring || false,
+          editingAssistantId: action.payload.wizard?.editingAssistantId || null,
         },
         isLoading: false 
       };
@@ -145,9 +161,17 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return {
         ...state, // Preserve existing state like isSetupComplete
         userProfile: initialUserProfileState, // Reset only user profile
-        wizard: initialWizardState, // Reset wizard state, including currentStep
+        wizard: { // Reset wizard state, including currentStep and reconfig flags
+            ...initialWizardState,
+            isReconfiguring: false,
+            editingAssistantId: null,
+        },
         isLoading: false,
       };
+    case 'SET_IS_RECONFIGURING':
+      return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
+    case 'SET_EDITING_ASSISTANT_ID':
+      return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
     default:
       return state;
   }
@@ -161,16 +185,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const persistedState = localStorage.getItem('assistAIManagerState');
       if (persistedState) {
         const parsedState = JSON.parse(persistedState);
+        
         // Ensure selectedPurposes in assistants are Sets after loading
         if (parsedState.userProfile && parsedState.userProfile.assistants) {
           parsedState.userProfile.assistants = parsedState.userProfile.assistants.map((asst: AssistantConfig) => ({
             ...asst,
-            purposes: new Set(asst.purposes),
+            purposes: new Set(Array.isArray(asst.purposes) ? asst.purposes : []),
           }));
         }
         // Ensure selectedPurposes in wizard is a Set
         if (parsedState.wizard && parsedState.wizard.selectedPurposes) {
-          parsedState.wizard.selectedPurposes = new Set(parsedState.wizard.selectedPurposes);
+          parsedState.wizard.selectedPurposes = new Set(Array.isArray(parsedState.wizard.selectedPurposes) ? parsedState.wizard.selectedPurposes : []);
         }
         dispatch({ type: 'LOAD_STATE', payload: parsedState });
       } else {
@@ -220,3 +245,4 @@ export const useApp = () => {
   }
   return context;
 };
+
