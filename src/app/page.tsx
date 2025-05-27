@@ -49,7 +49,7 @@ export default function MarketingPage() {
       {/* Features Section */}
       <section id="features" className="w-full mt-12 sm:mt-16 scroll-mt-20">
         <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Características Principales</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-left max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-left max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <FeatureCard
             icon={<FaCogs size={24} className="text-primary mb-3" />}
             title="Configuración Sencilla"
@@ -86,7 +86,7 @@ export default function MarketingPage() {
       {/* Pricing Section */}
       <section id="pricing" className="w-full mt-16 sm:mt-20 scroll-mt-20">
         <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Planes y Precios</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {subscriptionPlansConfig.map((plan) => {
             const Icon = planIcons[plan.id] || FaRocket; // Fallback icon
             return <PricingPlanCard key={plan.id} plan={plan} icon={<Icon size={28} className="text-primary mb-2" />} />;
@@ -95,7 +95,7 @@ export default function MarketingPage() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="w-full mt-16 sm:mt-20 py-10 sm:py-12 bg-card rounded-lg shadow-xl max-w-4xl mx-auto">
+      <section className="w-full mt-16 sm:mt-20 py-10 sm:py-12 bg-card rounded-lg shadow-xl max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
          <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">¿Listo para Empezar?</h2>
          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
            Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas.
@@ -133,14 +133,14 @@ interface PricingPlanCardProps {
 
 const PricingPlanCard = ({ plan, icon }: PricingPlanCardProps) => (
   <Card className="shadow-lg hover:shadow-primary/20 hover:border-primary transition-all duration-300 flex flex-col text-left">
-    <CardHeader className="pb-4 items-start">
+    <CardHeader className="p-6 items-start"> {/* Increased padding for more whitespace */}
       <div className="flex items-center gap-3 w-full">
         {icon}
         <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
       </div>
-      <p className="text-3xl sm:text-4xl font-bold text-primary pt-2">
+      <p className="text-3xl sm:text-4xl font-bold text-primary pt-3"> {/* Increased top padding */}
         ${plan.priceMonthly}
-        <span className="text-sm font-normal text-muted-foreground">/mes</span>
+        <span className="text-xs font-normal text-muted-foreground ml-1">/mes</span> {/* Made '/mes' smaller and added margin */}
       </p>
     </CardHeader>
     <CardContent className="flex-grow space-y-3">
@@ -163,3 +163,4 @@ const PricingPlanCard = ({ plan, icon }: PricingPlanCardProps) => (
     </CardFooter>
   </Card>
 );
+
