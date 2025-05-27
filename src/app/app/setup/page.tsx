@@ -192,17 +192,29 @@ const SetupPage = () => {
       databases: updatedDatabasesArray,
     };
 
+    // Convert purposes from Set to Array for JSON stringification
+    const assistantsForLog = finalUserProfile.assistants.map(asst => ({
+      ...asst,
+      purposes: Array.from(asst.purposes)
+    }));
+
+    if (isReconfiguring) {
+      console.log("Asistente Reconfigurado. Configuración de todos los asistentes:", JSON.stringify(assistantsForLog, null, 2));
+    } else {
+      console.log("Nuevo Asistente Creado. Configuración de todos los asistentes:", JSON.stringify(assistantsForLog, null, 2));
+    }
+
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
     toast({
       title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
       description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
       action: (
-        <Button variant="ghost" size="sm" onClick={() => router.push('/app/dashboard')}> {/* Updated route */}
+        <Button variant="ghost" size="sm" onClick={() => router.push('/app/dashboard')}>
           Ir al Panel
         </Button>
       ),
     });
-    router.push('/app/dashboard'); // Updated route
+    router.push('/app/dashboard');
   };
 
   const renderStepContent = () => {
@@ -226,48 +238,48 @@ const SetupPage = () => {
 
   return (
     <PageContainer>
-      <div className="space-y-5"> {/* Adjusted spacing */}
+      <div className="space-y-5">
         <SetupProgressBar />
-        <div className="min-h-[260px] sm:min-h-[280px]"> {/* Adjusted min-height */}
+        <div className="min-h-[260px] sm:min-h-[280px]">
          {renderStepContent()}
         </div>
-        <div className="flex justify-between items-center pt-4 border-t"> {/* Adjusted padding */}
-          <div className="flex gap-1.5"> {/* Adjusted gap */}
+        <div className="flex justify-between items-center pt-4 border-t">
+          <div className="flex gap-1.5">
             {state.isSetupComplete && !isReconfiguring && ( 
               <Button
                 variant="outline"
-                onClick={() => router.push('/app/dashboard')} // Updated route
-                className="transition-transform transform hover:scale-105 text-xs px-2 py-1" /* Adjusted size/padding */
+                onClick={() => router.push('/app/dashboard')}
+                className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
               >
-                <FaHome className="mr-1 h-3 w-3" /> Volver al Panel {/* Adjusted size/margin */}
+                <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
               </Button>
             )}
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className="transition-transform transform hover:scale-105 text-xs px-2 py-1" /* Adjusted size/padding */
+              className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
             >
-              <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior {/* Adjusted size/margin */}
+              <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
             </Button>
           </div>
           
           {currentStep < effectiveMaxSteps && (
             <Button 
               onClick={handleNext} 
-              className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs px-2 py-1" /* Adjusted size/padding */
+              className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid()} 
             >
-              Siguiente <FaArrowRight className="ml-1 h-3 w-3" /> {/* Adjusted size/margin */}
+              Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           )}
           {currentStep === effectiveMaxSteps && ( 
              <Button 
               onClick={handleCompleteSetup} 
-              className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs px-2 py-1" /* Adjusted size/padding */
+              className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid()}
             >
-              {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"} <FaArrowRight className="ml-1 h-3 w-3" /> {/* Adjusted size/margin */}
+              {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"} <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           )}
         </div>
@@ -277,3 +289,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    
