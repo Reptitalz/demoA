@@ -4,28 +4,29 @@ import * as admin from 'firebase-admin';
 
 const FIREBASE_SERVICE_ACCOUNT_JSON_STRING = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
-if (!FIREBASE_SERVICE_ACCOUNT_JSON_STRING) {
-  console.warn(
-    "Firebase Admin SDK: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. " +
-    "Token verification will not work. Please set this variable with your service account key JSON content."
-  );
-}
-
-if (admin.apps.length === 0 && FIREBASE_SERVICE_ACCOUNT_JSON_STRING) {
-  try {
-    const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON_STRING);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    console.log("Firebase Admin SDK initialized successfully.");
-  } catch (error) {
-    console.error("Error initializing Firebase Admin SDK:", error);
-    console.error("Make sure FIREBASE_SERVICE_ACCOUNT_JSON is a valid JSON string.");
+if (admin.apps.length === 0) { // Check if already initialized
+  if (FIREBASE_SERVICE_ACCOUNT_JSON_STRING) { // Only proceed if the env var exists
+    try {
+      const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON_STRING);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log("Firebase Admin SDK initialized successfully.");
+    } catch (error) {
+      console.error("Error initializing Firebase Admin SDK:", error);
+      console.error("Make sure FIREBASE_SERVICE_ACCOUNT_JSON is a valid JSON string and is set in your environment variables.");
+      // admin.apps.length will remain 0, handled by verifyFirebaseToken
+    }
+  } else {
+    console.warn(
+      "Firebase Admin SDK: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. " +
+      "Token verification will not work."
+    );
   }
 }
 
 export async function verifyFirebaseToken(request: Request): Promise<DecodedIdToken | null> {
-  if (!FIREBASE_SERVICE_ACCOUNT_JSON_STRING || admin.apps.length === 0) {
+  if (admin.apps.length === 0) { // Check if SDK was successfully initialized
     console.error("Firebase Admin SDK not initialized. Cannot verify token.");
     return null;
   }
