@@ -27,7 +27,7 @@ export interface AssistantConfig {
   databaseId?: string; // Link to a DatabaseConfig
 }
 
-export type SubscriptionPlanType = "free" | "premium_179" | "business_270"; // Removed "standard_39"
+export type SubscriptionPlanType = "free" | "premium_179" | "business_270";
 
 export interface SubscriptionPlanDetails {
   id: SubscriptionPlanType;
@@ -47,6 +47,8 @@ export interface UserProfile {
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   firebaseUid?: string; // Optional: store Firebase UID
+  stripeCustomerId?: string; // ID del cliente en Stripe
+  virtualPhoneNumber?: string; // Número virtual de Vonage asignado
 }
 
 // For wizard state
