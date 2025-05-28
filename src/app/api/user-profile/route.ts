@@ -43,9 +43,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ userProfile: null, message: "User profile not found" }, { status: 404 });
     }
   } catch (error) {
-    console.error("API GET Error:", error);
+    console.error("API GET Error (Database Operation or Data Processing):", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: 'Failed to fetch user profile', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to fetch user profile due to an internal error', error: errorMessage }, { status: 500 });
   }
 }
 
@@ -67,22 +67,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Forbidden: Token UID does not match User ID in request body' }, { status: 403 });
     }
 
+    // Ensure profile's firebaseUid matches authenticated user, or set it authoritatively
     if (userProfile.firebaseUid && userProfile.firebaseUid !== decodedToken.uid) {
-      return NextResponse.json({ message: 'Forbidden: firebaseUid in profile data does not match authenticated user.' }, { status: 403 });
+      console.warn("Mismatch between userProfile.firebaseUid in body and token UID. Using token UID.");
     }
-
-    // Normalize assistants and convert sets to arrays in prop purposes
+    // User profile from client might have purposes as Sets, ensure they are arrays for MongoDB
     const assistants = Array.isArray(userProfile.assistants) ? userProfile.assistants.map((asst: any) => ({
       ...asst,
       purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
     })) : [];
 
-    const serializableProfile: Omit<UserProfile, '_id'> = { // Ensure _id is not part of the type we $set
+    const serializableProfile: Omit<UserProfile, '_id'> = {
       ...userProfile,
       firebaseUid: decodedToken.uid, // Use authoritative UID from token
       assistants,
     };
-     // Remove _id explicitly if it's somehow present in userProfile from client
+     // Remove _id explicitly if it's somehow present in userProfile from client to avoid issues with $set
     delete (serializableProfile as any)._id;
 
 
@@ -98,25 +98,31 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "User profile created successfully", userId: decodedToken.uid, upsertedId: result.upsertedId });
       } else if (result.modifiedCount > 0) {
         return NextResponse.json({ message: "User profile updated successfully", userId: decodedToken.uid });
-      } else if (result.matchedCount > 0) {
+      } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
+         // Matched but not modified, means data was identical or no effective change
          return NextResponse.json({ message: "User profile already up to date", userId: decodedToken.uid }, { status: 200 });
+      } else if (result.matchedCount === 0 && !result.upsertedId) {
+        // This case should ideally be covered by upsert:true creating a document if not matched.
+        // If it's reached, it might indicate an unexpected state or a driver/DB behavior.
+        console.error("API POST: No document matched, and no document was upserted.", result);
+        return NextResponse.json({ message: "Failed to save user profile: No document matched or upserted" }, { status: 500 });
       }
       else {
-        // This case should ideally not be hit if upsert: true and the operation was successful without errors.
-        console.error("API POST: Unexpected result from updateOne with upsert:true and no error thrown by driver.", result);
+        // Fallback for any other unexpected result from updateOne with upsert:true
+        console.error("API POST: Unexpected result from updateOne with upsert:true.", result);
         return NextResponse.json({ message: "Failed to save user profile: Unexpected database response" }, { status: 500 });
       }
-    } catch (error) {
-      console.error("API POST (DB operation) Error:", error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (dbError) {
+      console.error("API POST (DB operation) Error:", dbError);
+      const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
       return NextResponse.json({ message: 'Failed to save user profile to database', error: errorMessage }, { status: 500 });
     }
-  } catch (error) {
-    console.error("API POST (request processing) Error:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (error instanceof SyntaxError) {
+  } catch (requestError) {
+    console.error("API POST (Request Processing) Error:", requestError);
+    const errorMessage = requestError instanceof Error ? requestError.message : String(requestError);
+    if (requestError instanceof SyntaxError) { // Specifically for JSON parsing errors
         return NextResponse.json({ message: 'Invalid JSON in request body', error: errorMessage }, { status: 400 });
     }
-    return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to process request due to an internal error', error: errorMessage }, { status: 500 });
   }
 }

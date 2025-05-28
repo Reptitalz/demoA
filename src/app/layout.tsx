@@ -15,6 +15,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: APP_NAME,
   description: 'Gestiona tus asistentes virtuales impulsados por IA.',
+  icons: {
+    icon: '/favicon.ico', // Add this line
+  },
 };
 
 export default function RootLayout({

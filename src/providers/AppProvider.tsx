@@ -57,7 +57,7 @@ const initialState: AppState = {
   wizard: initialWizardState,
   userProfile: initialUserProfileState,
   isSetupComplete: false,
-  isLoading: true, 
+  isLoading: true,
 };
 
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action> } | undefined>(undefined);
@@ -94,26 +94,26 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'SET_SUBSCRIPTION_PLAN':
       return { ...state, wizard: { ...state.wizard, selectedPlan: action.payload } };
     case 'COMPLETE_SETUP':
-      return { 
-        ...state, 
-        userProfile: action.payload, 
-        isSetupComplete: true, 
-        wizard: { 
+      return {
+        ...state,
+        userProfile: action.payload,
+        isSetupComplete: true,
+        wizard: {
           ...initialWizardState,
           isReconfiguring: false,
           editingAssistantId: null,
-        } 
+        }
       };
     case 'RESET_WIZARD':
-      return { 
-        ...state, 
+      return {
+        ...state,
         wizard: {
           ...initialWizardState,
-          isReconfiguring: false, 
+          isReconfiguring: false,
           editingAssistantId: null,
         }
       };
-    case 'LOAD_STATE': { 
+    case 'LOAD_STATE': {
       const loadedState = action.payload;
       const wizardSelectedPurposesSet = Array.isArray(loadedState.wizard?.selectedPurposes)
         ? new Set(loadedState.wizard.selectedPurposes as AssistantPurposeType[])
@@ -123,24 +123,24 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...assistant,
         purposes: new Set(Array.isArray(assistant.purposes) ? assistant.purposes : []) as Set<AssistantPurposeType>,
       }));
-      
+
       return {
-        ...initialState, 
-        ...loadedState,   
+        ...initialState,
+        ...loadedState,
         userProfile: {
-          ...initialUserProfileState, 
-          ...(loadedState.userProfile || {}), 
+          ...initialUserProfileState,
+          ...(loadedState.userProfile || {}),
           assistants: assistantsWithSetPurposes,
         },
         wizard: {
-          ...initialWizardState, 
-          ...(loadedState.wizard || {}), 
+          ...initialWizardState,
+          ...(loadedState.wizard || {}),
           selectedPurposes: wizardSelectedPurposesSet,
         },
-        isLoading: false, 
+        isLoading: false, // Ensure isLoading is false after loading state
       };
     }
-    case 'SYNC_PROFILE_FROM_API': { 
+    case 'SYNC_PROFILE_FROM_API': {
         const apiProfile = action.payload;
         const assistantsWithSetPurposes = (apiProfile.assistants || []).map(assistant => ({
             ...assistant,
@@ -150,13 +150,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
 
         return {
             ...state,
-            userProfile: {
-                ...state.userProfile, 
+            userProfile: { // Create new userProfile object
+                ...state.userProfile,
                 ...apiProfile,
                 assistants: assistantsWithSetPurposes,
             },
-            isSetupComplete: newIsSetupComplete, 
-            isLoading: false,
+            isSetupComplete: newIsSetupComplete,
+            isLoading: false, // Crucial: set isLoading to false after sync
         };
     }
     case 'UPDATE_USER_PROFILE':
@@ -171,14 +171,15 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
     case 'LOGOUT_USER':
       return {
-        ...state, 
-        userProfile: initialUserProfileState, 
-        wizard: { 
+        ...state,
+        userProfile: initialUserProfileState,
+        wizard: {
             ...initialWizardState,
             isReconfiguring: false,
             editingAssistantId: null,
         },
-        isLoading: false,
+        isSetupComplete: false, // Explicitly set isSetupComplete to false on logout
+        isLoading: false, // Ensure isLoading is false after logout
       };
     case 'SET_IS_RECONFIGURING':
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
@@ -192,57 +193,86 @@ const appReducer = (state: AppState, action: Action): AppState => {
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Effect for loading initial state from localStorage and Firebase Auth
   useEffect(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const persistedState = localStorage.getItem('assistAIManagerState');
       if (persistedState) {
         const parsedState = JSON.parse(persistedState);
+        // We dispatch LOAD_STATE, which itself will set isLoading to false.
+        // It also might set isAuthenticated.
         dispatch({ type: 'LOAD_STATE', payload: parsedState });
       } else {
-        dispatch({ type: 'LOAD_STATE', payload: initialState }); 
+        dispatch({ type: 'LOAD_STATE', payload: initialState }); // Still sets isLoading to false
       }
     } catch (error) {
       console.error("Error al cargar estado desde localStorage", error);
-      dispatch({ type: 'LOAD_STATE', payload: initialState }); 
+      dispatch({ type: 'LOAD_STATE', payload: initialState }); // Still sets isLoading to false
     }
-  }, []);
 
+    const unsubscribe = auth.onAuthStateChanged(async user => {
+      if (user) {
+        const token = await user.getIdToken();
+        console.log("Firebase Auth User UID:", user.uid, "Email:", user.email);
+        dispatch({
+          type: 'UPDATE_USER_PROFILE',
+          payload: {
+            isAuthenticated: true,
+            authProvider: (user.providerData[0]?.providerId as AuthProviderType) || 'google',
+            email: user.email || undefined,
+            firebaseUid: user.uid,
+          }
+        });
+        // Note: Fetching profile from API will be handled by the next useEffect
+        // based on isAuthenticated and firebaseUid.
+      } else {
+        console.log("Firebase Auth: No user signed in.");
+        dispatch({ type: 'LOGOUT_USER' });
+      }
+      // SET_LOADING(false) is handled by LOAD_STATE, SYNC_PROFILE_FROM_API, or LOGOUT_USER
+    });
+    return () => unsubscribe();
+  }, [dispatch]); // dispatch is stable
+
+  // Effect for fetching profile from API
   useEffect(() => {
-    const fetchProfileFromApi = async (userId: string) => {
-      dispatch({ type: 'SET_LOADING', payload: true });
+    const fetchProfile = async (userId: string) => {
+      // No SET_LOADING(true) here, let the caller manage or rely on global isLoading if needed
+      // This effect is triggered by auth changes, subsequent isLoading is handled by reducer on SYNC or error
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) {
           console.error("User not authenticated for fetching profile.");
-          dispatch({ type: 'LOGOUT_USER' }); // Or handle appropriately
-          dispatch({ type: 'SET_LOADING', payload: false });
+          dispatch({ type: 'LOGOUT_USER' });
           return;
         }
         const token = await currentUser.getIdToken();
         const response = await fetch(`/api/user-profile?userId=${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
+
         if (response.ok) {
           const data = await response.json();
           if (data.userProfile) {
             dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
           } else if (response.status === 404) {
-             console.log("Profile not found on backend for user:", userId);
-             dispatch({ type: 'SET_LOADING', payload: false });
+            console.log("Profile not found on backend for user:", userId, "Will proceed with local/default state.");
+            // If profile not found, we might not want to set loading to false here,
+            // as LOAD_STATE should have already done it. If it's a fresh login with no profile,
+            // isSetupComplete will be false, guiding user to setup.
+            dispatch({ type: 'SET_LOADING', payload: false }); // Or rely on initial LOAD_STATE
           } else {
-             // Handle other non-404 but not ok statuses
             console.error("API responded but profile not found or error:", response.statusText);
             dispatch({ type: 'SET_LOADING', payload: false });
           }
         } else {
           console.error("Failed to fetch user profile from API:", response.status, response.statusText);
-           if (response.status === 401 || response.status === 403) {
-             dispatch({ type: 'LOGOUT_USER' }); // Token might be invalid or expired
-           }
-          dispatch({ type: 'SET_LOADING', payload: false });
+          if (response.status === 401 || response.status === 403) {
+            dispatch({ type: 'LOGOUT_USER' });
+          } else {
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
         }
       } catch (error) {
         console.error("Error fetching user profile from API:", error);
@@ -250,20 +280,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
+    // Only fetch if authenticated, has UID, AND critically, if we are not already loading.
+    // This !state.isLoading helps prevent re-fetching if another process (like initial load) is still considered loading.
     if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && !state.isLoading) {
-      fetchProfileFromApi(state.userProfile.firebaseUid);
+       // This `SET_LOADING` is for the fetch operation itself.
+      dispatch({ type: 'SET_LOADING', payload: true });
+      fetchProfile(state.userProfile.firebaseUid);
     }
-  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading]);
+  // IMPORTANT: Removed state.isLoading from dependencies to prevent re-triggering from its own SET_LOADING calls.
+  // This hook now primarily reacts to authentication state changes.
+  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, dispatch]);
 
 
+  // Effect for saving entire app state to localStorage
   useEffect(() => {
-    if (state.isLoading) { 
+    // Do not save to localStorage if we are in an isLoading state,
+    // as the state might be intermediate or incomplete.
+    if (state.isLoading) {
       return;
     }
-
     try {
       const serializableState = {
         ...state,
+        isLoading: false, // Persist isLoading as false if we are saving
         wizard: {
           ...state.wizard,
           selectedPurposes: Array.from(state.wizard.selectedPurposes),
@@ -272,7 +311,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           ...state.userProfile,
           assistants: state.userProfile.assistants.map(assistant => ({
             ...assistant,
-            purposes: Array.from(assistant.purposes), 
+            purposes: Array.from(assistant.purposes),
           })),
         }
       };
@@ -280,18 +319,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error al guardar estado en localStorage", error);
     }
+  // Depend on the actual data parts of the state, not isLoading itself for triggering localStorage save.
+  }, [state.wizard, state.userProfile, state.isSetupComplete, dispatch]);
 
-    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid) {
+
+  // Effect for saving just the user profile to the API
+  useEffect(() => {
+    // Do not save to API if we are in an isLoading state,
+    // especially if it's due to fetching this very profile.
+    if (state.isLoading) {
+      return;
+    }
+
+    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isSetupComplete) {
       const saveProfileToApi = async () => {
         try {
           const currentUser = auth.currentUser;
           if (!currentUser) {
             console.error("User not authenticated for saving profile.");
-            // Optionally dispatch logout or handle error
             return;
           }
           const token = await currentUser.getIdToken();
-          
           const serializableProfile = {
             ...state.userProfile,
             assistants: state.userProfile.assistants.map(assistant => ({
@@ -301,7 +349,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           };
           const response = await fetch('/api/user-profile', {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
@@ -309,13 +357,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           });
           if (!response.ok) {
             console.error("Failed to save user profile to API:", response.status, response.statusText);
-             if (response.status === 401 || response.status === 403) {
-               // Handle token invalid/expired, maybe prompt re-login or refresh token
-               console.warn("Token might be invalid or expired. Consider re-authentication.");
-             }
+            if (response.status === 401 || response.status === 403) {
+              console.warn("Token might be invalid or expired. Consider re-authentication.");
+            }
           } else {
-             const result = await response.json();
-             console.log("Profile saved to API:", result.message);
+            const result = await response.json();
+            console.log("Profile saved to API:", result.message);
           }
         } catch (error) {
           console.error("Error saving user profile to API:", error);
@@ -323,7 +370,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       };
       saveProfileToApi();
     }
-  }, [state]); 
+  // This effect should run when the userProfile's content (that needs to be persisted to backend) changes,
+  // or when setup is completed.
+  // Using specific fields from userProfile that are relevant for backend persistence.
+  // Also depends on isAuthenticated and firebaseUid to ensure user is logged in.
+  // isSetupComplete is a good trigger for an initial save after wizard.
+  // isLoading is added to ensure it re-evaluates after loading is done.
+  }, [
+      state.userProfile.firebaseUid, // Ensures UID is present
+      state.userProfile.isAuthenticated, // Ensures user is authenticated
+      state.userProfile.currentPlan,
+      state.userProfile.assistants,
+      state.userProfile.databases,
+      state.isSetupComplete, // Triggers save after setup
+      state.isLoading, // Re-evaluate when loading finishes
+      dispatch
+     ]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
@@ -340,3 +402,4 @@ export const useApp = () => {
   return context;
 };
 
+    
