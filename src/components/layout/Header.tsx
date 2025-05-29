@@ -1,7 +1,7 @@
 
 "use client";
 import Link from 'next/link';
-import { FaRobot } from 'react-icons/fa';
+import Image from 'next/image'; // Import next/image
 import { APP_NAME } from '@/config/appConfig';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -18,7 +18,14 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         !fullWidth && "max-w-md" // Aplicar max-w-md solo si fullWidth es false
       )}>
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <FaRobot size={28} className="text-brand-gradient" />
+          {/* Replace FaRobot with Image component */}
+          <Image 
+            src="/icon.svg" 
+            alt={`${APP_NAME} Icon`} 
+            width={28} 
+            height={28} 
+            className="h-7 w-7" // Ensure size matches previous icon
+          />
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <ThemeToggle />

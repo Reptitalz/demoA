@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: APP_NAME,
   description: 'Gestiona tus asistentes virtuales impulsados por IA.',
   icons: {
-    icon: '/favicon.ico', // Add this line
+    icon: '/icon.svg', // Add this line
   },
 };
 

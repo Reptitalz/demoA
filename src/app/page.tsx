@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { APP_NAME, subscriptionPlansConfig, planIcons } from '@/config/appConfig';
 import type { SubscriptionPlanDetails } from '@/types';
-import Link from 'next/link';
+import Link from 'next/link'; // Ensure Link is imported
 import { FaRocket, FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine, FaCheckCircle } from 'react-icons/fa';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,12 @@ export default function MarketingPage() {
   return (
     <PageContainer className="flex flex-col items-center text-center py-8 sm:py-12 animate-fadeIn" fullWidth={true}>
       {/* Hero Section */}
-      <FaRocket size={56} className="text-brand-gradient mb-6 sm:mb-8" />
+      {/* Replace FaRocket with the image */}
+      <img
+        src="/icon.svg" // Path to the SVG file
+        alt={`${APP_NAME} Icon`}
+        className="h-14 w-14 text-brand-gradient mb-6 sm:mb-8" // 56x56 pixels
+      />
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
         Bienvenido a <span className="text-brand-gradient">{APP_NAME}</span>
       </h1>
