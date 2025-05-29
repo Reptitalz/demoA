@@ -15,6 +15,8 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast"; 
 import { APP_NAME, MAX_WIZARD_STEPS } from '@/config/appConfig';
 
+const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; // Standardized format
+
 const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
@@ -139,6 +141,24 @@ const SetupPage = () => {
     let updatedAssistantsArray: AssistantConfig[];
     const newDbEntries: DatabaseConfig[] = [];
     let newAssistantDbIdToLink: string | undefined = undefined;
+    let assistantPhoneNumber: string | undefined;
+
+    // Determine phone number for the assistant
+    if (selectedPlan === 'free') {
+      assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+    } else if (editingAssistantId) {
+      const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
+      // If it was the free number and plan changed, unset it so Vonage can assign one.
+      if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
+        assistantPhoneNumber = undefined;
+      } else {
+        assistantPhoneNumber = assistantToUpdate.phoneLinked; // Preserve existing (potentially Vonage) number
+      }
+    } else {
+      // New assistant on a paid plan, Vonage will assign number via webhook
+      assistantPhoneNumber = undefined;
+    }
+
 
     if (databaseOption.type) {
       const dbId = `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -157,6 +177,7 @@ const SetupPage = () => {
         ...assistantToUpdate,
         name: assistantName,
         purposes: selectedPurposes,
+        phoneLinked: assistantPhoneNumber, // Updated phone number logic
         databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : assistantToUpdate.databaseId,
       };
       updatedAssistantsArray = state.userProfile.assistants.map(asst =>
@@ -167,7 +188,7 @@ const SetupPage = () => {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: assistantName,
         purposes: selectedPurposes,
-        phoneLinked: `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        phoneLinked: assistantPhoneNumber, // Updated phone number logic
         databaseId: newAssistantDbIdToLink,
       };
       updatedAssistantsArray = [...state.userProfile.assistants, finalAssistantConfig];
@@ -245,7 +266,7 @@ const SetupPage = () => {
         </div>
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex gap-1.5">
-            {state.isSetupComplete && !isReconfiguring && ( 
+            {state.isSetupComplete && ( 
               <Button
                 variant="outline"
                 onClick={() => router.push('/app/dashboard')}
@@ -289,5 +310,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-
-    
