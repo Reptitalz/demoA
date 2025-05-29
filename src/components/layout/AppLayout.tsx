@@ -5,6 +5,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation'; // Importar usePathname
+import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -17,7 +18,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const layoutShouldBeFullWidth = isMarketingPage;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className={cn("min-h-screen flex flex-col bg-background text-foreground dynamic-particle-grid-bg")}>
       <Header fullWidth={layoutShouldBeFullWidth} />
       {children}
       <Footer fullWidth={layoutShouldBeFullWidth} />
