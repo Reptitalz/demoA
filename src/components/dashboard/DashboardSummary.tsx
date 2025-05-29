@@ -28,13 +28,13 @@ const DashboardSummary = () => {
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn cursor-pointer" style={{animationDelay: "0.1s"}}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Plan Actual</CardTitle>
-              <div className="flex items-center gap-1 text-primary">
-                <FaBoxOpen className="h-5 w-5" />
+              <div className="flex items-center gap-1 text-primary"> {/* Uses new primary (purple) */}
+                <FaBoxOpen className="h-5 w-5 text-brand-gradient" />
                 <FaExternalLinkAlt className="h-3 w-3 opacity-70" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-2xl font-bold text-brand-gradient">
                 {planDetails ? planDetails.name : "N/D"}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -57,10 +57,10 @@ const DashboardSummary = () => {
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.2s"}}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Asistentes Activos</CardTitle>
-          <FaRobot className="h-5 w-5 text-primary" />
+          <FaRobot className="h-5 w-5 text-brand-gradient" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary">
+          <div className="text-2xl font-bold text-brand-gradient">
             {assistants.length}
           </div>
           <p className="text-xs text-muted-foreground">

@@ -6,17 +6,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { subscriptionPlansConfig } from "@/config/appConfig";
+import { subscriptionPlansConfig, planIcons } from "@/config/appConfig";
 import type { SubscriptionPlanType } from "@/types";
-import { FaCheckCircle, FaTasks, FaChartLine, FaBriefcase } from "react-icons/fa";
+import { FaCheckCircle } from "react-icons/fa"; // Removed other plan icons as they are now in planIcons
 import { cn } from "@/lib/utils";
-
-const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
-  free: FaCheckCircle,
-  standard_39: FaTasks,
-  premium_179: FaChartLine,
-  business_270: FaBriefcase,
-};
 
 const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => void }) => {
   const { state, dispatch } = useApp();
@@ -54,11 +47,11 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value={plan.id} id={`plan-${plan.id}`} className={cn(isSelected && "border-primary text-primary bg-primary", "h-3.5 w-3.5 sm:h-4 sm:w-4")} />
-                    <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6 text-primary")} /> 
+                    <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6", isSelected ? "text-primary" : "text-brand-gradient")} /> 
                     <span className="font-semibold text-sm sm:text-base">{plan.name}</span> 
                   </div>
                   <div className="text-right">
-                    <p className={cn("text-base sm:text-lg font-bold text-primary")}> 
+                    <p className={cn("text-base sm:text-lg font-bold", isSelected ? "text-primary" : "text-brand-gradient")}> 
                       ${plan.priceMonthly}
                       <span className={cn("text-xs sm:text-sm font-normal text-muted-foreground")}>/mes</span> 
                     </p>
@@ -70,7 +63,7 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
                 <ul className="mt-2 pl-6 sm:pl-7 space-y-1 text-xs sm:text-sm">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center">
-                      <FaCheckCircle className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-green-500")} /> 
+                      <FaCheckCircle className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-green-500")} /> {/* Keeping check green for universal good */}
                       {feature} 
                     </li>
                   ))}
@@ -82,7 +75,10 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
       </CardContent>
       <CardFooter>
         <Button 
-          className="w-full text-sm sm:text-base py-2.5 transition-transform transform hover:scale-105" 
+          className={cn(
+            "w-full text-sm sm:text-base py-2.5 transition-transform transform hover:scale-105 text-primary-foreground hover:opacity-90",
+            "bg-brand-gradient"
+          )} 
           onClick={onCompleteSetup}
           disabled={!selectedPlan}
           aria-disabled={!selectedPlan}

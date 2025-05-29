@@ -77,10 +77,16 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <FaRobot className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              <FaRobot className="h-7 w-7 sm:h-8 sm:w-8 text-brand-gradient" />
               <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
             </div>
-            <Badge variant={assistant.phoneLinked ? "default" : "secondary"} className={cn(assistant.phoneLinked && "bg-green-600 text-white", "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1")}>
+            <Badge 
+              variant={assistant.phoneLinked ? "default" : "secondary"} 
+              className={cn(
+                assistant.phoneLinked && "bg-brand-gradient text-primary-foreground", // Use gradient for active badge
+                "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1"
+              )}
+            >
               {assistant.phoneLinked ? "Activo" : "Inactivo"}
             </Badge>
           </div>
@@ -93,7 +99,11 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs"
+                className={cn(
+                  "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
+                  "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
+                  "bg-brand-gradient" // Apply gradient to chat button
+                )}
                 aria-label="Iniciar chat de WhatsApp"
                 title="Iniciar chat de WhatsApp"
               >
@@ -107,14 +117,14 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
           <div>
             <div className="flex justify-between items-center mb-1 sm:mb-1.5">
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
-                <FaBolt size={14} className="text-accent" /> Propósitos:
+                <FaBolt size={14} className="text-accent" /> Propósitos: {/* text-accent will be orange */}
               </h4>
               {allPurposes.length > INITIAL_PURPOSES_TO_SHOW && (
                 <Button 
                   variant="link" 
                   size="sm" 
                   onClick={() => setShowAllPurposes(!showAllPurposes)}
-                  className="text-xs p-0 h-auto text-accent hover:text-accent/80"
+                  className="text-xs p-0 h-auto text-accent hover:text-accent/80" // text-accent will be orange
                 >
                   {showAllPurposes ? "Ver menos" : "Ver más"}
                   {showAllPurposes ? <FaChevronUp className="ml-1 h-3 w-3" /> : <FaChevronDown className="ml-1 h-3 w-3" />}
@@ -127,7 +137,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 const Icon = purpose.icon || FaCommentDots;
                 return (
                   <Badge key={purpose.id} variant="secondary" className="flex items-center gap-1 sm:gap-1.5 py-0.5 px-1.5 sm:py-1 sm:px-2.5 text-xs">
-                    <Icon size={12} />
+                    <Icon size={12} className="text-accent" /> {/* Purpose icons will be orange */}
                     {purpose.name}
                   </Badge>
                 );
@@ -137,7 +147,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
           {assistant.databaseId && (
             <div>
                <h4 className="text-xs sm:text-sm font-semibold mb-1 sm:mb-1.5 text-foreground flex items-center gap-1 sm:gap-1.5">
-                <FaDatabase size={14} className="text-accent" /> Base de Datos Vinculada:
+                <FaDatabase size={14} className="text-accent" /> Base de Datos Vinculada: {/* text-accent will be orange */}
               </h4>
               <Badge variant="outline" className="text-xs py-0.5 px-1.5 sm:py-1 sm:px-2">{assistant.databaseId.substring(0,15)}...</Badge> 
             </div>
@@ -157,7 +167,10 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
               <Button
                 size="sm"
                 onClick={handleShareOnWhatsApp}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+                className={cn(
+                  "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
+                  "bg-brand-gradient" // Apply gradient to share button
+                )}
               >
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
@@ -170,4 +183,3 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
 };
 
 export default AssistantCard;
-

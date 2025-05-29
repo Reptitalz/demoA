@@ -17,9 +17,9 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         "container mx-auto px-4 py-3 flex items-center justify-between",
         !fullWidth && "max-w-md" // Aplicar max-w-md solo si fullWidth es false
       )}>
-        <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-          <FaRobot size={28} />
-          <h1 className="text-xl font-bold text-foreground">{APP_NAME}</h1>
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <FaRobot size={28} className="text-brand-gradient" />
+          <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <ThemeToggle />
       </div>
