@@ -8,7 +8,6 @@ const VONAGE_BASE_URL = 'https://rest.nexmo.com';
 
 if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
   console.error('Vonage API Key or Secret is not defined in environment variables.');
-  // Potentially throw an error or handle this state appropriately
 }
 
 interface VonageSearchResponseNumber {
@@ -24,7 +23,7 @@ interface VonageSearchResponse {
   numbers: VonageSearchResponseNumber[];
 }
 
-interface VonageBuyResponse {
+interface VonageActionResponse { // General response for buy/cancel
   'error-code'?: string;
   'error-code-label'?: string;
   // Add other success fields if known
@@ -44,15 +43,14 @@ export async function searchAvailableNumber(countryCode: string): Promise<string
     const response = await axios.get<VonageSearchResponse>(`${VONAGE_BASE_URL}/number/search`, {
       params: {
         country: countryCode,
-        features: 'VOICE,SMS', // Requesting VOICE and SMS features
+        features: 'VOICE,SMS',
         api_key: VONAGE_API_KEY,
         api_secret: VONAGE_API_SECRET,
-        size: 5, // Fetch a few numbers to choose from, defaults to 10
+        size: 5,
       },
     });
 
     if (response.data && response.data.numbers && response.data.numbers.length > 0) {
-      // Potentially add logic here to select the best number if multiple are returned
       const availableNumber = response.data.numbers[0].msisdn;
       console.log(`Found available Vonage number in ${countryCode}: ${availableNumber}`);
       return availableNumber;
@@ -61,7 +59,8 @@ export async function searchAvailableNumber(countryCode: string): Promise<string
       return null;
     }
   } catch (error) {
-    console.error(`Error searching for Vonage number in ${countryCode}:`, error.response?.data || error.message);
+    const axiosError = error as import('axios').AxiosError;
+    console.error(`Error searching for Vonage number in ${countryCode}:`, axiosError.response?.data || axiosError.message);
     return null;
   }
 }
@@ -78,33 +77,72 @@ export async function buyNumber(countryCode: string, msisdn: string): Promise<bo
     return false;
   }
   try {
-    const response = await axios.post<VonageBuyResponse>(
+    const response = await axios.post<VonageActionResponse>(
       `${VONAGE_BASE_URL}/number/buy`,
-      {
+      new URLSearchParams({ // Vonage API for buy often expects form-urlencoded
         country: countryCode,
         msisdn: msisdn,
         api_key: VONAGE_API_KEY,
         api_secret: VONAGE_API_SECRET,
-      },
+      }).toString(),
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Vonage API for buy often expects form-urlencoded
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       }
     );
     
-    // Vonage API returns 200 OK for both success and failure, check error-code
     if (response.data && response.data['error-code']) {
       console.error(`Failed to buy Vonage number ${msisdn}. Error: ${response.data['error-code-label']} (${response.data['error-code']})`);
       return false;
     }
     
-    // Assuming no 'error-code' means success based on typical Nexmo/Vonage patterns
-    // A more robust check might involve looking for specific success indicators if available in the response
     console.log(`Successfully bought Vonage number: ${msisdn}`);
     return true;
   } catch (error) {
-    console.error(`Error buying Vonage number ${msisdn}:`, error.response?.data || error.message);
+    const axiosError = error as import('axios').AxiosError;
+    console.error(`Error buying Vonage number ${msisdn}:`, axiosError.response?.data || axiosError.message);
+    return false;
+  }
+}
+
+/**
+ * Cancels a specific phone number.
+ * @param msisdn The phone number (msisdn) to cancel.
+ * @param countryCode The 2-letter country code of the number.
+ * @returns A promise that resolves to true if the cancellation was successful, false otherwise.
+ */
+export async function cancelNumber(msisdn: string, countryCode: string): Promise<boolean> {
+  if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
+    console.error('Vonage API credentials not configured for cancellation.');
+    return false;
+  }
+  try {
+    const response = await axios.post<VonageActionResponse>(
+      `${VONAGE_BASE_URL}/number/cancel`,
+      new URLSearchParams({
+        country: countryCode, // Country code is typically required for cancellation
+        msisdn: msisdn,
+        api_key: VONAGE_API_KEY,
+        api_secret: VONAGE_API_SECRET,
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+
+    if (response.data && response.data['error-code']) {
+      console.error(`Failed to cancel Vonage number ${msisdn}. Error: ${response.data['error-code-label']} (${response.data['error-code']})`);
+      return false;
+    }
+
+    console.log(`Successfully cancelled Vonage number: ${msisdn}`);
+    return true;
+  } catch (error) {
+    const axiosError = error as import('axios').AxiosError;
+    console.error(`Error cancelling Vonage number ${msisdn}:`, axiosError.response?.data || axiosError.message);
     return false;
   }
 }

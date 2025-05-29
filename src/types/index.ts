@@ -1,5 +1,4 @@
 
-
 export type AssistantPurposeType = "import_db_google_sheets" | "import_db_excel" | "create_smart_db" | "notify_owner" | "notify_clients";
 
 export interface AssistantPurpose {
@@ -48,7 +47,9 @@ export interface UserProfile {
   databases: DatabaseConfig[];
   firebaseUid?: string; // Optional: store Firebase UID
   stripeCustomerId?: string; // ID del cliente en Stripe
+  stripeSubscriptionId?: string; // ID de la suscripción de Stripe
   virtualPhoneNumber?: string; // Número virtual de Vonage asignado
+  vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled'; // Estado del número de Vonage
 }
 
 // For wizard state
@@ -74,3 +75,4 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean; // For global loading states
 }
+
