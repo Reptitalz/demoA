@@ -15,9 +15,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: APP_NAME,
   description: 'Gestiona tus asistentes virtuales impulsados por IA.',
-  icons: {
-    icon: '/icon.svg', // Add this line
-  },
+  // icons: { // The icon link is usually placed in the <head> directly
+  //   icon: '/icon.svg', 
+  // },
 };
 
 export default function RootLayout({
@@ -27,6 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        {/* Add the favicon link here directly */}
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+      </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider
           attribute="class"

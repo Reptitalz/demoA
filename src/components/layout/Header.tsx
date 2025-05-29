@@ -1,10 +1,10 @@
 
 "use client";
 import Link from 'next/link';
-import Image from 'next/image'; // Import next/image
 import { APP_NAME } from '@/config/appConfig';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
+import AppIcon from '@/components/shared/AppIcon'; // Import the new AppIcon component
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -18,13 +18,9 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         !fullWidth && "max-w-md" // Aplicar max-w-md solo si fullWidth es false
       )}>
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          {/* Replace FaRobot with Image component */}
-          <Image 
-            src="/icon.svg" 
-            alt={`${APP_NAME} Icon`} 
-            width={28} 
-            height={28} 
-            className="h-7 w-7" // Ensure size matches previous icon
+          <AppIcon 
+            className="h-7 w-7 text-brand-gradient" // Use text-brand-gradient for the SVG
+            aria-label={`${APP_NAME} Icon`} 
           />
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>

@@ -7,19 +7,19 @@ import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/componen
 import { APP_NAME, subscriptionPlansConfig, planIcons } from '@/config/appConfig';
 import type { SubscriptionPlanDetails } from '@/types';
 import Link from 'next/link'; // Ensure Link is imported
-import { FaRocket, FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine, FaCheckCircle } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine, FaCheckCircle } from 'react-icons/fa';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import AppIcon from '@/components/shared/AppIcon'; // Import the new AppIcon component
 
 export default function MarketingPage() {
   return (
     <PageContainer className="flex flex-col items-center text-center py-8 sm:py-12 animate-fadeIn" fullWidth={true}>
       {/* Hero Section */}
-      {/* Replace FaRocket with the image */}
-      <img
-        src="/icon.svg" // Path to the SVG file
-        alt={`${APP_NAME} Icon`}
-        className="h-14 w-14 text-brand-gradient mb-6 sm:mb-8" // 56x56 pixels
+      {/* Replace FaRocket with the AppIcon component */}
+      <AppIcon
+        className="h-14 w-14 text-foreground mb-6 sm:mb-8" // text-foreground will handle theme color
+        aria-label={`${APP_NAME} Icon`}
       />
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
         Bienvenido a <span className="text-brand-gradient">{APP_NAME}</span>
@@ -94,7 +94,7 @@ export default function MarketingPage() {
         <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Planes y Precios</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {subscriptionPlansConfig.map((plan) => {
-            const Icon = planIcons[plan.id] || FaRocket; // Fallback icon
+            const Icon = planIcons[plan.id] || AppIcon; // Fallback icon can be AppIcon or FaRocket
             return <PricingPlanCard key={plan.id} plan={plan} icon={<Icon size={28} className="text-brand-gradient mb-2" />} />;
           })}
         </div>
