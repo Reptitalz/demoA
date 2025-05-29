@@ -65,6 +65,7 @@ export interface WizardState {
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
+  customPhoneNumber?: string; // For business plan new assistant
   isReconfiguring: boolean; // To indicate if the wizard is in edit/reconfigure mode
   editingAssistantId: string | null; // ID of the assistant being edited
 }
@@ -75,4 +76,3 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean; // For global loading states
 }
-

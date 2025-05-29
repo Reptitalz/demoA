@@ -8,10 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
+import { FaPhone } from "react-icons/fa";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
-  const { assistantName, selectedPurposes } = state.wizard;
+  const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
@@ -20,6 +21,12 @@ const Step1AssistantDetails = () => {
   const handlePurposeToggle = (purposeId: AssistantPurposeType) => {
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
+
+  const handleCustomPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: 'UPDATE_CUSTOM_PHONE_NUMBER', payload: e.target.value });
+  };
+
+  const showCustomPhoneInput = selectedPlan === 'business_270' && !isReconfiguring;
 
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
@@ -40,6 +47,26 @@ const Step1AssistantDetails = () => {
             aria-required="true"
           />
         </div>
+
+        {showCustomPhoneInput && (
+          <div className="space-y-2">
+            <Label htmlFor="customPhoneNumber" className="text-base flex items-center gap-2">
+              <FaPhone /> Número de Teléfono del Asistente (Plan de Negocios)
+            </Label>
+            <Input
+              id="customPhoneNumber"
+              type="tel"
+              placeholder="Ej: +12345678900"
+              value={customPhoneNumber || ''}
+              onChange={handleCustomPhoneChange}
+              className="text-base"
+              aria-required="true"
+            />
+            <p className="text-xs text-muted-foreground">
+              Ingresa el número de teléfono que este asistente utilizará.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-3">
           <Label className="text-base block mb-2">Propósitos del Asistente</Label>

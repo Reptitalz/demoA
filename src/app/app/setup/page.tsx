@@ -21,7 +21,7 @@ const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, isReconfiguring, editingAssistantId } = state.wizard;
+  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId } = state.wizard;
 
   const effectiveMaxSteps = isReconfiguring ? 3 : MAX_WIZARD_STEPS;
 
@@ -53,11 +53,14 @@ const SetupPage = () => {
           if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           break;
       }
-    } else { 
+    } else { // Standard setup flow
       switch (currentValidationStep) {
         case 1:
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
+          if (selectedPlan === 'business_270' && !isReconfiguring && !customPhoneNumber?.trim()) {
+            return "Por favor, ingresa un número de teléfono para el asistente (Plan de Negocios).";
+          }
           break;
         case 2:
           if (!databaseOption.type && selectedPurposes.size > 0 && (selectedPurposes.has('import_db_excel') || selectedPurposes.has('import_db_google_sheets') || selectedPurposes.has('create_smart_db'))) {
@@ -96,9 +99,14 @@ const SetupPage = () => {
         case 3: return !!selectedPlan;
         default: return false;
       }
-    } else { 
+    } else { // Standard setup flow
       switch (currentValidationStep) {
-        case 1: return assistantName.trim() !== '' && selectedPurposes.size > 0;
+        case 1: 
+          const baseValid = assistantName.trim() !== '' && selectedPurposes.size > 0;
+          if (selectedPlan === 'business_270' && !isReconfiguring) {
+            return baseValid && !!customPhoneNumber?.trim();
+          }
+          return baseValid;
         case 2:
           if (!databaseOption.type) {
             return !Array.from(selectedPurposes).some(p => ['import_db_excel', 'import_db_google_sheets', 'create_smart_db'].includes(p));
@@ -143,20 +151,27 @@ const SetupPage = () => {
     let newAssistantDbIdToLink: string | undefined = undefined;
     let assistantPhoneNumber: string | undefined;
 
-    // Determine phone number for the assistant
-    if (selectedPlan === 'free') {
-      assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-    } else if (editingAssistantId) {
-      const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
-      // If it was the free number and plan changed, unset it so Vonage can assign one.
-      if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
-        assistantPhoneNumber = undefined;
-      } else {
-        assistantPhoneNumber = assistantToUpdate.phoneLinked; // Preserve existing (potentially Vonage) number
-      }
-    } else {
-      // New assistant on a paid plan, Vonage will assign number via webhook
-      assistantPhoneNumber = undefined;
+    if (editingAssistantId) { // Reconfiguring
+        const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
+        if (selectedPlan === 'free') {
+            assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+        } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
+            // Was free, changed to paid (non-business). Vonage will assign.
+            assistantPhoneNumber = undefined;
+        } else {
+            // Kept paid plan, or was business and stays business, or was paid and changes to business.
+            // In reconfig, we don't change phone number via a custom input here.
+            assistantPhoneNumber = assistantToUpdate.phoneLinked;
+        }
+    } else { // New assistant
+        if (selectedPlan === 'business_270') {
+            assistantPhoneNumber = customPhoneNumber || undefined; // Use the number from the input field
+        } else if (selectedPlan === 'free') {
+            assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+        } else {
+            // New assistant on other paid plans (e.g., premium_179). Vonage will assign.
+            assistantPhoneNumber = undefined;
+        }
     }
 
 
@@ -177,7 +192,7 @@ const SetupPage = () => {
         ...assistantToUpdate,
         name: assistantName,
         purposes: selectedPurposes,
-        phoneLinked: assistantPhoneNumber, // Updated phone number logic
+        phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : assistantToUpdate.databaseId,
       };
       updatedAssistantsArray = state.userProfile.assistants.map(asst =>
@@ -188,7 +203,7 @@ const SetupPage = () => {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: assistantName,
         purposes: selectedPurposes,
-        phoneLinked: assistantPhoneNumber, // Updated phone number logic
+        phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink,
       };
       updatedAssistantsArray = [...state.userProfile.assistants, finalAssistantConfig];
@@ -288,7 +303,7 @@ const SetupPage = () => {
           {currentStep < effectiveMaxSteps && (
             <Button 
               onClick={handleNext} 
-              className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
+              className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid()} 
             >
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
@@ -297,7 +312,7 @@ const SetupPage = () => {
           {currentStep === effectiveMaxSteps && ( 
              <Button 
               onClick={handleCompleteSetup} 
-              className="bg-primary hover:bg-primary/90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
+              className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid()}
             >
               {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"} <FaArrowRight className="ml-1 h-3 w-3" />
