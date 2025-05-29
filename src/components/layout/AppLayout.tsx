@@ -1,11 +1,12 @@
 
-"use client"; // Necesario para usePathname
+"use client"; 
 import type { ReactNode } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { Toaster } from "@/components/ui/toaster";
-import { usePathname } from 'next/navigation'; // Importar usePathname
+import { usePathname } from 'next/navigation'; 
 import { cn } from '@/lib/utils';
+import DynamicCanvasBackground from './DynamicCanvasBackground'; // Import the new component
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -13,12 +14,12 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
-  // La página de marketing está en '/', las páginas de la app bajo '/app/'
   const isMarketingPage = pathname === '/'; 
   const layoutShouldBeFullWidth = isMarketingPage;
 
   return (
-    <div className={cn("min-h-screen flex flex-col bg-background text-foreground dynamic-particle-grid-bg")}>
+    <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
+      <DynamicCanvasBackground /> {/* Add the canvas background here */}
       <Header fullWidth={layoutShouldBeFullWidth} />
       {children}
       <Footer fullWidth={layoutShouldBeFullWidth} />

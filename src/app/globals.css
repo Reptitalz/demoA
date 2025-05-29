@@ -159,57 +159,7 @@ body {
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   }
 
-  .dynamic-particle-grid-bg {
-    position: relative;
-    isolation: isolate; /* Create new stacking context */
-  }
-
-  .dynamic-particle-grid-bg::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1; /* Behind the content */
-    
-    /* Grid Layer */
-    background-image: 
-      repeating-linear-gradient(hsl(var(--border) / 0.07) 0 1px, transparent 1px 40px),
-      repeating-linear-gradient(90deg, hsl(var(--border) / 0.07) 0 1px, transparent 1px 40px);
-    
-    /* Particle Animation Layers */
-    animation: animate-particles 60s linear infinite;
-    background-size: 300% 300%, 40px 40px; /* Large size for particle movement, grid size */
-  }
-
-  /* Additional layers for more particles can be added via multiple backgrounds or more pseudo-elements */
-  .dynamic-particle-grid-bg::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -2; /* Even further behind */
-    background-image: 
-      radial-gradient(circle at 10% 10%, hsl(var(--primary) / 0.15) 0%, transparent 3%),
-      radial-gradient(circle at 30% 70%, hsl(var(--accent) / 0.15) 0%, transparent 4%),
-      radial-gradient(circle at 75% 25%, hsl(var(--primary) / 0.1) 0%, transparent 2.5%),
-      radial-gradient(circle at 90% 80%, hsl(var(--accent) / 0.12) 0%, transparent 3.5%),
-      radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.1) 0%, transparent 2%);
-    background-size: 200px 200px, 300px 300px, 150px 150px, 250px 250px, 400px 400px;
-    background-repeat: repeat;
-    animation: animate-particles-subtle 90s linear infinite alternate;
-    opacity: 0.7;
-  }
-
-
-  @keyframes animate-particles {
-    0% { background-position: 0% 0%, 0 0; }
-    100% { background-position: 300% 300%, 0 0; } /* Moves the gradient field */
-  }
-  
-  @keyframes animate-particles-subtle {
-    0% { transform: translate(0,0) rotate(0deg); opacity: 0.5; }
-    25% { opacity: 0.7; }
-    50% { transform: translate(5px, 5px) rotate(10deg); opacity: 0.4; }
-    75% { opacity: 0.6; }
-    100% { transform: translate(0,0) rotate(0deg); opacity: 0.5; }
-  }
+  /* Removed .dynamic-particle-grid-bg and its related ::before, ::after, and keyframes */
+  /* The canvas will handle the background now */
 
 }
