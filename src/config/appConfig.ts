@@ -1,6 +1,6 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaTasks, FaChartLine, FaBriefcase } from 'react-icons/fa';
+import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaChartLine, FaBriefcase } from 'react-icons/fa'; // Removed FaTasks
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
@@ -26,15 +26,17 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     id: "premium_179", 
     name: "Plan Premium (1er mes $39)", 
     priceMonthly: 179, 
-    assistantLimit: 1, // This is per assistant
-    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)"] 
+    assistantLimit: 1, 
+    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)"],
+    stripePriceId: "price_1RQdzjBwdSNcDr02SfU6zNHW" // Added Stripe Price ID
   },
   { 
     id: "business_270", 
     name: "Plan de Negocios", 
     priceMonthly: 270, 
     assistantLimit: 5, 
-    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado"] 
+    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado"],
+    stripePriceId: "price_1RQenGBwdSNcDr02fU9nVQkg" // Added Stripe Price ID
   },
 ];
 
@@ -52,7 +54,6 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
 
 export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   free: FaCheckCircle,
-  // standard_39 icon (FaTasks) is removed
   premium_179: FaChartLine,
   business_270: FaBriefcase,
 };

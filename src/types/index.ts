@@ -34,6 +34,7 @@ export interface SubscriptionPlanDetails {
   priceMonthly: number;
   assistantLimit: number | "unlimited";
   features: string[];
+  stripePriceId?: string; // Added Stripe Price ID
 }
 
 export type AuthProviderType = "google" | "no_account";
