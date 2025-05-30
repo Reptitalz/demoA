@@ -1,6 +1,6 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaChartLine, FaBriefcase } from 'react-icons/fa'; // Removed FaTasks
+import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask } from 'react-icons/fa'; 
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
@@ -14,30 +14,39 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
   { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: FaUsers },
 ];
 
+export const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; // Standardized format
+
 export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
   { 
     id: "free", 
     name: "Nivel Gratuito", 
     priceMonthly: 0, 
     assistantLimit: 1, 
-    features: ["Funciones básicas de asistente", "Interacciones limitadas", "Soporte comunitario"] 
+    features: ["Funciones básicas de asistente", "Interacciones limitadas", "Soporte comunitario", `Número telefónico: ${DEFAULT_FREE_PLAN_PHONE_NUMBER}`] 
   },
   { 
     id: "premium_179", 
     name: "Plan Premium (1er mes $39)", 
     priceMonthly: 179, 
     assistantLimit: 1, 
-    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)"],
-    stripePriceId: "price_1RQdzjBwdSNcDr02SfU6zNHW" // Added Stripe Price ID
+    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)", "Número de Vonage dedicado (EE. UU.)"],
+    stripePriceId: "price_1RQdzjBwdSNcDr02SfU6zNHW" 
   },
   { 
     id: "business_270", 
     name: "Plan de Negocios", 
     priceMonthly: 270, 
     assistantLimit: 5, 
-    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado"],
-    stripePriceId: "price_1RQenGBwdSNcDr02fU9nVQkg" // Added Stripe Price ID
+    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado", "Proporciona tus propios números para asistentes", "Número de Vonage adicional para la cuenta (EE. UU.)"],
+    stripePriceId: "price_1RQenGBwdSNcDr02fU9nVQkg" 
   },
+  {
+    id: "test_plan",
+    name: "Plan de Prueba (Webhook)",
+    priceMonthly: 0,
+    assistantLimit: 1,
+    features: ["Solo para pruebas de webhook", "Genera número de teléfono aleatorio", "No usa Vonage ni Stripe", "Asistente funcional con webhook"]
+  }
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
@@ -56,4 +65,5 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   free: FaCheckCircle,
   premium_179: FaChartLine,
   business_270: FaBriefcase,
+  test_plan: FaFlask, // Icon for test plan
 };

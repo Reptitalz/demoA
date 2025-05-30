@@ -26,7 +26,7 @@ export interface AssistantConfig {
   databaseId?: string; // Link to a DatabaseConfig
 }
 
-export type SubscriptionPlanType = "free" | "premium_179" | "business_270";
+export type SubscriptionPlanType = "free" | "premium_179" | "business_270" | "test_plan";
 
 export interface SubscriptionPlanDetails {
   id: SubscriptionPlanType;
@@ -34,7 +34,7 @@ export interface SubscriptionPlanDetails {
   priceMonthly: number;
   assistantLimit: number | "unlimited";
   features: string[];
-  stripePriceId?: string; // Added Stripe Price ID
+  stripePriceId?: string; 
 }
 
 export type AuthProviderType = "google" | "no_account";
@@ -46,11 +46,12 @@ export interface UserProfile {
   currentPlan: SubscriptionPlanType | null;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  firebaseUid?: string; // Optional: store Firebase UID
-  stripeCustomerId?: string; // ID del cliente en Stripe
-  stripeSubscriptionId?: string; // ID de la suscripción de Stripe
-  virtualPhoneNumber?: string; // Número virtual de Vonage asignado
-  vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled'; // Estado del número de Vonage
+  firebaseUid?: string; 
+  stripeCustomerId?: string; 
+  stripeSubscriptionId?: string; 
+  virtualPhoneNumber?: string; 
+  vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled'; 
+  countryCodeForVonageNumber?: string; // Added for Vonage cancellation if needed
 }
 
 // For wizard state

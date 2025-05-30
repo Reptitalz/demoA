@@ -13,10 +13,8 @@ import { Button } from '@/components/ui/button';
 import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa'; 
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast"; 
-import { APP_NAME, MAX_WIZARD_STEPS } from '@/config/appConfig';
+import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-
-const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; // Standardized format
 
 const SetupPage = () => {
   const { state, dispatch } = useApp();
@@ -156,21 +154,27 @@ const SetupPage = () => {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
         if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-        } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
-            // Was free, changed to paid (non-business). Vonage will assign.
+        } else if (selectedPlan === 'test_plan') {
+            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`; // Random for test plan
+        } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
+            // Was free, changed to paid (non-business, non-test). Vonage will assign.
             assistantPhoneNumber = undefined;
+        } else if (selectedPlan === 'business_270') {
+            // For business plan, if reconfiguring, it keeps its number. Custom phone input is not for reconfig.
+            assistantPhoneNumber = assistantToUpdate.phoneLinked;
         } else {
             // Kept paid plan, or was business and stays business, or was paid and changes to business.
-            // In reconfig, we don't change phone number via a custom input here.
             assistantPhoneNumber = assistantToUpdate.phoneLinked;
         }
     } else { // New assistant
         if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = customPhoneNumber || undefined; // Use the number from the input field
+            assistantPhoneNumber = customPhoneNumber || undefined; 
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+        } else if (selectedPlan === 'test_plan') {
+            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`; // Random for test plan
         } else {
-            // New assistant on other paid plans (e.g., premium_179). Vonage will assign.
+            // New assistant on other paid plans (e.g., premium_179). Vonage will assign via webhook.
             assistantPhoneNumber = undefined;
         }
     }
@@ -229,7 +233,6 @@ const SetupPage = () => {
       databases: updatedDatabasesArray,
     };
 
-    // Convert purposes from Set to Array for JSON stringification in console.log
     const assistantsForLog = finalUserProfile.assistants.map(asst => ({
       ...asst,
       purposes: Array.from(asst.purposes)
@@ -241,7 +244,6 @@ const SetupPage = () => {
       console.log("Nuevo Asistente Creado. Configuración de todos los asistentes:", JSON.stringify(assistantsForLog, null, 2));
     }
     
-    // DISPARAR WEBHOOK SI SE CREA UN NUEVO ASISTENTE
     if (!editingAssistantId && finalAssistantConfig) {
       const assistantDb = newAssistantDbIdToLink
         ? updatedDatabasesArray.find(db => db.id === newAssistantDbIdToLink)
