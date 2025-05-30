@@ -14,6 +14,7 @@ import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast"; 
 import { APP_NAME, MAX_WIZARD_STEPS } from '@/config/appConfig';
+import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 
 const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; // Standardized format
 
@@ -109,7 +110,7 @@ const SetupPage = () => {
           return baseValid;
         case 2:
           if (!databaseOption.type) {
-            return !Array.from(selectedPurposes).some(p => ['import_db_excel', 'import_db_google_sheets', 'create_smart_db'].includes(p));
+            return !Array.from(selectedPurposes).some(p => ['import_db_excel', 'import_db_google_sheets', 'create_smart_db'].includes(p as string));
           }
           if (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
           if (databaseOption.type === "excel") return !!databaseOption.file;
@@ -139,7 +140,7 @@ const SetupPage = () => {
     dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
   };
 
-  const handleCompleteSetup = () => {
+  const handleCompleteSetup = async () => {
     if (!isStepValid()) { 
       toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
       return;
@@ -228,17 +229,26 @@ const SetupPage = () => {
       databases: updatedDatabasesArray,
     };
 
-    // Convert purposes from Set to Array for JSON stringification
+    // Convert purposes from Set to Array for JSON stringification in console.log
     const assistantsForLog = finalUserProfile.assistants.map(asst => ({
       ...asst,
       purposes: Array.from(asst.purposes)
     }));
 
-    if (isReconfiguring) {
+    if (editingAssistantId) {
       console.log("Asistente Reconfigurado. Configuración de todos los asistentes:", JSON.stringify(assistantsForLog, null, 2));
     } else {
       console.log("Nuevo Asistente Creado. Configuración de todos los asistentes:", JSON.stringify(assistantsForLog, null, 2));
     }
+    
+    // DISPARAR WEBHOOK SI SE CREA UN NUEVO ASISTENTE
+    if (!editingAssistantId && finalAssistantConfig) {
+      const assistantDb = newAssistantDbIdToLink
+        ? updatedDatabasesArray.find(db => db.id === newAssistantDbIdToLink)
+        : null;
+      await sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, assistantDb || null);
+    }
+
 
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
     toast({
