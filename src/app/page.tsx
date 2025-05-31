@@ -40,7 +40,7 @@ export default function MarketingPage() {
 
       {/* Video Section - Replaced Image with Video */}
       <div className="my-10 sm:my-16 w-full max-w-2xl lg:max-w-3xl aspect-video bg-muted rounded-lg shadow-xl overflow-hidden mx-auto">
-        <video // Changed from Video to video
+        <video
             data-ai-hint="app demo video" 
             src="/hey.mp4"
             width={800}
@@ -110,9 +110,21 @@ export default function MarketingPage() {
          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
            Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas.
          </p>
-         <Button asChild size="lg" className={cn("text-sm sm:text-base px-8 sm:px-10 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90")}>
-           <Link href="/app">Crear mi Primer Asistente</Link>
-         </Button>
+         <div className="flex flex-col items-center gap-2">
+           <Button 
+             asChild 
+             size="lg" 
+             className={cn("text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3 transition-transform transform hover:scale-105 bg-green-500 hover:bg-green-600 text-white")}
+           >
+             <Link href="https://wa.me/5213350474005" target="_blank" rel="noopener noreferrer">
+               <FaWhatsapp className="mr-2 h-5 w-5" />
+               Ayuda o dudas?
+             </Link>
+           </Button>
+           <p className="text-xs text-muted-foreground mt-1">
+             Hablarás con mi asistente de Hey Manito.
+           </p>
+         </div>
       </section>
     </PageContainer>
   );
