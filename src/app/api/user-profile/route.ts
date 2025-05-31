@@ -1,11 +1,22 @@
 
 // src/app/api/user-profile/route.ts
-import type { UserProfile } from '@/types';
+import type { UserProfile, SubscriptionPlanType, AssistantConfig, DatabaseConfig } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 
 const PROFILES_COLLECTION = 'userProfiles';
+const PAID_PLANS: SubscriptionPlanType[] = ['premium_179', 'business_270'];
+
+// Helper to normalize assistant arrays for comparison (ensures purposes are sorted arrays)
+const normalizeAssistantsForComparison = (assistants: AssistantConfig[]): any[] => {
+  return (assistants || []).map(asst => ({
+    ...asst,
+    purposes: Array.from(asst.purposes || []).sort(),
+    // Ensure other potentially variable fields are handled if deep comparison is needed
+  }));
+};
+
 
 export async function GET(request: NextRequest) {
   const decodedToken = await verifyFirebaseToken(request);
@@ -36,8 +47,6 @@ export async function GET(request: NextRequest) {
           purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
         })) : [],
       };
-      // Optionally remove _id if you don't want to expose it, though it's generally fine.
-      // delete (profileSafe as any)._id; 
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
     } else {
       return NextResponse.json({ userProfile: null, message: "User profile not found" }, { status: 404 });
@@ -67,51 +76,92 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Forbidden: Token UID does not match User ID in request body' }, { status: 403 });
     }
 
-    // Ensure profile's firebaseUid matches authenticated user, or set it authoritatively
     if (userProfile.firebaseUid && userProfile.firebaseUid !== decodedToken.uid) {
       console.warn("Mismatch between userProfile.firebaseUid in body and token UID. Using token UID.");
     }
-    // User profile from client might have purposes as Sets, ensure they are arrays for MongoDB
-    const assistants = Array.isArray(userProfile.assistants) ? userProfile.assistants.map((asst: any) => ({
+    
+    const incomingAssistantsRaw = userProfile.assistants || [];
+    const incomingAssistantsProcessed: AssistantConfig[] = Array.isArray(incomingAssistantsRaw) ? incomingAssistantsRaw.map((asst: any) => ({
       ...asst,
+      id: asst.id || `asst_fallback_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
       purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
     })) : [];
 
+    let finalAssistantsToSave: AssistantConfig[] = incomingAssistantsProcessed;
+    let messageSuffix = "";
+
+    const { db } = await connectToDatabase();
+    const existingProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: decodedToken.uid });
+
+    if (existingProfile) { // User exists, apply plan-based logic for assistant updates
+      const planForSaving = userProfile.currentPlan as SubscriptionPlanType | null; // This is the plan the user *will be on*
+      const isSavingToPaidPlan = planForSaving && PAID_PLANS.includes(planForSaving);
+
+      // Prepare existing assistants for comparison (ensure 'purposes' is an array for JSON.stringify)
+      const existingAssistantsForComparison = normalizeAssistantsForComparison(existingProfile.assistants || []);
+      const incomingAssistantsForComparison = normalizeAssistantsForComparison(incomingAssistantsProcessed);
+      
+      const assistantsPayloadChanged = JSON.stringify(existingAssistantsForComparison) !== JSON.stringify(incomingAssistantsForComparison);
+
+      if (assistantsPayloadChanged && !isSavingToPaidPlan) {
+        console.warn(`User ${decodedToken.uid} on non-paid plan (${planForSaving || 'none'}) ` +
+                    `attempted to modify assistants. Assistant changes will be IGNORED.`);
+        finalAssistantsToSave = (existingProfile.assistants || []).map(asst => ({ // Revert to DB state
+            ...asst,
+            purposes: Array.from(asst.purposes || new Set()) // Ensure purposes are arrays
+        }));
+        messageSuffix = " Assistant configurations were not saved due to current plan restrictions.";
+      } else if (assistantsPayloadChanged && isSavingToPaidPlan) {
+        console.log(`User ${decodedToken.uid} on paid plan (${planForSaving}) modifying assistants. Changes will be saved.`);
+      }
+    }
+    // For new users (existingProfile is null), finalAssistantsToSave remains incomingAssistantsProcessed,
+    // allowing initial assistant setup regardless of the initial plan (e.g., one free assistant).
+
     const serializableProfile: Omit<UserProfile, '_id'> = {
-      ...userProfile,
-      firebaseUid: decodedToken.uid, // Use authoritative UID from token
-      assistants,
+      ...(userProfile as Omit<UserProfile, 'assistants' | 'databases'>), // Cast to avoid type issues with partial userProfile from client
+      firebaseUid: decodedToken.uid,
+      assistants: finalAssistantsToSave,
+      databases: Array.isArray(userProfile.databases) ? userProfile.databases.map((db: any) => ({
+        ...db,
+        id: db.id || `db_fallback_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
+      })) : [],
     };
-     // Remove _id explicitly if it's somehow present in userProfile from client to avoid issues with $set
+     // Ensure all UserProfile fields are present, even if undefined from client
+    if (serializableProfile.email === undefined) serializableProfile.email = existingProfile?.email || undefined;
+    if (serializableProfile.isAuthenticated === undefined) serializableProfile.isAuthenticated = existingProfile?.isAuthenticated || true;
+    if (serializableProfile.authProvider === undefined) serializableProfile.authProvider = existingProfile?.authProvider || undefined;
+    if (serializableProfile.currentPlan === undefined) serializableProfile.currentPlan = existingProfile?.currentPlan || null;
+    if (serializableProfile.stripeCustomerId === undefined) serializableProfile.stripeCustomerId = existingProfile?.stripeCustomerId || undefined;
+    if (serializableProfile.stripeSubscriptionId === undefined) serializableProfile.stripeSubscriptionId = existingProfile?.stripeSubscriptionId || undefined;
+    if (serializableProfile.virtualPhoneNumber === undefined) serializableProfile.virtualPhoneNumber = existingProfile?.virtualPhoneNumber || undefined;
+    if (serializableProfile.vonageNumberStatus === undefined) serializableProfile.vonageNumberStatus = existingProfile?.vonageNumberStatus || undefined;
+    if (serializableProfile.countryCodeForVonageNumber === undefined) serializableProfile.countryCodeForVonageNumber = existingProfile?.countryCodeForVonageNumber || undefined;
+
     delete (serializableProfile as any)._id;
 
 
     try {
-      const { db } = await connectToDatabase();
       const result = await db.collection<UserProfile>(PROFILES_COLLECTION).updateOne(
         { firebaseUid: decodedToken.uid },
         { $set: serializableProfile },
         { upsert: true }
       );
 
+      let responseMessage = "";
       if (result.upsertedId) {
-        return NextResponse.json({ message: "User profile created successfully", userId: decodedToken.uid, upsertedId: result.upsertedId });
+        responseMessage = "User profile created successfully.";
       } else if (result.modifiedCount > 0) {
-        return NextResponse.json({ message: "User profile updated successfully", userId: decodedToken.uid });
+        responseMessage = "User profile updated successfully.";
       } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
-         // Matched but not modified, means data was identical or no effective change
-         return NextResponse.json({ message: "User profile already up to date", userId: decodedToken.uid }, { status: 200 });
-      } else if (result.matchedCount === 0 && !result.upsertedId) {
-        // This case should ideally be covered by upsert:true creating a document if not matched.
-        // If it's reached, it might indicate an unexpected state or a driver/DB behavior.
-        console.error("API POST: No document matched, and no document was upserted.", result);
+         responseMessage = "User profile already up to date.";
+      } else {
+        console.error("API POST: No document matched, and no document was upserted despite upsert:true.", result);
         return NextResponse.json({ message: "Failed to save user profile: No document matched or upserted" }, { status: 500 });
       }
-      else {
-        // Fallback for any other unexpected result from updateOne with upsert:true
-        console.error("API POST: Unexpected result from updateOne with upsert:true.", result);
-        return NextResponse.json({ message: "Failed to save user profile: Unexpected database response" }, { status: 500 });
-      }
+      
+      return NextResponse.json({ message: `${responseMessage}${messageSuffix}`, userId: decodedToken.uid, ...(result.upsertedId && {upsertedId: result.upsertedId}) });
+
     } catch (dbError) {
       console.error("API POST (DB operation) Error:", dbError);
       const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
@@ -120,9 +170,10 @@ export async function POST(request: NextRequest) {
   } catch (requestError) {
     console.error("API POST (Request Processing) Error:", requestError);
     const errorMessage = requestError instanceof Error ? requestError.message : String(requestError);
-    if (requestError instanceof SyntaxError) { // Specifically for JSON parsing errors
+    if (requestError instanceof SyntaxError) {
         return NextResponse.json({ message: 'Invalid JSON in request body', error: errorMessage }, { status: 400 });
     }
     return NextResponse.json({ message: 'Failed to process request due to an internal error', error: errorMessage }, { status: 500 });
   }
 }
+    

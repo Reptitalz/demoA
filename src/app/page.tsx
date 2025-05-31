@@ -8,8 +8,6 @@ import { APP_NAME, subscriptionPlansConfig, planIcons } from '@/config/appConfig
 import type { SubscriptionPlanDetails } from '@/types';
 import Link from 'next/link'; // Ensure Link is imported
 import { FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine, FaCheckCircle } from 'react-icons/fa';
-// Removed: import Image from 'next/image';
-// Removed: import Video from 'next/video'; // Keep this import
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon'; // Import the new AppIcon component
 
@@ -44,7 +42,7 @@ export default function MarketingPage() {
       <div className="my-10 sm:my-16 w-full max-w-2xl lg:max-w-3xl aspect-video bg-muted rounded-lg shadow-xl overflow-hidden mx-auto">
         <video // Changed from Video to video
             data-ai-hint="app demo video" 
-            src="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4" 
+            src="/hey.mp4"
             width={800}
             height={450}
             className="object-cover w-full h-full"
