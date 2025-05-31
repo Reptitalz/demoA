@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Disallow crawling of API routes as they don't serve HTML content for users
+Disallow: /api/
+
+# Disallow crawling of the authenticated app section, as it's user-specific content
+Disallow: /app/
+
+# Path to your sitemap (ensure your domain is correct here if using absolute)
+Sitemap: /sitemap.xml
