@@ -4,11 +4,11 @@
 import { useApp } from "@/providers/AppProvider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Removed CardFooter
+// Removed Button import as it's no longer used here
 import { subscriptionPlansConfig, planIcons } from "@/config/appConfig";
 import type { SubscriptionPlanType } from "@/types";
-import { FaCheckCircle } from "react-icons/fa"; // Removed other plan icons as they are now in planIcons
+import { FaCheckCircle } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => void }) => {
@@ -18,6 +18,8 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
   const handlePlanSelect = (planId: SubscriptionPlanType) => {
     dispatch({ type: 'SET_SUBSCRIPTION_PLAN', payload: planId });
   };
+
+  // The onCompleteSetup function is passed but will be called by the main button in SetupPage
 
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
@@ -63,7 +65,7 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
                 <ul className="mt-2 pl-6 sm:pl-7 space-y-1 text-xs sm:text-sm">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center">
-                      <FaCheckCircle className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-green-500")} /> {/* Keeping check green for universal good */}
+                      <FaCheckCircle className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 shrink-0 text-green-500")} />
                       {feature} 
                     </li>
                   ))}
@@ -73,19 +75,7 @@ const Step4SubscriptionPlan = ({ onCompleteSetup }: { onCompleteSetup: () => voi
           })}
         </RadioGroup>
       </CardContent>
-      <CardFooter>
-        <Button 
-          className={cn(
-            "w-full text-sm sm:text-base py-2.5 transition-transform transform hover:scale-105 text-primary-foreground hover:opacity-90",
-            "bg-brand-gradient"
-          )} 
-          onClick={onCompleteSetup}
-          disabled={!selectedPlan}
-          aria-disabled={!selectedPlan}
-        >
-          Completar Configuración y Continuar
-        </Button>
-      </CardFooter>
+      {/* CardFooter containing the button has been removed */}
     </Card>
   );
 };
