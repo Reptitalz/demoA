@@ -5,6 +5,7 @@ import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
 export const MAX_WIZARD_STEPS = 4;
+export const DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN = 1;
 
 export const assistantPurposesConfig: AssistantPurpose[] = [
   { id: "import_db_google_sheets", name: "Importar desde Hojas de cálculo de Google", description: "Conecta y usa datos de una Hoja de cálculo de Google existente.", icon: FaFileExcel },
@@ -21,8 +22,8 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     id: "free", 
     name: "Nivel Gratuito", 
     priceMonthly: 0, 
-    assistantLimit: 1, 
-    features: ["Funciones básicas de asistente", "Interacciones limitadas", "Soporte comunitario", `Número telefónico: ${DEFAULT_FREE_PLAN_PHONE_NUMBER}`] 
+    assistantLimit: DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN, 
+    features: [`${DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN} asistente básico`, "Interacciones limitadas", "Soporte comunitario", `Número telefónico: ${DEFAULT_FREE_PLAN_PHONE_NUMBER}`] 
   },
   { 
     id: "premium_179", 
@@ -67,3 +68,4 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   business_270: FaBriefcase,
   test_plan: FaFlask, // Icon for test plan
 };
+

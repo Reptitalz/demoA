@@ -6,6 +6,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile, AssistantConfig } from '@/types';
 import { provisionVonageNumberForUser } from '@/services/userSubscriptionService';
 import { cancelNumber as cancelVonageNumber } from '@/services/vonage';
+import { DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN, subscriptionPlansConfig } from '@/config/appConfig';
 
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -30,9 +31,7 @@ export async function POST(request: NextRequest) {
         console.error('Stripe client not initialized due to missing STRIPE_SECRET_KEY.');
         return NextResponse.json({ error: 'Server configuration issue (Stripe client not initialized).' }, { status: 500 });
     }
-    // It's important to have STRIPE_WEBHOOK_SIGNING_SECRET in production.
-    // For local development, you might temporarily bypass signature verification if using Stripe CLI or similar,
-    // but this should NOT be done in production.
+    
     if (!STRIPE_WEBHOOK_SIGNING_SECRET && process.env.NODE_ENV === 'production') {
         console.error('Stripe Webhook Signing Secret (STRIPE_WEBHOOK_SIGNING_SECRET) is not defined. This is a critical security risk in production.');
         return NextResponse.json({ error: 'Server configuration issue (Missing Webhook Signing Secret).' }, { status: 500 });
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
     try {
       event = STRIPE_WEBHOOK_SIGNING_SECRET && signature
               ? stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SIGNING_SECRET)
-              : JSON.parse(rawBody) as Stripe.Event; // Fallback if no signing secret (dev only - CAUTION)
+              : JSON.parse(rawBody) as Stripe.Event; 
       if (!STRIPE_WEBHOOK_SIGNING_SECRET && process.env.NODE_ENV !== 'development') {
           console.warn('Processed Stripe event without signature verification. THIS IS A SECURITY RISK IN PRODUCTION.');
       }
@@ -62,8 +61,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`Received Stripe event: ${event.type}, ID: ${event.id}`);
     const { db } = await connectToDatabase();
+    const userProfileCollection = db.collection<UserProfile>('userProfiles');
 
-    // --- Handle successful payment and number provisioning ---
+    
     if (event.type === 'checkout.session.completed' || event.type === 'invoice.paid') {
       let firebaseUid: string | undefined;
       let stripeCustomerId: string | undefined;
@@ -78,10 +78,9 @@ export async function POST(request: NextRequest) {
           stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
           planIdFromStripe = session.line_items?.data[0]?.price?.product_metadata?.planId || session.metadata?.planId || null;
           
-          // Provision number if it's a checkout session completion (implies new subscription or item)
           shouldProvisionNumber = true; 
           console.log(`Processing checkout.session.completed for firebaseUid: ${firebaseUid}, stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${stripeSubscriptionId}, planId: ${planIdFromStripe}`);
-      } else { // invoice.paid
+      } else { 
           const invoice = event.data.object as Stripe.Invoice;
           stripeCustomerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
           stripeSubscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
@@ -93,16 +92,15 @@ export async function POST(request: NextRequest) {
           }
           console.log(`Processing invoice.paid for stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${stripeSubscriptionId}, billing_reason: ${invoice.billing_reason}, planId: ${planIdFromStripe}`);
 
-          const userProfileByStripeId = await db.collection<UserProfile>('userProfiles').findOne({ stripeCustomerId });
+          const userProfileByStripeId = await userProfileCollection.findOne({ stripeCustomerId });
           if (userProfileByStripeId) {
               firebaseUid = userProfileByStripeId.firebaseUid;
-              // Provision number if it's the first invoice for a subscription and user doesn't have a number
+              
               if ((invoice.billing_reason === 'subscription_create' || invoice.subscription_details?.metadata?.is_first_invoice === 'true') && !userProfileByStripeId.virtualPhoneNumber) {
                   shouldProvisionNumber = true;
               } else if (userProfileByStripeId.virtualPhoneNumber && userProfileByStripeId.vonageNumberStatus !== 'active') {
-                  // Reactivate number if payment is successful for an existing number not active
-                  console.log(`User ${firebaseUid} payment successful, attempting to reactivate Vonage number status. Plan: ${planIdFromStripe || 'N/A'}.`);
-                  await db.collection<UserProfile>('userProfiles').updateOne(
+                  console.log(`User ${firebaseUid} payment successful, reactivating Vonage number status. Plan: ${planIdFromStripe || 'N/A'}.`);
+                  await userProfileCollection.updateOne(
                       { firebaseUid: firebaseUid },
                       { $set: { 
                           vonageNumberStatus: 'active', 
@@ -111,11 +109,9 @@ export async function POST(request: NextRequest) {
                         } 
                       }
                   );
-                  console.log(`User ${firebaseUid} Vonage number status set to active. Plan updated to ${planIdFromStripe || 'N/A'}.`);
               } else {
-                   // Regular renewal, just ensure plan and subscription ID are up to date
-                  console.log(`User ${firebaseUid} regular renewal. Attempting to update plan to ${planIdFromStripe || 'N/A'}.`);
-                  await db.collection<UserProfile>('userProfiles').updateOne(
+                  console.log(`User ${firebaseUid} regular renewal. Updating plan to ${planIdFromStripe || 'N/A'}.`);
+                  await userProfileCollection.updateOne(
                       { firebaseUid: firebaseUid },
                       { $set: { 
                           ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }),
@@ -123,11 +119,9 @@ export async function POST(request: NextRequest) {
                         } 
                       }
                   );
-                  console.log(`User ${firebaseUid} plan updated to ${planIdFromStripe || 'N/A'}.`);
               }
           } else {
               console.warn(`Could not find user profile by stripeCustomerId: ${stripeCustomerId} for invoice.paid event.`);
-              // If it's a new subscription but profile doesn't exist by stripeCustomerId yet, try to get firebaseUid from metadata
               if (invoice.billing_reason === 'subscription_create' || invoice.subscription_details?.metadata?.is_first_invoice === 'true') {
                    firebaseUid = (invoice.customer_details?.metadata?.firebaseUid || (event.data.object as any)?.metadata?.firebaseUid);
                    if (firebaseUid) {
@@ -150,16 +144,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Webhook Error: Missing customer ID.' }, { status: 400 });
           }
 
-          try { // Check if user already has a number before provisioning
-              const existingProfile = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid });
+          try { 
+              const existingProfile = await userProfileCollection.findOne({ firebaseUid });
               if (existingProfile && existingProfile.virtualPhoneNumber) {
                   console.log(`User ${firebaseUid} already has a virtual number: ${existingProfile.virtualPhoneNumber}. Ensuring status is active and plan is updated.`);
-                   await db.collection<UserProfile>('userProfiles').updateOne(
+                   await userProfileCollection.updateOne(
                       { firebaseUid: firebaseUid },
                       { $set: { 
                           vonageNumberStatus: 'active', 
                           ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }), 
-                          ...(stripeCustomerId && { stripeCustomerId: stripeCustomerId }), // ensure stripeCustomerId is set
+                          ...(stripeCustomerId && { stripeCustomerId: stripeCustomerId }),
                           ...(planIdFromStripe && { currentPlan: planIdFromStripe as any}) 
                         } 
                       }
@@ -168,7 +162,6 @@ export async function POST(request: NextRequest) {
               }
           } catch (dbError: any) {
               console.error(`Error checking existing profile for ${firebaseUid}:`, dbError.message, dbError.stack);
-              // Continue to attempt assignment if check fails, as it's better to assign than miss.
           }
 
           console.log(`Attempting to provision Vonage number for user ${firebaseUid}, stripeCustomerId: ${stripeCustomerId}, planId: ${planIdFromStripe}`);
@@ -178,15 +171,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ received: true, message: 'Virtual number provisioned successfully. Plan updated if provided.' }, { status: 200 });
           } else {
             console.error(`Failed to provision virtual number for firebaseUid: ${firebaseUid} after ${event.type}.`);
-            // Still return 200 to Stripe to acknowledge receipt, but log the failure.
             return NextResponse.json({ received: true, error: 'Processed, but failed to provision virtual number fully.' }, { status: 200 });
           }
       } else if (firebaseUid && stripeCustomerId) { 
-          // This case handles renewals where no new number is provisioned but profile needs update
           console.log(`Processing renewal or existing user update for ${firebaseUid}. Setting vonageNumberStatus to active and updating plan to ${planIdFromStripe || 'N/A'}.`);
           const customerEmail = (event.data.object as any)?.customer_email || (event.data.object as any)?.customer_details?.email || '';
 
-          await db.collection<UserProfile>('userProfiles').updateOne(
+          await userProfileCollection.updateOne(
               { firebaseUid: firebaseUid },
               { 
                 $set: { 
@@ -195,9 +186,9 @@ export async function POST(request: NextRequest) {
                   ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }),
                   ...(planIdFromStripe && { currentPlan: planIdFromStripe as any})  
                 },
-                $setOnInsert: { // In case profile was somehow missed earlier
+                $setOnInsert: { 
                   email: customerEmail, 
-                  isAuthenticated: true, // Assume true if they have a paid event
+                  isAuthenticated: true, 
                   assistants: [],
                   databases: [],
                 }
@@ -207,7 +198,7 @@ export async function POST(request: NextRequest) {
           console.log(`User ${firebaseUid} payment successful for existing subscription. Vonage number status active. Plan updated to ${planIdFromStripe || 'N/A'}.`);
           return NextResponse.json({ received: true, message: 'Payment successful for existing subscription. Plan updated.' }, { status: 200 });
       } else {
-          console.log(`Event ${event.type} processed, but no specific action taken to provision number or update active status for a user. This might be a regular renewal already handled, or missing firebaseUid/stripeCustomerId.`);
+          console.log(`Event ${event.type} processed, but no specific action to provision number or update active status. Missing firebaseUid/stripeCustomerId or handled previously.`);
       }
 
     } else if (event.type === 'invoice.payment_failed') {
@@ -221,20 +212,20 @@ export async function POST(request: NextRequest) {
       console.log(`Processing invoice.payment_failed for stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${invoice.subscription}`);
 
       try {
-        const userProfile = await db.collection<UserProfile>('userProfiles').findOne({ stripeCustomerId });
+        const userProfile = await userProfileCollection.findOne({ stripeCustomerId });
         if (userProfile && userProfile.virtualPhoneNumber && userProfile.vonageNumberStatus === 'active') {
           if (userProfile.stripeSubscriptionId && invoice.subscription === userProfile.stripeSubscriptionId) {
               console.log(`Payment failed for user ${userProfile.firebaseUid}. Marking Vonage number ${userProfile.virtualPhoneNumber} for pending_cancellation.`);
-              await db.collection<UserProfile>('userProfiles').updateOne(
+              await userProfileCollection.updateOne(
                 { stripeCustomerId: stripeCustomerId },
                 { $set: { vonageNumberStatus: 'pending_cancellation' } }
               );
               console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) Vonage number ${userProfile.virtualPhoneNumber} marked for pending_cancellation.`);
           } else {
-              console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) payment failed, but invoice subscription ${invoice.subscription} does not match active user subscription ${userProfile.stripeSubscriptionId}. No action taken on Vonage number status.`);
+              console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) payment failed, but invoice subscription ${invoice.subscription} does not match active user subscription ${userProfile.stripeSubscriptionId}. No action on Vonage status.`);
           }
         } else if (userProfile) {
-          console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) payment failed, but no active Vonage number found or status not 'active'. Current status: ${userProfile.vonageNumberStatus}`);
+          console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) payment failed, but no active Vonage number or status not 'active'. Current status: ${userProfile.vonageNumberStatus}`);
         } else {
           console.warn(`Received invoice.payment_failed for unknown stripeCustomerId: ${stripeCustomerId}.`);
         }
@@ -255,36 +246,52 @@ export async function POST(request: NextRequest) {
       console.log(`Processing customer.subscription.deleted for stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${subscription.id}`);
 
       try {
-          const userProfile = await db.collection<UserProfile>('userProfiles').findOne({ stripeCustomerId: stripeCustomerId, stripeSubscriptionId: subscription.id });
-          if (userProfile && userProfile.virtualPhoneNumber && userProfile.vonageNumberStatus === 'active') {
-              console.log(`Subscription ${subscription.id} cancelled for user ${userProfile.firebaseUid}. Marking Vonage number ${userProfile.virtualPhoneNumber} for pending_cancellation.`);
-              await db.collection<UserProfile>('userProfiles').updateOne(
-                  { _id: userProfile._id }, 
-                  { $set: { vonageNumberStatus: 'pending_cancellation', currentPlan: null } } // Set plan to null or free tier
-              );
-              console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) Vonage number ${userProfile.virtualPhoneNumber} marked for pending_cancellation. Plan set to null.`);
+          const userProfile = await userProfileCollection.findOne({ stripeCustomerId: stripeCustomerId });
+          if (userProfile) {
+              console.log(`Subscription ${subscription.id} cancelled for user ${userProfile.firebaseUid}. Current plan: ${userProfile.currentPlan}.`);
               
-              // Optional: Immediately attempt to cancel Vonage number if desired, though usually done by cron
-              // if (userProfile.countryCodeForVonageNumber && userProfile.virtualPhoneNumber) { 
-              //    console.log(`Attempting immediate cancellation of Vonage number ${userProfile.virtualPhoneNumber} for user ${userProfile.firebaseUid}.`);
-              //    await cancelVonageNumber(userProfile.virtualPhoneNumber, userProfile.countryCodeForVonageNumber);
-              //    console.log(`Immediate cancellation attempt for ${userProfile.virtualPhoneNumber} completed.`);
-              // }
+              const updates: Partial<UserProfile> = {
+                currentPlan: 'free', // Downgrade to free plan
+                vonageNumberStatus: userProfile.virtualPhoneNumber ? 'pending_cancellation' : undefined,
+                stripeSubscriptionId: subscription.id, // Keep for reference
+              };
 
-          } else if (userProfile) {
-              console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) subscription ${subscription.id} cancelled, but no active Vonage number, status not 'active', or subscription ID mismatch. Current status: ${userProfile.vonageNumberStatus}, current sub: ${userProfile.stripeSubscriptionId}. Setting currentPlan to null.`);
-              await db.collection<UserProfile>('userProfiles').updateOne(
-                { _id: userProfile._id }, 
-                { $set: { currentPlan: null } }
+              // Reconcile assistants: keep only the oldest and update its phone number
+              if (userProfile.assistants && userProfile.assistants.length > 0) {
+                const sortedAssistants = [...userProfile.assistants].sort((a, b) => {
+                  // Assuming IDs are like 'asst_timestamp_random'
+                  const timeA = parseInt(a.id.split('_')[1] || "0");
+                  const timeB = parseInt(b.id.split('_')[1] || "0");
+                  return timeA - timeB;
+                });
+                
+                const oldestAssistant = sortedAssistants[0];
+                oldestAssistant.phoneLinked = DEFAULT_FREE_PLAN_PHONE_NUMBER; // Assign default free plan number
+                
+                updates.assistants = [oldestAssistant].map(asst => ({
+                    ...asst,
+                    purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set())
+                }));
+                console.log(`User ${userProfile.firebaseUid} downgraded to free plan. Oldest assistant ${oldestAssistant.id} kept and updated. Other assistants removed.`);
+              } else {
+                updates.assistants = []; // No assistants to keep or user had none
+                 console.log(`User ${userProfile.firebaseUid} downgraded to free plan. No assistants were present or kept.`);
+              }
+
+              await userProfileCollection.updateOne(
+                  { _id: userProfile._id }, 
+                  { $set: updates }
               );
+              console.log(`User ${userProfile.firebaseUid} (Stripe ID: ${stripeCustomerId}) profile updated. Plan set to free, Vonage number marked for pending_cancellation (if any), assistants reconciled.`);
+
           } else {
-              console.warn(`Received customer.subscription.deleted for stripeCustomerId: ${stripeCustomerId} and subscriptionId: ${subscription.id}, but no matching profile found with this active subscription.`);
+              console.warn(`Received customer.subscription.deleted for stripeCustomerId: ${stripeCustomerId} and subscriptionId: ${subscription.id}, but no matching profile found.`);
           }
       } catch (dbError: any) {
           console.error(`Error processing customer.subscription.deleted for stripeCustomerId ${stripeCustomerId}:`, dbError.message, dbError.stack);
           return NextResponse.json({ error: 'Database operation failed during subscription_deleted processing.' }, { status: 500 });
       }
-      return NextResponse.json({ received: true, message: 'Subscription deletion processed.' }, { status: 200 });
+      return NextResponse.json({ received: true, message: 'Subscription deletion processed and user downgraded.' }, { status: 200 });
     } else {
       console.log(`Unhandled Stripe event type: ${event.type}`);
     }
@@ -292,13 +299,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true, message: "Event processed." }, { status: 200 });
 
   } catch (error: any) {
-    // Catch-all for any unexpected errors during the webhook processing
     console.error("Unhandled error in Stripe webhook handler:", error.message, error.stack);
     return NextResponse.json({ error: "An unexpected error occurred while processing the webhook.", details: error.message }, { status: 500 });
   }
 }
-    
-
-    
-
     
