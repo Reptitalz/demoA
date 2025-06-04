@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -10,7 +11,9 @@ import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
+import { LogIn, UserPlus } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
@@ -21,6 +24,15 @@ const SetupPage = () => {
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId } = state.wizard;
+  
+  const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
+
+  useEffect(() => {
+    // If user is authenticated or reconfiguring, they've effectively made an initial choice or bypassed it.
+    if (state.userProfile.isAuthenticated || isReconfiguring) {
+      setUserHasMadeInitialChoice(true);
+    }
+  }, [state.userProfile.isAuthenticated, isReconfiguring]);
 
   const effectiveMaxSteps = isReconfiguring ? 3 : MAX_WIZARD_STEPS;
 
@@ -153,31 +165,27 @@ const SetupPage = () => {
 
     if (editingAssistantId) { // Reconfiguring
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
-        assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL; // Preserve existing or use default
+        assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
         } else if (selectedPlan === 'test_plan') {
-            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`; // Random for test plan
+            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
         } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
-            // Was free, changed to paid (non-business, non-test). Vonage will assign.
             assistantPhoneNumber = undefined;
         } else if (selectedPlan === 'business_270') {
-            // For business plan, if reconfiguring, it keeps its number. Custom phone input is not for reconfig.
             assistantPhoneNumber = assistantToUpdate.phoneLinked;
         } else {
-            // Kept paid plan, or was business and stays business, or was paid and changes to business.
             assistantPhoneNumber = assistantToUpdate.phoneLinked;
         }
     } else { // New assistant
-        assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL; // Default for new assistants
+        assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'business_270') {
             assistantPhoneNumber = customPhoneNumber || undefined;
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
         } else if (selectedPlan === 'test_plan') {
-            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`; // Random for test plan
+            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
         } else {
-            // New assistant on other paid plans (e.g., premium_179). Vonage will assign via webhook.
             assistantPhoneNumber = undefined;
         }
     }
@@ -202,7 +210,7 @@ const SetupPage = () => {
         purposes: selectedPurposes,
         phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : assistantToUpdate.databaseId,
-        imageUrl: assistantImageUrl, // Apply imageUrl
+        imageUrl: assistantImageUrl,
       };
       updatedAssistantsArray = state.userProfile.assistants.map(asst =>
         asst.id === editingAssistantId ? finalAssistantConfig : asst
@@ -214,7 +222,7 @@ const SetupPage = () => {
         purposes: selectedPurposes,
         phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink,
-        imageUrl: assistantImageUrl, // Apply imageUrl
+        imageUrl: assistantImageUrl,
       };
       updatedAssistantsArray = [...state.userProfile.assistants, finalAssistantConfig];
     }
@@ -289,6 +297,50 @@ const SetupPage = () => {
     }
   };
 
+  // Show initial choice card if user is not authenticated, not reconfiguring, and hasn't made a choice
+  if (!state.userProfile.isAuthenticated && !state.wizard.isReconfiguring && !userHasMadeInitialChoice) {
+    return (
+      <PageContainer>
+        <Card className="w-full max-w-md mx-auto shadow-xl animate-fadeIn mt-10 sm:mt-16">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">Bienvenido/a a {APP_NAME}!</CardTitle>
+            <CardDescription className="text-center pt-1">
+              ¿Cómo deseas comenzar?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-4">
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+              onClick={() => {
+                setUserHasMadeInitialChoice(true);
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go to Authentication step
+                toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
+              }}
+            >
+              <LogIn className="mr-3 h-5 w-5 text-primary" />
+              Iniciar sesión (si ya tienes cuenta)
+            </Button>
+            <Button
+              size="lg"
+              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
+              onClick={() => {
+                setUserHasMadeInitialChoice(true);
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); // Go to Assistant Details step
+                toast({ title: "Nuevo Asistente", description: "Comencemos a definir tu asistente."});
+              }}
+            >
+              <UserPlus className="mr-3 h-5 w-5" />
+              Define tu Asistente
+            </Button>
+          </CardContent>
+        </Card>
+      </PageContainer>
+    );
+  }
+
+
   return (
     <PageContainer>
       <div className="space-y-5">
@@ -298,10 +350,13 @@ const SetupPage = () => {
         </div>
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex gap-1.5">
-            {state.isSetupComplete && (
+            {state.isSetupComplete && !isReconfiguring && ( // Show only if setup is complete and not reconfiguring
               <Button
                 variant="outline"
-                onClick={() => router.push('/app/dashboard')}
+                onClick={() => {
+                  dispatch({ type: 'RESET_WIZARD' }); // Ensure wizard is reset before going to dashboard
+                  router.push('/app/dashboard');
+                }}
                 className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
               >
                 <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
@@ -342,3 +397,4 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
