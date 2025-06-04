@@ -10,10 +10,10 @@ import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
-import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa'; 
+import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
-import { useToast } from "@/hooks/use-toast"; 
-import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER } from '@/config/appConfig';
+import { useToast } from "@/hooks/use-toast";
+import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 
 const SetupPage = () => {
@@ -25,22 +25,22 @@ const SetupPage = () => {
   const effectiveMaxSteps = isReconfiguring ? 3 : MAX_WIZARD_STEPS;
 
   const getValidationMessage = (): string => {
-    const currentValidationStep = currentStep; 
-    
+    const currentValidationStep = currentStep;
+
     if (isReconfiguring) {
       switch (currentValidationStep) {
-        case 1: 
+        case 1:
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
           break;
-        case 2: 
+        case 2:
           if (!databaseOption.type && selectedPurposes.size > 0 && (selectedPurposes.has('import_db_excel') || selectedPurposes.has('import_db_google_sheets') || selectedPurposes.has('create_smart_db'))) {
             return "Por favor, selecciona una opción de base de datos.";
           }
           if (databaseOption.type && (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") && !databaseOption.name?.trim()) {
               return `Por favor, proporciona un nombre/enlace para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
           }
-          if (databaseOption.type === "excel" && !databaseOption.file && !databaseOption.name) { 
+          if (databaseOption.type === "excel" && !databaseOption.file && !databaseOption.name) {
             const assistantBeingEdited = editingAssistantId ? state.userProfile.assistants.find(a => a.id === editingAssistantId) : null;
             const existingDb = assistantBeingEdited?.databaseId ? state.userProfile.databases.find(db => db.id === assistantBeingEdited.databaseId) : null;
             if(!(existingDb && existingDb.source === 'excel')) {
@@ -48,7 +48,7 @@ const SetupPage = () => {
             }
           }
           break;
-        case 3: 
+        case 3:
           if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           break;
       }
@@ -73,7 +73,7 @@ const SetupPage = () => {
         case 3:
           if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
           break;
-        case 4: 
+        case 4:
           if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           break;
       }
@@ -87,8 +87,8 @@ const SetupPage = () => {
       switch (currentValidationStep) {
         case 1: return assistantName.trim() !== '' && selectedPurposes.size > 0;
         case 2:
-          if (!databaseOption.type) { 
-            return true; 
+          if (!databaseOption.type) {
+            return true;
           }
           if (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
           if (databaseOption.type === "excel") {
@@ -100,7 +100,7 @@ const SetupPage = () => {
       }
     } else { // Standard setup flow
       switch (currentValidationStep) {
-        case 1: 
+        case 1:
           const baseValid = assistantName.trim() !== '' && selectedPurposes.size > 0;
           if (selectedPlan === 'business_270' && !isReconfiguring) {
             return baseValid && !!customPhoneNumber?.trim();
@@ -112,14 +112,14 @@ const SetupPage = () => {
           }
           if (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
           if (databaseOption.type === "excel") return !!databaseOption.file;
-          return true; 
+          return true;
         case 3: return !!authMethod;
-        case 4: return !!selectedPlan; 
+        case 4: return !!selectedPlan;
         default: return false;
       }
     }
   };
-  
+
   const handleNext = () => {
     if (isStepValid()) {
       if (currentStep < effectiveMaxSteps) {
@@ -139,19 +139,21 @@ const SetupPage = () => {
   };
 
   const handleCompleteSetup = async () => {
-    if (!isStepValid()) { 
+    if (!isStepValid()) {
       toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
       return;
     }
-    
+
     let finalAssistantConfig: AssistantConfig;
     let updatedAssistantsArray: AssistantConfig[];
     const newDbEntries: DatabaseConfig[] = [];
     let newAssistantDbIdToLink: string | undefined = undefined;
     let assistantPhoneNumber: string | undefined;
+    let assistantImageUrl: string = DEFAULT_ASSISTANT_IMAGE_URL;
 
     if (editingAssistantId) { // Reconfiguring
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
+        assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL; // Preserve existing or use default
         if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
         } else if (selectedPlan === 'test_plan') {
@@ -167,8 +169,9 @@ const SetupPage = () => {
             assistantPhoneNumber = assistantToUpdate.phoneLinked;
         }
     } else { // New assistant
+        assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL; // Default for new assistants
         if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = customPhoneNumber || undefined; 
+            assistantPhoneNumber = customPhoneNumber || undefined;
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
         } else if (selectedPlan === 'test_plan') {
@@ -199,6 +202,7 @@ const SetupPage = () => {
         purposes: selectedPurposes,
         phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : assistantToUpdate.databaseId,
+        imageUrl: assistantImageUrl, // Apply imageUrl
       };
       updatedAssistantsArray = state.userProfile.assistants.map(asst =>
         asst.id === editingAssistantId ? finalAssistantConfig : asst
@@ -210,24 +214,25 @@ const SetupPage = () => {
         purposes: selectedPurposes,
         phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink,
+        imageUrl: assistantImageUrl, // Apply imageUrl
       };
       updatedAssistantsArray = [...state.userProfile.assistants, finalAssistantConfig];
     }
-    
+
     let updatedDatabasesArray = [...state.userProfile.databases, ...newDbEntries];
     if (editingAssistantId && newAssistantDbIdToLink) {
         const oldAssistantVersion = state.userProfile.assistants.find(a => a.id === editingAssistantId);
         const oldDbId = oldAssistantVersion?.databaseId;
         if (oldDbId && oldDbId !== newAssistantDbIdToLink) {
             const isOldDbUsedByOthers = state.userProfile.assistants.some(a => a.id !== editingAssistantId && a.databaseId === oldDbId);
-            if (!isOldDbUsedByOthers && !newDbEntries.find(ndb => ndb.id === oldDbId)) { 
+            if (!isOldDbUsedByOthers && !newDbEntries.find(ndb => ndb.id === oldDbId)) {
                 updatedDatabasesArray = updatedDatabasesArray.filter(db => db.id !== oldDbId);
             }
         }
     }
 
     const finalUserProfile: UserProfile = {
-      ...state.userProfile, 
+      ...state.userProfile,
       currentPlan: selectedPlan,
       assistants: updatedAssistantsArray,
       databases: updatedDatabasesArray,
@@ -243,7 +248,7 @@ const SetupPage = () => {
     } else {
       console.log("Nuevo Asistente Creado. Configuración de todos los asistentes:", JSON.stringify(assistantsForLog, null, 2));
     }
-    
+
     if (!editingAssistantId && finalAssistantConfig) {
       const assistantDb = newAssistantDbIdToLink
         ? updatedDatabasesArray.find(db => db.id === newAssistantDbIdToLink)
@@ -270,7 +275,7 @@ const SetupPage = () => {
       switch (currentStep) {
         case 1: return <Step1AssistantDetails />;
         case 2: return <Step2DatabaseConfig />;
-        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; 
+        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
         default: return null;
       }
     } else {
@@ -293,7 +298,7 @@ const SetupPage = () => {
         </div>
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex gap-1.5">
-            {state.isSetupComplete && ( 
+            {state.isSetupComplete && (
               <Button
                 variant="outline"
                 onClick={() => router.push('/app/dashboard')}
@@ -311,19 +316,19 @@ const SetupPage = () => {
               <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
             </Button>
           </div>
-          
+
           {currentStep < effectiveMaxSteps && (
-            <Button 
-              onClick={handleNext} 
+            <Button
+              onClick={handleNext}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid()} 
+              disabled={!isStepValid()}
             >
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           )}
-          {currentStep === effectiveMaxSteps && ( 
-             <Button 
-              onClick={handleCompleteSetup} 
+          {currentStep === effectiveMaxSteps && (
+             <Button
+              onClick={handleCompleteSetup}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid()}
             >

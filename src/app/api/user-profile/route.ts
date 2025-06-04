@@ -4,15 +4,17 @@ import type { UserProfile, SubscriptionPlanType, AssistantConfig, DatabaseConfig
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const PAID_PLANS: SubscriptionPlanType[] = ['premium_179', 'business_270'];
 
-// Helper to normalize assistant arrays for comparison (ensures purposes are sorted arrays)
+// Helper to normalize assistant arrays for comparison (ensures purposes are sorted arrays and imageUrl is present)
 const normalizeAssistantsForComparison = (assistants: AssistantConfig[]): any[] => {
   return (assistants || []).map(asst => ({
     ...asst,
     purposes: Array.from(asst.purposes || []).sort(),
+    imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL, // Ensure imageUrl is part of comparison
     // Ensure other potentially variable fields are handled if deep comparison is needed
   }));
 };
@@ -45,6 +47,7 @@ export async function GET(request: NextRequest) {
         assistants: Array.isArray(profile.assistants) ? profile.assistants.map(asst => ({
           ...asst,
           purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
+          imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         })) : [],
       };
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
@@ -79,12 +82,13 @@ export async function POST(request: NextRequest) {
     if (userProfile.firebaseUid && userProfile.firebaseUid !== decodedToken.uid) {
       console.warn("Mismatch between userProfile.firebaseUid in body and token UID. Using token UID.");
     }
-    
+
     const incomingAssistantsRaw = userProfile.assistants || [];
     const incomingAssistantsProcessed: AssistantConfig[] = Array.isArray(incomingAssistantsRaw) ? incomingAssistantsRaw.map((asst: any) => ({
       ...asst,
       id: asst.id || `asst_fallback_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
       purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
+      imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
     })) : [];
 
     let finalAssistantsToSave: AssistantConfig[] = incomingAssistantsProcessed;
@@ -97,10 +101,10 @@ export async function POST(request: NextRequest) {
       const planForSaving = userProfile.currentPlan as SubscriptionPlanType | null; // This is the plan the user *will be on*
       const isSavingToPaidPlan = planForSaving && PAID_PLANS.includes(planForSaving);
 
-      // Prepare existing assistants for comparison (ensure 'purposes' is an array for JSON.stringify)
+      // Prepare existing assistants for comparison (ensure 'purposes' is an array for JSON.stringify and imageUrl is present)
       const existingAssistantsForComparison = normalizeAssistantsForComparison(existingProfile.assistants || []);
       const incomingAssistantsForComparison = normalizeAssistantsForComparison(incomingAssistantsProcessed);
-      
+
       const assistantsPayloadChanged = JSON.stringify(existingAssistantsForComparison) !== JSON.stringify(incomingAssistantsForComparison);
 
       if (assistantsPayloadChanged && !isSavingToPaidPlan) {
@@ -108,7 +112,8 @@ export async function POST(request: NextRequest) {
                     `attempted to modify assistants. Assistant changes will be IGNORED.`);
         finalAssistantsToSave = (existingProfile.assistants || []).map(asst => ({ // Revert to DB state
             ...asst,
-            purposes: Array.from(asst.purposes || new Set()) // Ensure purposes are arrays
+            purposes: Array.from(asst.purposes || new Set()), // Ensure purposes are arrays
+            imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         }));
         messageSuffix = " Assistant configurations were not saved due to current plan restrictions.";
       } else if (assistantsPayloadChanged && isSavingToPaidPlan) {
@@ -121,10 +126,13 @@ export async function POST(request: NextRequest) {
     const serializableProfile: Omit<UserProfile, '_id'> = {
       ...(userProfile as Omit<UserProfile, 'assistants' | 'databases'>), // Cast to avoid type issues with partial userProfile from client
       firebaseUid: decodedToken.uid,
-      assistants: finalAssistantsToSave,
-      databases: Array.isArray(userProfile.databases) ? userProfile.databases.map((db: any) => ({
-        ...db,
-        id: db.id || `db_fallback_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
+      assistants: finalAssistantsToSave.map(asst => ({
+        ...asst,
+        imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL, // Ensure default if somehow still missing
+      })),
+      databases: Array.isArray(userProfile.databases) ? userProfile.databases.map((dbConfig: any) => ({
+        ...dbConfig,
+        id: dbConfig.id || `db_fallback_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
       })) : [],
     };
      // Ensure all UserProfile fields are present, even if undefined from client
@@ -159,7 +167,7 @@ export async function POST(request: NextRequest) {
         console.error("API POST: No document matched, and no document was upserted despite upsert:true.", result);
         return NextResponse.json({ message: "Failed to save user profile: No document matched or upserted" }, { status: 500 });
       }
-      
+
       return NextResponse.json({ message: `${responseMessage}${messageSuffix}`, userId: decodedToken.uid, ...(result.upsertedId && {upsertedId: result.upsertedId}) });
 
     } catch (dbError) {
@@ -176,4 +184,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Failed to process request due to an internal error', error: errorMessage }, { status: 500 });
   }
 }
-    

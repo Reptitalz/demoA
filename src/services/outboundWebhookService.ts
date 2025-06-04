@@ -1,8 +1,10 @@
+
 // src/services/outboundWebhookService.ts
 'use server';
 
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import axios from 'axios';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 interface AssistantWebhookPayload {
   timestamp: string;
@@ -19,6 +21,7 @@ interface AssistantWebhookPayload {
     name: string;
     phoneLinked?: string; // Número vinculado directamente al asistente
     purposes: string[]; // Convertido a array
+    imageUrl?: string; // Image URL for the assistant
     database?: {
       id: string;
       name: string;
@@ -58,6 +61,7 @@ export async function sendAssistantCreatedWebhook(
       name: assistant.name,
       phoneLinked: assistant.phoneLinked,
       purposes: Array.from(assistant.purposes || new Set()), // Asegurar que purposes sea un array
+      imageUrl: assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL, // Include imageUrl
       database: assistantDatabase
         ? {
             id: assistantDatabase.id,
