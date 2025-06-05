@@ -11,11 +11,11 @@ export interface AssistantPurpose {
 export type DatabaseSource = "google_sheets" | "excel" | "smart_db";
 
 export interface DatabaseConfig {
-  id: string;
-  name: string;
+  id: string; // Unique ID for this DB config
+  name: string; // User-friendly name for this database (e.g., "Q4 Sales Report", "Client Contacts Sheet")
   source: DatabaseSource;
-  // Placeholder for actual connection details or file info
-  details?: string | File;
+  details?: string; // Original Excel filename, or other non-URL details.
+  accessUrl?: string; // URL to access/edit the Google Sheet (whether linked directly or generated from Excel)
 }
 
 export interface AssistantConfig {
@@ -52,7 +52,7 @@ export interface UserProfile {
   stripeSubscriptionId?: string;
   virtualPhoneNumber?: string;
   vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled';
-  countryCodeForVonageNumber?: string; // Added for Vonage cancellation if needed
+  countryCodeForVonageNumber?: string; 
 }
 
 // For wizard state
@@ -63,19 +63,21 @@ export interface WizardState {
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
     type: DatabaseSource | null;
-    name?: string; // For smart_db or uploaded file
+    name?: string; // User-friendly name for GSheet/SmartDB, or Excel filename by default
     file?: File | null; // For excel upload
+    accessUrl?: string; // For GSheet URL (provided or generated)
+    // spreadsheetId?: string; // Optional: if we need to store the GSheet ID separately
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
-  customPhoneNumber?: string; // For business plan new assistant
-  isReconfiguring: boolean; // To indicate if the wizard is in edit/reconfigure mode
-  editingAssistantId: string | null; // ID of the assistant being edited
+  customPhoneNumber?: string; 
+  isReconfiguring: boolean; 
+  editingAssistantId: string | null; 
 }
 
 export interface AppState {
   wizard: WizardState;
   userProfile: UserProfile;
   isSetupComplete: boolean;
-  isLoading: boolean; // For global loading states
+  isLoading: boolean; 
 }
