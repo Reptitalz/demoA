@@ -46,7 +46,7 @@ const SetupPage = () => {
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
           break;
         case 2:
-          if (!databaseOption.type && selectedPurposes.size > 0 && (selectedPurposes.has('import_db_excel') || selectedPurposes.has('import_db_google_sheets') || selectedPurposes.has('create_smart_db'))) {
+          if (!databaseOption.type && (selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db'))) {
             return "Por favor, selecciona una opción de base de datos.";
           }
           if (databaseOption.type && (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") && !databaseOption.name?.trim()) {
@@ -74,7 +74,7 @@ const SetupPage = () => {
           }
           break;
         case 2:
-          if (!databaseOption.type && selectedPurposes.size > 0 && (selectedPurposes.has('import_db_excel') || selectedPurposes.has('import_db_google_sheets') || selectedPurposes.has('create_smart_db'))) {
+          if (!databaseOption.type && (selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db'))) {
              return "Por favor, selecciona una opción de base de datos.";
           }
           if (databaseOption.type && (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") && !databaseOption.name?.trim()) {
@@ -100,7 +100,7 @@ const SetupPage = () => {
         case 1: return assistantName.trim() !== '' && selectedPurposes.size > 0;
         case 2:
           if (!databaseOption.type) {
-            return true;
+            return !Array.from(selectedPurposes).some(p => ['import_spreadsheet', 'create_smart_db'].includes(p as string));
           }
           if (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
           if (databaseOption.type === "excel") {
@@ -120,7 +120,7 @@ const SetupPage = () => {
           return baseValid;
         case 2:
           if (!databaseOption.type) {
-            return !Array.from(selectedPurposes).some(p => ['import_db_excel', 'import_db_google_sheets', 'create_smart_db'].includes(p as string));
+            return !Array.from(selectedPurposes).some(p => ['import_spreadsheet', 'create_smart_db'].includes(p as string));
           }
           if (databaseOption.type === "google_sheets" || databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
           if (databaseOption.type === "excel") return !!databaseOption.file;
@@ -414,4 +414,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-

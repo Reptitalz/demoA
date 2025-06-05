@@ -1,5 +1,5 @@
 
-export type AssistantPurposeType = "import_db_google_sheets" | "import_db_excel" | "create_smart_db" | "notify_owner" | "notify_clients";
+export type AssistantPurposeType = "import_spreadsheet" | "create_smart_db" | "notify_owner" | "notify_clients";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;

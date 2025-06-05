@@ -11,9 +11,18 @@ export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
 
 
 export const assistantPurposesConfig: AssistantPurpose[] = [
-  { id: "import_db_google_sheets", name: "Importar desde Hojas de cálculo de Google", description: "Conecta y usa datos de una Hoja de cálculo de Google existente.", icon: FaFileExcel },
-  { id: "import_db_excel", name: "Importar desde Excel", description: "Sube un archivo de Excel para usarlo como tu base de datos.", icon: FaFileExcel },
-  { id: "create_smart_db", name: "Crear Base de Datos Inteligente", description: "Deja que la IA te ayude a construir una base de datos inteligente.", icon: FaBrain },
+  {
+    id: "import_spreadsheet",
+    name: "Importar Hoja de Cálculo (Google/Excel)",
+    description: "Conecta y usa datos desde una Hoja de Google o sube un archivo Excel.",
+    icon: FaFileExcel
+  },
+  {
+    id: "create_smart_db",
+    name: "Crear Base de Datos Inteligente",
+    description: "Deja que la IA te ayude a construir una base de datos inteligente.",
+    icon: FaBrain
+  },
   { id: "notify_owner", name: "Comunicarse con el Propietario", description: "El asistente te enviará actualizaciones y alertas vía WhatsApp.", icon: FaUserCog },
   { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: FaUsers },
 ];
