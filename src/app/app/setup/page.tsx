@@ -162,30 +162,47 @@ const SetupPage = () => {
     let newAssistantDbIdToLink: string | undefined = undefined;
     let assistantPhoneNumber: string | undefined;
     let assistantImageUrl: string = DEFAULT_ASSISTANT_IMAGE_URL;
+    let finalAssistantName = assistantName; // Use wizard name by default
 
     if (editingAssistantId) { // Reconfiguring
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
         assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
+        // Logic for phone number when reconfiguring
         if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
         } else if (selectedPlan === 'test_plan') {
-            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`; // Should ideally be preserved or derived if already exists
         } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
-            assistantPhoneNumber = undefined;
+            // User is upgrading from free, and the number was the default free one. 
+            // The new plan (premium/business) implies a new Vonage number will be provisioned at the account level or a custom one used.
+            // For premium, the assistant will implicitly use the account's Vonage number.
+            // For business, if no custom number is entered *for this specific assistant during reconfig*, it might also use account's number.
+            // This logic might need to be more specific if assistant-level custom numbers can be set during reconfig of business plan.
+            assistantPhoneNumber = undefined; // Let it pick up account's new number or stay undefined if business plan has its own logic.
         } else if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = assistantToUpdate.phoneLinked;
-        } else {
-            assistantPhoneNumber = assistantToUpdate.phoneLinked;
+            // If it's business plan, and there was a custom phone number input in wizard step 1 for reconfig (if implemented), use it.
+            // Otherwise, preserve existing phoneLinked if it's not the default free one.
+            assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
+        } else { // For other paid plans (e.g., premium)
+            assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
     } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = customPhoneNumber || undefined;
+            assistantPhoneNumber = customPhoneNumber || undefined; // User entered in Step 1 for new Business assistant
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+            if (state.userProfile.assistants.length === 0) { // If it's the first assistant on a free plan
+                finalAssistantName = "Hey Asistente";
+            }
         } else if (selectedPlan === 'test_plan') {
             assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-        } else {
+            if (state.userProfile.assistants.length === 0) { // If it's the first assistant on a test_plan
+                finalAssistantName = "Hey Asistente";
+            }
+        } else { // For new premium_179 assistants, phone number is typically the account's Vonage number.
+                 // This will be provisioned by Stripe webhook / userSubscriptionService if not already present.
+                 // So, leave it undefined here, it will inherit account's main number.
             assistantPhoneNumber = undefined;
         }
     }
@@ -206,7 +223,7 @@ const SetupPage = () => {
       const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
       finalAssistantConfig = {
         ...assistantToUpdate,
-        name: assistantName,
+        name: finalAssistantName, // Use finalAssistantName
         purposes: selectedPurposes,
         phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : assistantToUpdate.databaseId,
@@ -218,7 +235,7 @@ const SetupPage = () => {
     } else {
       finalAssistantConfig = {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        name: assistantName,
+        name: finalAssistantName, // Use finalAssistantName
         purposes: selectedPurposes,
         phoneLinked: assistantPhoneNumber,
         databaseId: newAssistantDbIdToLink,
