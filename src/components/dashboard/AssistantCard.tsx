@@ -1,6 +1,6 @@
 
 "use client";
-import type { AssistantConfig } from "@/types";
+import type { AssistantConfig, UserProfile } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +15,19 @@ interface AssistantCardProps {
   assistant: AssistantConfig;
   onReconfigure: (assistantId: string) => void;
   animationDelay?: string;
+  accountVirtualPhoneNumber?: string;
+  accountVonageNumberStatus?: UserProfile['vonageNumberStatus'];
 }
 
 const INITIAL_PURPOSES_TO_SHOW = 2;
 
-const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: AssistantCardProps) => {
+const AssistantCard = ({ 
+  assistant, 
+  onReconfigure, 
+  animationDelay = "0s",
+  accountVirtualPhoneNumber,
+  accountVonageNumberStatus 
+}: AssistantCardProps) => {
   const [clientMounted, setClientMounted] = useState(false);
   const [showAllPurposes, setShowAllPurposes] = useState(false);
   const { toast } = useToast();
@@ -75,6 +83,39 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
+  let badgeText = "Inactivo";
+  let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+  let badgeDynamicClasses = "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0";
+
+  if (assistant.phoneLinked) {
+    if (assistant.phoneLinked === accountVirtualPhoneNumber) {
+        switch (accountVonageNumberStatus) {
+            case 'active':
+                badgeText = "Activo";
+                badgeVariant = "default";
+                badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
+                break;
+            case 'pending_cancellation':
+                badgeText = "Pendiente";
+                badgeVariant = "outline";
+                badgeDynamicClasses = cn(badgeDynamicClasses, "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400");
+                break;
+            case 'cancelled':
+                badgeText = "Cancelado";
+                badgeVariant = "destructive";
+                break;
+            default: 
+                badgeText = "Activo";
+                badgeVariant = "default";
+                badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
+        }
+    } else {
+        // Assistant is linked to a custom number or the default free plan number
+        badgeText = "Activo";
+        badgeVariant = "default";
+        badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
+    }
+  }
 
   return (
     <>
@@ -97,16 +138,13 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
                 <div className="flex items-center justify-between">
                      <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
                      <Badge
-                        variant={assistant.phoneLinked ? "default" : "secondary"}
-                        className={cn(
-                        assistant.phoneLinked && "bg-brand-gradient text-primary-foreground",
-                        "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0"
-                        )}
+                        variant={badgeVariant}
+                        className={badgeDynamicClasses}
                     >
-                        {assistant.phoneLinked ? "Activo" : "Inactivo"}
+                        {badgeText}
                     </Badge>
                 </div>
-                 {assistant.phoneLinked && (
+                 {assistant.phoneLinked && badgeText === "Activo" && ( // Only show chat link if truly active
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                     <div className="flex items-center gap-1 text-muted-foreground">
                         <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
@@ -183,7 +221,7 @@ const AssistantCard = ({ assistant, onReconfigure, animationDelay = "0s" }: Assi
               <FaCog size={14} className="mr-1.5 sm:mr-2" />
               Reconfigurar
             </Button>
-            {assistant.phoneLinked && (
+            {assistant.phoneLinked && badgeText === "Activo" && ( // Only show share button if truly active
               <Button
                 size="sm"
                 onClick={handleShareOnWhatsApp}
