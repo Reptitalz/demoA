@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -16,13 +16,13 @@ interface DatabaseOptionConfig {
   id: DatabaseSource;
   name: string;
   icon: React.ElementType;
-  description?: string; // Optional description for the option
-  requiresNameInput?: boolean;
-  nameInputPlaceholder?: string;
+  inputNameLabel?: string;
+  inputNamePlaceholder?: string;
   requiresAccessUrlInput?: boolean;
-  accessUrlInputPlaceholder?: string;
+  accessUrlLabel?: string;
+  accessUrlPlaceholder?: string;
   requiresFileUpload?: boolean;
-  allowExcelToSheetConversion?: boolean;
+  description?: string;
 }
 
 const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
@@ -30,27 +30,28 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
     id: "google_sheets" as DatabaseSource,
     name: "Vincular Hoja de Google existente",
     icon: FaGoogle,
-    requiresNameInput: true,
-    nameInputPlaceholder: "Nombre descriptivo para esta Hoja",
+    inputNameLabel: "Nombre Descriptivo",
+    inputNamePlaceholder: "Ej: CRM Clientes Activos",
     requiresAccessUrlInput: true,
-    accessUrlInputPlaceholder: "URL de la Hoja de Google",
+    accessUrlLabel: "URL de la Hoja de Google",
+    accessUrlPlaceholder: "https://docs.google.com/spreadsheets/d/...",
     description: "Asegúrate de que esta Hoja de Google sea pública y editable por cualquiera con el enlace para que tu asistente pueda acceder y (si es necesario) modificar los datos."
   },
   {
     id: "excel" as DatabaseSource,
-    name: "Importar desde Excel",
+    name: "Importar desde Excel y crear Google Sheet",
     icon: FaFileExcel,
     requiresFileUpload: true,
-    allowExcelToSheetConversion: true,
-    nameInputPlaceholder: "Nombre del archivo Excel (autocompletado)",
-    // Description for Excel can be part of the "Procesar Excel" button's help text.
+    inputNameLabel: "Nombre para el Nuevo Google Sheet",
+    inputNamePlaceholder: "Ej: Reporte de Ventas Q1 (desde Excel)",
+    // accessUrl will be populated by the API
   },
   {
     id: "smart_db" as DatabaseSource,
     name: "Crear Base de Datos Inteligente",
     icon: FaBrain,
-    requiresNameInput: true,
-    nameInputPlaceholder: "Nombre para tu Base de Datos Inteligente",
+    inputNameLabel: "Nombre para tu Base de Datos Inteligente",
+    inputNamePlaceholder: "Ej: Base de Conocimiento Producto X",
   },
 ];
 
@@ -61,8 +62,7 @@ const Step2DatabaseConfig = () => {
 
   const [dbNameValue, setDbNameValue] = useState('');
   const [accessUrlValue, setAccessUrlValue] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileNameForDisplay, setFileNameForDisplay] = useState(''); // Only for displaying original excel name
   const [isProcessingExcel, setIsProcessingExcel] = useState(false);
 
   const [availableOptions, setAvailableOptions] = useState<DatabaseOptionConfig[]>([]);
@@ -76,36 +76,30 @@ const Step2DatabaseConfig = () => {
     }
     setAvailableOptions(currentAvailableOptions);
 
-    // Reset databaseOption.type if it's no longer valid for the current purposes
     if (databaseOption.type && !currentAvailableOptions.some(opt => opt.id === databaseOption.type)) {
       dispatch({
         type: 'SET_DATABASE_OPTION',
         payload: { type: null, name: '', accessUrl: '', file: null }
       });
     }
-
   }, [selectedPurposes, dispatch, databaseOption.type]);
 
-
   useEffect(() => {
-    // Sync local state with global wizard state when type changes or on initial load
     setDbNameValue(databaseOption.name || '');
     setAccessUrlValue(databaseOption.accessUrl || '');
-    setFileName(databaseOption.file?.name || ''); 
-    setSelectedFile(databaseOption.file || null);
+    setFileNameForDisplay(databaseOption.file?.name || '');
   }, [databaseOption.type, databaseOption.name, databaseOption.accessUrl, databaseOption.file]);
-
 
   const handleOptionChange = (value: string) => {
     const selectedConfig = availableOptions.find(opt => opt.id === value);
     if (selectedConfig) {
       dispatch({
         type: 'SET_DATABASE_OPTION',
-        payload: { 
-          type: value as DatabaseSource, 
-          name: value === 'excel' && selectedFile ? selectedFile.name : '', // Pre-fill name for excel if file already selected
-          accessUrl: '', 
-          file: value === 'excel' ? selectedFile : null // Keep file if switching to excel and file was already selected
+        payload: {
+          type: value as DatabaseSource,
+          name: '', // Reset name, will be filled by user or API
+          accessUrl: '', // Reset accessUrl
+          file: databaseOption.type === value ? databaseOption.file : null // Preserve file if type doesn't change
         }
       });
     }
@@ -116,29 +110,11 @@ const Step2DatabaseConfig = () => {
     setDbNameValue(newName);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, name: newName } });
   };
-  
+
   const handleAccessUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
-  };
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && databaseOption.type === "excel") {
-      setFileName(file.name);
-      setSelectedFile(file);
-      // Update global state: set file and use file.name as default db name for Excel type
-      dispatch({ 
-        type: 'SET_DATABASE_OPTION', 
-        payload: { 
-          type: "excel", 
-          name: databaseOption.name || file.name, // Preserve user's custom name if they typed one, else use file name
-          file: file, 
-          accessUrl: databaseOption.accessUrl // Preserve existing accessUrl if any
-        } 
-      });
-    }
   };
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -150,21 +126,18 @@ const Step2DatabaseConfig = () => {
     });
   };
 
-  const handleProcessExcelToSheet = async () => {
-    if (!selectedFile || databaseOption.type !== 'excel') {
-      toast({ title: "Error", description: "Por favor, selecciona un archivo Excel primero.", variant: "destructive" });
-      return;
-    }
+  const processUploadedExcel = useCallback(async (file: File, targetSheetName: string) => {
     if (!auth.currentUser) {
-      toast({ title: "Error de Autenticación", description: "Debes estar autenticado para realizar esta acción. Por favor, completa el paso de autenticación.", variant: "destructive" });
+      toast({ title: "Error de Autenticación", description: "Debes estar autenticado para procesar archivos. Por favor, completa el paso de autenticación si lo omitiste.", variant: "destructive" });
+      setIsProcessingExcel(false);
       return;
     }
 
     setIsProcessingExcel(true);
-    toast({ title: "Procesando Excel...", description: "Creando Google Sheet. Esto puede tardar un momento." });
+    toast({ title: "Procesando Excel...", description: `Creando Google Sheet "${targetSheetName}". Esto puede tardar un momento.` });
 
     try {
-      const fileData = await fileToBase64(selectedFile);
+      const fileData = await fileToBase64(file);
       const token = await auth.currentUser.getIdToken();
 
       const response = await fetch('/api/sheets-upload', {
@@ -173,10 +146,10 @@ const Step2DatabaseConfig = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          fileData, 
-          fileName: selectedFile.name,
-          firebaseUid: auth.currentUser.uid 
+        body: JSON.stringify({
+          fileData,
+          fileName: targetSheetName, // API uses this as the desired Google Sheet name
+          firebaseUid: auth.currentUser.uid
         }),
       });
 
@@ -189,14 +162,14 @@ const Step2DatabaseConfig = () => {
       dispatch({
         type: 'SET_DATABASE_OPTION',
         payload: {
-          type: 'google_sheets', 
-          name: result.spreadsheetName, 
-          accessUrl: result.spreadsheetUrl, 
-          file: null, 
+          type: 'google_sheets', // Update type to Google Sheets
+          name: result.spreadsheetName, // Use name from API
+          accessUrl: result.spreadsheetUrl, // Use URL from API
+          file: null, // Clear the original Excel file from wizard state
         }
       });
-      // No need to set local state here, useEffect will sync from global state
-      toast({ title: "¡Éxito!", description: `Google Sheet '${result.spreadsheetName}' creado y vinculado.` });
+      setFileNameForDisplay(''); // Clear displayed original excel name
+      toast({ title: "¡Éxito!", description: `Google Sheet "${result.spreadsheetName}" creado y vinculado.` });
       if (result.warning) {
         toast({ title: "Advertencia", description: result.warning, variant: "default", duration: 7000 });
       }
@@ -204,10 +177,42 @@ const Step2DatabaseConfig = () => {
     } catch (error: any) {
       console.error("Error processing Excel to Sheet:", error);
       toast({ title: "Error al Procesar Excel", description: error.message || "No se pudo generar el Google Sheet.", variant: "destructive" });
+      // Optionally reset parts of the state if processing fails and user might want to try again
+      // For now, keeps the file selected and name potentially, so user can retry or adjust.
+      // dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, file: file, name: targetSheetName } });
     } finally {
       setIsProcessingExcel(false);
     }
+  }, [dispatch, toast]);
+
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && databaseOption.type === "excel") {
+      setFileNameForDisplay(file.name); // Display original Excel file name
+      
+      // Use current dbNameValue as targetSheetName, or default to file.name if empty
+      const targetSheetNameForAPI = dbNameValue.trim() || file.name;
+      if (!dbNameValue.trim()) {
+        setDbNameValue(file.name); // Pre-fill the input if it was empty
+      }
+
+      // Update global state with the file object for now, processing will clear it
+      dispatch({
+        type: 'SET_DATABASE_OPTION',
+        payload: {
+          ...databaseOption,
+          name: targetSheetNameForAPI, // This will be the name for the new GSheet
+          file: file, // Keep file temporarily until processed
+          accessUrl: '', // Will be filled by API
+        }
+      });
+      
+      // Automatically start processing
+      processUploadedExcel(file, targetSheetNameForAPI);
+    }
   };
+
 
   const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
 
@@ -250,69 +255,65 @@ const Step2DatabaseConfig = () => {
           </div>
         )}
 
-        {selectedDbConfig && (selectedDbConfig.requiresNameInput || selectedDbConfig.requiresAccessUrlInput || selectedDbConfig.requiresFileUpload) && (
+        {selectedDbConfig && (selectedDbConfig.inputNameLabel || selectedDbConfig.requiresAccessUrlInput || selectedDbConfig.requiresFileUpload) && (
           <div className="space-y-4 pt-4 border-t mt-4">
+
+            {selectedDbConfig.inputNameLabel && (
+              <div className="space-y-2">
+                <Label htmlFor="dbNameInput" className="text-base">
+                  {selectedDbConfig.inputNameLabel}
+                </Label>
+                <Input
+                  id="dbNameInput"
+                  type="text"
+                  placeholder={selectedDbConfig.inputNamePlaceholder}
+                  value={dbNameValue}
+                  onChange={handleDbNameChange}
+                  className="text-base"
+                  aria-required={!!selectedDbConfig.inputNameLabel}
+                  disabled={isProcessingExcel && databaseOption.type === 'excel'}
+                />
+              </div>
+            )}
+
             {selectedDbConfig.requiresFileUpload && databaseOption.type === "excel" && (
               <div className="space-y-2">
                 <Label htmlFor="fileUpload" className="text-base">
                   Archivo Excel (.xlsx, .xls, .csv)
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" asChild size="sm">
+                  <Button variant="outline" asChild size="sm" disabled={isProcessingExcel}>
                     <Label htmlFor="fileUpload" className="cursor-pointer">
                       <FaUpload className="mr-2 h-4 w-4" /> Elegir Archivo
                     </Label>
                   </Button>
-                  <Input id="fileUpload" type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" aria-describedby="fileNameDisplay"/>
-                  {fileName && <span id="fileNameDisplay" className="text-sm text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">{fileName}</span>}
+                  <Input id="fileUpload" type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" aria-describedby="fileNameDisplay" disabled={isProcessingExcel || !dbNameValue.trim()}/>
+                  {fileNameForDisplay && !isProcessingExcel && <span id="fileNameDisplay" className="text-sm text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">{fileNameForDisplay}</span>}
+                  {isProcessingExcel && <FaSpinner className="animate-spin h-5 w-5 text-primary" />}
                 </div>
-                {selectedFile && (
-                    <div className="space-y-1 mt-2">
-                        <Label htmlFor="excelNameInput" className="text-xs">Nombre Descriptivo (se usará como nombre del Google Sheet generado)</Label>
-                        <Input
-                            id="excelNameInput"
-                            type="text"
-                            placeholder="Ej: Reporte de Ventas Q4"
-                            value={dbNameValue} 
-                            onChange={handleDbNameChange}
-                            className="text-sm"
-                        />
-                    </div>
+                 {!dbNameValue.trim() && databaseOption.type === "excel" && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                        <FaExclamationTriangle/> Por favor, primero asigna un nombre al nuevo Google Sheet.
+                    </p>
                 )}
-              </div>
-            )}
-
-            {selectedDbConfig.requiresNameInput && databaseOption.type !== "excel" && ( 
-              <div className="space-y-2">
-                <Label htmlFor="dbNameInput" className="text-base">
-                  {selectedDbConfig.nameInputPlaceholder || "Nombre Descriptivo"}
-                </Label>
-                <Input
-                  id="dbNameInput"
-                  type="text"
-                  placeholder={selectedDbConfig.nameInputPlaceholder}
-                  value={dbNameValue}
-                  onChange={handleDbNameChange}
-                  className="text-base"
-                  aria-required={selectedDbConfig.requiresNameInput}
-                />
+                {isProcessingExcel && <p className="text-xs text-muted-foreground">Procesando archivo y creando Google Sheet...</p>}
               </div>
             )}
             
             {selectedDbConfig.requiresAccessUrlInput && (
               <div className="space-y-2">
                 <Label htmlFor="accessUrlInput" className="text-base">
-                  {selectedDbConfig.accessUrlInputPlaceholder || "URL de Acceso"}
+                  {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
                 </Label>
                 <Input
                   id="accessUrlInput"
                   type="url"
-                  placeholder={selectedDbConfig.accessUrlInputPlaceholder}
+                  placeholder={selectedDbConfig.accessUrlPlaceholder}
                   value={accessUrlValue}
                   onChange={handleAccessUrlChange}
                   className="text-base"
                   aria-required={selectedDbConfig.requiresAccessUrlInput}
-                  disabled={databaseOption.type === 'excel' && isProcessingExcel} // Disable if processing excel
+                  readOnly={databaseOption.type === 'excel' && !!accessUrlValue} // Make read-only if excel generated it
                 />
                 {selectedDbConfig.description && (
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
@@ -322,28 +323,9 @@ const Step2DatabaseConfig = () => {
                 )}
               </div>
             )}
+            
+            {/* Removed manual "Procesar Excel" button */}
 
-            {selectedDbConfig.allowExcelToSheetConversion && selectedFile && databaseOption.type === "excel" && (
-              <div className="pt-3">
-                <Button 
-                  onClick={handleProcessExcelToSheet} 
-                  disabled={isProcessingExcel || !selectedFile || !dbNameValue.trim()}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
-                  title={!dbNameValue.trim() ? "Por favor, proporciona un nombre descriptivo para el Google Sheet que se generará." : "Procesar Excel"}
-                >
-                  {isProcessingExcel ? (
-                    <FaSpinner className="animate-spin mr-2" />
-                  ) : (
-                    <FaGoogle className="mr-2" />
-                  )}
-                  {isProcessingExcel ? "Procesando..." : "Procesar Excel y generar Google Sheet"}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Esto creará un Google Sheet público y editable con los datos de tu Excel usando el "Nombre Descriptivo" proporcionado.
-                </p>
-              </div>
-            )}
           </div>
         )}
       </CardContent>
