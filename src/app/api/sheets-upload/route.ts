@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import * as XLSX from 'xlsx';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
+import { firebaseAdminInitialized } from '@/lib/firebaseAdmin'; // Import the flag
 
 // Ensure these environment variables are set:
 // GOOGLE_SERVICE_ACCOUNT_JSON: The stringified JSON of your service account key
@@ -24,17 +25,35 @@ function getGoogleAuth() {
       ],
     });
   } catch (error: any) {
-    console.error("Error parsing GOOGLE_SERVICE_ACCOUNT_JSON:", error.message);
+    console.error("Error parsing GOOGLE_SERVICE_ACCOUNT_JSON:", error.message, error.stack);
     throw new Error(`Invalid GOOGLE_SERVICE_ACCOUNT_JSON. Parsing failed: ${error.message}`);
   }
 }
 
 export async function POST(request: NextRequest) {
+  if (!firebaseAdminInitialized) {
+    console.error('/api/sheets-upload: Firebase Admin SDK is not initialized. This endpoint cannot function without it for token verification. Check server startup logs.');
+    return NextResponse.json({ message: 'Server configuration error: Firebase Admin SDK not available.' }, { status: 500 });
+  }
+
   const decodedToken = await verifyFirebaseToken(request);
   if (!decodedToken) {
     return NextResponse.json({ message: 'Unauthorized: Invalid or missing token' }, { status: 401 });
   }
   
+  let authClient;
+  let driveService;
+  let sheetsService;
+
+  try {
+    authClient = getGoogleAuth();
+    driveService = google.drive({ version: 'v3', auth: authClient });
+    sheetsService = google.sheets({ version: 'v4', auth: authClient });
+  } catch (serviceInitError: any) {
+    console.error('/api/sheets-upload: Error initializing Google API services:', serviceInitError.message, serviceInitError.stack);
+    return NextResponse.json({ message: 'Server configuration error: Could not initialize Google API services.', error: serviceInitError.message }, { status: 500 });
+  }
+
   try {
     const body = await request.json();
     const { fileData, fileName, firebaseUid: bodyFirebaseUid } = body;
@@ -47,10 +66,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Forbidden: Token UID does not match firebaseUid in request body' }, { status: 403 });
     }
 
-    const auth = getGoogleAuth();
-    const drive = google.drive({ version: 'v3', auth });
-    const sheets = google.sheets({ version: 'v4', auth });
-
     // 1. Convert Base64 to Buffer and Parse Excel
     let excelData: any[][];
     try {
@@ -58,17 +73,17 @@ export async function POST(request: NextRequest) {
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" }); // Ensure empty cells are ""
+      excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" }); 
       if (!excelData || excelData.length === 0) {
-        excelData = [[]]; // Ensure at least one empty row if sheet is empty
+        excelData = [[]]; 
       }
     } catch (error: any) {
-      console.error('Error processing Excel file:', error.message);
+      console.error('/api/sheets-upload: Error processing Excel file:', error.message, error.stack);
       return NextResponse.json({ message: 'Error processing Excel file', error: error.message }, { status: 500 });
     }
 
     // 2. Create New Google Sheet
-    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_.\- ()]/g, '_'); // Sanitize, allow spaces and parentheses
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_.\- ()]/g, '_');
     const newSheetName = `[AssistAI] ${sanitizedFileName} (${new Date().toISOString().split('T')[0]})`;
     
     const fileMetadata: any = {
@@ -81,12 +96,12 @@ export async function POST(request: NextRequest) {
 
     let createdFile;
     try {
-      createdFile = await drive.files.create({
+      createdFile = await driveService.files.create({
         resource: fileMetadata,
         fields: 'id, webViewLink, name',
       });
     } catch (error: any) {
-      console.error('Error creating Google Sheet in Drive:', error.response?.data || error.message);
+      console.error('/api/sheets-upload: Error creating Google Sheet in Drive:', error.response?.data || error.message, error.stack);
       return NextResponse.json({ message: 'Error creating Google Sheet', error: error.response?.data?.error?.message || error.message }, { status: 500 });
     }
 
@@ -95,13 +110,13 @@ export async function POST(request: NextRequest) {
     const actualSpreadsheetName = createdFile.data.name;
 
     if (!spreadsheetId || !spreadsheetUrl) {
-        console.error('Failed to get ID or URL for the created Google Sheet.');
+        console.error('/api/sheets-upload: Failed to get ID or URL for the created Google Sheet.');
         return NextResponse.json({ message: 'Failed to get ID or URL for the created Google Sheet' }, { status: 500 });
     }
 
     // 3. Write Data to the New Sheet
     try {
-      await sheets.spreadsheets.values.update({
+      await sheetsService.spreadsheets.values.update({
         spreadsheetId,
         range: 'Sheet1!A1', 
         valueInputOption: 'USER_ENTERED',
@@ -110,14 +125,14 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error: any) {
-      console.error('Error writing data to Google Sheet:', error.response?.data || error.message);
-      try { await drive.files.delete({ fileId: spreadsheetId }); } catch (delError) { console.error('Failed to cleanup partially created sheet:', delError); }
+      console.error('/api/sheets-upload: Error writing data to Google Sheet:', error.response?.data || error.message, error.stack);
+      try { await driveService.files.delete({ fileId: spreadsheetId }); } catch (delError: any) { console.error('/api/sheets-upload: Failed to cleanup partially created sheet:', delError.message, delError.stack); }
       return NextResponse.json({ message: 'Error writing data to Google Sheet', error: error.response?.data?.error?.message || error.message }, { status: 500 });
     }
     
     // 4. Make Publicly Editable (Anyone with the link can edit)
     try {
-      await drive.permissions.create({
+      await driveService.permissions.create({
         fileId: spreadsheetId,
         requestBody: {
           role: 'writer', 
@@ -125,7 +140,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error: any) {
-      console.error('Error setting Google Sheet permissions:', error.response?.data || error.message);
+      console.error('/api/sheets-upload: Error setting Google Sheet permissions:', error.response?.data || error.message, error.stack);
       return NextResponse.json({ 
         message: 'Google Sheet created and data written, but failed to set public permissions.',
         spreadsheetUrl,
@@ -145,8 +160,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Unhandled error in /api/sheets-upload:', error.message, error.stack);
     const errorMessage = error instanceof Error ? error.message : String(error);
-     if (error.message.includes('GOOGLE_SERVICE_ACCOUNT_JSON')) {
-        return NextResponse.json({ message: 'Error de configuración del servidor (Cuenta de Servicio de Google). Revisa las variables de entorno.', error: errorMessage }, { status: 500 });
+     if (error.message.includes('GOOGLE_SERVICE_ACCOUNT_JSON') || error.message.includes('Google API services')) {
+        return NextResponse.json({ message: 'Error de configuración del servidor. Revisa las variables de entorno y los permisos de la cuenta de servicio de Google.', error: errorMessage }, { status: 500 });
     }
     return NextResponse.json({ message: 'Ocurrió un error inesperado al procesar tu solicitud.', error: errorMessage }, { status: 500 });
   }
