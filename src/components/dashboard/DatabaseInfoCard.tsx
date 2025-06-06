@@ -1,9 +1,9 @@
 
 "use client";
-import type { DatabaseConfig } from "@/types";
+import type { DatabaseConfig, DatabaseSource } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle } from "react-icons/fa"; // FaFileExcel, FaBrain removed, FaGoogle added
+import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import DatabaseConnectionsDialog from "./DatabaseConnectionsDialog";
@@ -17,21 +17,28 @@ interface DatabaseInfoCardProps {
 const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardProps) => {
   const [isConnectionsDialogOpen, setIsConnectionsDialogOpen] = useState(false);
 
-  // Icon is now always FaGoogle as only Google Sheets are supported
-  const Icon = FaGoogle;
+  const getDatabaseIcon = (source: DatabaseSource) => {
+    if (source === "google_sheets") return FaGoogle;
+    if (source === "smart_db") return FaBrain;
+    return FaDatabase;
+  };
+  const Icon = getDatabaseIcon(database.source);
 
   const getSourceName = (source: DatabaseConfig['source']) => {
-    // Only "google_sheets" is expected
     if (source === 'google_sheets') return 'Hojas de Google';
+    if (source === 'smart_db') return 'Base de Datos Inteligente';
     return 'Fuente Desconocida';
   };
 
   const getDisplayDetails = () => {
-    // The concept of "Original Excel file" is removed.
-    // Details might still hold the GSheet name if stored that way, but CardTitle shows it.
-    // So, this function might not be needed or can be simplified.
-    // For now, let's return null as CardTitle already shows the name.
-    // If 'details' has another meaning for 'google_sheets' in the future, this can be adjusted.
+    if (database.source === 'google_sheets' && database.details) {
+        // Assuming details might store original Excel filename if it was converted
+        // Or simply the user-provided name for the GSheet if linked directly.
+        return `Nombre descriptivo: ${database.details}`; 
+    }
+    if (database.source === 'smart_db' && database.details) {
+        return `Descripción: ${database.details}`;
+    }
     return null; 
   }
 
@@ -82,9 +89,8 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                 <span>URL de la Hoja de Google no disponible.</span>
               </div>
            )}
-            {/* Section for manually linked excel URL removed */}
         </CardContent>
-        <CardFooter className={cn("border-t pt-3 flex flex-col sm:flex-row gap-2 items-center", database.accessUrl ? "justify-between" : "justify-center")}>
+        <CardFooter className={cn("border-t pt-3 flex flex-col sm:flex-row gap-2 items-center", (database.source === 'google_sheets' && database.accessUrl) ? "justify-between" : "justify-center")}>
           <Button
             variant="outline"
             size="sm"
@@ -94,7 +100,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
             <FaLink size={14} className="mr-1.5" />
             Asistentes Vinculados
           </Button>
-          {database.accessUrl && (
+          {database.source === 'google_sheets' && database.accessUrl && (
             <Button asChild size="sm" className="w-full sm:w-auto transition-transform transform hover:scale-105 text-xs bg-brand-gradient text-primary-foreground hover:opacity-90">
               <a href={database.accessUrl} target="_blank" rel="noopener noreferrer">
                 <FaExternalLinkAlt size={14} className="mr-1.5" />
@@ -113,3 +119,4 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
 };
 
 export default DatabaseInfoCard;
+

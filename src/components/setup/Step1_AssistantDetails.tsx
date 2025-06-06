@@ -9,11 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
 import { FaPhone } from "react-icons/fa";
-// Removed useToast as the specific conflicting purpose toast is no longer needed
+import { useToast } from "@/hooks/use-toast";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
-  // Removed toast initialization
+  const { toast } = useToast();
   const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,8 +21,6 @@ const Step1AssistantDetails = () => {
   };
 
   const handlePurposeToggle = (purposeId: AssistantPurposeType) => {
-    // Logic for mutual exclusion of "import_spreadsheet" and "create_smart_db"
-    // and related toasts is removed as "create_smart_db" is no longer an option.
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
@@ -77,8 +75,13 @@ const Step1AssistantDetails = () => {
           {assistantPurposesConfig.map((purpose) => {
             const Icon = purpose.icon;
             const isChecked = selectedPurposes.has(purpose.id);
-            // isDisabled logic for conflicting purposes is removed.
-            const isDisabled = false; 
+            
+            let isDisabled = false;
+            if (purpose.id === 'import_spreadsheet' && selectedPurposes.has('create_smart_db')) {
+              isDisabled = true;
+            } else if (purpose.id === 'create_smart_db' && selectedPurposes.has('import_spreadsheet')) {
+              isDisabled = true;
+            }
             
             return (
               <div 
@@ -117,3 +120,4 @@ const Step1AssistantDetails = () => {
 };
 
 export default Step1AssistantDetails;
+

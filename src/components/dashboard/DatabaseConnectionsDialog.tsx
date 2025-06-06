@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/providers/AppProvider";
-import { FaRobot, FaDatabase, FaLink, FaGoogle } from "react-icons/fa"; // FaFileExcel, FaBrain, FaUnlink removed
+import { FaRobot, FaDatabase, FaLink, FaGoogle, FaBrain } from "react-icons/fa";
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 
 interface DatabaseConnectionsDialogProps {
@@ -15,16 +15,14 @@ interface DatabaseConnectionsDialogProps {
 }
 
 const getDatabaseIcon = (source: DatabaseSource) => {
-  // Only "google_sheets" is expected
-  if (source === "google_sheets") {
-    return FaGoogle;
-  }
-  return FaDatabase; // Fallback, though shouldn't be hit with current types
+  if (source === "google_sheets") return FaGoogle;
+  if (source === "smart_db") return FaBrain;
+  return FaDatabase; 
 };
 
 const getSourceName = (source: DatabaseConfig['source']) => {
-  // Only "google_sheets" is expected
   if(source === 'google_sheets') return 'Hojas de Google';
+  if(source === 'smart_db') return 'Base de Datos Inteligente';
   return 'Fuente Desconocida';
 };
 
@@ -81,7 +79,7 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
                         </ul>
                       ) : (
                         <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                           No hay asistentes vinculados a esta base de datos. {/* FaUnlink removed for simplicity or replace with another suitable icon */}
+                           No hay asistentes vinculados a esta base de datos. 
                         </p>
                       )}
                     </CardContent>
@@ -97,3 +95,4 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
 };
 
 export default DatabaseConnectionsDialog;
+

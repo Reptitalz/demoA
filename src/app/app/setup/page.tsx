@@ -25,15 +25,12 @@ const SetupPage = () => {
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId } = state.wizard;
-  // pendingExcelProcessing removed from wizard state destructuring
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
-  // isFinalizingSetup can be removed if its only use was for Excel processing spinner
-  // const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
+  const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   const needsDatabaseConfiguration = useCallback(() => {
-    // Only "import_spreadsheet" (link Google Sheet) remains as a DB-requiring purpose
-    return selectedPurposes.has('import_spreadsheet');
+    return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
   }, [selectedPurposes]);
 
   useEffect(() => {
@@ -42,11 +39,10 @@ const SetupPage = () => {
     }
   }, [state.userProfile.isAuthenticated, isReconfiguring]);
 
-  // fileToBase64 function removed as Excel uploads are gone.
 
   const effectiveMaxSteps = isReconfiguring
-    ? (needsDatabaseConfiguration() ? 3 : 2)
-    : (needsDatabaseConfiguration() ? MAX_WIZARD_STEPS : MAX_WIZARD_STEPS - 1);
+    ? (needsDatabaseConfiguration() ? 3 : 2) // Details, DB (Opt), Plan
+    : (needsDatabaseConfiguration() ? MAX_WIZARD_STEPS : MAX_WIZARD_STEPS - 1); // Details, DB (Opt), Auth, Plan
 
 
   const getValidationMessage = (): string => {
@@ -55,23 +51,22 @@ const SetupPage = () => {
 
     if (isReconfiguring) {
       switch (currentValidationStep) {
-        case 1:
+        case 1: // Assistant Details
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
           break;
-        case 2: // Corresponds to DB config or Plan
-          if (dbNeeded) { // If DB is needed, this is DB config step (Google Sheet link)
-            if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos."; // Should always be google_sheets
-            if (databaseOption.type === "google_sheets") {
-                if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre descriptivo para tu Hoja de Google.";
-                if (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/')) return "Por favor, proporciona una URL válida de Hoja de Google.";
+        case 2: // DB config or Plan
+          if (dbNeeded) { // DB config
+            if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
+            if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
+            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) {
+              return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
-            // Excel and SmartDB cases removed
-          } else { // If DB not needed, this step is Plan
+          } else { // Plan (if DB not needed, this is step 2)
              if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           }
           break;
-        case 3: // This is always Plan if DB was needed and was step 2
+        case 3: // Plan (if DB was needed and was step 2)
           if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           break;
       }
@@ -85,21 +80,20 @@ const SetupPage = () => {
           }
           break;
         case 2: // DB Config or Auth
-           if (dbNeeded) { // DB config (Google Sheet link)
+           if (dbNeeded) { // DB config
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-             if (databaseOption.type === "google_sheets") {
-                if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre descriptivo para tu Hoja de Google.";
-                if (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/')) return "Por favor, proporciona una URL válida de Hoja de Google.";
+            if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
+            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) {
+              return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
-            // Excel and SmartDB cases removed
-           } else { // Auth
+           } else { // Auth (if DB not needed, this is step 2)
              if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
            }
           break;
         case 3: // Auth or Plan
           if (dbNeeded) { // Auth
             if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
-          } else { // Plan
+          } else { // Plan (if DB not needed, this is step 3)
              if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           }
           break;
@@ -115,19 +109,19 @@ const SetupPage = () => {
     const currentValidationStep = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
-    // if (isFinalizingSetup) return false; // Removed isFinalizingSetup
+    if (isFinalizingSetup) return false;
 
     if (isReconfiguring) {
       switch (currentValidationStep) {
         case 1: return assistantName.trim() !== '' && selectedPurposes.size > 0;
         case 2: // DB or Plan
-          if (dbNeeded) { // DB config (Google Sheet link)
+          if (dbNeeded) { // DB config
             if (!databaseOption.type) return false;
+            if (!databaseOption.name?.trim()) return false;
             if (databaseOption.type === "google_sheets") {
-                return !!databaseOption.name?.trim() && !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
+                return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
-            // Excel and SmartDB cases removed
-            return true;
+            return true; // For smart_db, name is enough
           } else { // Plan
             return !!selectedPlan;
           }
@@ -142,13 +136,13 @@ const SetupPage = () => {
           if (selectedPlan === 'business_270' && !isReconfiguring) return baseValid && !!customPhoneNumber?.trim();
           return baseValid;
         case 2: // DB or Auth
-          if (dbNeeded) { // DB (Google Sheet link)
+          if (dbNeeded) { // DB
             if (!databaseOption.type) return false;
+            if (!databaseOption.name?.trim()) return false;
             if (databaseOption.type === "google_sheets") {
-                return !!databaseOption.name?.trim() && !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
+                return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
-            // Excel and SmartDB cases removed
-            return true;
+            return true; // For smart_db, name is enough
           } else { // Auth
             return !!authMethod;
           }
@@ -167,11 +161,11 @@ const SetupPage = () => {
 
   const handleNext = () => {
     if (isStepValid()) {
-      if (currentStep === 1 && !needsDatabaseConfiguration()) {
-        if (isReconfiguring) {
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
-        } else {
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
+      if (currentStep === 1 && !needsDatabaseConfiguration()) { // Skip DB step if not needed
+        if (isReconfiguring) { // Reconfig: Details -> Plan
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // Jumps to Reconfig Step 2 (Plan)
+        } else { // New Setup: Details -> Auth
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Jumps to New Setup Step 3 (Auth)
         }
       }
       else if (currentStep < effectiveMaxSteps) {
@@ -187,9 +181,9 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
-    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) {
+    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
-    } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) {
+    } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) { // Came from Details to Plan (reconfig), go back to Details
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
     }
     else if (currentStep > 1) {
@@ -197,16 +191,14 @@ const SetupPage = () => {
     }
   };
 
-  const handleCompleteSetup = () => { // Made non-async
+  const handleCompleteSetup = async () => {
     if (!isStepValid()) {
       toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
       return;
     }
 
-    // setIsFinalizingSetup(true); // Removed
-
-    // Excel processing logic removed entirely.
-    // currentDatabaseOption is effectively state.wizard.databaseOption now.
+    setIsFinalizingSetup(true);
+    let currentDatabaseOption = { ...state.wizard.databaseOption }; 
 
     let finalAssistantConfig: AssistantConfig;
     let updatedAssistantsArray: AssistantConfig[];
@@ -216,44 +208,47 @@ const SetupPage = () => {
     let assistantImageUrl: string = DEFAULT_ASSISTANT_IMAGE_URL;
     let finalAssistantName = assistantName;
 
+
     if (editingAssistantId) {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
         assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-        } else if (selectedPlan === 'test_plan') {
+        } else if (selectedPlan === 'test_plan') { // Ensure test_plan uses a random number
             assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
         } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
+            // If was on free plan number and upgrading, set to undefined so Stripe webhook can provision Vonage
             assistantPhoneNumber = undefined;
         } else if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
-        } else {
+            // Keep existing custom number if on business, unless it was the default free one
+             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
+        }
+        else {
+            // For other paid plans (premium_179), keep existing number if it wasn't default free, otherwise undefined for provisioning
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
-    } else {
+    } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'business_270') {
             assistantPhoneNumber = customPhoneNumber || undefined;
-        } else if (selectedPlan === 'free') {
-            assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+        } else if (selectedPlan === 'free' || selectedPlan === 'test_plan') { // Free or Test plan
+            assistantPhoneNumber = selectedPlan === 'free' ? DEFAULT_FREE_PLAN_PHONE_NUMBER : `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
             if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
-        } else if (selectedPlan === 'test_plan') {
-             assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-            if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
-        } else {
-            assistantPhoneNumber = undefined;
+        } else { // Other paid plans (premium_179)
+            assistantPhoneNumber = undefined; // Will be provisioned by Stripe webhook
         }
     }
 
-    // Database creation logic simplifies: only "google_sheets" from wizard state
-    if (needsDatabaseConfiguration() && databaseOption.type === 'google_sheets') {
+    if (needsDatabaseConfiguration() && currentDatabaseOption.type) {
       const dbId = `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       newDbEntries.push({
         id: dbId,
-        name: databaseOption.name || `Hoja de Google ${state.userProfile.databases.length + 1 + newDbEntries.length}`,
-        source: databaseOption.type, // Will be 'google_sheets'
-        details: databaseOption.name, // Store GSheet name as details
-        accessUrl: databaseOption.accessUrl,
+        name: currentDatabaseOption.name || `Mi ${currentDatabaseOption.type === 'google_sheets' ? 'Hoja de Google' : 'Base Inteligente'}`,
+        source: currentDatabaseOption.type,
+        details: currentDatabaseOption.type === 'google_sheets' 
+            ? currentDatabaseOption.name // For GSheet, details could be the name provided or orig Excel name (not applicable now)
+            : currentDatabaseOption.name, // For SmartDB, name can be details
+        accessUrl: currentDatabaseOption.type === 'google_sheets' ? currentDatabaseOption.accessUrl : undefined,
       });
       newAssistantDbIdToLink = dbId;
     } else if (!needsDatabaseConfiguration()) {
@@ -307,12 +302,9 @@ const SetupPage = () => {
       assistants: updatedAssistantsArray,
       databases: updatedDatabasesArray,
     };
-
-    // No more pendingExcelProcessing to clear
-    // dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' });
-
+    
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
-    // setIsFinalizingSetup(false); // Removed
+    setIsFinalizingSetup(false);
 
     if (!editingAssistantId && finalAssistantConfig) {
       const assistantDb = newAssistantDbIdToLink
@@ -338,23 +330,31 @@ const SetupPage = () => {
     let stepToRender = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
-    if (isReconfiguring) {
-      if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3;
+    if (isReconfiguring) { // Reconfiguring flow: Details -> DB (optional) -> Plan
+      if (!dbNeeded) { // If DB is not needed, step 2 becomes the Plan step
+        if (currentStep === 2) stepToRender = 3; // Map wizard step 2 (conceptually plan) to component for step 4 (Plan)
       }
-
+      // Actual components rendered based on stepToRender:
+      // currentStep 1 -> stepToRender 1 (Details)
+      // currentStep 2 -> if dbNeeded, stepToRender 2 (DB). else stepToRender 3 (Plan)
+      // currentStep 3 -> stepToRender 3 (Plan)
       switch (stepToRender) {
         case 1: return <Step1AssistantDetails />;
-        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
-        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // DB or Plan
+        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // Always Plan
         default: return null;
       }
 
-    } else {
-      if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3;
-        if (currentStep === 3) stepToRender = 4;
+    } else { // Standard new setup flow: Details -> DB (optional) -> Auth -> Plan
+      if (!dbNeeded) { // If DB is not needed, step 2 becomes Auth, step 3 becomes Plan
+        if (currentStep === 2) stepToRender = 3; // Map wizard step 2 (conceptually auth) to component for step 3 (Auth)
+        if (currentStep === 3) stepToRender = 4; // Map wizard step 3 (conceptually plan) to component for step 4 (Plan)
       }
+      // Actual components rendered based on stepToRender:
+      // currentStep 1 -> stepToRender 1 (Details)
+      // currentStep 2 -> if dbNeeded, stepToRender 2 (DB). else stepToRender 3 (Auth)
+      // currentStep 3 -> if dbNeeded, stepToRender 3 (Auth). else stepToRender 4 (Plan)
+      // currentStep 4 -> stepToRender 4 (Plan)
       switch (stepToRender) {
         case 1: return <Step1AssistantDetails />;
         case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
@@ -383,7 +383,7 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go to auth step
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >
@@ -395,7 +395,7 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); // Start from assistant details
                 toast({ title: "Define tu Asistente", description: "Comencemos a definir tu asistente."});
               }}
             >
@@ -413,8 +413,13 @@ const SetupPage = () => {
     <PageContainer>
       <div className="space-y-5">
         <SetupProgressBar />
-        <div className="min-h-[260px] sm:min-h-[280px] md:min-h-[320px] lg:min-h-[350px]">
-         {/* Removed isFinalizingSetup check for spinner here */}
+        <div className="min-h-[260px] sm:min-h-[280px] md:min-h-[320px] lg:min-h-[350px] relative">
+         {isFinalizingSetup && (
+            <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center z-10 rounded-md">
+              <FaSpinner className="animate-spin h-10 w-10 text-primary" />
+              <p className="mt-2 text-sm text-muted-foreground">Finalizando configuración...</p>
+            </div>
+          )}
          {renderStepContent()}
         </div>
         <div className="flex justify-between items-center pt-4 border-t">
@@ -427,7 +432,7 @@ const SetupPage = () => {
                   router.push('/app/dashboard');
                 }}
                 className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
-                // disabled={isFinalizingSetup} // Removed
+                disabled={isFinalizingSetup}
               >
                 <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
               </Button>
@@ -435,7 +440,7 @@ const SetupPage = () => {
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1 /*|| isFinalizingSetup*/} // Removed isFinalizingSetup
+              disabled={currentStep === 1 || isFinalizingSetup}
               className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
             >
               <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
@@ -446,7 +451,7 @@ const SetupPage = () => {
             <Button
               onClick={handleNext}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid() /*|| isFinalizingSetup*/} // Removed isFinalizingSetup
+              disabled={!isStepValid() || isFinalizingSetup}
             >
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
@@ -455,23 +460,18 @@ const SetupPage = () => {
              <Button
               onClick={handleCompleteSetup}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid() /*|| isFinalizingSetup*/} // Removed isFinalizingSetup
+              disabled={!isStepValid() || isFinalizingSetup}
             >
-              {/* {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />} // Removed */}
+              {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
               {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"}
-              {/*!isFinalizingSetup &&*/ <FaArrowRight className="ml-1 h-3 w-3" />} {/* Removed !isFinalizingSetup */}
+              {!isFinalizingSetup && <FaArrowRight className="ml-1 h-3 w-3" />}
             </Button>
           )}
         </div>
-         {/* Removed auth check for Excel upload as Excel uploads are gone
-         {currentStep === effectiveMaxSteps && pendingExcelProcessing?.file && !auth.currentUser && (
-            <p className="text-xs text-destructive text-center mt-2">
-                Debes iniciar sesión para completar la configuración si has subido un archivo Excel.
-            </p>
-        )} */}
       </div>
     </PageContainer>
   );
 };
 
 export default SetupPage;
+

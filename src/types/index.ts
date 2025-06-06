@@ -1,5 +1,5 @@
 
-export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients";
+export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;
@@ -8,14 +8,14 @@ export interface AssistantPurpose {
   icon?: React.ElementType; // For associating an icon
 }
 
-export type DatabaseSource = "google_sheets"; // Only Google Sheets now
+export type DatabaseSource = "google_sheets" | "smart_db"; 
 
 export interface DatabaseConfig {
   id: string;
   name: string;
   source: DatabaseSource;
-  details?: string;
-  accessUrl?: string;
+  details?: string; // For GSheet (orig Excel name), for SmartDB (could be description or same as name)
+  accessUrl?: string; // Only for Google Sheets
 }
 
 export interface AssistantConfig {
@@ -64,15 +64,13 @@ export interface WizardState {
   databaseOption: {
     type: DatabaseSource | null;
     name?: string;
-    accessUrl?: string;
-    // file and originalFileName removed
+    accessUrl?: string; // Only for Google Sheets
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
   customPhoneNumber?: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
-  // pendingExcelProcessing removed
 }
 
 export interface AppState {
@@ -81,3 +79,4 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean;
 }
+

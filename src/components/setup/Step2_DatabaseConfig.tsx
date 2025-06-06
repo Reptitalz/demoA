@@ -1,15 +1,13 @@
 
 "use client";
-import React, { useState, useEffect } from 'react'; // Removed useCallback as it's not used
+import React, { useState, useEffect } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-// Button, FaUpload, FaSpinner, FaFileExcel, FaBrain, FaExclamationTriangle removed as they are no longer needed
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FaGoogle } from "react-icons/fa"; // Only FaGoogle needed
+import { FaGoogle, FaBrain, FaExclamationTriangle } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
-// useToast removed as Excel processing toasts are gone
 
 interface DatabaseOptionConfig {
   id: DatabaseSource;
@@ -23,7 +21,6 @@ interface DatabaseOptionConfig {
   description?: string;
 }
 
-// Simplified: only Google Sheets linking
 const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
   {
     id: "google_sheets" as DatabaseSource,
@@ -36,51 +33,66 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
     accessUrlPlaceholder: "https://docs.google.com/spreadsheets/d/...",
     description: "Asegúrate de que esta Hoja de Google sea pública y editable por cualquiera con el enlace para que tu asistente pueda acceder y (si es necesario) modificar los datos."
   },
+  {
+    id: "smart_db" as DatabaseSource,
+    name: "Crear Base de Datos Inteligente",
+    icon: FaBrain,
+    inputNameLabel: "Nombre para la Base de Datos Inteligente",
+    inputNamePlaceholder: "Ej: Conocimiento de Productos",
+    requiresAccessUrlInput: false,
+    description: "La IA gestionará esta base de datos. Puedes darle un nombre descriptivo."
+  }
 ];
 
 const Step2DatabaseConfig = () => {
   const { state, dispatch } = useApp();
   const { databaseOption, selectedPurposes } = state.wizard;
-  // Removed toast
 
   const [dbNameValue, setDbNameValue] = useState('');
   const [accessUrlValue, setAccessUrlValue] = useState('');
-  // fileNameForDisplay removed
   const [availableOptions, setAvailableOptions] = useState<DatabaseOptionConfig[]>([]);
 
   useEffect(() => {
     let currentAvailableOptions: DatabaseOptionConfig[] = [];
     if (selectedPurposes.has("import_spreadsheet")) {
-      // "import_spreadsheet" now means link existing Google Sheet
       currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "google_sheets");
+    } else if (selectedPurposes.has("create_smart_db")) {
+      currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "smart_db");
     }
-    // No other purposes lead to DB config anymore
     setAvailableOptions(currentAvailableOptions);
 
-    // If the current DB type is no longer available due to purpose change, reset it.
-    if (databaseOption.type && !currentAvailableOptions.some(opt => opt.id === databaseOption.type)) {
-      dispatch({
-        type: 'SET_DATABASE_OPTION',
-        payload: { type: null, name: '', accessUrl: '' }
-      });
+    // Auto-select the first available option if not already selected or if current selection is invalid
+    if (currentAvailableOptions.length > 0) {
+      const currentSelectionIsValid = databaseOption.type && currentAvailableOptions.some(opt => opt.id === databaseOption.type);
+      if (!currentSelectionIsValid) {
+        dispatch({
+          type: 'SET_DATABASE_OPTION',
+          payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '' }
+        });
+      }
+    } else if (databaseOption.type) { // If no options available but a type was selected, reset it
+        dispatch({
+          type: 'SET_DATABASE_OPTION',
+          payload: { type: null, name: '', accessUrl: '' }
+        });
     }
   }, [selectedPurposes, dispatch, databaseOption.type]);
+
 
   useEffect(() => {
     setDbNameValue(databaseOption.name || '');
     setAccessUrlValue(databaseOption.accessUrl || '');
-    // Logic for fileNameForDisplay and pendingExcelProcessing removed
   }, [databaseOption.type, databaseOption.name, databaseOption.accessUrl]);
 
 
   const handleOptionChange = (value: string) => {
-    const valueAsDbSource = value as DatabaseSource; // Should always be "google_sheets" now
+    const valueAsDbSource = value as DatabaseSource;
     dispatch({
       type: 'SET_DATABASE_OPTION',
       payload: {
         type: valueAsDbSource,
         name: '', 
-        accessUrl: '',
+        accessUrl: valueAsDbSource === 'google_sheets' ? '' : undefined, // Clear accessUrl if not GSheet
       }
     });
   };
@@ -97,8 +109,6 @@ const Step2DatabaseConfig = () => {
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { accessUrl: newUrl } });
   };
 
-  // handleFileChange removed
-
   const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
 
   return (
@@ -106,7 +116,10 @@ const Step2DatabaseConfig = () => {
       <CardHeader>
         <CardTitle>Configura tu Base de Datos</CardTitle>
         <CardDescription>
-          {selectedPurposes.has("import_spreadsheet") ? "Vincula una Hoja de Google existente para que tu asistente pueda usarla." : "Selecciona un propósito en el Paso 1 que requiera una base de datos para ver las opciones."}
+          {selectedPurposes.has("import_spreadsheet") || selectedPurposes.has("create_smart_db") 
+            ? "Elige una opción y completa los detalles para la base de datos de tu asistente."
+            : "Selecciona un propósito en el Paso 1 que requiera una base de datos (Vincular Hoja de Google o Crear Base de Datos Inteligente) para ver las opciones."
+          }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -135,7 +148,7 @@ const Step2DatabaseConfig = () => {
         ) : (
           <div className="text-center text-muted-foreground py-4">
             <p>No hay opciones de base de datos disponibles para los propósitos seleccionados.</p>
-            <p>Si deseas vincular una base de datos, por favor, vuelve al Paso 1 y selecciona "Vincular Hoja de Google Existente".</p>
+            <p>Por favor, vuelve al Paso 1 y selecciona "Vincular Hoja de Google Existente" o "Crear Base de Datos Inteligente".</p>
           </div>
         )}
 
@@ -159,8 +172,6 @@ const Step2DatabaseConfig = () => {
               </div>
             )}
 
-            {/* File upload section removed */}
-
             {selectedDbConfig.requiresAccessUrlInput && (
               <div className="space-y-2">
                 <Label htmlFor="accessUrlInput" className="text-base">
@@ -175,13 +186,13 @@ const Step2DatabaseConfig = () => {
                   className="text-base"
                   aria-required={selectedDbConfig.requiresAccessUrlInput}
                 />
-                {selectedDbConfig.id === 'google_sheets' && selectedDbConfig.description && (
-                  <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
-                     <FaGoogle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" /> {/* Updated icon to FaGoogle or similar relevant icon */}
-                    {selectedDbConfig.description}
-                  </p>
-                )}
               </div>
+            )}
+            {selectedDbConfig.description && (
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
+                 {selectedDbConfig.id === 'google_sheets' ? <FaGoogle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" /> : <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />}
+                {selectedDbConfig.description}
+              </p>
             )}
           </div>
         )}
@@ -191,3 +202,4 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
+

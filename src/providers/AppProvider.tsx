@@ -4,8 +4,42 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, SubscriptionPlanType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
-import { MAX_WIZARD_STEPS } from '@/config/appConfig';
-import { auth } from '@/lib/firebase'; // Import Firebase auth instance
+import { MAX_WIZARD_STEPS, assistantPurposesConfig } from '@/config/appConfig';
+import { auth } from '@/lib/firebase'; 
+import { toast } from "@/hooks/use-toast";
+
+
+const initialWizardState: WizardState = {
+  currentStep: 1,
+  maxSteps: MAX_WIZARD_STEPS,
+  assistantName: '',
+  selectedPurposes: new Set(),
+  databaseOption: { type: null, name: '', accessUrl: '' },
+  authMethod: null,
+  selectedPlan: null,
+  customPhoneNumber: '',
+  isReconfiguring: false,
+  editingAssistantId: null,
+};
+
+const initialUserProfileState: UserProfile = {
+  isAuthenticated: false,
+  authProvider: null,
+  email: undefined,
+  currentPlan: null,
+  assistants: [],
+  databases: [],
+  firebaseUid: undefined,
+};
+
+const initialState: AppState = {
+  wizard: initialWizardState,
+  userProfile: initialUserProfileState,
+  isSetupComplete: false,
+  isLoading: true,
+};
+
+const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; isSavingProfile: boolean } | undefined>(undefined);
 
 type Action =
   | { type: 'SET_LOADING'; payload: boolean }
@@ -30,41 +64,7 @@ type Action =
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
-  // Removed SET_PENDING_EXCEL_PROCESSING and CLEAR_PENDING_EXCEL_PROCESSING
 
-
-const initialWizardState: WizardState = {
-  currentStep: 1,
-  maxSteps: MAX_WIZARD_STEPS,
-  assistantName: '',
-  selectedPurposes: new Set(),
-  databaseOption: { type: null, name: '', accessUrl: '' }, // file and originalFileName removed
-  authMethod: null,
-  selectedPlan: null,
-  customPhoneNumber: '',
-  isReconfiguring: false,
-  editingAssistantId: null,
-  // pendingExcelProcessing removed
-};
-
-const initialUserProfileState: UserProfile = {
-  isAuthenticated: false,
-  authProvider: null,
-  email: undefined,
-  currentPlan: null,
-  assistants: [],
-  databases: [],
-  firebaseUid: undefined,
-};
-
-const initialState: AppState = {
-  wizard: initialWizardState,
-  userProfile: initialUserProfileState,
-  isSetupComplete: false,
-  isLoading: true,
-};
-
-const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; isSavingProfile: boolean } | undefined>(undefined);
 
 const appReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
@@ -85,13 +85,30 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'TOGGLE_ASSISTANT_PURPOSE': {
       const newPurposes = new Set(state.wizard.selectedPurposes);
       const purposeToToggle = action.payload;
+      let showToast = false;
+      let toastMessage = "";
 
       if (newPurposes.has(purposeToToggle)) {
         newPurposes.delete(purposeToToggle);
       } else {
         newPurposes.add(purposeToToggle);
-        // Mutual exclusion logic for 'import_spreadsheet' and 'create_smart_db' is no longer needed
-        // as 'create_smart_db' is removed.
+        if (purposeToToggle === "import_spreadsheet" && newPurposes.has("create_smart_db")) {
+          newPurposes.delete("create_smart_db");
+          showToast = true;
+          toastMessage = "Se deseleccionó 'Crear Base de Datos Inteligente' porque ya seleccionaste 'Vincular Hoja de Google'.";
+        } else if (purposeToToggle === "create_smart_db" && newPurposes.has("import_spreadsheet")) {
+          newPurposes.delete("import_spreadsheet");
+          showToast = true;
+          toastMessage = "Se deseleccionó 'Vincular Hoja de Google' porque ya seleccionaste 'Crear Base de Datos Inteligente'.";
+        }
+      }
+
+      if (showToast) {
+        toast({
+          title: "Selección de Propósito Actualizada",
+          description: toastMessage,
+          duration: 5000,
+        });
       }
       return { ...state, wizard: { ...state.wizard, selectedPurposes: newPurposes } };
     }
@@ -147,12 +164,11 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...(loadedState.wizard || {}),
           selectedPurposes: wizardSelectedPurposesSet,
           customPhoneNumber: loadedState.wizard?.customPhoneNumber || '',
-          databaseOption: { // Ensure databaseOption is correctly structured
+          databaseOption: { 
             type: (loadedState.wizard?.databaseOption?.type as DatabaseSource | null) || null,
             name: loadedState.wizard?.databaseOption?.name || '',
             accessUrl: loadedState.wizard?.databaseOption?.accessUrl || '',
           },
-          // pendingExcelProcessing removed
         },
         isLoading: false,
       };
@@ -202,7 +218,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
     case 'SET_EDITING_ASSISTANT_ID':
       return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
-    // Removed SET_PENDING_EXCEL_PROCESSING and CLEAR_PENDING_EXCEL_PROCESSING cases
     default:
       return state;
   }
@@ -303,12 +318,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         wizard: {
           ...state.wizard,
           selectedPurposes: Array.from(state.wizard.selectedPurposes),
-          databaseOption: { // Ensure only serializable fields are included
+          databaseOption: { 
             type: state.wizard.databaseOption.type,
             name: state.wizard.databaseOption.name,
             accessUrl: state.wizard.databaseOption.accessUrl,
           },
-          // pendingExcelProcessing removed
         },
         userProfile: {
           ...state.userProfile,
@@ -397,3 +411,4 @@ export const useApp = () => {
   }
   return context;
 };
+

@@ -1,10 +1,10 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaFileExcel, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask } from 'react-icons/fa';
+import { FaGoogle, FaUserCog, FaUsers, FaUserTimes, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask, FaBrain } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 4; // This might reduce if DB step is always present and auth always present
+export const MAX_WIZARD_STEPS = 4; 
 export const DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN = 1;
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
@@ -15,14 +15,19 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
     id: "import_spreadsheet",
     name: "Vincular Hoja de Google Existente",
     description: "Conecta y usa datos desde una Hoja de Google existente.",
-    icon: FaGoogle // Changed icon
+    icon: FaGoogle
   },
-  // "create_smart_db" removed
+  { 
+    id: "create_smart_db", 
+    name: "Crear Base de Datos Inteligente", 
+    description: "Permite que la IA gestione una base de datos interna para el asistente.", 
+    icon: FaBrain 
+  },
   { id: "notify_owner", name: "Comunicarse con el Propietario", description: "El asistente te enviará actualizaciones y alertas vía WhatsApp.", icon: FaUserCog },
   { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: FaUsers },
 ];
 
-export const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; // Standardized format
+export const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; 
 
 export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
   {
@@ -59,7 +64,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   1: "Configura tu Asistente",
-  2: "Configura la Base de Datos", // This title remains, but content changes
+  2: "Configura la Base de Datos",
   3: "Autenticación de Cuenta",
   4: "Elige tu Plan",
 };
@@ -73,5 +78,6 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   free: FaCheckCircle,
   premium_179: FaChartLine,
   business_270: FaBriefcase,
-  test_plan: FaFlask, // Icon for test plan
+  test_plan: FaFlask,
 };
+
