@@ -13,7 +13,45 @@ const inter = Inter({
 });
 
 // Es MUY RECOMENDABLE configurar NEXT_PUBLIC_BASE_URL en tus variables de entorno.
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.tu-dominio.com'; // CAMBIA ESTO
+// Fallback to a default valid URL if NEXT_PUBLIC_BASE_URL is not set, empty, or invalid.
+let determinedBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+const defaultFallbackUrl = 'https://www.tu-dominio.com'; // CAMBIA ESTO a tu dominio real
+
+if (!determinedBaseUrl || typeof determinedBaseUrl !== 'string' || determinedBaseUrl.trim() === '') {
+  console.warn(
+    `NEXT_PUBLIC_BASE_URL is not set or is empty. Falling back to default: ${defaultFallbackUrl}`
+  );
+  determinedBaseUrl = defaultFallbackUrl;
+} else {
+  try {
+    // Attempt to parse to ensure it's a valid URL structure before using it.
+    // new URL() requires a full URL including the scheme.
+    // If it's a partial URL like "example.com", prefix it.
+    // However, for metadataBase, it should ideally be a full URL from env.
+    if (!determinedBaseUrl.startsWith('http://') && !determinedBaseUrl.startsWith('https://')) {
+        // If it doesn't look like a full URL, it might be intended as a hostname.
+        // For safety, and because metadataBase needs a full URL, we'll still consider it potentially problematic
+        // if it's not already a full URL. The user should provide a full base URL.
+        // For robustness here, we'll try to make it valid if it's just a hostname,
+        // but ideally, the env var itself should be complete.
+        if (determinedBaseUrl.includes('.')) { // Simple check if it looks like a domain
+             console.warn(`NEXT_PUBLIC_BASE_URL "${determinedBaseUrl}" seems to be missing a scheme. Assuming https.`);
+             determinedBaseUrl = `https:${determinedBaseUrl.startsWith('//') ? '' : '//'}${determinedBaseUrl.replace(/^\/\//, '')}`;
+        } else {
+            // If it's something like "localhost:3000", it will fail new URL() without scheme.
+            throw new Error('URL scheme is missing and cannot be reliably inferred.');
+        }
+    }
+    new URL(determinedBaseUrl); // Validate the (potentially prefixed) URL
+  } catch (e) {
+    console.error(
+      `Invalid NEXT_PUBLIC_BASE_URL: "${process.env.NEXT_PUBLIC_BASE_URL}". Error: ${(e as Error).message}. Falling back to default: ${defaultFallbackUrl}`
+    );
+    determinedBaseUrl = defaultFallbackUrl;
+  }
+}
+
+const BASE_URL = determinedBaseUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL), // Base para URLs relativas en metadatos

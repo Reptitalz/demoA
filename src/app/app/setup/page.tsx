@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -265,10 +265,8 @@ const SetupPage = () => {
 
       if (databaseOption.type === 'google_sheets') {
         dbNameForConfig = databaseOption.name || `Hoja de Google ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
-        dbDetailsForConfig = databaseOption.originalFileName; // Store original Excel name if it was processed
+        dbDetailsForConfig = databaseOption.originalFileName; 
       } else if (databaseOption.type === 'excel') {
-        // This case should ideally not happen if Excel is always processed to GSheet.
-        // If it does, 'name' from wizard is target GSheet name, 'originalFileName' is original.
         dbNameForConfig = databaseOption.name || (databaseOption.file?.name) || `Archivo Excel ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
         dbDetailsForConfig = databaseOption.originalFileName || databaseOption.file?.name;
       } else { // smart_db
@@ -278,7 +276,7 @@ const SetupPage = () => {
       newDbEntries.push({
         id: dbId,
         name: dbNameForConfig,
-        source: databaseOption.type, // This might be 'google_sheets' even if user selected 'excel' initially
+        source: databaseOption.type, 
         details: dbDetailsForConfig,
         accessUrl: databaseOption.accessUrl || undefined,
       });
@@ -362,20 +360,20 @@ const SetupPage = () => {
 
     if (isReconfiguring) {
       if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3; // Visually step 2 is Plan (original step 4, but we map to 3 for reconfig max 3)
+        if (currentStep === 2) stepToRender = 3; 
       }
-      // Reconfig: Max 3 steps (Details, DB, Plan) or 2 steps (Details, Plan)
+      
       switch (stepToRender) {
-        case 1: return <Step1AssistantDetails />; // Always step 1
-        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // Step 2 is DB or Plan
-        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // Step 3 is Plan (if DB was step 2)
+        case 1: return <Step1AssistantDetails />; 
+        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; 
+        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; 
         default: return null;
       }
 
-    } else { // Standard flow
+    } else { 
       if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3; // Visually step 2 is Auth (original step 3)
-        if (currentStep === 3) stepToRender = 4; // Visually step 3 is Plan (original step 4)
+        if (currentStep === 2) stepToRender = 3; 
+        if (currentStep === 3) stepToRender = 4; 
       }
       switch (stepToRender) {
         case 1: return <Step1AssistantDetails />;
@@ -387,7 +385,7 @@ const SetupPage = () => {
     }
   };
 
-  // Initial choice screen for non-authenticated, non-reconfiguring users
+  
   if (!state.userProfile.isAuthenticated && !state.wizard.isReconfiguring && !userHasMadeInitialChoice) {
     return (
       <PageContainer>
@@ -405,8 +403,9 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                // Go to Auth step. If DB is not needed, Auth is visually step 2. If DB is needed, Auth is visually step 3.
-                dispatch({ type: 'SET_WIZARD_STEP', payload: needsDatabaseConfiguration() ? 3 : 2 });
+                
+                const targetStep = needsDatabaseConfiguration() ? 3 : 2;
+                dispatch({ type: 'SET_WIZARD_STEP', payload: targetStep }); 
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >
@@ -488,3 +487,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    
