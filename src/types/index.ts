@@ -12,9 +12,9 @@ export type DatabaseSource = "google_sheets" | "excel" | "smart_db";
 
 export interface DatabaseConfig {
   id: string; // Unique ID for this DB config
-  name: string; // User-friendly name for this database (e.g., "Q4 Sales Report", "Client Contacts Sheet")
+  name: string; // User-friendly name (e.g., GSheet name from API/user, SmartDB name from user, original Excel filename if source is 'excel' but unprocessed)
   source: DatabaseSource;
-  details?: string; // Original Excel filename, or other non-URL details.
+  details?: string; // Original Excel filename if source is 'google_sheets' (from a processed Excel) or if source is 'excel' (unprocessed).
   accessUrl?: string; // URL to access/edit the Google Sheet (whether linked directly or generated from Excel)
 }
 
@@ -52,7 +52,7 @@ export interface UserProfile {
   stripeSubscriptionId?: string;
   virtualPhoneNumber?: string;
   vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled';
-  countryCodeForVonageNumber?: string; 
+  countryCodeForVonageNumber?: string;
 }
 
 // For wizard state
@@ -63,21 +63,21 @@ export interface WizardState {
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
     type: DatabaseSource | null;
-    name?: string; // User-friendly name for GSheet/SmartDB, or Excel filename by default
+    name?: string; // User-friendly name for GSheet/SmartDB, or target GSheet name for Excel processing
     file?: File | null; // For excel upload
     accessUrl?: string; // For GSheet URL (provided or generated)
-    // spreadsheetId?: string; // Optional: if we need to store the GSheet ID separately
+    originalFileName?: string; // To store original Excel filename if processed to GSheet
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
-  customPhoneNumber?: string; 
-  isReconfiguring: boolean; 
-  editingAssistantId: string | null; 
+  customPhoneNumber?: string;
+  isReconfiguring: boolean;
+  editingAssistantId: string | null;
 }
 
 export interface AppState {
   wizard: WizardState;
   userProfile: UserProfile;
   isSetupComplete: boolean;
-  isLoading: boolean; 
+  isLoading: boolean;
 }

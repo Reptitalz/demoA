@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FaFileExcel, FaBrain, FaUpload, FaGoogle, FaSpinner, FaExclamationTriangle } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from '@/lib/firebase'; // Import Firebase auth
+import { auth } from '@/lib/firebase';
 
 interface DatabaseOptionConfig {
   id: DatabaseSource;
@@ -30,7 +30,7 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
     id: "google_sheets" as DatabaseSource,
     name: "Vincular Hoja de Google existente",
     icon: FaGoogle,
-    inputNameLabel: "Nombre Descriptivo",
+    inputNameLabel: "Nombre Descriptivo de la Hoja",
     inputNamePlaceholder: "Ej: CRM Clientes Activos",
     requiresAccessUrlInput: true,
     accessUrlLabel: "URL de la Hoja de Google",
@@ -44,7 +44,6 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
     requiresFileUpload: true,
     inputNameLabel: "Nombre para el Nuevo Google Sheet",
     inputNamePlaceholder: "Ej: Reporte de Ventas Q1 (desde Excel)",
-    // accessUrl will be populated by the API
   },
   {
     id: "smart_db" as DatabaseSource,
@@ -62,9 +61,9 @@ const Step2DatabaseConfig = () => {
 
   const [dbNameValue, setDbNameValue] = useState('');
   const [accessUrlValue, setAccessUrlValue] = useState('');
-  const [fileNameForDisplay, setFileNameForDisplay] = useState(''); // Only for displaying original excel name
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileNameForDisplay, setFileNameForDisplay] = useState('');
   const [isProcessingExcel, setIsProcessingExcel] = useState(false);
-
   const [availableOptions, setAvailableOptions] = useState<DatabaseOptionConfig[]>([]);
 
   useEffect(() => {
@@ -79,42 +78,48 @@ const Step2DatabaseConfig = () => {
     if (databaseOption.type && !currentAvailableOptions.some(opt => opt.id === databaseOption.type)) {
       dispatch({
         type: 'SET_DATABASE_OPTION',
-        payload: { type: null, name: '', accessUrl: '', file: null }
+        payload: { type: null, name: '', accessUrl: '', file: null, originalFileName: '' }
       });
+      setSelectedFile(null);
+      setFileNameForDisplay('');
     }
   }, [selectedPurposes, dispatch, databaseOption.type]);
 
   useEffect(() => {
     setDbNameValue(databaseOption.name || '');
     setAccessUrlValue(databaseOption.accessUrl || '');
-    setFileNameForDisplay(databaseOption.file?.name || '');
-  }, [databaseOption.type, databaseOption.name, databaseOption.accessUrl, databaseOption.file]);
+    // No resetear selectedFile o fileNameForDisplay aquí para que persistan si el usuario cambia de opción y vuelve
+  }, [databaseOption.type, databaseOption.name, databaseOption.accessUrl]);
+
 
   const handleOptionChange = (value: string) => {
-    const selectedConfig = availableOptions.find(opt => opt.id === value);
-    if (selectedConfig) {
-      dispatch({
-        type: 'SET_DATABASE_OPTION',
-        payload: {
-          type: value as DatabaseSource,
-          name: '', // Reset name, will be filled by user or API
-          accessUrl: '', // Reset accessUrl
-          file: databaseOption.type === value ? databaseOption.file : null // Preserve file if type doesn't change
-        }
-      });
+    const valueAsDbSource = value as DatabaseSource;
+    dispatch({
+      type: 'SET_DATABASE_OPTION',
+      payload: {
+        type: valueAsDbSource,
+        name: '', // Reset name for the new type
+        accessUrl: '', // Reset accessUrl for the new type
+        file: databaseOption.type === valueAsDbSource ? databaseOption.file : null,
+        originalFileName: databaseOption.type === valueAsDbSource ? databaseOption.originalFileName : '',
+      }
+    });
+    if (valueAsDbSource !== 'excel') {
+        setSelectedFile(null);
+        setFileNameForDisplay('');
     }
   };
 
   const handleDbNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setDbNameValue(newName);
-    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, name: newName } });
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { name: newName } });
   };
 
   const handleAccessUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
-    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { accessUrl: newUrl } });
   };
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -126,9 +131,9 @@ const Step2DatabaseConfig = () => {
     });
   };
 
-  const processUploadedExcel = useCallback(async (file: File, targetSheetName: string) => {
+  const processUploadedExcel = useCallback(async (fileToProcess: File, targetSheetName: string) => {
     if (!auth.currentUser) {
-      toast({ title: "Error de Autenticación", description: "Debes estar autenticado para procesar archivos. Por favor, completa el paso de autenticación si lo omitiste.", variant: "destructive" });
+      toast({ title: "Error de Autenticación", description: "Debes estar autenticado para procesar archivos. Por favor, completa el paso de autenticación.", variant: "destructive" });
       setIsProcessingExcel(false);
       return;
     }
@@ -137,7 +142,7 @@ const Step2DatabaseConfig = () => {
     toast({ title: "Procesando Excel...", description: `Creando Google Sheet "${targetSheetName}". Esto puede tardar un momento.` });
 
     try {
-      const fileData = await fileToBase64(file);
+      const fileData = await fileToBase64(fileToProcess);
       const token = await auth.currentUser.getIdToken();
 
       const response = await fetch('/api/sheets-upload', {
@@ -148,7 +153,7 @@ const Step2DatabaseConfig = () => {
         },
         body: JSON.stringify({
           fileData,
-          fileName: targetSheetName, // API uses this as the desired Google Sheet name
+          fileName: targetSheetName,
           firebaseUid: auth.currentUser.uid
         }),
       });
@@ -162,13 +167,18 @@ const Step2DatabaseConfig = () => {
       dispatch({
         type: 'SET_DATABASE_OPTION',
         payload: {
-          type: 'google_sheets', // Update type to Google Sheets
-          name: result.spreadsheetName, // Use name from API
-          accessUrl: result.spreadsheetUrl, // Use URL from API
-          file: null, // Clear the original Excel file from wizard state
+          type: 'google_sheets',
+          name: result.spreadsheetName,
+          accessUrl: result.spreadsheetUrl,
+          file: null, // Clear original file from wizard state
+          originalFileName: fileToProcess.name, // Store original Excel filename
         }
       });
+      setSelectedFile(null); // Clear local file state
       setFileNameForDisplay(''); // Clear displayed original excel name
+      setDbNameValue(result.spreadsheetName); // Update local dbNameValue to reflect GSheet name
+      setAccessUrlValue(result.spreadsheetUrl); // Update local accessUrlValue
+
       toast({ title: "¡Éxito!", description: `Google Sheet "${result.spreadsheetName}" creado y vinculado.` });
       if (result.warning) {
         toast({ title: "Advertencia", description: result.warning, variant: "default", duration: 7000 });
@@ -177,9 +187,9 @@ const Step2DatabaseConfig = () => {
     } catch (error: any) {
       console.error("Error processing Excel to Sheet:", error);
       toast({ title: "Error al Procesar Excel", description: error.message || "No se pudo generar el Google Sheet.", variant: "destructive" });
-      // Optionally reset parts of the state if processing fails and user might want to try again
-      // For now, keeps the file selected and name potentially, so user can retry or adjust.
-      // dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, file: file, name: targetSheetName } });
+      // Keep file and name so user doesn't have to re-select/re-type if they want to retry
+      // Potentially clear accessUrl if a previous attempt (manual) had one
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { accessUrl: '' } });
     } finally {
       setIsProcessingExcel(false);
     }
@@ -189,30 +199,24 @@ const Step2DatabaseConfig = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && databaseOption.type === "excel") {
-      setFileNameForDisplay(file.name); // Display original Excel file name
-      
-      // Use current dbNameValue as targetSheetName, or default to file.name if empty
-      const targetSheetNameForAPI = dbNameValue.trim() || file.name;
       if (!dbNameValue.trim()) {
-        setDbNameValue(file.name); // Pre-fill the input if it was empty
+        toast({
+          title: "Nombre Requerido",
+          description: "Por favor, primero asigna un nombre para el Google Sheet que se generará.",
+          variant: "destructive",
+        });
+        e.target.value = ''; // Clear the file input
+        return;
       }
-
-      // Update global state with the file object for now, processing will clear it
+      setSelectedFile(file);
+      setFileNameForDisplay(file.name);
       dispatch({
         type: 'SET_DATABASE_OPTION',
-        payload: {
-          ...databaseOption,
-          name: targetSheetNameForAPI, // This will be the name for the new GSheet
-          file: file, // Keep file temporarily until processed
-          accessUrl: '', // Will be filled by API
-        }
+        payload: { file: file, name: dbNameValue, originalFileName: file.name } // keep target name, store original
       });
-      
-      // Automatically start processing
-      processUploadedExcel(file, targetSheetNameForAPI);
+      processUploadedExcel(file, dbNameValue);
     }
   };
-
 
   const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
 
@@ -282,13 +286,13 @@ const Step2DatabaseConfig = () => {
                   Archivo Excel (.xlsx, .xls, .csv)
                 </Label>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" asChild size="sm" disabled={isProcessingExcel}>
-                    <Label htmlFor="fileUpload" className="cursor-pointer">
+                  <Button variant="outline" asChild size="sm" disabled={isProcessingExcel || !dbNameValue.trim()}>
+                    <Label htmlFor="fileUpload" className={`cursor-pointer ${(!dbNameValue.trim() || isProcessingExcel) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <FaUpload className="mr-2 h-4 w-4" /> Elegir Archivo
                     </Label>
                   </Button>
                   <Input id="fileUpload" type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" aria-describedby="fileNameDisplay" disabled={isProcessingExcel || !dbNameValue.trim()}/>
-                  {fileNameForDisplay && !isProcessingExcel && <span id="fileNameDisplay" className="text-sm text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">{fileNameForDisplay}</span>}
+                  {(fileNameForDisplay && !isProcessingExcel) && <span id="fileNameDisplay" className="text-sm text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">{fileNameForDisplay}</span>}
                   {isProcessingExcel && <FaSpinner className="animate-spin h-5 w-5 text-primary" />}
                 </div>
                  {!dbNameValue.trim() && databaseOption.type === "excel" && (
@@ -299,7 +303,7 @@ const Step2DatabaseConfig = () => {
                 {isProcessingExcel && <p className="text-xs text-muted-foreground">Procesando archivo y creando Google Sheet...</p>}
               </div>
             )}
-            
+
             {selectedDbConfig.requiresAccessUrlInput && (
               <div className="space-y-2">
                 <Label htmlFor="accessUrlInput" className="text-base">
@@ -313,7 +317,7 @@ const Step2DatabaseConfig = () => {
                   onChange={handleAccessUrlChange}
                   className="text-base"
                   aria-required={selectedDbConfig.requiresAccessUrlInput}
-                  readOnly={databaseOption.type === 'excel' && !!accessUrlValue} // Make read-only if excel generated it
+                  readOnly={databaseOption.type === 'google_sheets' && !!databaseOption.originalFileName} // Read-only if GSheet was generated from Excel
                 />
                 {selectedDbConfig.description && (
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
@@ -323,9 +327,6 @@ const Step2DatabaseConfig = () => {
                 )}
               </div>
             )}
-            
-            {/* Removed manual "Procesar Excel" button */}
-
           </div>
         )}
       </CardContent>
@@ -334,4 +335,3 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
-
