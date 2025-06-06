@@ -1,5 +1,5 @@
 
-export type AssistantPurposeType = "import_spreadsheet" | "create_smart_db" | "notify_owner" | "notify_clients";
+export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;
@@ -8,23 +8,23 @@ export interface AssistantPurpose {
   icon?: React.ElementType; // For associating an icon
 }
 
-export type DatabaseSource = "google_sheets" | "excel" | "smart_db";
+export type DatabaseSource = "google_sheets"; // Only Google Sheets now
 
 export interface DatabaseConfig {
-  id: string; 
-  name: string; 
+  id: string;
+  name: string;
   source: DatabaseSource;
-  details?: string; 
-  accessUrl?: string; 
+  details?: string;
+  accessUrl?: string;
 }
 
 export interface AssistantConfig {
   id: string;
   name: string;
-  phoneLinked?: string; 
+  phoneLinked?: string;
   purposes: Set<AssistantPurposeType>;
-  databaseId?: string; 
-  imageUrl?: string; 
+  databaseId?: string;
+  imageUrl?: string;
 }
 
 export type SubscriptionPlanType = "free" | "premium_179" | "business_270" | "test_plan";
@@ -63,21 +63,16 @@ export interface WizardState {
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
     type: DatabaseSource | null;
-    name?: string; 
-    file?: File | null; 
-    accessUrl?: string; 
-    originalFileName?: string; 
+    name?: string;
+    accessUrl?: string;
+    // file and originalFileName removed
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
   customPhoneNumber?: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
-  pendingExcelProcessing?: {
-    file: File | null;
-    targetSheetName: string;
-    originalFileName: string; 
-  } | null;
+  // pendingExcelProcessing removed
 }
 
 export interface AppState {

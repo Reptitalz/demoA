@@ -3,7 +3,7 @@
 import type { DatabaseConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FaDatabase, FaFileExcel, FaBrain, FaLink, FaExternalLinkAlt, FaTimesCircle } from "react-icons/fa";
+import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle } from "react-icons/fa"; // FaFileExcel, FaBrain removed, FaGoogle added
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import DatabaseConnectionsDialog from "./DatabaseConnectionsDialog";
@@ -17,29 +17,22 @@ interface DatabaseInfoCardProps {
 const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardProps) => {
   const [isConnectionsDialogOpen, setIsConnectionsDialogOpen] = useState(false);
 
-  const Icon = database.source === "excel" || database.source === "google_sheets" ? FaFileExcel : FaBrain;
+  // Icon is now always FaGoogle as only Google Sheets are supported
+  const Icon = FaGoogle;
 
   const getSourceName = (source: DatabaseConfig['source']) => {
-    switch(source) {
-      case 'excel': return 'Archivo Excel';
-      case 'google_sheets': return 'Hojas de Google';
-      case 'smart_db': return 'Base de Datos Inteligente';
-      default: return 'Fuente Desconocida';
-    }
+    // Only "google_sheets" is expected
+    if (source === 'google_sheets') return 'Hojas de Google';
+    return 'Fuente Desconocida';
   };
 
   const getDisplayDetails = () => {
-    if (database.source === 'google_sheets' && database.details) {
-      // If it's a GSheet and 'details' has the original Excel filename
-      return `Original: ${database.details.length > 30 ? `${database.details.substring(0,27)}...` : database.details}`;
-    }
-    if (database.source === 'excel' && database.details) {
-      // If it's an unprocessed Excel, 'details' is its filename
-      return `Archivo: ${database.details.length > 30 ? `${database.details.substring(0,27)}...` : database.details}`;
-    }
-    // For SmartDB, database.name is in title, details might not be relevant here or could be specific.
-    // For directly linked GSheets without an original Excel, details might be the GSheet name itself if populated that way.
-    return null;
+    // The concept of "Original Excel file" is removed.
+    // Details might still hold the GSheet name if stored that way, but CardTitle shows it.
+    // So, this function might not be needed or can be simplified.
+    // For now, let's return null as CardTitle already shows the name.
+    // If 'details' has another meaning for 'google_sheets' in the future, this can be adjusted.
+    return null; 
   }
 
   const displayDetailsText = getDisplayDetails();
@@ -67,7 +60,6 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
           <p className="text-muted-foreground">
             ID: <span className="font-mono text-xs">{database.id.substring(0,15)}...</span>
           </p>
-          {/* Conditional display for accessUrl if it's not shown via button or if user wants direct text link too */}
           {database.source === 'google_sheets' && database.accessUrl && (
             <div className="flex items-center gap-1.5">
               <FaLink className="h-3.5 w-3.5 text-accent" />
@@ -90,22 +82,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                 <span>URL de la Hoja de Google no disponible.</span>
               </div>
            )}
-            {database.source === 'excel' && database.accessUrl && ( // For manually linked excel URL
-                 <div className="flex items-center gap-1.5">
-                    <FaLink className="h-3.5 w-3.5 text-accent" />
-                    <span className="font-medium text-foreground">URL (manual):</span>
-                    <a
-                        href={database.accessUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline truncate"
-                        title={database.accessUrl}
-                    >
-                        {database.accessUrl.length > 30 ? `${database.accessUrl.substring(0,27)}...` : database.accessUrl}
-                        <FaExternalLinkAlt className="inline-block ml-1 h-3 w-3" />
-                    </a>
-                </div>
-            )}
+            {/* Section for manually linked excel URL removed */}
         </CardContent>
         <CardFooter className={cn("border-t pt-3 flex flex-col sm:flex-row gap-2 items-center", database.accessUrl ? "justify-between" : "justify-center")}>
           <Button

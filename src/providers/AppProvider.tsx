@@ -20,18 +20,17 @@ type Action =
   | { type: 'UPDATE_CUSTOM_PHONE_NUMBER'; payload: string }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
-  | { type: 'LOAD_STATE'; payload: AppState } 
-  | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile } 
+  | { type: 'LOAD_STATE'; payload: AppState }
+  | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
   | { type: 'UPDATE_USER_PROFILE'; payload: Partial<UserProfile> }
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
-  | { type: 'REMOVE_ASSISTANT'; payload: string } 
+  | { type: 'REMOVE_ASSISTANT'; payload: string }
   | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
-  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null }
-  | { type: 'SET_PENDING_EXCEL_PROCESSING'; payload: WizardState['pendingExcelProcessing'] }
-  | { type: 'CLEAR_PENDING_EXCEL_PROCESSING' };
+  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
+  // Removed SET_PENDING_EXCEL_PROCESSING and CLEAR_PENDING_EXCEL_PROCESSING
 
 
 const initialWizardState: WizardState = {
@@ -39,13 +38,13 @@ const initialWizardState: WizardState = {
   maxSteps: MAX_WIZARD_STEPS,
   assistantName: '',
   selectedPurposes: new Set(),
-  databaseOption: { type: null, name: '', file: null, accessUrl: '', originalFileName: '' },
+  databaseOption: { type: null, name: '', accessUrl: '' }, // file and originalFileName removed
   authMethod: null,
   selectedPlan: null,
   customPhoneNumber: '',
   isReconfiguring: false,
   editingAssistantId: null,
-  pendingExcelProcessing: null,
+  // pendingExcelProcessing removed
 };
 
 const initialUserProfileState: UserProfile = {
@@ -91,11 +90,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
         newPurposes.delete(purposeToToggle);
       } else {
         newPurposes.add(purposeToToggle);
-        if (purposeToToggle === 'import_spreadsheet' && newPurposes.has('create_smart_db')) {
-          newPurposes.delete('create_smart_db');
-        } else if (purposeToToggle === 'create_smart_db' && newPurposes.has('import_spreadsheet')) {
-          newPurposes.delete('import_spreadsheet');
-        }
+        // Mutual exclusion logic for 'import_spreadsheet' and 'create_smart_db' is no longer needed
+        // as 'create_smart_db' is removed.
       }
       return { ...state, wizard: { ...state.wizard, selectedPurposes: newPurposes } };
     }
@@ -151,17 +147,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...(loadedState.wizard || {}),
           selectedPurposes: wizardSelectedPurposesSet,
           customPhoneNumber: loadedState.wizard?.customPhoneNumber || '',
-          databaseOption: {
-            type: loadedState.wizard?.databaseOption?.type || null,
+          databaseOption: { // Ensure databaseOption is correctly structured
+            type: (loadedState.wizard?.databaseOption?.type as DatabaseSource | null) || null,
             name: loadedState.wizard?.databaseOption?.name || '',
-            file: null, 
             accessUrl: loadedState.wizard?.databaseOption?.accessUrl || '',
-            originalFileName: loadedState.wizard?.databaseOption?.originalFileName || '',
           },
-          pendingExcelProcessing: { // Reset pending file on load
-            ...(loadedState.wizard?.pendingExcelProcessing || {}),
-            file: null,
-          }
+          // pendingExcelProcessing removed
         },
         isLoading: false,
       };
@@ -177,9 +168,9 @@ const appReducer = (state: AppState, action: Action): AppState => {
         return {
             ...state,
             userProfile: {
-                ...state.userProfile, 
-                ...apiProfile,       
-                assistants: assistantsWithSetPurposes, 
+                ...state.userProfile,
+                ...apiProfile,
+                assistants: assistantsWithSetPurposes,
             },
             isSetupComplete: newIsSetupComplete,
             isLoading: false,
@@ -211,10 +202,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
     case 'SET_EDITING_ASSISTANT_ID':
       return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
-    case 'SET_PENDING_EXCEL_PROCESSING':
-      return { ...state, wizard: { ...state.wizard, pendingExcelProcessing: action.payload } };
-    case 'CLEAR_PENDING_EXCEL_PROCESSING':
-      return { ...state, wizard: { ...state.wizard, pendingExcelProcessing: null } };
+    // Removed SET_PENDING_EXCEL_PROCESSING and CLEAR_PENDING_EXCEL_PROCESSING cases
     default:
       return state;
   }
@@ -311,18 +299,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const serializableState = {
         ...state,
-        isLoading: false, 
+        isLoading: false,
         wizard: {
           ...state.wizard,
           selectedPurposes: Array.from(state.wizard.selectedPurposes),
-          databaseOption: {
-            ...state.wizard.databaseOption,
-            file: null 
+          databaseOption: { // Ensure only serializable fields are included
+            type: state.wizard.databaseOption.type,
+            name: state.wizard.databaseOption.name,
+            accessUrl: state.wizard.databaseOption.accessUrl,
           },
-          pendingExcelProcessing: {
-            ...(state.wizard.pendingExcelProcessing || {}),
-            file: null, // Files are not serializable
-          }
+          // pendingExcelProcessing removed
         },
         userProfile: {
           ...state.userProfile,
@@ -360,7 +346,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             purposes: Array.from(assistant.purposes),
           })),
         };
-        
+
         const cleanedProfile: Partial<UserProfile> = {};
         for (const key in serializableProfile) {
             if (Object.prototype.hasOwnProperty.call(serializableProfile, key)) {
@@ -390,9 +376,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsSavingProfile(false);
       }
     };
-    
+
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(saveProfileToApi, 1000); 
+    debounceTimer = setTimeout(saveProfileToApi, 1000);
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isSetupComplete, state.isLoading, dispatch]);

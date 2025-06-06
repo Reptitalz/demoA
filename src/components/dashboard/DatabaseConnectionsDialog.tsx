@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/providers/AppProvider";
-import { FaRobot, FaDatabase, FaFileExcel, FaBrain, FaUnlink, FaLink } from "react-icons/fa";
+import { FaRobot, FaDatabase, FaLink, FaGoogle } from "react-icons/fa"; // FaFileExcel, FaBrain, FaUnlink removed
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 
 interface DatabaseConnectionsDialogProps {
@@ -15,24 +15,17 @@ interface DatabaseConnectionsDialogProps {
 }
 
 const getDatabaseIcon = (source: DatabaseSource) => {
-  switch (source) {
-    case "excel":
-    case "google_sheets":
-      return FaFileExcel;
-    case "smart_db":
-      return FaBrain; // Changed from DatabaseZap to FaBrain for smart_db
-    default:
-      return FaDatabase;
+  // Only "google_sheets" is expected
+  if (source === "google_sheets") {
+    return FaGoogle;
   }
+  return FaDatabase; // Fallback, though shouldn't be hit with current types
 };
 
 const getSourceName = (source: DatabaseConfig['source']) => {
-  switch(source) {
-    case 'excel': return 'Archivo Excel';
-    case 'google_sheets': return 'Hojas de Google';
-    case 'smart_db': return 'Base de Datos Inteligente';
-    default: return 'Fuente Desconocida';
-  }
+  // Only "google_sheets" is expected
+  if(source === 'google_sheets') return 'Hojas de Google';
+  return 'Fuente Desconocida';
 };
 
 const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnectionsDialogProps) => {
@@ -88,7 +81,7 @@ const DatabaseConnectionsDialog = ({ isOpen, onOpenChange }: DatabaseConnections
                         </ul>
                       ) : (
                         <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                          <FaUnlink size={14} /> No hay asistentes vinculados a esta base de datos.
+                           No hay asistentes vinculados a esta base de datos. {/* FaUnlink removed for simplicity or replace with another suitable icon */}
                         </p>
                       )}
                     </CardContent>

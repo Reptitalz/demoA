@@ -1,10 +1,10 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaFileExcel, FaBrain, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask } from 'react-icons/fa';
+import { FaFileExcel, FaUserCog, FaUsers, FaUserTimes, FaGoogle, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 4;
+export const MAX_WIZARD_STEPS = 4; // This might reduce if DB step is always present and auth always present
 export const DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN = 1;
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
@@ -13,16 +13,11 @@ export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
 export const assistantPurposesConfig: AssistantPurpose[] = [
   {
     id: "import_spreadsheet",
-    name: "Importar Hoja de Cálculo (Google/Excel)",
-    description: "Conecta y usa datos desde una Hoja de Google o sube un archivo Excel.",
-    icon: FaFileExcel
+    name: "Vincular Hoja de Google Existente",
+    description: "Conecta y usa datos desde una Hoja de Google existente.",
+    icon: FaGoogle // Changed icon
   },
-  {
-    id: "create_smart_db",
-    name: "Crear Base de Datos Inteligente",
-    description: "Deja que la IA te ayude a construir una base de datos inteligente.",
-    icon: FaBrain
-  },
+  // "create_smart_db" removed
   { id: "notify_owner", name: "Comunicarse con el Propietario", description: "El asistente te enviará actualizaciones y alertas vía WhatsApp.", icon: FaUserCog },
   { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: FaUsers },
 ];
@@ -64,7 +59,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   1: "Configura tu Asistente",
-  2: "Configura la Base de Datos",
+  2: "Configura la Base de Datos", // This title remains, but content changes
   3: "Autenticación de Cuenta",
   4: "Elige tu Plan",
 };

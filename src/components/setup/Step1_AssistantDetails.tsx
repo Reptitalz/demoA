@@ -9,11 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
 import { FaPhone } from "react-icons/fa";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+// Removed useToast as the specific conflicting purpose toast is no longer needed
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
-  const { toast } = useToast(); // Initialize toast
+  // Removed toast initialization
   const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,23 +21,8 @@ const Step1AssistantDetails = () => {
   };
 
   const handlePurposeToggle = (purposeId: AssistantPurposeType) => {
-    // Check if the purpose to be toggled is about to be selected
-    if (!selectedPurposes.has(purposeId)) {
-      if (purposeId === 'import_spreadsheet' && selectedPurposes.has('create_smart_db')) {
-        toast({
-          title: "Opción Actualizada",
-          description: "'Crear Base de Datos Inteligente' ha sido deseleccionado.",
-          duration: 3000,
-        });
-      } else if (purposeId === 'create_smart_db' && selectedPurposes.has('import_spreadsheet')) {
-        toast({
-          title: "Opción Actualizada",
-          description: "'Importar Hoja de Cálculo' ha sido deseleccionado.",
-          duration: 3000,
-        });
-      }
-    }
-    // The reducer will handle the actual mutual exclusion logic
+    // Logic for mutual exclusion of "import_spreadsheet" and "create_smart_db"
+    // and related toasts is removed as "create_smart_db" is no longer an option.
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
@@ -92,15 +77,8 @@ const Step1AssistantDetails = () => {
           {assistantPurposesConfig.map((purpose) => {
             const Icon = purpose.icon;
             const isChecked = selectedPurposes.has(purpose.id);
-            let isDisabled = false;
-            // Visual disabling based on current selection, actual logic is in reducer for state integrity
-            // if (purpose.id === 'import_spreadsheet' && selectedPurposes.has('create_smart_db') && !isChecked) {
-            //   isDisabled = true; // Visually indicate it would be deselected, actual deselection is handled by reducer
-            // } else if (purpose.id === 'create_smart_db' && selectedPurposes.has('import_spreadsheet') && !isChecked) {
-            //   isDisabled = true;
-            // }
-            // The above disabling logic might be confusing as the click itself will resolve the conflict.
-            // The toast notification is the primary feedback mechanism for the automatic deselection.
+            // isDisabled logic for conflicting purposes is removed.
+            const isDisabled = false; 
             
             return (
               <div 
@@ -113,7 +91,7 @@ const Step1AssistantDetails = () => {
                 <Checkbox
                   id={`purpose-${purpose.id}`}
                   checked={isChecked}
-                  onCheckedChange={() => !isDisabled && handlePurposeToggle(purpose.id)} // This will trigger the toast if needed
+                  onCheckedChange={() => !isDisabled && handlePurposeToggle(purpose.id)}
                   aria-labelledby={`purpose-label-${purpose.id}`}
                   className="mt-1"
                   disabled={isDisabled}
