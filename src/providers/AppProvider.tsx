@@ -14,7 +14,7 @@ type Action =
   | { type: 'SET_WIZARD_STEP'; payload: number }
   | { type: 'UPDATE_ASSISTANT_NAME'; payload: string }
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
-  | { type: 'SET_DATABASE_OPTION'; payload: { type: DatabaseSource | null; name?: string; file?: File | null } }
+  | { type: 'SET_DATABASE_OPTION'; payload: { type: DatabaseSource | null; name?: string; file?: File | null; accessUrl?: string } }
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'SET_SUBSCRIPTION_PLAN'; payload: SubscriptionPlanType | null }
   | { type: 'UPDATE_CUSTOM_PHONE_NUMBER'; payload: string }
@@ -37,7 +37,7 @@ const initialWizardState: WizardState = {
   maxSteps: MAX_WIZARD_STEPS,
   assistantName: '',
   selectedPurposes: new Set(),
-  databaseOption: { type: null },
+  databaseOption: { type: null, name: '', file: null, accessUrl: '' },
   authMethod: null,
   selectedPlan: null,
   customPhoneNumber: '',
@@ -82,10 +82,18 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, assistantName: action.payload } };
     case 'TOGGLE_ASSISTANT_PURPOSE': {
       const newPurposes = new Set(state.wizard.selectedPurposes);
-      if (newPurposes.has(action.payload)) {
-        newPurposes.delete(action.payload);
+      const purposeToToggle = action.payload;
+
+      if (newPurposes.has(purposeToToggle)) {
+        newPurposes.delete(purposeToToggle);
       } else {
-        newPurposes.add(action.payload);
+        newPurposes.add(purposeToToggle);
+        // Mutual exclusion logic handled here in the reducer
+        if (purposeToToggle === 'import_spreadsheet' && newPurposes.has('create_smart_db')) {
+          newPurposes.delete('create_smart_db');
+        } else if (purposeToToggle === 'create_smart_db' && newPurposes.has('import_spreadsheet')) {
+          newPurposes.delete('import_spreadsheet');
+        }
       }
       return { ...state, wizard: { ...state.wizard, selectedPurposes: newPurposes } };
     }
@@ -141,6 +149,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...(loadedState.wizard || {}),
           selectedPurposes: wizardSelectedPurposesSet,
           customPhoneNumber: loadedState.wizard?.customPhoneNumber || '',
+          databaseOption: { // Ensure databaseOption is fully initialized
+            type: loadedState.wizard?.databaseOption?.type || null,
+            name: loadedState.wizard?.databaseOption?.name || '',
+            file: loadedState.wizard?.databaseOption?.file || null,
+            accessUrl: loadedState.wizard?.databaseOption?.accessUrl || '',
+          }
         },
         isLoading: false, 
       };
@@ -227,11 +241,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
       } else {
         console.log("Firebase Auth: No user signed in.");
-        dispatch({ type: 'LOGOUT_USER' });
+        // Only dispatch logout if user was previously authenticated to avoid loops on initial load
+        if (state.userProfile.isAuthenticated) {
+          dispatch({ type: 'LOGOUT_USER' });
+        } else {
+          dispatch({type: 'SET_LOADING', payload: false }); // Ensure loading is false if no user and not previously authed
+        }
       }
     });
     return () => unsubscribe();
-  }, [dispatch]);
+  }, []); // Removed dispatch and state.userProfile.isAuthenticated from dependencies to avoid re-running on every state change
 
   useEffect(() => {
     const fetchProfile = async (userId: string) => {
@@ -252,7 +271,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           if (data.userProfile) {
             dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
           } else if (response.status === 404) {
-            console.log("Profile not found on backend for user:", userId);
+            console.log("Profile not found on backend for user:", userId, ". This might be a new user or first-time setup.");
+            // For a new user, it's okay for profile not to be found yet.
+            // We set isLoading to false to allow the setup flow to proceed.
             dispatch({ type: 'SET_LOADING', payload: false });
           } else {
             console.error("API responded but profile not found or error:", response.statusText);
@@ -272,24 +293,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && !state.isLoading) {
-      dispatch({ type: 'SET_LOADING', payload: true });
+    // Only fetch profile if user is authenticated via Firebase, has a UID,
+    // and we are past the initial localStorage loading phase but still in a general loading state
+    // This condition is tricky. We want to fetch after Firebase auth is confirmed.
+    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isLoading) {
+      // The 'isLoading' here might be true from the initial SET_LOADING.
+      // The auth.onAuthStateChanged will set isAuthenticated. Once that happens, if isLoading is still true, fetch.
       fetchProfile(state.userProfile.firebaseUid);
+    } else if (!state.userProfile.isAuthenticated && state.isLoading) {
+      // If not authenticated after Firebase check and still loading, set loading to false
+      // This handles the case where there's no Firebase user and no persisted state.
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, dispatch]);
+
+  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading, dispatch]);
 
 
   useEffect(() => {
-    if (state.isLoading) {
+    if (state.isLoading) { // Don't save to localStorage while initial loading/hydration is in progress
       return;
     }
     try {
       const serializableState = {
         ...state,
-        isLoading: false,
+        isLoading: false, // Persist isLoading as false once initial load is done
         wizard: {
           ...state.wizard,
           selectedPurposes: Array.from(state.wizard.selectedPurposes),
+          // Do not persist file objects in localStorage
+          databaseOption: { 
+            ...state.wizard.databaseOption,
+            file: null 
+          },
         },
         userProfile: {
           ...state.userProfile,
@@ -303,59 +338,62 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error al guardar estado en localStorage", error);
     }
-  }, [state.wizard, state.userProfile, state.isSetupComplete, dispatch]);
+  }, [state]); // Removed dispatch from dependencies, re-run on any state change
 
 
   useEffect(() => {
-    if (state.isLoading) {
-      return;
+    if (state.isLoading || !state.isSetupComplete || !state.userProfile.isAuthenticated || !state.userProfile.firebaseUid) {
+      return; // Don't save to API if still loading, setup not complete, or user not fully authenticated with UID
     }
 
-    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isSetupComplete) {
-      const saveProfileToApi = async () => {
-        try {
-          const currentUser = auth.currentUser;
-          if (!currentUser) {
-            console.error("User not authenticated for saving profile.");
-            return;
-          }
-          const token = await currentUser.getIdToken();
-          const serializableProfile = {
-            ...state.userProfile,
-            assistants: state.userProfile.assistants.map(assistant => ({
-              ...assistant,
-              purposes: Array.from(assistant.purposes),
-            })),
-          };
-          const response = await fetch('/api/user-profile', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ userId: state.userProfile.firebaseUid, userProfile: serializableProfile }),
-          });
-          if (!response.ok) {
-            console.error("Failed to save user profile to API:", response.status, response.statusText);
-          } else {
-            const result = await response.json();
-            console.log("Profile saved to API:", result.message);
-          }
-        } catch (error) {
-          console.error("Error saving user profile to API:", error);
+    // Debounce or throttle this if it causes too many API calls
+    const saveProfileToApi = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser || currentUser.uid !== state.userProfile.firebaseUid) { // Extra check
+          console.warn("User not authenticated or UID mismatch when trying to save profile to API.");
+          return;
         }
-      };
-      saveProfileToApi();
-    }
+        const token = await currentUser.getIdToken();
+        const serializableProfile = {
+          ...state.userProfile,
+          assistants: state.userProfile.assistants.map(assistant => ({
+            ...assistant,
+            purposes: Array.from(assistant.purposes),
+          })),
+        };
+        // Remove undefined fields that might cause issues with MongoDB $set if they are not changing
+        Object.keys(serializableProfile).forEach(key => {
+            if ((serializableProfile as any)[key] === undefined) {
+                delete (serializableProfile as any)[key];
+            }
+        });
+
+        const response = await fetch('/api/user-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ userId: state.userProfile.firebaseUid, userProfile: serializableProfile }),
+        });
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Failed to save user profile to API:", response.status, response.statusText, errorData);
+        } else {
+          const result = await response.json();
+          console.log("Profile successfully saved to API:", result.message);
+        }
+      } catch (error) {
+        console.error("Error saving user profile to API:", error);
+      }
+    };
+    saveProfileToApi();
   }, [
-      state.userProfile.firebaseUid, 
-      state.userProfile.isAuthenticated, 
-      state.userProfile.currentPlan,
-      state.userProfile.assistants,
-      state.userProfile.databases,
+      state.userProfile, // Watch the whole userProfile object for changes to save
       state.isSetupComplete, 
       state.isLoading, 
-      dispatch
+      // dispatch // dispatch should not trigger this effect
      ]);
 
   return (
@@ -372,3 +410,4 @@ export const useApp = () => {
   }
   return context;
 };
+
