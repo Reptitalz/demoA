@@ -27,7 +27,7 @@ const SetupPage = () => {
   const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId, pendingExcelProcessing } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
-  const [isProcessingPendingExcel, setIsProcessingPendingExcel] = useState(false);
+  const [isFinalizingSetup, setIsFinalizingSetup] = useState(false); // For loading state during final Excel processing
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -39,7 +39,6 @@ const SetupPage = () => {
     }
   }, [state.userProfile.isAuthenticated, isReconfiguring]);
 
-
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -49,58 +48,7 @@ const SetupPage = () => {
     });
   };
 
-  const processPendingExcel = useCallback(async () => {
-    if (!pendingExcelProcessing?.file || !pendingExcelProcessing.targetSheetName || !auth.currentUser) {
-      return;
-    }
-    
-    setIsProcessingPendingExcel(true);
-    const { file, targetSheetName, originalFileName } = pendingExcelProcessing;
-    toast({ title: "Procesando Excel (pendiente)...", description: `Creando Google Sheet "${targetSheetName}".` });
-
-    try {
-      const fileData = await fileToBase64(file);
-      const token = await auth.currentUser.getIdToken();
-
-      const response = await fetch('/api/sheets-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ fileData, fileName: targetSheetName, firebaseUid: auth.currentUser.uid }),
-      });
-      const result = await response.json();
-
-      if (!response.ok) throw new Error(result.message || `Error del servidor: ${response.status}`);
-
-      dispatch({
-        type: 'SET_DATABASE_OPTION',
-        payload: {
-          type: 'google_sheets',
-          name: result.spreadsheetName,
-          accessUrl: result.spreadsheetUrl,
-          file: null,
-          originalFileName: originalFileName,
-        }
-      });
-      toast({ title: "¡Éxito!", description: `Google Sheet "${result.spreadsheetName}" creado y vinculado desde el archivo pendiente.` });
-      if (result.warning) {
-        toast({ title: "Advertencia", description: result.warning, variant: "default", duration: 7000 });
-      }
-    } catch (error: any) {
-      toast({ title: "Error al Procesar Excel Pendiente", description: error.message || "No se pudo generar el Google Sheet.", variant: "destructive" });
-      dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: 'excel', name: targetSheetName, originalFileName: originalFileName, accessUrl: '' } }); // Keep as excel if failed
-    } finally {
-      setIsProcessingPendingExcel(false);
-      dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' });
-    }
-  }, [pendingExcelProcessing, dispatch, toast]);
-
-
-  useEffect(() => {
-    if (state.userProfile.isAuthenticated && pendingExcelProcessing?.file && !isProcessingPendingExcel) {
-      processPendingExcel();
-    }
-  }, [state.userProfile.isAuthenticated, pendingExcelProcessing, processPendingExcel, isProcessingPendingExcel]);
-
+  // Removed useEffect that auto-processed Excel on auth. Processing now happens in handleCompleteSetup.
 
   const effectiveMaxSteps = isReconfiguring
     ? (needsDatabaseConfiguration() ? 3 : 2)
@@ -126,7 +74,7 @@ const SetupPage = () => {
             }
             if (databaseOption.type === "excel") { 
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre para el Google Sheet que se generará desde Excel.";
-                if (state.wizard.pendingExcelProcessing?.file && !auth.currentUser) return "Debes autenticarte para procesar el archivo Excel."
+                if (!pendingExcelProcessing?.file) return "Por favor, selecciona un archivo Excel.";
             }
             if (databaseOption.type === "smart_db" && !databaseOption.name?.trim()) return "Por favor, proporciona un nombre para tu Base de Datos Inteligente.";
           } else {
@@ -151,11 +99,11 @@ const SetupPage = () => {
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
              if (databaseOption.type === "google_sheets") { 
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre descriptivo para tu Hoja de Google.";
-                if (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/')) return "Por favor, proporciona una URL válida de Hoja de Google o procesa tu archivo Excel.";
+                if (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/')) return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
             if (databaseOption.type === "excel") { 
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre para el Google Sheet que se generará desde Excel.";
-                 if (state.wizard.pendingExcelProcessing?.file && !auth.currentUser) return "Debes autenticarte para procesar el archivo Excel."
+                if (!pendingExcelProcessing?.file) return "Por favor, selecciona un archivo Excel.";
             }
             if (databaseOption.type === "smart_db" && !databaseOption.name?.trim()) return "Por favor, proporciona un nombre para tu Base de Datos Inteligente.";
            } else {
@@ -181,11 +129,7 @@ const SetupPage = () => {
     const currentValidationStep = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
-    // If an Excel file is pending processing and user is not authenticated yet, step 2 is not "valid" to proceed from yet.
-    if (dbNeeded && databaseOption.type === 'excel' && state.wizard.pendingExcelProcessing?.file && !auth.currentUser && currentValidationStep === 2) {
-        return false; 
-    }
-    if (isProcessingPendingExcel) return false; // Not valid while processing async
+    if (isFinalizingSetup) return false; // Not valid while processing final setup
 
     if (isReconfiguring) {
       switch (currentValidationStep) {
@@ -197,10 +141,10 @@ const SetupPage = () => {
                 return !!databaseOption.name?.trim() && !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
             if (databaseOption.type === "excel") { 
-                return !!databaseOption.name?.trim(); 
+                return !!databaseOption.name?.trim() && !!pendingExcelProcessing?.file; 
             }
             if (databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
-            return true;
+            return true; 
           } else {
             return !!selectedPlan;
           }
@@ -221,7 +165,7 @@ const SetupPage = () => {
                 return !!databaseOption.name?.trim() && !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
             if (databaseOption.type === "excel") {
-                 return !!databaseOption.name?.trim(); 
+                 return !!databaseOption.name?.trim() && !!pendingExcelProcessing?.file; 
             }
             if (databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
             return true;
@@ -246,9 +190,9 @@ const SetupPage = () => {
       if (currentStep === 1) {
         if (!needsDatabaseConfiguration()) {
           if (isReconfiguring) {
-            dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
+            dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); 
           } else {
-            dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
+            dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); 
           }
         } else {
           dispatch({ type: 'NEXT_WIZARD_STEP' });
@@ -284,10 +228,54 @@ const SetupPage = () => {
       toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
       return;
     }
-    if (state.wizard.pendingExcelProcessing?.file) {
-      toast({ title: "Procesamiento Pendiente", description: "Aún hay un archivo Excel pendiente de procesar. Por favor, asegúrate de estar autenticado para que se complete.", variant: "destructive" });
-      return;
+
+    setIsFinalizingSetup(true);
+
+    let currentDatabaseOption = { ...databaseOption };
+    let currentPendingExcel = pendingExcelProcessing ? { ...pendingExcelProcessing } : null;
+
+    if (currentPendingExcel?.file && currentDatabaseOption.type === 'excel') {
+      if (!auth.currentUser) {
+        toast({ title: "Autenticación Requerida", description: "Debes estar autenticado para procesar el archivo Excel. Por favor, vuelve al paso de autenticación.", variant: "destructive" });
+        setIsFinalizingSetup(false);
+        return;
+      }
+      toast({ title: "Procesando Excel...", description: `Creando Google Sheet "${currentPendingExcel.targetSheetName}".` });
+      try {
+        const fileData = await fileToBase64(currentPendingExcel.file);
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('/api/sheets-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ fileData, fileName: currentPendingExcel.targetSheetName, firebaseUid: auth.currentUser.uid }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || `Error del servidor: ${response.status}`);
+
+        currentDatabaseOption = {
+          type: 'google_sheets',
+          name: result.spreadsheetName,
+          accessUrl: result.spreadsheetUrl,
+          originalFileName: currentPendingExcel.originalFileName,
+          file: null,
+        };
+        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' }); // Clear it from global state
+        currentPendingExcel = null; // Clear local copy
+        toast({ title: "¡Éxito!", description: `Google Sheet "${result.spreadsheetName}" creado y vinculado.` });
+        if (result.warning) {
+          toast({ title: "Advertencia", description: result.warning, variant: "default", duration: 7000 });
+        }
+      } catch (error: any) {
+        toast({ title: "Error al Procesar Excel", description: error.message || "No se pudo generar el Google Sheet. La base de datos permanecerá como 'Excel' no procesado.", variant: "destructive" });
+        // Keep databaseOption.type as 'excel' and pendingExcelProcessing as is, so user can see the file and try again or change.
+        // Or, we could clear pendingExcelProcessing if we don't want them to retry this specific file in this flow.
+        // For now, let's not change currentDatabaseOption or clear pendingExcel if it fails.
+        setIsFinalizingSetup(false);
+        return;
+      }
     }
+
 
     let finalAssistantConfig: AssistantConfig;
     let updatedAssistantsArray: AssistantConfig[];
@@ -305,59 +293,60 @@ const SetupPage = () => {
         } else if (selectedPlan === 'test_plan') {
             assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
         } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
-            assistantPhoneNumber = undefined;
+            assistantPhoneNumber = undefined; // Will be assigned by backend if paid plan
         } else if (selectedPlan === 'business_270') {
+            // For business plan, if they had a custom number, keep it. If it was default free, it might get a new one from Vonage pool for the account or use a provided one.
+            // This logic gets complex with user-provided numbers for business. For now, assume it's either default or Vonage-assigned.
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
-        } else {
+        } else { // For premium_179
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
-    } else {
+    } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = customPhoneNumber || undefined;
+            assistantPhoneNumber = customPhoneNumber || undefined; // User provides or gets from account pool via backend
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-            if (state.userProfile.assistants.length === 0) {
-                finalAssistantName = "Hey Asistente";
-            }
+            if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
         } else if (selectedPlan === 'test_plan') {
-            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-            if (state.userProfile.assistants.length === 0) {
-                finalAssistantName = "Hey Asistente";
-            }
-        } else {
-            assistantPhoneNumber = undefined;
+             assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+            if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
+        } else { // premium_179
+            assistantPhoneNumber = undefined; // Will be assigned by backend
         }
     }
 
 
-    if (needsDatabaseConfiguration() && databaseOption.type) {
+    if (needsDatabaseConfiguration() && currentDatabaseOption.type) {
       const dbId = `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       let dbNameForConfig: string;
       let dbDetailsForConfig: string | undefined;
+      let dbAccessUrlForConfig: string | undefined = currentDatabaseOption.accessUrl;
 
-      if (databaseOption.type === 'google_sheets') {
-        dbNameForConfig = databaseOption.name || `Hoja de Google ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
-        // If it was processed from Excel, originalFileName holds the Excel name
-        dbDetailsForConfig = databaseOption.originalFileName || undefined; 
-      } else if (databaseOption.type === 'excel') { 
-        // This case should be less common if processing always converts to google_sheets
-        dbNameForConfig = databaseOption.name || (databaseOption.originalFileName) || `Archivo Excel ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
-        dbDetailsForConfig = databaseOption.originalFileName || databaseOption.file?.name;
+      if (currentDatabaseOption.type === 'google_sheets') {
+        dbNameForConfig = currentDatabaseOption.name || `Hoja de Google ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
+        dbDetailsForConfig = currentDatabaseOption.originalFileName; // Original Excel name, if applicable
+      } else if (currentDatabaseOption.type === 'excel') { // This means Excel processing was skipped or failed
+        dbNameForConfig = currentDatabaseOption.name || (currentPendingExcel?.originalFileName) || `Archivo Excel ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
+        dbDetailsForConfig = currentPendingExcel?.originalFileName;
+        dbAccessUrlForConfig = undefined; // No URL if it's just a pending Excel
       } else { // smart_db
-        dbNameForConfig = databaseOption.name || `Smart DB ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
+        dbNameForConfig = currentDatabaseOption.name || `Smart DB ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
+        dbAccessUrlForConfig = undefined;
       }
 
       newDbEntries.push({
         id: dbId,
         name: dbNameForConfig,
-        source: databaseOption.type, 
+        source: currentDatabaseOption.type, 
         details: dbDetailsForConfig,
-        accessUrl: databaseOption.accessUrl || undefined,
+        accessUrl: dbAccessUrlForConfig,
       });
       newAssistantDbIdToLink = dbId;
     } else if (!needsDatabaseConfiguration()) {
+        // No DB needed, ensure databaseOption in global state is cleared if it had values
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: null, name: '', file: null, accessUrl: '', originalFileName: '' } });
+        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' }); // Also clear any pending excel
     }
 
 
@@ -415,8 +404,14 @@ const SetupPage = () => {
       await sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, assistantDb || null);
     }
 
+    // Clear any residual pending excel state from the global wizard state
+    // It should have been cleared if processed, but this is a safeguard.
+    if (state.wizard.pendingExcelProcessing) {
+        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' });
+    }
 
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
+    setIsFinalizingSetup(false);
     toast({
       title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
       description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
@@ -435,7 +430,7 @@ const SetupPage = () => {
 
     if (isReconfiguring) {
       if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3; 
+        if (currentStep === 2) stepToRender = 3; // Skip DB config, Plan is next
       }
       
       switch (stepToRender) {
@@ -445,10 +440,10 @@ const SetupPage = () => {
         default: return null;
       }
 
-    } else { 
+    } else { // New setup
       if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3; 
-        if (currentStep === 3) stepToRender = 4; 
+        if (currentStep === 2) stepToRender = 3; // Skip DB, Auth is next
+        if (currentStep === 3) stepToRender = 4; // If DB was skipped, Auth was step 2 (visual), Plan is next (visual step 3)
       }
       switch (stepToRender) {
         case 1: return <Step1AssistantDetails />;
@@ -509,11 +504,12 @@ const SetupPage = () => {
       <div className="space-y-5">
         <SetupProgressBar />
         <div className="min-h-[260px] sm:min-h-[280px] md:min-h-[320px] lg:min-h-[350px]">
-         {isProcessingPendingExcel ? (
+         {isFinalizingSetup ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <FaSpinner className="animate-spin h-10 w-10 text-primary mb-4" />
-              <p className="text-lg font-semibold">Procesando tu archivo Excel...</p>
-              <p className="text-muted-foreground">Esto puede tardar un momento. Por favor, espera.</p>
+              <p className="text-lg font-semibold">Finalizando configuración...</p>
+              {pendingExcelProcessing?.file && <p className="text-muted-foreground">Procesando archivo Excel y creando Google Sheet...</p>}
+              <p className="text-muted-foreground">Por favor, espera.</p>
             </div>
          ) : renderStepContent()}
         </div>
@@ -527,7 +523,7 @@ const SetupPage = () => {
                   router.push('/app/dashboard');
                 }}
                 className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
-                disabled={isProcessingPendingExcel}
+                disabled={isFinalizingSetup}
               >
                 <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
               </Button>
@@ -535,7 +531,7 @@ const SetupPage = () => {
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1 || isProcessingPendingExcel}
+              disabled={currentStep === 1 || isFinalizingSetup}
               className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
             >
               <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
@@ -546,7 +542,7 @@ const SetupPage = () => {
             <Button
               onClick={handleNext}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid() || isProcessingPendingExcel}
+              disabled={!isStepValid() || isFinalizingSetup}
             >
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
@@ -555,9 +551,10 @@ const SetupPage = () => {
              <Button
               onClick={handleCompleteSetup}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid() || isProcessingPendingExcel}
+              disabled={!isStepValid() || isFinalizingSetup}
             >
-              {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"} <FaArrowRight className="ml-1 h-3 w-3" />
+              {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+              {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"} {!isFinalizingSetup && <FaArrowRight className="ml-1 h-3 w-3" />}
             </Button>
           )}
         </div>
@@ -567,3 +564,4 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
