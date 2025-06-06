@@ -16,7 +16,16 @@ function getGoogleAuth() {
     throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is not set in environment variables.');
   }
   try {
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    const credentialsString = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    const credentials = JSON.parse(credentialsString);
+
+    // VERY IMPORTANT: Ensure private_key newlines are correctly formatted.
+    // Environment variables might escape \n to \\n or remove them.
+    // Google APIs require the private_key to have literal \n characters.
+    if (credentials.private_key) {
+      credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+    }
+
     return new google.auth.GoogleAuth({
       credentials,
       scopes: [
@@ -25,8 +34,8 @@ function getGoogleAuth() {
       ],
     });
   } catch (error: any) {
-    console.error("Error parsing GOOGLE_SERVICE_ACCOUNT_JSON:", error.message, error.stack);
-    throw new Error(`Invalid GOOGLE_SERVICE_ACCOUNT_JSON. Parsing failed: ${error.message}`);
+    console.error("Error parsing GOOGLE_SERVICE_ACCOUNT_JSON or initializing GoogleAuth:", error.message, error.stack);
+    throw new Error(`Invalid GOOGLE_SERVICE_ACCOUNT_JSON or auth initialization failed. Parsing/Init failed: ${error.message}`);
   }
 }
 
