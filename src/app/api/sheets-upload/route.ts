@@ -25,7 +25,7 @@ function getGoogleAuth() {
     });
   } catch (error: any) {
     console.error("Error parsing GOOGLE_SERVICE_ACCOUNT_JSON:", error.message);
-    throw new Error('Invalid GOOGLE_SERVICE_ACCOUNT_JSON.');
+    throw new Error(`Invalid GOOGLE_SERVICE_ACCOUNT_JSON. Parsing failed: ${error.message}`);
   }
 }
 
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Create New Google Sheet
-    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_.-]/g, '_'); // Sanitize for safety
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_.\- ()]/g, '_'); // Sanitize, allow spaces and parentheses
     const newSheetName = `[AssistAI] ${sanitizedFileName} (${new Date().toISOString().split('T')[0]})`;
     
     const fileMetadata: any = {
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     try {
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: 'Sheet1!A1', // Assumes data goes into the first sheet, starting at A1
+        range: 'Sheet1!A1', 
         valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: excelData,
@@ -111,7 +111,6 @@ export async function POST(request: NextRequest) {
       });
     } catch (error: any) {
       console.error('Error writing data to Google Sheet:', error.response?.data || error.message);
-      // Attempt to delete the partially created sheet to avoid orphans
       try { await drive.files.delete({ fileId: spreadsheetId }); } catch (delError) { console.error('Failed to cleanup partially created sheet:', delError); }
       return NextResponse.json({ message: 'Error writing data to Google Sheet', error: error.response?.data?.error?.message || error.message }, { status: 500 });
     }
@@ -121,14 +120,12 @@ export async function POST(request: NextRequest) {
       await drive.permissions.create({
         fileId: spreadsheetId,
         requestBody: {
-          role: 'writer', // 'writer' allows editing
+          role: 'writer', 
           type: 'anyone',
         },
       });
     } catch (error: any) {
       console.error('Error setting Google Sheet permissions:', error.response?.data || error.message);
-      // Sheet is created and data written, but permissions failed. Consider how to handle.
-      // For now, return success but warn about permissions.
       return NextResponse.json({ 
         message: 'Google Sheet created and data written, but failed to set public permissions.',
         spreadsheetUrl,
@@ -136,7 +133,7 @@ export async function POST(request: NextRequest) {
         spreadsheetName: actualSpreadsheetName,
         warning: 'Permissions could not be set to public editable.',
         error: error.response?.data?.error?.message || error.message 
-      }, { status: 207 }); // Multi-Status, as part failed
+      }, { status: 207 }); 
     }
 
     return NextResponse.json({ 
@@ -149,8 +146,8 @@ export async function POST(request: NextRequest) {
     console.error('Unhandled error in /api/sheets-upload:', error.message, error.stack);
     const errorMessage = error instanceof Error ? error.message : String(error);
      if (error.message.includes('GOOGLE_SERVICE_ACCOUNT_JSON')) {
-        return NextResponse.json({ message: 'Server configuration error (Service Account)', error: errorMessage }, { status: 500 });
+        return NextResponse.json({ message: 'Error de configuración del servidor (Cuenta de Servicio de Google). Revisa las variables de entorno.', error: errorMessage }, { status: 500 });
     }
-    return NextResponse.json({ message: 'An unexpected error occurred', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Ocurrió un error inesperado al procesar tu solicitud.', error: errorMessage }, { status: 500 });
   }
 }

@@ -27,7 +27,7 @@ const SetupPage = () => {
   const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId, pendingExcelProcessing } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
-  const [isFinalizingSetup, setIsFinalizingSetup] = useState(false); // For loading state during final Excel processing
+  const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -47,8 +47,6 @@ const SetupPage = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-
-  // Removed useEffect that auto-processed Excel on auth. Processing now happens in handleCompleteSetup.
 
   const effectiveMaxSteps = isReconfiguring
     ? (needsDatabaseConfiguration() ? 3 : 2)
@@ -129,7 +127,7 @@ const SetupPage = () => {
     const currentValidationStep = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
-    if (isFinalizingSetup) return false; // Not valid while processing final setup
+    if (isFinalizingSetup) return false; 
 
     if (isReconfiguring) {
       switch (currentValidationStep) {
@@ -231,27 +229,46 @@ const SetupPage = () => {
 
     setIsFinalizingSetup(true);
 
-    let currentDatabaseOption = { ...databaseOption };
-    let currentPendingExcel = pendingExcelProcessing ? { ...pendingExcelProcessing } : null;
+    let currentDatabaseOption = { ...databaseOption }; 
+    const currentPendingExcel = pendingExcelProcessing ? { ...pendingExcelProcessing } : null;
 
     if (currentPendingExcel?.file && currentDatabaseOption.type === 'excel') {
       if (!auth.currentUser) {
-        toast({ title: "Autenticación Requerida", description: "Debes estar autenticado para procesar el archivo Excel. Por favor, vuelve al paso de autenticación.", variant: "destructive" });
+        toast({ title: "Autenticación Requerida", description: "Debes estar autenticado para procesar el archivo Excel. Por favor, vuelve al paso de autenticación o completa el inicio de sesión.", variant: "destructive" });
         setIsFinalizingSetup(false);
         return;
       }
-      toast({ title: "Procesando Excel...", description: `Creando Google Sheet "${currentPendingExcel.targetSheetName}".` });
+      toast({ title: "Procesando Excel...", description: `Creando Google Sheet "${currentPendingExcel.targetSheetName}". Esto puede tardar un momento.` });
       try {
         const fileData = await fileToBase64(currentPendingExcel.file);
+        
+        if (!auth.currentUser) { // Double check just before API call
+            toast({ title: "Error de Autenticación", description: "No se pudo verificar el usuario. Por favor, intenta iniciar sesión de nuevo.", variant: "destructive" });
+            setIsFinalizingSetup(false);
+            return;
+        }
         const token = await auth.currentUser.getIdToken();
+        
         const response = await fetch('/api/sheets-upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ fileData, fileName: currentPendingExcel.targetSheetName, firebaseUid: auth.currentUser.uid }),
         });
-        const result = await response.json();
 
-        if (!response.ok) throw new Error(result.message || `Error del servidor: ${response.status}`);
+        let errorMessageFromServer = `Error del servidor: ${response.status} ${response.statusText}. Intenta de nuevo más tarde o contacta soporte.`;
+        if (!response.ok) {
+          try {
+            const errorResult = await response.json();
+            errorMessageFromServer = errorResult.message || errorResult.error || errorMessageFromServer;
+          } catch (jsonError) {
+            const responseText = await response.text().catch(() => "No se pudo leer la respuesta del servidor.");
+            console.error("Respuesta de /api/sheets-upload no fue JSON:", responseText);
+            // errorMessageFromServer remains as initialized or slightly updated
+          }
+          throw new Error(errorMessageFromServer);
+        }
+        
+        const result = await response.json();
 
         currentDatabaseOption = {
           type: 'google_sheets',
@@ -260,17 +277,13 @@ const SetupPage = () => {
           originalFileName: currentPendingExcel.originalFileName,
           file: null,
         };
-        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' }); // Clear it from global state
-        currentPendingExcel = null; // Clear local copy
+        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' });
         toast({ title: "¡Éxito!", description: `Google Sheet "${result.spreadsheetName}" creado y vinculado.` });
         if (result.warning) {
-          toast({ title: "Advertencia", description: result.warning, variant: "default", duration: 7000 });
+          toast({ title: "Advertencia de la API", description: result.warning, variant: "default", duration: 7000 });
         }
       } catch (error: any) {
         toast({ title: "Error al Procesar Excel", description: error.message || "No se pudo generar el Google Sheet. La base de datos permanecerá como 'Excel' no procesado.", variant: "destructive" });
-        // Keep databaseOption.type as 'excel' and pendingExcelProcessing as is, so user can see the file and try again or change.
-        // Or, we could clear pendingExcelProcessing if we don't want them to retry this specific file in this flow.
-        // For now, let's not change currentDatabaseOption or clear pendingExcel if it fails.
         setIsFinalizingSetup(false);
         return;
       }
@@ -293,26 +306,24 @@ const SetupPage = () => {
         } else if (selectedPlan === 'test_plan') {
             assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
         } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
-            assistantPhoneNumber = undefined; // Will be assigned by backend if paid plan
+            assistantPhoneNumber = undefined; 
         } else if (selectedPlan === 'business_270') {
-            // For business plan, if they had a custom number, keep it. If it was default free, it might get a new one from Vonage pool for the account or use a provided one.
-            // This logic gets complex with user-provided numbers for business. For now, assume it's either default or Vonage-assigned.
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
-        } else { // For premium_179
+        } else { 
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
-    } else { // New assistant
+    } else { 
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'business_270') {
-            assistantPhoneNumber = customPhoneNumber || undefined; // User provides or gets from account pool via backend
+            assistantPhoneNumber = customPhoneNumber || undefined; 
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
             if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
         } else if (selectedPlan === 'test_plan') {
              assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
             if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
-        } else { // premium_179
-            assistantPhoneNumber = undefined; // Will be assigned by backend
+        } else { 
+            assistantPhoneNumber = undefined; 
         }
     }
 
@@ -325,12 +336,12 @@ const SetupPage = () => {
 
       if (currentDatabaseOption.type === 'google_sheets') {
         dbNameForConfig = currentDatabaseOption.name || `Hoja de Google ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
-        dbDetailsForConfig = currentDatabaseOption.originalFileName; // Original Excel name, if applicable
-      } else if (currentDatabaseOption.type === 'excel') { // This means Excel processing was skipped or failed
+        dbDetailsForConfig = currentDatabaseOption.originalFileName; 
+      } else if (currentDatabaseOption.type === 'excel') { 
         dbNameForConfig = currentDatabaseOption.name || (currentPendingExcel?.originalFileName) || `Archivo Excel ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
         dbDetailsForConfig = currentPendingExcel?.originalFileName;
-        dbAccessUrlForConfig = undefined; // No URL if it's just a pending Excel
-      } else { // smart_db
+        dbAccessUrlForConfig = undefined; 
+      } else { 
         dbNameForConfig = currentDatabaseOption.name || `Smart DB ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
         dbAccessUrlForConfig = undefined;
       }
@@ -344,9 +355,8 @@ const SetupPage = () => {
       });
       newAssistantDbIdToLink = dbId;
     } else if (!needsDatabaseConfiguration()) {
-        // No DB needed, ensure databaseOption in global state is cleared if it had values
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: null, name: '', file: null, accessUrl: '', originalFileName: '' } });
-        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' }); // Also clear any pending excel
+        dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' }); 
     }
 
 
@@ -403,9 +413,7 @@ const SetupPage = () => {
         : null;
       await sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, assistantDb || null);
     }
-
-    // Clear any residual pending excel state from the global wizard state
-    // It should have been cleared if processed, but this is a safeguard.
+    
     if (state.wizard.pendingExcelProcessing) {
         dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' });
     }
@@ -430,7 +438,7 @@ const SetupPage = () => {
 
     if (isReconfiguring) {
       if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3; // Skip DB config, Plan is next
+        if (currentStep === 2) stepToRender = 3; 
       }
       
       switch (stepToRender) {
@@ -440,10 +448,10 @@ const SetupPage = () => {
         default: return null;
       }
 
-    } else { // New setup
+    } else { 
       if (!dbNeeded) {
-        if (currentStep === 2) stepToRender = 3; // Skip DB, Auth is next
-        if (currentStep === 3) stepToRender = 4; // If DB was skipped, Auth was step 2 (visual), Plan is next (visual step 3)
+        if (currentStep === 2) stepToRender = 3; 
+        if (currentStep === 3) stepToRender = 4; 
       }
       switch (stepToRender) {
         case 1: return <Step1AssistantDetails />;
@@ -473,7 +481,7 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go directly to auth
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); 
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >
@@ -508,7 +516,7 @@ const SetupPage = () => {
             <div className="flex flex-col items-center justify-center h-full text-center">
               <FaSpinner className="animate-spin h-10 w-10 text-primary mb-4" />
               <p className="text-lg font-semibold">Finalizando configuración...</p>
-              {pendingExcelProcessing?.file && <p className="text-muted-foreground">Procesando archivo Excel y creando Google Sheet...</p>}
+              {pendingExcelProcessing?.file && currentDatabaseOption.type === 'excel' && <p className="text-muted-foreground">Procesando archivo Excel y creando Google Sheet...</p>}
               <p className="text-muted-foreground">Por favor, espera.</p>
             </div>
          ) : renderStepContent()}
