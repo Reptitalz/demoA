@@ -12,20 +12,22 @@ import Step3Authentication from '@/components/setup/Step3_Authentication';
 import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaArrowLeft, FaArrowRight, FaHome } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';
 import { LogIn, UserPlus } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
+import { auth } from '@/lib/firebase';
 
 const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId } = state.wizard;
+  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId, pendingExcelProcessing } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
+  const [isProcessingPendingExcel, setIsProcessingPendingExcel] = useState(false);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -36,6 +38,69 @@ const SetupPage = () => {
       setUserHasMadeInitialChoice(true);
     }
   }, [state.userProfile.isAuthenticated, isReconfiguring]);
+
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const processPendingExcel = useCallback(async () => {
+    if (!pendingExcelProcessing?.file || !pendingExcelProcessing.targetSheetName || !auth.currentUser) {
+      return;
+    }
+    
+    setIsProcessingPendingExcel(true);
+    const { file, targetSheetName, originalFileName } = pendingExcelProcessing;
+    toast({ title: "Procesando Excel (pendiente)...", description: `Creando Google Sheet "${targetSheetName}".` });
+
+    try {
+      const fileData = await fileToBase64(file);
+      const token = await auth.currentUser.getIdToken();
+
+      const response = await fetch('/api/sheets-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ fileData, fileName: targetSheetName, firebaseUid: auth.currentUser.uid }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.message || `Error del servidor: ${response.status}`);
+
+      dispatch({
+        type: 'SET_DATABASE_OPTION',
+        payload: {
+          type: 'google_sheets',
+          name: result.spreadsheetName,
+          accessUrl: result.spreadsheetUrl,
+          file: null,
+          originalFileName: originalFileName,
+        }
+      });
+      toast({ title: "¡Éxito!", description: `Google Sheet "${result.spreadsheetName}" creado y vinculado desde el archivo pendiente.` });
+      if (result.warning) {
+        toast({ title: "Advertencia", description: result.warning, variant: "default", duration: 7000 });
+      }
+    } catch (error: any) {
+      toast({ title: "Error al Procesar Excel Pendiente", description: error.message || "No se pudo generar el Google Sheet.", variant: "destructive" });
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: 'excel', name: targetSheetName, originalFileName: originalFileName, accessUrl: '' } }); // Keep as excel if failed
+    } finally {
+      setIsProcessingPendingExcel(false);
+      dispatch({ type: 'CLEAR_PENDING_EXCEL_PROCESSING' });
+    }
+  }, [pendingExcelProcessing, dispatch, toast]);
+
+
+  useEffect(() => {
+    if (state.userProfile.isAuthenticated && pendingExcelProcessing?.file && !isProcessingPendingExcel) {
+      processPendingExcel();
+    }
+  }, [state.userProfile.isAuthenticated, pendingExcelProcessing, processPendingExcel, isProcessingPendingExcel]);
+
 
   const effectiveMaxSteps = isReconfiguring
     ? (needsDatabaseConfiguration() ? 3 : 2)
@@ -59,10 +124,9 @@ const SetupPage = () => {
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre descriptivo para tu Hoja de Google.";
                 if (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/')) return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
-            // No specific validation for Excel 'file' here as it's processed into GSheet. Name is for the GSheet.
-            if (databaseOption.type === "excel") { // This state implies user selected Excel, but it becomes GSheet
+            if (databaseOption.type === "excel") { 
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre para el Google Sheet que se generará desde Excel.";
-                // Access URL will be populated by API, so not validated here for 'excel' type before processing
+                if (state.wizard.pendingExcelProcessing?.file && !auth.currentUser) return "Debes autenticarte para procesar el archivo Excel."
             }
             if (databaseOption.type === "smart_db" && !databaseOption.name?.trim()) return "Por favor, proporciona un nombre para tu Base de Datos Inteligente.";
           } else {
@@ -85,13 +149,13 @@ const SetupPage = () => {
         case 2:
            if (dbNeeded) {
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-             if (databaseOption.type === "google_sheets") { // Could be direct GSheet link or post-Excel processing
+             if (databaseOption.type === "google_sheets") { 
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre descriptivo para tu Hoja de Google.";
                 if (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/')) return "Por favor, proporciona una URL válida de Hoja de Google o procesa tu archivo Excel.";
             }
-            // No specific validation for Excel 'file' here as it's processed. Name is for the GSheet.
-            if (databaseOption.type === "excel") { // This state implies user selected Excel, but it becomes GSheet
+            if (databaseOption.type === "excel") { 
                 if (!databaseOption.name?.trim()) return "Por favor, proporciona un nombre para el Google Sheet que se generará desde Excel.";
+                 if (state.wizard.pendingExcelProcessing?.file && !auth.currentUser) return "Debes autenticarte para procesar el archivo Excel."
             }
             if (databaseOption.type === "smart_db" && !databaseOption.name?.trim()) return "Por favor, proporciona un nombre para tu Base de Datos Inteligente.";
            } else {
@@ -117,18 +181,23 @@ const SetupPage = () => {
     const currentValidationStep = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
+    // If an Excel file is pending processing and user is not authenticated yet, step 2 is not "valid" to proceed from yet.
+    if (dbNeeded && databaseOption.type === 'excel' && state.wizard.pendingExcelProcessing?.file && !auth.currentUser && currentValidationStep === 2) {
+        return false; 
+    }
+    if (isProcessingPendingExcel) return false; // Not valid while processing async
+
     if (isReconfiguring) {
       switch (currentValidationStep) {
         case 1: return assistantName.trim() !== '' && selectedPurposes.size > 0;
         case 2:
           if (dbNeeded) {
             if (!databaseOption.type) return false;
-            if (databaseOption.type === "google_sheets") { // This covers direct GSheet link AND Excel processed to GSheet
+            if (databaseOption.type === "google_sheets") { 
                 return !!databaseOption.name?.trim() && !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
-            if (databaseOption.type === "excel") { // This case should ideally not be final if processing is automatic
-                 // If excel is selected, it needs a name for the target GSheet, and processing should populate accessUrl
-                return !!databaseOption.name?.trim(); // File presence is handled by the component itself
+            if (databaseOption.type === "excel") { 
+                return !!databaseOption.name?.trim(); 
             }
             if (databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
             return true;
@@ -148,11 +217,11 @@ const SetupPage = () => {
         case 2:
           if (dbNeeded) {
             if (!databaseOption.type) return false;
-            if (databaseOption.type === "google_sheets") { // Covers direct or processed
+            if (databaseOption.type === "google_sheets") { 
                 return !!databaseOption.name?.trim() && !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
             if (databaseOption.type === "excel") {
-                 return !!databaseOption.name?.trim(); // Needs name for target GSheet
+                 return !!databaseOption.name?.trim(); 
             }
             if (databaseOption.type === "smart_db") return !!databaseOption.name?.trim();
             return true;
@@ -201,9 +270,9 @@ const SetupPage = () => {
 
   const handlePrevious = () => {
     if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) {
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); // Skip back to 1 from auth if DB was skipped
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
     } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) {
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); // Skip back to 1 from plan if DB was skipped (reconfig)
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
     }
     else if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
@@ -213,6 +282,10 @@ const SetupPage = () => {
   const handleCompleteSetup = async () => {
     if (!isStepValid()) {
       toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
+      return;
+    }
+    if (state.wizard.pendingExcelProcessing?.file) {
+      toast({ title: "Procesamiento Pendiente", description: "Aún hay un archivo Excel pendiente de procesar. Por favor, asegúrate de estar autenticado para que se complete.", variant: "destructive" });
       return;
     }
 
@@ -265,9 +338,11 @@ const SetupPage = () => {
 
       if (databaseOption.type === 'google_sheets') {
         dbNameForConfig = databaseOption.name || `Hoja de Google ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
-        dbDetailsForConfig = databaseOption.originalFileName; 
-      } else if (databaseOption.type === 'excel') {
-        dbNameForConfig = databaseOption.name || (databaseOption.file?.name) || `Archivo Excel ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
+        // If it was processed from Excel, originalFileName holds the Excel name
+        dbDetailsForConfig = databaseOption.originalFileName || undefined; 
+      } else if (databaseOption.type === 'excel') { 
+        // This case should be less common if processing always converts to google_sheets
+        dbNameForConfig = databaseOption.name || (databaseOption.originalFileName) || `Archivo Excel ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
         dbDetailsForConfig = databaseOption.originalFileName || databaseOption.file?.name;
       } else { // smart_db
         dbNameForConfig = databaseOption.name || `Smart DB ${state.userProfile.databases.length + 1 + newDbEntries.length}`;
@@ -403,9 +478,7 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                
-                const targetStep = needsDatabaseConfiguration() ? 3 : 2;
-                dispatch({ type: 'SET_WIZARD_STEP', payload: targetStep }); 
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go directly to auth
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >
@@ -436,7 +509,13 @@ const SetupPage = () => {
       <div className="space-y-5">
         <SetupProgressBar />
         <div className="min-h-[260px] sm:min-h-[280px] md:min-h-[320px] lg:min-h-[350px]">
-         {renderStepContent()}
+         {isProcessingPendingExcel ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <FaSpinner className="animate-spin h-10 w-10 text-primary mb-4" />
+              <p className="text-lg font-semibold">Procesando tu archivo Excel...</p>
+              <p className="text-muted-foreground">Esto puede tardar un momento. Por favor, espera.</p>
+            </div>
+         ) : renderStepContent()}
         </div>
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex gap-1.5">
@@ -448,6 +527,7 @@ const SetupPage = () => {
                   router.push('/app/dashboard');
                 }}
                 className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
+                disabled={isProcessingPendingExcel}
               >
                 <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
               </Button>
@@ -455,7 +535,7 @@ const SetupPage = () => {
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isProcessingPendingExcel}
               className="transition-transform transform hover:scale-105 text-xs px-2 py-1"
             >
               <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
@@ -466,7 +546,7 @@ const SetupPage = () => {
             <Button
               onClick={handleNext}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid()}
+              disabled={!isStepValid() || isProcessingPendingExcel}
             >
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
@@ -475,7 +555,7 @@ const SetupPage = () => {
              <Button
               onClick={handleCompleteSetup}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
-              disabled={!isStepValid()}
+              disabled={!isStepValid() || isProcessingPendingExcel}
             >
               {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"} <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
@@ -487,5 +567,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-
-    

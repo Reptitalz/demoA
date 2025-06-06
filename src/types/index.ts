@@ -11,20 +11,20 @@ export interface AssistantPurpose {
 export type DatabaseSource = "google_sheets" | "excel" | "smart_db";
 
 export interface DatabaseConfig {
-  id: string; // Unique ID for this DB config
-  name: string; // User-friendly name (e.g., GSheet name from API/user, SmartDB name from user, original Excel filename if source is 'excel' but unprocessed)
+  id: string; 
+  name: string; 
   source: DatabaseSource;
-  details?: string; // Original Excel filename if source is 'google_sheets' (from a processed Excel) or if source is 'excel' (unprocessed).
-  accessUrl?: string; // URL to access/edit the Google Sheet (whether linked directly or generated from Excel)
+  details?: string; 
+  accessUrl?: string; 
 }
 
 export interface AssistantConfig {
   id: string;
   name: string;
-  phoneLinked?: string; // As assistants are linked to phone numbers
+  phoneLinked?: string; 
   purposes: Set<AssistantPurposeType>;
-  databaseId?: string; // Link to a DatabaseConfig
-  imageUrl?: string; // Image URL for the assistant
+  databaseId?: string; 
+  imageUrl?: string; 
 }
 
 export type SubscriptionPlanType = "free" | "premium_179" | "business_270" | "test_plan";
@@ -63,16 +63,21 @@ export interface WizardState {
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
     type: DatabaseSource | null;
-    name?: string; // User-friendly name for GSheet/SmartDB, or target GSheet name for Excel processing
-    file?: File | null; // For excel upload
-    accessUrl?: string; // For GSheet URL (provided or generated)
-    originalFileName?: string; // To store original Excel filename if processed to GSheet
+    name?: string; 
+    file?: File | null; 
+    accessUrl?: string; 
+    originalFileName?: string; 
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
   customPhoneNumber?: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
+  pendingExcelProcessing?: {
+    file: File | null;
+    targetSheetName: string;
+    originalFileName: string; 
+  } | null;
 }
 
 export interface AppState {

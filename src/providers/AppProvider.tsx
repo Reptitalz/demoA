@@ -2,7 +2,7 @@
 "use client";
 
 import type { ReactNode } from 'react';
-import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, SubscriptionPlanType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; // Import Firebase auth instance
@@ -20,16 +20,18 @@ type Action =
   | { type: 'UPDATE_CUSTOM_PHONE_NUMBER'; payload: string }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
-  | { type: 'LOAD_STATE'; payload: AppState } // For initial localStorage load
-  | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile } // For syncing profile from API
+  | { type: 'LOAD_STATE'; payload: AppState } 
+  | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile } 
   | { type: 'UPDATE_USER_PROFILE'; payload: Partial<UserProfile> }
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
-  | { type: 'REMOVE_ASSISTANT'; payload: string } // assistant ID
+  | { type: 'REMOVE_ASSISTANT'; payload: string } 
   | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
-  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
+  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null }
+  | { type: 'SET_PENDING_EXCEL_PROCESSING'; payload: WizardState['pendingExcelProcessing'] }
+  | { type: 'CLEAR_PENDING_EXCEL_PROCESSING' };
 
 
 const initialWizardState: WizardState = {
@@ -43,6 +45,7 @@ const initialWizardState: WizardState = {
   customPhoneNumber: '',
   isReconfiguring: false,
   editingAssistantId: null,
+  pendingExcelProcessing: null,
 };
 
 const initialUserProfileState: UserProfile = {
@@ -151,9 +154,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
           databaseOption: {
             type: loadedState.wizard?.databaseOption?.type || null,
             name: loadedState.wizard?.databaseOption?.name || '',
-            file: null, // Files are not persisted
+            file: null, 
             accessUrl: loadedState.wizard?.databaseOption?.accessUrl || '',
             originalFileName: loadedState.wizard?.databaseOption?.originalFileName || '',
+          },
+          pendingExcelProcessing: { // Reset pending file on load
+            ...(loadedState.wizard?.pendingExcelProcessing || {}),
+            file: null,
           }
         },
         isLoading: false,
@@ -170,9 +177,9 @@ const appReducer = (state: AppState, action: Action): AppState => {
         return {
             ...state,
             userProfile: {
-                ...state.userProfile, // Preserve existing non-API fields if any
-                ...apiProfile,       // Override with API data
-                assistants: assistantsWithSetPurposes, // Ensure purposes are Sets
+                ...state.userProfile, 
+                ...apiProfile,       
+                assistants: assistantsWithSetPurposes, 
             },
             isSetupComplete: newIsSetupComplete,
             isLoading: false,
@@ -204,6 +211,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
     case 'SET_EDITING_ASSISTANT_ID':
       return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
+    case 'SET_PENDING_EXCEL_PROCESSING':
+      return { ...state, wizard: { ...state.wizard, pendingExcelProcessing: action.payload } };
+    case 'CLEAR_PENDING_EXCEL_PROCESSING':
+      return { ...state, wizard: { ...state.wizard, pendingExcelProcessing: null } };
     default:
       return state;
   }
@@ -251,46 +262,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const fetchProfile = async (userId: string) => {
-      try {
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          dispatch({ type: 'LOGOUT_USER' });
-          return;
-        }
-        const token = await currentUser.getIdToken();
-        const response = await fetch(`/api/user-profile?userId=${userId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.userProfile) {
-            dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          } else if (response.status === 404) {
-            dispatch({ type: 'SET_LOADING', payload: false });
-          } else {
-            dispatch({ type: 'SET_LOADING', payload: false });
-          }
-        } else {
-          if (response.status === 401 || response.status === 403) {
-            dispatch({ type: 'LOGOUT_USER' });
-          } else {
-            dispatch({ type: 'SET_LOADING', payload: false });
-          }
-        }
-      } catch (error) {
-        dispatch({ type: 'SET_LOADING', payload: false });
+  const fetchProfileCallback = useCallback(async (userId: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        dispatch({ type: 'LOGOUT_USER' });
+        return;
       }
-    };
+      const token = await currentUser.getIdToken();
+      const response = await fetch(`/api/user-profile?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
+      if (response.ok) {
+        const data = await response.json();
+        if (data.userProfile) {
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+        } else if (response.status === 404) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        } else {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      } else {
+        if (response.status === 401 || response.status === 403) {
+          dispatch({ type: 'LOGOUT_USER' });
+        } else {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      }
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
     if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isLoading) {
-      fetchProfile(state.userProfile.firebaseUid);
+      fetchProfileCallback(state.userProfile.firebaseUid);
     } else if (!state.userProfile.isAuthenticated && state.isLoading) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading, dispatch]);
+  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading, fetchProfileCallback]);
 
 
   useEffect(() => {
@@ -300,14 +311,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const serializableState = {
         ...state,
-        isLoading: false,
+        isLoading: false, 
         wizard: {
           ...state.wizard,
           selectedPurposes: Array.from(state.wizard.selectedPurposes),
           databaseOption: {
             ...state.wizard.databaseOption,
-            file: null
+            file: null 
           },
+          pendingExcelProcessing: {
+            ...(state.wizard.pendingExcelProcessing || {}),
+            file: null, // Files are not serializable
+          }
         },
         userProfile: {
           ...state.userProfile,
@@ -377,7 +392,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
     
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(saveProfileToApi, 1000); // Debounce API calls
+    debounceTimer = setTimeout(saveProfileToApi, 1000); 
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isSetupComplete, state.isLoading, dispatch]);
