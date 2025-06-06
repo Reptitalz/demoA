@@ -9,9 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
 import { FaPhone } from "react-icons/fa";
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
+  const { toast } = useToast(); // Initialize toast
   const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,62 +21,24 @@ const Step1AssistantDetails = () => {
   };
 
   const handlePurposeToggle = (purposeId: AssistantPurposeType) => {
-    const newPurposes = new Set(selectedPurposes);
-
-    if (newPurposes.has(purposeId)) {
-      newPurposes.delete(purposeId);
-    } else {
-      newPurposes.add(purposeId);
-      // Mutual exclusion logic
-      if (purposeId === 'import_spreadsheet' && newPurposes.has('create_smart_db')) {
-        newPurposes.delete('create_smart_db');
-      } else if (purposeId === 'create_smart_db' && newPurposes.has('import_spreadsheet')) {
-        newPurposes.delete('import_spreadsheet');
+    // Check if the purpose to be toggled is about to be selected
+    if (!selectedPurposes.has(purposeId)) {
+      if (purposeId === 'import_spreadsheet' && selectedPurposes.has('create_smart_db')) {
+        toast({
+          title: "Opción Actualizada",
+          description: "'Crear Base de Datos Inteligente' ha sido deseleccionado.",
+          duration: 3000,
+        });
+      } else if (purposeId === 'create_smart_db' && selectedPurposes.has('import_spreadsheet')) {
+        toast({
+          title: "Opción Actualizada",
+          description: "'Importar Hoja de Cálculo' ha sido deseleccionado.",
+          duration: 3000,
+        });
       }
     }
-    // Dispatch a single update with the modified set
-    // This requires a new action type or modifying TOGGLE_ASSISTANT_PURPOSE to accept a Set
-    // For simplicity, let's dispatch individual toggles but be mindful of potential re-renders.
-    // A more optimized way would be to have an action that takes the full new Set.
-
-    // To reflect the changes accurately, we'll create a new action that sets the purposes directly
-    // For now, let's stick to the existing TOGGLE_ASSISTANT_PURPOSE and dispatch it.
-    // This will work but might cause an extra re-render if both import_spreadsheet and create_smart_db were involved.
-    // A better approach:
-    // 1. Define a new action in AppProvider: `SET_ASSISTANT_PURPOSES` that takes `Set<AssistantPurposeType>`.
-    // 2. Call that here: `dispatch({ type: 'SET_ASSISTANT_PURPOSES', payload: newPurposes });`
-    // For now, using existing toggle (will work fine, just less optimized for this specific interaction)
-
-    // The existing TOGGLE_ASSISTANT_PURPOSE action in the reducer already handles adding/removing.
-    // We need to ensure that if one is added, the other is removed *if present*.
-    // The reducer's TOGGLE_ASSISTANT_PURPOSE doesn't have this mutual exclusion logic internally.
-    // So, we'll manage the set here and then dispatch a series of toggles or a new "set purposes" action.
-
-    // Let's assume we'll modify AppProvider to have a SET_ASSISTANT_PURPOSES action.
-    // If not, we'd have to dispatch TOGGLE for each change which is less ideal.
-    // For now, I will proceed as if TOGGLE_ASSISTANT_PURPOSE will be used, and will
-    // adjust AppProvider if necessary. The core logic is to modify `newPurposes` correctly.
-
-    // Re-dispatching TOGGLE for each involved purpose to update the state based on newPurposes
-    // This is slightly inefficient but works with the current reducer action.
-    // A better way is to add a new action 'SET_SELECTED_PURPOSES' to the reducer.
-    // For this change, I'll directly dispatch TOGGLE and the logic in TOGGLE_ASSISTANT_PURPOSE in reducer will handle it.
-    // The mutual exclusion logic is now implemented here *before* dispatching.
-
-    // The dispatch in the original code for TOGGLE_ASSISTANT_PURPOSE will reflect the purposeId clicked.
-    // We need to ensure the other one is deselected if this one is selected.
-
-    // Revised logic:
-    if (selectedPurposes.has(purposeId)) { // If it's currently selected, deselect it
-        dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
-    } else { // If it's not selected, select it AND deselect the other if it's the conflicting one
-        dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId }); // Select the current one
-        if (purposeId === 'import_spreadsheet' && selectedPurposes.has('create_smart_db')) {
-            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: 'create_smart_db' }); // Deselect the other
-        } else if (purposeId === 'create_smart_db' && selectedPurposes.has('import_spreadsheet')) {
-            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: 'import_spreadsheet' }); // Deselect the other
-        }
-    }
+    // The reducer will handle the actual mutual exclusion logic
+    dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
   const handleCustomPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,14 +92,15 @@ const Step1AssistantDetails = () => {
           {assistantPurposesConfig.map((purpose) => {
             const Icon = purpose.icon;
             const isChecked = selectedPurposes.has(purpose.id);
-            // Determine if this option should be disabled due to mutual exclusion
             let isDisabled = false;
-            if (purpose.id === 'import_spreadsheet' && selectedPurposes.has('create_smart_db')) {
-              // Cannot select import_spreadsheet if create_smart_db is already selected (unless it's itself)
-              // This logic is handled by the toggle now.
-            } else if (purpose.id === 'create_smart_db' && selectedPurposes.has('import_spreadsheet')) {
-              // Cannot select create_smart_db if import_spreadsheet is already selected (unless it's itself)
-            }
+            // Visual disabling based on current selection, actual logic is in reducer for state integrity
+            // if (purpose.id === 'import_spreadsheet' && selectedPurposes.has('create_smart_db') && !isChecked) {
+            //   isDisabled = true; // Visually indicate it would be deselected, actual deselection is handled by reducer
+            // } else if (purpose.id === 'create_smart_db' && selectedPurposes.has('import_spreadsheet') && !isChecked) {
+            //   isDisabled = true;
+            // }
+            // The above disabling logic might be confusing as the click itself will resolve the conflict.
+            // The toast notification is the primary feedback mechanism for the automatic deselection.
             
             return (
               <div 
@@ -148,7 +113,7 @@ const Step1AssistantDetails = () => {
                 <Checkbox
                   id={`purpose-${purpose.id}`}
                   checked={isChecked}
-                  onCheckedChange={() => !isDisabled && handlePurposeToggle(purpose.id)}
+                  onCheckedChange={() => !isDisabled && handlePurposeToggle(purpose.id)} // This will trigger the toast if needed
                   aria-labelledby={`purpose-label-${purpose.id}`}
                   className="mt-1"
                   disabled={isDisabled}
@@ -174,4 +139,3 @@ const Step1AssistantDetails = () => {
 };
 
 export default Step1AssistantDetails;
-
