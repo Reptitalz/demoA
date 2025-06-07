@@ -4,18 +4,12 @@
 import type { SubscriptionPlanDetails, SubscriptionPlanType } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FaCheckCircle, FaTasks, FaChartLine, FaBriefcase, FaStar } from "react-icons/fa";
+import { FaCheckCircle, FaStar } from "react-icons/fa"; // Removed FaTasks, FaChartLine, FaBriefcase as they come from planIcons
 import { cn } from "@/lib/utils";
 import { useApp } from "@/providers/AppProvider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-
-const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
-  free: FaCheckCircle,
-  standard_39: FaTasks,
-  premium_179: FaChartLine,
-  business_270: FaBriefcase,
-};
+import { planIcons } from "@/config/appConfig"; // Import planIcons from appConfig
 
 interface PlanViewerProps {
   currentPlanId: SubscriptionPlanType | null;
@@ -29,19 +23,24 @@ const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
 
   const handleSelectPlan = (planId: SubscriptionPlanType) => {
     dispatch({ type: 'SET_SUBSCRIPTION_PLAN', payload: planId });
-    dispatch({ type: 'UPDATE_USER_PROFILE', payload: { currentPlan: planId } });
+    // The user profile update should ideally happen via a backend call if plans have implications beyond UI.
+    // For now, assuming it's mainly for wizard state, but this could be an API call in a real app.
+    dispatch({ type: 'UPDATE_USER_PROFILE', payload: { currentPlan: planId } }); 
     
     toast({
       title: "Plan Actualizado",
       description: `Has cambiado tu plan a ${allPlans.find(p => p.id === planId)?.name}.`,
     });
+
+    // Optionally, close the dialog after selection
+    // onOpenChange(false); // If onOpenChange is passed as a prop
   };
 
 
   return (
     <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
       {allPlans.map((plan) => {
-        const Icon = planIcons[plan.id];
+        const Icon = planIcons[plan.id]; // Use imported planIcons
         const isCurrentPlan = currentPlanId === plan.id;
 
         return (
@@ -55,7 +54,11 @@ const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Icon className={cn("h-7 w-7", isCurrentPlan ? "text-primary" : "text-accent")} />
+                  {Icon ? ( // Check if Icon exists before rendering
+                    <Icon className={cn("h-7 w-7", isCurrentPlan ? "text-primary" : "text-accent")} />
+                  ) : (
+                    <FaStar className={cn("h-7 w-7", isCurrentPlan ? "text-primary" : "text-accent")} /> // Fallback icon
+                  )}
                   <CardTitle className={cn("text-lg", isCurrentPlan && "text-primary")}>{plan.name}</CardTitle>
                 </div>
                 {isCurrentPlan && (
