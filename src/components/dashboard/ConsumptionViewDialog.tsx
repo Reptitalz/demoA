@@ -37,6 +37,20 @@ const consumptionData = {
       activeConversations: 22,
       apiCalls: 1500,
     },
+    {
+      id: "asst_3",
+      name: "Asistente de Reservas",
+      messagesSent: 2500,
+      activeConversations: 70,
+      apiCalls: 5500,
+    },
+     {
+      id: "asst_4",
+      name: "Asistente de Marketing",
+      messagesSent: 1800,
+      activeConversations: 30,
+      apiCalls: 4000,
+    },
   ],
   planLimit: {
     messages: 5000,
@@ -129,3 +143,4 @@ const ConsumptionViewDialog = ({ isOpen, onOpenChange }: ConsumptionViewDialogPr
 };
 
 export default ConsumptionViewDialog;
+
