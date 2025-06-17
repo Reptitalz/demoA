@@ -6,7 +6,8 @@ import Footer from './Footer';
 import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation'; 
 import { cn } from '@/lib/utils';
-import DynamicCanvasBackground from './DynamicCanvasBackground'; // Import the new component
+import DynamicCanvasBackground from './DynamicCanvasBackground';
+import BottomNavigationBar from './BottomNavigationBar'; // Import the new component
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -15,13 +16,17 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
   const isMarketingPage = pathname === '/'; 
+  const isAppPage = pathname.startsWith('/app/') && pathname !== '/app/setup'; // Bottom bar for app pages, excluding setup
   const layoutShouldBeFullWidth = isMarketingPage;
 
   return (
     <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
-      <DynamicCanvasBackground /> {/* Add the canvas background here */}
+      <DynamicCanvasBackground />
       <Header fullWidth={layoutShouldBeFullWidth} />
-      {children}
+      <div className={cn("flex-grow w-full", isAppPage && "pb-16 md:pb-0")}> {/* Add padding-bottom for mobile if bottom bar is visible */}
+        {children}
+      </div>
+      {isAppPage && <BottomNavigationBar />} {/* Render bottom nav bar on app pages */}
       <Footer fullWidth={layoutShouldBeFullWidth} />
       <Toaster />
     </div>
