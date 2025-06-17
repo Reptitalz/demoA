@@ -5,7 +5,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button'; // Kept for potential future use
 import { BarChart2, MessageSquareText, Users, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card"; // Renamed CardTitle to SmallCardTitle to avoid conflict if Page title is also CardTitle
-import { ScrollArea } from "@/components/ui/scroll-area";
+// ScrollArea import is removed
 import { APP_NAME } from '@/config/appConfig';
 
 // Placeholder data - replace with actual data fetching and state
@@ -79,64 +79,63 @@ const ConsumptionPage = () => {
         </p>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-220px)] sm:h-auto animate-fadeIn" style={{animationDelay: "0.2s"}}> {/* Adjusted height for viewport filling and scroll */}
-        <div className="space-y-6 pr-3"> {/* Added pr-3 for scrollbar spacing */}
-          <Card>
-            <CardHeader>
-              <SmallCardTitle className="text-lg">Resumen Total del Plan</SmallCardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <MessageSquareText className="h-5 w-5 text-accent" />
-                <div>
-                  <p className="font-semibold">{totalMessagesSent.toLocaleString()} Mensajes Enviados</p>
-                  <p className="text-xs text-muted-foreground">Límite del plan: {consumptionData.planLimit.messages.toLocaleString()}</p>
-                </div>
+      {/* Content previously in ScrollArea now flows directly or within a simple div for animation/spacing */}
+      <div className="space-y-6 animate-fadeIn" style={{animationDelay: "0.2s"}}>
+        <Card>
+          <CardHeader>
+            <SmallCardTitle className="text-lg">Resumen Total del Plan</SmallCardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+              <MessageSquareText className="h-5 w-5 text-accent" />
+              <div>
+                <p className="font-semibold">{totalMessagesSent.toLocaleString()} Mensajes Enviados</p>
+                <p className="text-xs text-muted-foreground">Límite del plan: {consumptionData.planLimit.messages.toLocaleString()}</p>
               </div>
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                <Zap className="h-5 w-5 text-accent" />
-                <div>
-                  <p className="font-semibold">{totalApiCalls.toLocaleString()} Llamadas API</p>
-                  <p className="text-xs text-muted-foreground">Límite del plan: {consumptionData.planLimit.apiCalls.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Consumo por Asistente</h3>
-            <div className="space-y-4">
-              {consumptionData.assistants.map((asst) => (
-                <Card key={asst.id} className="shadow-sm">
-                  <CardHeader className="pb-3">
-                    <SmallCardTitle className="text-md">{asst.name}</SmallCardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-xs">
-                    <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
-                      <div className="flex items-center gap-1.5">
-                          <MessageSquareText className="h-4 w-4 text-muted-foreground" /> Mensajes Enviados:
-                      </div>
-                      <span className="font-semibold">{asst.messagesSent.toLocaleString()}</span>
-                    </div>
-                     <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
-                      <div className="flex items-center gap-1.5">
-                          <Users className="h-4 w-4 text-muted-foreground" /> Conversaciones Activas:
-                      </div>
-                      <span className="font-semibold">{asst.activeConversations.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
-                      <div className="flex items-center gap-1.5">
-                          <Zap className="h-4 w-4 text-muted-foreground" /> Llamadas API:
-                      </div>
-                      <span className="font-semibold">{asst.apiCalls.toLocaleString()}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
+            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+              <Zap className="h-5 w-5 text-accent" />
+              <div>
+                <p className="font-semibold">{totalApiCalls.toLocaleString()} Llamadas API</p>
+                <p className="text-xs text-muted-foreground">Límite del plan: {consumptionData.planLimit.apiCalls.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Consumo por Asistente</h3>
+          <div className="space-y-4">
+            {consumptionData.assistants.map((asst) => (
+              <Card key={asst.id} className="shadow-sm">
+                <CardHeader className="pb-3">
+                  <SmallCardTitle className="text-md">{asst.name}</SmallCardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
+                    <div className="flex items-center gap-1.5">
+                        <MessageSquareText className="h-4 w-4 text-muted-foreground" /> Mensajes Enviados:
+                    </div>
+                    <span className="font-semibold">{asst.messagesSent.toLocaleString()}</span>
+                  </div>
+                   <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
+                    <div className="flex items-center gap-1.5">
+                        <Users className="h-4 w-4 text-muted-foreground" /> Conversaciones Activas:
+                    </div>
+                    <span className="font-semibold">{asst.activeConversations.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
+                    <div className="flex items-center gap-1.5">
+                        <Zap className="h-4 w-4 text-muted-foreground" /> Llamadas API:
+                    </div>
+                    <span className="font-semibold">{asst.apiCalls.toLocaleString()}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </PageContainer>
   );
 };
