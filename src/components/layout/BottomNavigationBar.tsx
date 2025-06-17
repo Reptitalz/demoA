@@ -25,7 +25,7 @@ const BottomNavigationBar = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-md md:hidden z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-md md:hidden z-[60]"> {/* Increased z-index */}
         <div className="container mx-auto px-2 h-16 flex justify-around items-center">
           {navItems.map((item) => {
             const isActive = item.href === '/app/dashboard' ? pathname === item.href : false; // Active state only for dashboard link for now
@@ -62,3 +62,4 @@ const BottomNavigationBar = () => {
 };
 
 export default BottomNavigationBar;
+
