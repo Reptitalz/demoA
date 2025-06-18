@@ -1,3 +1,4 @@
+
 import { type MetadataRoute } from 'next';
 import { APP_NAME } from '@/config/appConfig';
 
@@ -19,6 +20,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.5, // Prioridad más baja que la landing page
     },
+    {
+      url: `${BASE_URL}/privacy`, // Nueva página de política de privacidad
+      lastModified: new Date(),
+      changeFrequency: 'yearly', // Las políticas de privacidad no suelen cambiar tan a menudo
+      priority: 0.3,
+    },
     // Puedes añadir aquí otras páginas públicas importantes si las tienes
     // Ejemplo:
     // {
@@ -29,3 +36,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // },
   ];
 }
+
+    
