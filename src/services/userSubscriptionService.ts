@@ -1,3 +1,4 @@
+
 // src/services/userSubscriptionService.ts
 'use server';
 
@@ -6,16 +7,46 @@ import type { UserProfile, SubscriptionPlanType, AssistantConfig } from '@/types
 import { searchAvailableNumber, buyNumber } from './vonage'; // Assuming US numbers for now
 
 /**
+ * Provisions a Vonage number specifically for the test plan.
+ * This function only handles searching and buying the number, not DB updates.
+ * @returns An object with the phoneNumber and countryCode, or null if it fails.
+ */
+export async function provisionTestVonageNumber(): Promise<{ phoneNumber: string; countryCode: string; } | null> {
+    console.log(`Attempting to provision a Vonage number for a test plan.`);
+    try {
+        const availableNumber = await searchAvailableNumber('US');
+        if (!availableNumber) {
+            console.error(`No Vonage numbers available in US for test plan.`);
+            return null;
+        }
+
+        const bought = await buyNumber('US', availableNumber);
+        if (!bought) {
+            console.error(`Failed to buy Vonage number ${availableNumber} for test plan.`);
+            return null;
+        }
+
+        console.log(`Successfully bought Vonage number ${availableNumber} for test plan.`);
+        return { phoneNumber: availableNumber, countryCode: 'US' };
+    } catch (error: any) {
+        console.error(`Error in provisionTestVonageNumber:`, error.message, error.stack);
+        return null;
+    }
+}
+
+
+/**
  * Provisions a Vonage number for a user and updates their profile in MongoDB.
+ * Used by the Stripe webhook for paid plans.
  * @param firebaseUid The Firebase UID of the user.
- * @param stripeCustomerId The Stripe Customer ID.
+ * @param stripeCustomerId Optional. The Stripe Customer ID.
  * @param stripeSubscriptionId Optional. The Stripe Subscription ID.
  * @param planId Optional. The plan ID to set for the user.
  * @returns True if successful, false otherwise.
  */
 export async function provisionVonageNumberForUser(
   firebaseUid: string,
-  stripeCustomerId: string,
+  stripeCustomerId?: string,
   stripeSubscriptionId?: string,
   planId?: SubscriptionPlanType
 ): Promise<boolean> {
@@ -30,7 +61,6 @@ export async function provisionVonageNumberForUser(
     const bought = await buyNumber('US', availableNumber);
     if (!bought) {
       console.error(`Failed to buy Vonage number ${availableNumber} for user ${firebaseUid}.`);
-      // Potentially, we might want to try another number if buying fails, but for now, fail.
       return false;
     }
 
@@ -39,13 +69,14 @@ export async function provisionVonageNumberForUser(
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
 
-    // Prepare update object for $set
-    const setData: Partial<Omit<UserProfile, 'assistants' | 'databases' | 'email' | 'isAuthenticated'>> & { stripeCustomerId: string } = {
+    const setData: Partial<Omit<UserProfile, 'assistants' | 'databases' | 'email' | 'isAuthenticated'>> = {
       virtualPhoneNumber: availableNumber,
-      countryCodeForVonageNumber: 'US', // Store the country code
+      countryCodeForVonageNumber: 'US',
       vonageNumberStatus: 'active',
-      stripeCustomerId: stripeCustomerId,
     };
+    if (stripeCustomerId) {
+      setData.stripeCustomerId = stripeCustomerId;
+    }
     if (stripeSubscriptionId) {
       setData.stripeSubscriptionId = stripeSubscriptionId;
     }
@@ -53,19 +84,15 @@ export async function provisionVonageNumberForUser(
       setData.currentPlan = planId;
     }
 
-    // Prepare $setOnInsert object
     const setOnInsertData: Partial<UserProfile> = {
-        firebaseUid: firebaseUid, // Ensure firebaseUid is set on insert
-        email: '', // Placeholder, Stripe webhook might provide customer email
+        firebaseUid: firebaseUid,
+        email: '', 
         assistants: [],
         databases: [],
-        isAuthenticated: true, // Assume true if they are getting a number through payment
-        currentPlan: planId || null, // Set plan on insert as well
+        isAuthenticated: true,
+        currentPlan: planId || null,
     };
 
-
-    // Try to find an assistant without a phoneLinked and assign the new number
-    // This part needs to fetch the current profile first to get assistants
     const currentUserProfile = await userProfileCollection.findOne({ firebaseUid });
     let assistantsToUpdate: AssistantConfig[] = currentUserProfile?.assistants || [];
 
@@ -76,22 +103,18 @@ export async function provisionVonageNumberForUser(
 
       if (firstAssistantWithoutPhoneIndex !== -1) {
         console.log(`Assigning new Vonage number ${availableNumber} to assistant ${currentUserProfile.assistants[firstAssistantWithoutPhoneIndex].id} for user ${firebaseUid}`);
-        // Create a new array for assistants to ensure immutability and correct update
         assistantsToUpdate = currentUserProfile.assistants.map((asst, index) =>
           index === firstAssistantWithoutPhoneIndex
             ? { ...asst, phoneLinked: availableNumber }
             : asst
         );
-        // Add the updated assistants array to the setData object
-        setData.assistants = assistantsToUpdate.map(asst => ({
+        (setData as UserProfile).assistants = assistantsToUpdate.map(asst => ({
             ...asst,
             purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
           }));
       } else {
-         // If no assistant without a phone, ensure the setData.assistants is not undefined if it was going to be set
-         // Or, ensure assistants array is set if userProfile was null before upsert
-        if(setData.assistants === undefined && currentUserProfile) {
-             setData.assistants = currentUserProfile.assistants.map(asst => ({
+        if((setData as UserProfile).assistants === undefined && currentUserProfile) {
+             (setData as UserProfile).assistants = currentUserProfile.assistants.map(asst => ({
                 ...asst,
                 purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
             }));
@@ -99,14 +122,12 @@ export async function provisionVonageNumberForUser(
       }
     }
     
-    // If assistantsToUpdate was populated for a new user, add it to setOnInsert
     if (assistantsToUpdate.length > 0 && !currentUserProfile) {
         setOnInsertData.assistants = assistantsToUpdate.map(asst => ({
             ...asst,
             purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
         }));
     }
-
 
     const result = await userProfileCollection.updateOne(
       { firebaseUid: firebaseUid },
@@ -122,11 +143,10 @@ export async function provisionVonageNumberForUser(
       return true;
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       console.log(`Profile for user ${firebaseUid} was matched but not modified. Vonage number ${availableNumber} provisioned. Status may already be up-to-date.`);
-      return true; // Still considered success as number was provisioned
+      return true;
     }
      else {
       console.warn(`Profile for user ${firebaseUid} was not modified or upserted despite successful number purchase. DB Result:`, JSON.stringify(result));
-      // This case might mean the data was identical. Still, number was bought.
       return true;
     }
   } catch (error: any) {
@@ -134,3 +154,5 @@ export async function provisionVonageNumberForUser(
     return false;
   }
 }
+
+    

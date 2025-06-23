@@ -5,6 +5,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { provisionTestVonageNumber } from '@/services/userSubscriptionService';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const PAID_PLANS: SubscriptionPlanType[] = ['premium_179', 'business_270'];
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userId: bodyUserId, userProfile } = body;
+    let { userId: bodyUserId, userProfile } = body;
 
     if (!bodyUserId || !userProfile) {
       return NextResponse.json({ message: 'User ID and userProfile are required in the body' }, { status: 400 });
@@ -82,6 +83,31 @@ export async function POST(request: NextRequest) {
     if (userProfile.firebaseUid && userProfile.firebaseUid !== decodedToken.uid) {
       console.warn("Mismatch between userProfile.firebaseUid in body and token UID. Using token UID.");
     }
+    
+    const { db } = await connectToDatabase();
+    const existingProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: decodedToken.uid });
+
+    // Test Plan Provisioning Logic
+    if (userProfile.currentPlan === 'test_plan' && !existingProfile?.virtualPhoneNumber) {
+        console.log(`Test plan detected for user ${decodedToken.uid} without a number. Attempting to provision a Vonage number.`);
+        const provisionResult = await provisionTestVonageNumber();
+        if (provisionResult) {
+            console.log(`Assigning new number ${provisionResult.phoneNumber} to test plan user ${decodedToken.uid}`);
+            userProfile.virtualPhoneNumber = provisionResult.phoneNumber;
+            userProfile.countryCodeForVonageNumber = provisionResult.countryCode;
+            userProfile.vonageNumberStatus = 'active';
+
+            if (userProfile.assistants && userProfile.assistants.length > 0) {
+                 const firstAssistantWithoutPhoneIndex = userProfile.assistants.findIndex((asst: AssistantConfig) => !asst.phoneLinked);
+                 if (firstAssistantWithoutPhoneIndex !== -1) {
+                    userProfile.assistants[firstAssistantWithoutPhoneIndex].phoneLinked = provisionResult.phoneNumber;
+                 }
+            }
+        } else {
+            console.error(`Failed to provision Vonage number for test plan user ${decodedToken.uid}. Profile will be saved without a number.`);
+        }
+    }
+
 
     const incomingAssistantsRaw = userProfile.assistants || [];
     const incomingAssistantsProcessed: AssistantConfig[] = Array.isArray(incomingAssistantsRaw) ? incomingAssistantsRaw.map((asst: any) => ({
@@ -94,14 +120,10 @@ export async function POST(request: NextRequest) {
     let finalAssistantsToSave: AssistantConfig[] = incomingAssistantsProcessed;
     let messageSuffix = "";
 
-    const { db } = await connectToDatabase();
-    const existingProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: decodedToken.uid });
-
     if (existingProfile) { // User exists, apply plan-based logic for assistant updates
       const planForSaving = userProfile.currentPlan as SubscriptionPlanType | null; // This is the plan the user *will be on*
       const isSavingToPaidPlan = planForSaving && PAID_PLANS.includes(planForSaving);
 
-      // Prepare existing assistants for comparison (ensure 'purposes' is an array for JSON.stringify and imageUrl is present)
       const existingAssistantsForComparison = normalizeAssistantsForComparison(existingProfile.assistants || []);
       const incomingAssistantsForComparison = normalizeAssistantsForComparison(incomingAssistantsProcessed);
 
@@ -120,15 +142,13 @@ export async function POST(request: NextRequest) {
         console.log(`User ${decodedToken.uid} on paid plan (${planForSaving}) modifying assistants. Changes will be saved.`);
       }
     }
-    // For new users (existingProfile is null), finalAssistantsToSave remains incomingAssistantsProcessed,
-    // allowing initial assistant setup regardless of the initial plan (e.g., one free assistant).
 
     const serializableProfile: Omit<UserProfile, '_id'> = {
-      ...(userProfile as Omit<UserProfile, 'assistants' | 'databases'>), // Cast to avoid type issues with partial userProfile from client
+      ...(userProfile as Omit<UserProfile, 'assistants' | 'databases'>), 
       firebaseUid: decodedToken.uid,
       assistants: finalAssistantsToSave.map(asst => ({
         ...asst,
-        imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL, // Ensure default if somehow still missing
+        imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
       })),
       databases: Array.isArray(userProfile.databases) ? userProfile.databases.map((dbConfig: any) => ({
         ...dbConfig,
@@ -185,3 +205,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Failed to process request due to an internal error', error: errorMessage }, { status: 500 });
   }
 }
+
+    

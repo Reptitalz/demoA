@@ -230,25 +230,24 @@ const SetupPage = () => {
         assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-        } else if (selectedPlan === 'test_plan') { // Ensure test_plan uses a random number
-            assistantPhoneNumber = `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-        } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free' && selectedPlan !== 'test_plan') {
-            // If was on free plan number and upgrading, set to undefined so Stripe webhook can provision Vonage
+        } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
+            // If was on free plan number and upgrading, set to undefined so backend can provision Vonage/handle it
             assistantPhoneNumber = undefined;
         } else if (selectedPlan === 'business_270') {
-            // Keep existing custom number if on business, unless it was the default free one
              assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
-        }
-        else {
-            // For other paid plans (premium_179), keep existing number if it wasn't default free, otherwise undefined for provisioning
+        } else {
+            // For other paid plans (premium_179) and test_plan, keep existing number if it wasn't default free, otherwise undefined for provisioning
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
     } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         if (selectedPlan === 'business_270') {
             assistantPhoneNumber = customPhoneNumber || undefined;
-        } else if (selectedPlan === 'free' || selectedPlan === 'test_plan') { // Free or Test plan
-            assistantPhoneNumber = selectedPlan === 'free' ? DEFAULT_FREE_PLAN_PHONE_NUMBER : `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+        } else if (selectedPlan === 'free') {
+            assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
+            if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
+        } else if (selectedPlan === 'test_plan') {
+            assistantPhoneNumber = undefined; // Let the backend provision it
             if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
         } else { // Other paid plans (premium_179)
             assistantPhoneNumber = undefined; // Will be provisioned by Stripe webhook
@@ -262,7 +261,7 @@ const SetupPage = () => {
         name: currentDatabaseOption.name || `Mi ${currentDatabaseOption.type === 'google_sheets' ? 'Hoja de Google' : 'Base Inteligente'}`,
         source: currentDatabaseOption.type,
         details: currentDatabaseOption.type === 'google_sheets' 
-            ? currentDatabaseOption.name // For GSheet, details could be the name provided or orig Excel name (not applicable now)
+            ? currentDatabaseOption.name // For GSheet, details could be the name provided
             : currentDatabaseOption.name, // For SmartDB, name can be details
         accessUrl: currentDatabaseOption.type === 'google_sheets' ? currentDatabaseOption.accessUrl : undefined,
       });
@@ -491,3 +490,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    
