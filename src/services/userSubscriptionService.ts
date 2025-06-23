@@ -4,39 +4,33 @@
 
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile, SubscriptionPlanType, AssistantConfig } from '@/types';
-import { searchAvailableNumber, buyNumber } from './vonage'; // Assuming US numbers for now
+import { getNumberForWhatsApp } from './sms-activate'; // Updated import
 
 /**
- * Provisions a Vonage number specifically for the test plan.
- * This function only handles searching and buying the number, not DB updates.
- * @returns An object with the phoneNumber and countryCode, or null if it fails.
+ * Provisions a SMS-Activate number specifically for the test plan.
+ * This function only handles getting the number, not DB updates.
+ * @returns An object with the phoneNumber, activationId and countryCode, or null if it fails.
  */
-export async function provisionTestVonageNumber(): Promise<{ phoneNumber: string; countryCode: string; } | null> {
-    console.log(`Attempting to provision a Vonage number for a test plan.`);
+export async function provisionTestSmsActivateNumber(): Promise<{ phoneNumber: string; activationId: string; countryCode: string; } | null> {
+    console.log(`Attempting to provision a SMS-Activate number for a test plan.`);
     try {
-        const availableNumber = await searchAvailableNumber('US');
-        if (!availableNumber) {
-            console.error(`No Vonage numbers available in US for test plan.`);
+        const numberDetails = await getNumberForWhatsApp('US');
+        if (!numberDetails) {
+            console.error(`No SMS-Activate numbers available in US for test plan.`);
             return null;
         }
 
-        const bought = await buyNumber('US', availableNumber);
-        if (!bought) {
-            console.error(`Failed to buy Vonage number ${availableNumber} for test plan.`);
-            return null;
-        }
-
-        console.log(`Successfully bought Vonage number ${availableNumber} for test plan.`);
-        return { phoneNumber: availableNumber, countryCode: 'US' };
+        console.log(`Successfully got SMS-Activate number ${numberDetails.number} for test plan.`);
+        return { phoneNumber: numberDetails.number, activationId: numberDetails.activationId, countryCode: 'US' };
     } catch (error: any) {
-        console.error(`Error in provisionTestVonageNumber:`, error.message, error.stack);
+        console.error(`Error in provisionTestSmsActivateNumber:`, error.message, error.stack);
         return null;
     }
 }
 
 
 /**
- * Provisions a Vonage number for a user and updates their profile in MongoDB.
+ * Provisions a SMS-Activate number for a user and updates their profile in MongoDB.
  * Used by the Stripe webhook for paid plans.
  * @param firebaseUid The Firebase UID of the user.
  * @param stripeCustomerId Optional. The Stripe Customer ID.
@@ -44,35 +38,30 @@ export async function provisionTestVonageNumber(): Promise<{ phoneNumber: string
  * @param planId Optional. The plan ID to set for the user.
  * @returns True if successful, false otherwise.
  */
-export async function provisionVonageNumberForUser(
+export async function provisionSmsActivateNumberForUser(
   firebaseUid: string,
   stripeCustomerId?: string,
   stripeSubscriptionId?: string,
   planId?: SubscriptionPlanType
 ): Promise<boolean> {
-  console.log(`Attempting to provision Vonage number for user: ${firebaseUid}, planId: ${planId}`);
+  console.log(`Attempting to provision SMS-Activate number for user: ${firebaseUid}, planId: ${planId}`);
   try {
-    const availableNumber = await searchAvailableNumber('US'); // Assuming US for now
-    if (!availableNumber) {
-      console.error(`No Vonage numbers available for user ${firebaseUid} in US.`);
+    const numberDetails = await getNumberForWhatsApp('US'); // Assuming US for now
+    if (!numberDetails) {
+      console.error(`No SMS-Activate numbers available for user ${firebaseUid} in US.`);
       return false;
     }
 
-    const bought = await buyNumber('US', availableNumber);
-    if (!bought) {
-      console.error(`Failed to buy Vonage number ${availableNumber} for user ${firebaseUid}.`);
-      return false;
-    }
-
-    console.log(`Successfully bought Vonage number ${availableNumber} for user ${firebaseUid}.`);
+    console.log(`Successfully got SMS-Activate number ${numberDetails.number} for user ${firebaseUid}.`);
 
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
 
     const setData: Partial<Omit<UserProfile, 'assistants' | 'databases' | 'email' | 'isAuthenticated'>> = {
-      virtualPhoneNumber: availableNumber,
-      countryCodeForVonageNumber: 'US',
-      vonageNumberStatus: 'active',
+      virtualPhoneNumber: numberDetails.number,
+      numberCountryCode: 'US',
+      numberActivationId: numberDetails.activationId,
+      numberActivationStatus: 'active',
     };
     if (stripeCustomerId) {
       setData.stripeCustomerId = stripeCustomerId;
@@ -102,10 +91,10 @@ export async function provisionVonageNumberForUser(
       );
 
       if (firstAssistantWithoutPhoneIndex !== -1) {
-        console.log(`Assigning new Vonage number ${availableNumber} to assistant ${currentUserProfile.assistants[firstAssistantWithoutPhoneIndex].id} for user ${firebaseUid}`);
+        console.log(`Assigning new number ${numberDetails.number} to assistant ${currentUserProfile.assistants[firstAssistantWithoutPhoneIndex].id} for user ${firebaseUid}`);
         assistantsToUpdate = currentUserProfile.assistants.map((asst, index) =>
           index === firstAssistantWithoutPhoneIndex
-            ? { ...asst, phoneLinked: availableNumber }
+            ? { ...asst, phoneLinked: numberDetails.number }
             : asst
         );
         (setData as UserProfile).assistants = assistantsToUpdate.map(asst => ({
@@ -139,10 +128,10 @@ export async function provisionVonageNumberForUser(
     );
 
     if (result.modifiedCount > 0 || result.upsertedId) {
-      console.log(`Successfully updated/created profile for user ${firebaseUid} with Vonage number ${availableNumber}.`);
+      console.log(`Successfully updated/created profile for user ${firebaseUid} with SMS-Activate number ${numberDetails.number}.`);
       return true;
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
-      console.log(`Profile for user ${firebaseUid} was matched but not modified. Vonage number ${availableNumber} provisioned. Status may already be up-to-date.`);
+      console.log(`Profile for user ${firebaseUid} was matched but not modified. SMS-Activate number ${numberDetails.number} provisioned. Status may already be up-to-date.`);
       return true;
     }
      else {
@@ -150,9 +139,7 @@ export async function provisionVonageNumberForUser(
       return true;
     }
   } catch (error: any) {
-    console.error(`Error in provisionVonageNumberForUser for ${firebaseUid}:`, error.message, error.stack);
+    console.error(`Error in provisionSmsActivateNumberForUser for ${firebaseUid}:`, error.message, error.stack);
     return false;
   }
 }
-
-    

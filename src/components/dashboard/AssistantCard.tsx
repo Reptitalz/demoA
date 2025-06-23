@@ -16,7 +16,7 @@ interface AssistantCardProps {
   onReconfigure: (assistantId: string) => void;
   animationDelay?: string;
   accountVirtualPhoneNumber?: string;
-  accountVonageNumberStatus?: UserProfile['vonageNumberStatus'];
+  accountNumberStatus?: UserProfile['numberActivationStatus'];
 }
 
 const INITIAL_PURPOSES_TO_SHOW = 2;
@@ -26,7 +26,7 @@ const AssistantCard = ({
   onReconfigure, 
   animationDelay = "0s",
   accountVirtualPhoneNumber,
-  accountVonageNumberStatus 
+  accountNumberStatus
 }: AssistantCardProps) => {
   const [clientMounted, setClientMounted] = useState(false);
   const [showAllPurposes, setShowAllPurposes] = useState(false);
@@ -89,7 +89,7 @@ const AssistantCard = ({
 
   if (assistant.phoneLinked) {
     if (assistant.phoneLinked === accountVirtualPhoneNumber) {
-        switch (accountVonageNumberStatus) {
+        switch (accountNumberStatus) {
             case 'active':
                 badgeText = "Activo";
                 badgeVariant = "default";

@@ -1,157 +1,116 @@
+
 'use server';
 import axios from 'axios';
 
-const VONAGE_API_KEY = process.env.VONAGE_API_KEY;
-const VONAGE_API_SECRET = process.env.VONAGE_API_SECRET;
-const VONAGE_BASE_URL = 'https://rest.nexmo.com';
+// This service now interacts with SMS-Activate.io API.
 
-if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
-  console.error('Vonage API Key or Secret is not defined in environment variables.');
+const SMS_ACTIVATE_API_KEY = process.env.SMS_ACTIVATE_API_KEY || '13048481'; // YOUR_API_KEY from https://sms-activate.org/en/profile
+const SMS_ACTIVATE_BASE_URL = 'https://api.sms-activate.org/stubs/handler_api.php';
+
+if (!process.env.SMS_ACTIVATE_API_KEY) {
+  console.error('CRITICAL: SMS_ACTIVATE_API_KEY is not defined in environment variables. The service will not work.');
+  console.error('Please get your API key from your SMS-Activate.io profile and set it in your .env.local file.');
+}
+if (process.env.SMS_ACTIVATE_API_KEY === '13048481') {
+    console.error('CRITICAL: You are using a placeholder API Key for SMS-Activate.io. Please replace "13048481" with your actual API key.');
 }
 
-interface VonageSearchResponseNumber {
-  country: string;
-  msisdn: string;
-  type: string;
-  cost: string;
-  features: string[];
+
+interface GetNumberResponse {
+  ACCESS_NUMBER?: string;
+  ACCESS_RETRY_GET?: string;
+  ACCESS_ACTIVATION?: string;
 }
 
-interface VonageSearchResponse {
-  count: number;
-  numbers: VonageSearchResponseNumber[];
+interface SetStatusResponse {
+    ACCESS_SUCCESS?: string;
+    ACCESS_CANCEL?: string;
 }
 
-interface VonageActionResponse { // General response for buy/cancel
-  'error-code'?: string;
-  'error-code-label'?: string;
-  // Add other success fields if known
-}
+// See https://sms-activate.org/en/api2#countriesandservices
+const countryMap: { [key: string]: number } = {
+  'US': 0, // USA
+  'GB': 1, // UK
+  'CA': 36, // Canada
+  // Add more mappings as needed
+};
 
 /**
- * Searches for an available phone number in the specified country that costs less than or equal to $1.50.
+ * Gets a phone number for WhatsApp activation from a specified country.
  * @param countryCode The 2-letter country code (e.g., "US").
- * @returns A promise that resolves to the first available phone number string (msisdn) or null if none found.
+ * @returns A promise that resolves to an object with the number and activationId, or null if it fails.
  */
-export async function searchAvailableNumber(countryCode: string): Promise<string | null> {
-  if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
-    console.error('Vonage API credentials not configured.');
+export async function getNumberForWhatsApp(countryCode: string): Promise<{ number: string; activationId: string } | null> {
+  if (!SMS_ACTIVATE_API_KEY) {
+    console.error('SMS-Activate API key not configured.');
     return null;
   }
+
+  const countryId = countryMap[countryCode.toUpperCase()];
+  if (countryId === undefined) {
+    console.error(`Country code "${countryCode}" is not mapped to an SMS-Activate country ID.`);
+    return null;
+  }
+
   try {
-    const response = await axios.get<VonageSearchResponse>(`${VONAGE_BASE_URL}/number/search`, {
+    const response = await axios.get(SMS_ACTIVATE_BASE_URL, {
       params: {
-        country: countryCode,
-        features: 'VOICE,SMS',
-        api_key: VONAGE_API_KEY,
-        api_secret: VONAGE_API_SECRET,
-        size: 10, // Search a slightly larger pool to find a cheap one
+        api_key: SMS_ACTIVATE_API_KEY,
+        action: 'getNumber',
+        service: 'wa', // WhatsApp service code
+        country: countryId,
       },
     });
 
-    if (response.data && response.data.numbers && response.data.numbers.length > 0) {
-      // Find the first number that costs less than or equal to $1.50
-      const cheapNumber = response.data.numbers.find(num => {
-        const price = parseFloat(num.cost);
-        return !isNaN(price) && price <= 1.50;
-      });
-
-      if (cheapNumber) {
-        console.log(`Found available Vonage number in ${countryCode} for $${cheapNumber.cost}: ${cheapNumber.msisdn}`);
-        return cheapNumber.msisdn;
-      } else {
-        console.warn(`No available Vonage numbers found for country ${countryCode} under $1.50.`);
-        return null;
-      }
+    const responseText = response.data as string;
+    if (responseText.startsWith('ACCESS_NUMBER')) {
+      const [, activationId, number] = responseText.split(':');
+      console.log(`Successfully acquired number ${number} for WhatsApp with activation ID ${activationId}`);
+      return { number, activationId };
     } else {
-      console.warn(`No available Vonage numbers found for country: ${countryCode}`);
+      console.error(`Failed to get number from SMS-Activate. Response: ${responseText}`);
       return null;
     }
   } catch (error) {
     const axiosError = error as import('axios').AxiosError;
-    console.error(`Error searching for Vonage number in ${countryCode}:`, axiosError.response?.data || axiosError.message);
+    console.error(`Error getting number from SMS-Activate for ${countryCode}:`, axiosError.response?.data || axiosError.message);
     return null;
   }
 }
 
 /**
- * Buys a specific phone number.
- * @param countryCode The 2-letter country code (e.g., "US").
- * @param msisdn The phone number (msisdn) to purchase.
- * @returns A promise that resolves to true if the purchase was successful, false otherwise.
- */
-export async function buyNumber(countryCode: string, msisdn: string): Promise<boolean> {
-  if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
-    console.error('Vonage API credentials not configured.');
-    return false;
-  }
-  try {
-    const response = await axios.post<VonageActionResponse>(
-      `${VONAGE_BASE_URL}/number/buy`,
-      new URLSearchParams({ // Vonage API for buy often expects form-urlencoded
-        country: countryCode,
-        msisdn: msisdn,
-        api_key: VONAGE_API_KEY,
-        api_secret: VONAGE_API_SECRET,
-      }).toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-    
-    if (response.data && response.data['error-code']) {
-      console.error(`Failed to buy Vonage number ${msisdn}. Error: ${response.data['error-code-label']} (${response.data['error-code']})`);
-      return false;
-    }
-    
-    console.log(`Successfully bought Vonage number: ${msisdn}`);
-    return true;
-  } catch (error) {
-    const axiosError = error as import('axios').AxiosError;
-    console.error(`Error buying Vonage number ${msisdn}:`, axiosError.response?.data || axiosError.message);
-    return false;
-  }
-}
-
-/**
- * Cancels a specific phone number.
- * @param msisdn The phone number (msisdn) to cancel.
- * @param countryCode The 2-letter country code of the number.
+ * Cancels a specific number activation.
+ * @param activationId The activation ID to cancel.
  * @returns A promise that resolves to true if the cancellation was successful, false otherwise.
  */
-export async function cancelNumber(msisdn: string, countryCode: string): Promise<boolean> {
-  if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
-    console.error('Vonage API credentials not configured for cancellation.');
+export async function cancelActivation(activationId: string): Promise<boolean> {
+  if (!SMS_ACTIVATE_API_KEY) {
+    console.error('SMS-Activate API key not configured.');
     return false;
   }
   try {
-    const response = await axios.post<VonageActionResponse>(
-      `${VONAGE_BASE_URL}/number/cancel`,
-      new URLSearchParams({
-        country: countryCode, // Country code is typically required for cancellation
-        msisdn: msisdn,
-        api_key: VONAGE_API_KEY,
-        api_secret: VONAGE_API_SECRET,
-      }).toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+    const response = await axios.get(SMS_ACTIVATE_BASE_URL, {
+        params: {
+          api_key: SMS_ACTIVATE_API_KEY,
+          action: 'setStatus',
+          id: activationId,
+          status: 8, // 8 = Cancel activation
         },
+      });
+
+      const responseText = response.data as string;
+
+      if (responseText === 'ACCESS_CANCEL') {
+        console.log(`Successfully cancelled activation ID: ${activationId}`);
+        return true;
+      } else {
+        console.error(`Failed to cancel activation ${activationId}. Response: ${responseText}`);
+        return false;
       }
-    );
 
-    if (response.data && response.data['error-code']) {
-      console.error(`Failed to cancel Vonage number ${msisdn}. Error: ${response.data['error-code-label']} (${response.data['error-code']})`);
-      return false;
-    }
-
-    console.log(`Successfully cancelled Vonage number: ${msisdn}`);
-    return true;
   } catch (error) {
     const axiosError = error as import('axios').AxiosError;
-    console.error(`Error cancelling Vonage number ${msisdn}:`, axiosError.response?.data || axiosError.message);
+    console.error(`Error cancelling activation ${activationId}:`, axiosError.response?.data || axiosError.message);
     return false;
   }
 }

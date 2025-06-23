@@ -5,7 +5,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { provisionTestVonageNumber } from '@/services/userSubscriptionService';
+import { provisionTestSmsActivateNumber } from '@/services/userSubscriptionService';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const PAID_PLANS: SubscriptionPlanType[] = ['premium_179', 'business_270'];
@@ -89,13 +89,14 @@ export async function POST(request: NextRequest) {
 
     // Test Plan Provisioning Logic
     if (userProfile.currentPlan === 'test_plan' && !existingProfile?.virtualPhoneNumber) {
-        console.log(`Test plan detected for user ${decodedToken.uid} without a number. Attempting to provision a Vonage number.`);
-        const provisionResult = await provisionTestVonageNumber();
+        console.log(`Test plan detected for user ${decodedToken.uid} without a number. Attempting to provision a SMS-Activate number.`);
+        const provisionResult = await provisionTestSmsActivateNumber();
         if (provisionResult) {
             console.log(`Assigning new number ${provisionResult.phoneNumber} to test plan user ${decodedToken.uid}`);
             userProfile.virtualPhoneNumber = provisionResult.phoneNumber;
-            userProfile.countryCodeForVonageNumber = provisionResult.countryCode;
-            userProfile.vonageNumberStatus = 'active';
+            userProfile.numberCountryCode = provisionResult.countryCode;
+            userProfile.numberActivationId = provisionResult.activationId;
+            userProfile.numberActivationStatus = 'active';
 
             if (userProfile.assistants && userProfile.assistants.length > 0) {
                  const firstAssistantWithoutPhoneIndex = userProfile.assistants.findIndex((asst: AssistantConfig) => !asst.phoneLinked);
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
                  }
             }
         } else {
-            console.error(`Failed to provision Vonage number for test plan user ${decodedToken.uid}. Profile will be saved without a number.`);
+            console.error(`Failed to provision SMS-Activate number for test plan user ${decodedToken.uid}. Profile will be saved without a number.`);
         }
     }
 
@@ -163,8 +164,9 @@ export async function POST(request: NextRequest) {
     if (serializableProfile.stripeCustomerId === undefined) serializableProfile.stripeCustomerId = existingProfile?.stripeCustomerId || undefined;
     if (serializableProfile.stripeSubscriptionId === undefined) serializableProfile.stripeSubscriptionId = existingProfile?.stripeSubscriptionId || undefined;
     if (serializableProfile.virtualPhoneNumber === undefined) serializableProfile.virtualPhoneNumber = existingProfile?.virtualPhoneNumber || undefined;
-    if (serializableProfile.vonageNumberStatus === undefined) serializableProfile.vonageNumberStatus = existingProfile?.vonageNumberStatus || undefined;
-    if (serializableProfile.countryCodeForVonageNumber === undefined) serializableProfile.countryCodeForVonageNumber = existingProfile?.countryCodeForVonageNumber || undefined;
+    if (serializableProfile.numberActivationStatus === undefined) serializableProfile.numberActivationStatus = existingProfile?.numberActivationStatus || undefined;
+    if (serializableProfile.numberCountryCode === undefined) serializableProfile.numberCountryCode = existingProfile?.numberCountryCode || undefined;
+    if (serializableProfile.numberActivationId === undefined) serializableProfile.numberActivationId = existingProfile?.numberActivationId || undefined;
     if (serializableProfile.ownerPhoneNumberForNotifications === undefined) serializableProfile.ownerPhoneNumberForNotifications = existingProfile?.ownerPhoneNumberForNotifications || undefined;
 
     delete (serializableProfile as any)._id;
@@ -205,5 +207,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Failed to process request due to an internal error', error: errorMessage }, { status: 500 });
   }
 }
-
-    

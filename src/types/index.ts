@@ -51,8 +51,9 @@ export interface UserProfile {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   virtualPhoneNumber?: string;
-  vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled';
-  countryCodeForVonageNumber?: string;
+  numberActivationStatus?: 'active' | 'pending_cancellation' | 'cancelled';
+  numberCountryCode?: string;
+  numberActivationId?: string;
   ownerPhoneNumberForNotifications?: string;
 }
 

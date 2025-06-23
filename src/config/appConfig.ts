@@ -42,7 +42,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     name: "Plan Premium (1er mes $39)",
     priceMonthly: 179,
     assistantLimit: 1,
-    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)", "Número de Vonage dedicado (EE. UU.)"],
+    features: ["Oferta especial: Primer mes a $39 USD", "Luego $179 USD/mes por asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)", "Número dedicado de SMS-Activate (EE. UU.)"],
     stripePriceId: "price_1RQdzjBwdSNcDr02SfU6zNHW"
   },
   {
@@ -50,7 +50,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     name: "Plan de Negocios",
     priceMonthly: 270,
     assistantLimit: 5,
-    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado", "Proporciona tus propios números para asistentes", "Número de Vonage adicional para la cuenta (EE. UU.)"],
+    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado", "Proporciona tus propios números para asistentes", "Número adicional de SMS-Activate (EE. UU.)"],
     stripePriceId: "price_1RQenGBwdSNcDr02fU9nVQkg"
   },
   {
@@ -58,7 +58,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     name: "Plan de Prueba (Webhook)",
     priceMonthly: 0,
     assistantLimit: 1,
-    features: ["Solo para pruebas de webhook", "Genera número de teléfono aleatorio", "No usa Vonage ni Stripe", "Asistente funcional con webhook"]
+    features: ["Solo para pruebas de webhook", "Genera número de teléfono de SMS-Activate", "No usa Stripe", "Asistente funcional con webhook"]
   }
 ];
 
@@ -80,4 +80,3 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   business_270: FaBriefcase,
   test_plan: FaFlask,
 };
-
