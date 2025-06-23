@@ -1,4 +1,5 @@
 
+
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
@@ -51,7 +52,7 @@ export interface UserProfile {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   virtualPhoneNumber?: string;
-  numberActivationStatus?: 'active' | 'pending_cancellation' | 'cancelled';
+  numberActivationStatus?: 'active' | 'pending_cancellation' | 'cancelled' | 'pending_acquisition';
   numberCountryCode?: string;
   numberActivationId?: string;
   ownerPhoneNumberForNotifications?: string;

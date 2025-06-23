@@ -5,7 +5,6 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { provisionTestSmsActivateNumber } from '@/services/userSubscriptionService';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const PAID_PLANS: SubscriptionPlanType[] = ['premium_179', 'business_270'];
@@ -87,26 +86,10 @@ export async function POST(request: NextRequest) {
     const { db } = await connectToDatabase();
     const existingProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: decodedToken.uid });
 
-    // Test Plan Provisioning Logic
-    if (userProfile.currentPlan === 'test_plan' && !existingProfile?.virtualPhoneNumber) {
-        console.log(`Test plan detected for user ${decodedToken.uid} without a number. Attempting to provision a SMS-Activate number.`);
-        const provisionResult = await provisionTestSmsActivateNumber();
-        if (provisionResult) {
-            console.log(`Assigning new number ${provisionResult.phoneNumber} to test plan user ${decodedToken.uid}`);
-            userProfile.virtualPhoneNumber = provisionResult.phoneNumber;
-            userProfile.numberCountryCode = provisionResult.countryCode;
-            userProfile.numberActivationId = provisionResult.activationId;
-            userProfile.numberActivationStatus = 'active';
-
-            if (userProfile.assistants && userProfile.assistants.length > 0) {
-                 const firstAssistantWithoutPhoneIndex = userProfile.assistants.findIndex((asst: AssistantConfig) => !asst.phoneLinked);
-                 if (firstAssistantWithoutPhoneIndex !== -1) {
-                    userProfile.assistants[firstAssistantWithoutPhoneIndex].phoneLinked = provisionResult.phoneNumber;
-                 }
-            }
-        } else {
-            console.error(`Failed to provision SMS-Activate number for test plan user ${decodedToken.uid}. Profile will be saved without a number.`);
-        }
+    // Test Plan logic - set to pending acquisition instead of buying number directly
+    if (userProfile.currentPlan === 'test_plan' && !existingProfile?.virtualPhoneNumber && existingProfile?.numberActivationStatus !== 'pending_acquisition') {
+        console.log(`Test plan detected for user ${decodedToken.uid}. Setting number status to 'pending_acquisition'.`);
+        userProfile.numberActivationStatus = 'pending_acquisition';
     }
 
 

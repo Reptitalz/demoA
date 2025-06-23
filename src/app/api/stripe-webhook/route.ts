@@ -1,10 +1,11 @@
 
+
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile, AssistantConfig } from '@/types';
-import { provisionSmsActivateNumberForUser } from '@/services/userSubscriptionService';
+import { setNumberAcquisitionAsPending } from '@/services/userSubscriptionService';
 import { cancelActivation } from '@/services/vonage';
 import { DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN, subscriptionPlansConfig } from '@/config/appConfig';
 
@@ -164,14 +165,14 @@ export async function POST(request: NextRequest) {
               console.error(`Error checking existing profile for ${firebaseUid}:`, dbError.message, dbError.stack);
           }
 
-          console.log(`Attempting to provision SMS-Activate number for user ${firebaseUid}, stripeCustomerId: ${stripeCustomerId}, planId: ${planIdFromStripe}`);
-          const provisionSuccess = await provisionSmsActivateNumberForUser(firebaseUid, stripeCustomerId, stripeSubscriptionId, planIdFromStripe as any);
+          console.log(`Setting user ${firebaseUid} to pending number acquisition status.`);
+          const provisionSuccess = await setNumberAcquisitionAsPending(firebaseUid, stripeCustomerId, stripeSubscriptionId, planIdFromStripe as any);
           if (provisionSuccess) {
-            console.log(`Virtual number provisioned successfully for ${firebaseUid}.`);
-            return NextResponse.json({ received: true, message: 'Virtual number provisioned successfully. Plan updated if provided.' }, { status: 200 });
+            console.log(`User ${firebaseUid} successfully marked for number acquisition.`);
+            return NextResponse.json({ received: true, message: 'User profile marked for number acquisition by external service.' }, { status: 200 });
           } else {
-            console.error(`Failed to provision virtual number for firebaseUid: ${firebaseUid} after ${event.type}.`);
-            return NextResponse.json({ received: true, error: 'Processed, but failed to provision virtual number fully.' }, { status: 200 });
+            console.error(`Failed to mark user profile for number acquisition: ${firebaseUid} after ${event.type}.`);
+            return NextResponse.json({ received: true, error: 'Processed, but failed to update user profile for number acquisition.' }, { status: 200 });
           }
       } else if (firebaseUid && stripeCustomerId) { 
           console.log(`Processing renewal or existing user update for ${firebaseUid}. Setting numberActivationStatus to active and updating plan to ${planIdFromStripe || 'N/A'}.`);
