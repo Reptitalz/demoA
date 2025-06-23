@@ -15,6 +15,7 @@ interface AssistantWebhookPayload {
     currentPlan: UserProfile['currentPlan'];
     stripeCustomerId?: string;
     virtualPhoneNumber?: string; // Número de Vonage principal de la cuenta
+    ownerPhoneNumberForNotifications?: string;
   };
   assistant: {
     id: string;
@@ -55,6 +56,7 @@ export async function sendAssistantCreatedWebhook(
       currentPlan: userProfile.currentPlan,
       stripeCustomerId: userProfile.stripeCustomerId,
       virtualPhoneNumber: userProfile.virtualPhoneNumber,
+      ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
     },
     assistant: {
       id: assistant.id,

@@ -18,6 +18,7 @@ const initialWizardState: WizardState = {
   authMethod: null,
   selectedPlan: null,
   customPhoneNumber: '',
+  ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
   editingAssistantId: null,
 };
@@ -52,6 +53,7 @@ type Action =
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'SET_SUBSCRIPTION_PLAN'; payload: SubscriptionPlanType | null }
   | { type: 'UPDATE_CUSTOM_PHONE_NUMBER'; payload: string }
+  | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
   | { type: 'LOAD_STATE'; payload: AppState }
@@ -120,6 +122,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, selectedPlan: action.payload } };
     case 'UPDATE_CUSTOM_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, customPhoneNumber: action.payload } };
+    case 'UPDATE_OWNER_PHONE_NUMBER':
+      return { ...state, wizard: { ...state.wizard, ownerPhoneNumberForNotifications: action.payload } };
     case 'COMPLETE_SETUP':
       return {
         ...state,
@@ -164,6 +168,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...(loadedState.wizard || {}),
           selectedPurposes: wizardSelectedPurposesSet,
           customPhoneNumber: loadedState.wizard?.customPhoneNumber || '',
+          ownerPhoneNumberForNotifications: loadedState.wizard?.ownerPhoneNumberForNotifications || '',
           databaseOption: { 
             type: (loadedState.wizard?.databaseOption?.type as DatabaseSource | null) || null,
             name: loadedState.wizard?.databaseOption?.name || '',
@@ -411,4 +416,3 @@ export const useApp = () => {
   }
   return context;
 };
-

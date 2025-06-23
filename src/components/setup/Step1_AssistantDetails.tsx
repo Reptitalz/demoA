@@ -8,13 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
-import { FaPhone } from "react-icons/fa";
+import { FaPhone, FaWhatsapp } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
-  const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring } = state.wizard;
+  const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring, ownerPhoneNumberForNotifications } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
@@ -26,6 +26,10 @@ const Step1AssistantDetails = () => {
 
   const handleCustomPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_CUSTOM_PHONE_NUMBER', payload: e.target.value });
+  };
+
+  const handleOwnerPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: e.target.value });
   };
 
   const showCustomPhoneInput = selectedPlan === 'business_270' && !isReconfiguring;
@@ -66,6 +70,26 @@ const Step1AssistantDetails = () => {
             />
             <p className="text-xs text-muted-foreground">
               Ingresa el número de teléfono que este asistente utilizará.
+            </p>
+          </div>
+        )}
+
+        {selectedPurposes.has('notify_owner') && (
+          <div className="space-y-2 animate-fadeIn">
+            <Label htmlFor="ownerPhoneNumber" className="text-base flex items-center gap-2">
+              <FaWhatsapp className="text-green-500" /> Tu WhatsApp para notificaciones
+            </Label>
+            <Input
+              id="ownerPhoneNumber"
+              type="tel"
+              placeholder="Ej: +521234567890"
+              value={ownerPhoneNumberForNotifications}
+              onChange={handleOwnerPhoneChange}
+              className="text-base"
+              aria-required="true"
+            />
+            <p className="text-xs text-muted-foreground">
+              El asistente te notificará a este número cuando esté listo o requiera tu ayuda.
             </p>
           </div>
         )}
@@ -120,4 +144,3 @@ const Step1AssistantDetails = () => {
 };
 
 export default Step1AssistantDetails;
-

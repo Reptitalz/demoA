@@ -24,7 +24,7 @@ const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId } = state.wizard;
+  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
@@ -54,6 +54,9 @@ const SetupPage = () => {
         case 1: // Assistant Details
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
+          if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) {
+            return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
+          }
           break;
         case 2: // DB config or Plan
           if (dbNeeded) { // DB config
@@ -75,6 +78,9 @@ const SetupPage = () => {
         case 1: // Assistant Details
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
+          if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) {
+            return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
+          }
           if (selectedPlan === 'business_270' && !isReconfiguring && !customPhoneNumber?.trim()) {
             return "Por favor, ingresa un número de teléfono para el asistente (Plan de Negocios).";
           }
@@ -113,7 +119,13 @@ const SetupPage = () => {
 
     if (isReconfiguring) {
       switch (currentValidationStep) {
-        case 1: return assistantName.trim() !== '' && selectedPurposes.size > 0;
+        case 1:
+          const reconfigBaseValid = assistantName.trim() !== '' && selectedPurposes.size > 0;
+          let reconfigNotifyOwnerValid = true;
+          if (selectedPurposes.has('notify_owner')) {
+            reconfigNotifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
+          }
+          return reconfigBaseValid && reconfigNotifyOwnerValid;
         case 2: // DB or Plan
           if (dbNeeded) { // DB config
             if (!databaseOption.type) return false;
@@ -133,8 +145,12 @@ const SetupPage = () => {
       switch (currentValidationStep) {
         case 1: // Details
           const baseValid = assistantName.trim() !== '' && selectedPurposes.size > 0;
-          if (selectedPlan === 'business_270' && !isReconfiguring) return baseValid && !!customPhoneNumber?.trim();
-          return baseValid;
+          let notifyOwnerValid = true;
+          if (selectedPurposes.has('notify_owner')) {
+            notifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
+          }
+          if (selectedPlan === 'business_270' && !isReconfiguring) return baseValid && !!customPhoneNumber?.trim() && notifyOwnerValid;
+          return baseValid && notifyOwnerValid;
         case 2: // DB or Auth
           if (dbNeeded) { // DB
             if (!databaseOption.type) return false;
@@ -301,6 +317,7 @@ const SetupPage = () => {
       currentPlan: selectedPlan,
       assistants: updatedAssistantsArray,
       databases: updatedDatabasesArray,
+      ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
     };
     
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
@@ -474,4 +491,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-

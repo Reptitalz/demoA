@@ -53,6 +53,7 @@ export interface UserProfile {
   virtualPhoneNumber?: string;
   vonageNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled';
   countryCodeForVonageNumber?: string;
+  ownerPhoneNumberForNotifications?: string;
 }
 
 // For wizard state
@@ -69,6 +70,7 @@ export interface WizardState {
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
   customPhoneNumber?: string;
+  ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
 }
@@ -79,4 +81,3 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean;
 }
-

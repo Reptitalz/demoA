@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
     if (serializableProfile.virtualPhoneNumber === undefined) serializableProfile.virtualPhoneNumber = existingProfile?.virtualPhoneNumber || undefined;
     if (serializableProfile.vonageNumberStatus === undefined) serializableProfile.vonageNumberStatus = existingProfile?.vonageNumberStatus || undefined;
     if (serializableProfile.countryCodeForVonageNumber === undefined) serializableProfile.countryCodeForVonageNumber = existingProfile?.countryCodeForVonageNumber || undefined;
+    if (serializableProfile.ownerPhoneNumberForNotifications === undefined) serializableProfile.ownerPhoneNumberForNotifications = existingProfile?.ownerPhoneNumberForNotifications || undefined;
 
     delete (serializableProfile as any)._id;
 
