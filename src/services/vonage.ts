@@ -4,15 +4,11 @@ import axios from 'axios';
 
 // This service now interacts with SMS-Activate.io API.
 
-const SMS_ACTIVATE_API_KEY = process.env.SMS_ACTIVATE_API_KEY || '13048481'; // YOUR_API_KEY from https://sms-activate.org/en/profile
+const SMS_ACTIVATE_API_KEY = process.env.SMS_ACTIVATE_API_KEY || '25AA2772105069bf90Addb4de9e9d3f5'; // YOUR_API_KEY from https://sms-activate.org/en/profile
 const SMS_ACTIVATE_BASE_URL = 'https://api.sms-activate.org/stubs/handler_api.php';
 
 if (!process.env.SMS_ACTIVATE_API_KEY) {
-  console.error('CRITICAL: SMS_ACTIVATE_API_KEY is not defined in environment variables. The service will not work.');
-  console.error('Please get your API key from your SMS-Activate.io profile and set it in your .env.local file.');
-}
-if (process.env.SMS_ACTIVATE_API_KEY === '13048481') {
-    console.error('CRITICAL: You are using a placeholder API Key for SMS-Activate.io. Please replace "13048481" with your actual API key.');
+  console.warn('WARNING: SMS_ACTIVATE_API_KEY is not defined in environment variables. Using hardcoded fallback key. It is strongly recommended to set this in your .env.local file for security.');
 }
 
 
