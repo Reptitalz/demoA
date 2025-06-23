@@ -4,7 +4,7 @@
 
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile, SubscriptionPlanType, AssistantConfig } from '@/types';
-import { getNumberForWhatsApp } from './sms-activate'; // Updated import
+import { getNumberForWhatsApp } from '@/services/vonage';
 
 /**
  * Provisions a SMS-Activate number specifically for the test plan.

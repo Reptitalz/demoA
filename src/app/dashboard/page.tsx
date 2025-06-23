@@ -157,6 +157,8 @@ const DashboardPage = () => {
                 assistant={assistant} 
                 onReconfigure={handleReconfigureAssistant}
                 animationDelay={`${0.4 + index * 0.1}s`}
+                accountVirtualPhoneNumber={userProfile.virtualPhoneNumber}
+                accountNumberStatus={userProfile.numberActivationStatus}
               />
             ))}
           </div>
@@ -195,4 +197,5 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
 

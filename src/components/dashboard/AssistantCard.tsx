@@ -1,6 +1,6 @@
 
 "use client";
-import type { AssistantConfig, UserProfile } from "@/types";
+import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ interface AssistantCardProps {
   onReconfigure: (assistantId: string) => void;
   animationDelay?: string;
   accountVirtualPhoneNumber?: string;
-  accountNumberStatus?: UserProfile['numberActivationStatus'];
+  accountNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled';
 }
 
 const INITIAL_PURPOSES_TO_SHOW = 2;

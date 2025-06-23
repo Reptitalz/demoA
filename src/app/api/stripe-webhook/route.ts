@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile, AssistantConfig } from '@/types';
 import { provisionSmsActivateNumberForUser } from '@/services/userSubscriptionService';
-import { cancelActivation } from '@/services/sms-activate';
+import { cancelActivation } from '@/services/vonage';
 import { DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN, subscriptionPlansConfig } from '@/config/appConfig';
 
 
