@@ -1,4 +1,3 @@
-
 'use server';
 import axios from 'axios';
 
@@ -30,7 +29,7 @@ interface VonageActionResponse { // General response for buy/cancel
 }
 
 /**
- * Searches for an available phone number in the specified country that costs less than $2.00.
+ * Searches for an available phone number in the specified country that costs less than or equal to $1.50.
  * @param countryCode The 2-letter country code (e.g., "US").
  * @returns A promise that resolves to the first available phone number string (msisdn) or null if none found.
  */
@@ -51,17 +50,17 @@ export async function searchAvailableNumber(countryCode: string): Promise<string
     });
 
     if (response.data && response.data.numbers && response.data.numbers.length > 0) {
-      // Find the first number that costs less than $2.00
+      // Find the first number that costs less than or equal to $1.50
       const cheapNumber = response.data.numbers.find(num => {
         const price = parseFloat(num.cost);
-        return !isNaN(price) && price < 2.00;
+        return !isNaN(price) && price <= 1.50;
       });
 
       if (cheapNumber) {
         console.log(`Found available Vonage number in ${countryCode} for $${cheapNumber.cost}: ${cheapNumber.msisdn}`);
         return cheapNumber.msisdn;
       } else {
-        console.warn(`No available Vonage numbers found for country ${countryCode} under $2.00.`);
+        console.warn(`No available Vonage numbers found for country ${countryCode} under $1.50.`);
         return null;
       }
     } else {
