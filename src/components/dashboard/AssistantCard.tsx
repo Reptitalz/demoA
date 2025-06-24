@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -87,41 +87,35 @@ const AssistantCard = ({
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
   let badgeDynamicClasses = "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0";
 
-  if (assistant.phoneLinked || accountNumberStatus === 'pending_acquisition') {
-    // Logic for main account number status
-    if (assistant.phoneLinked === accountVirtualPhoneNumber || accountNumberStatus) {
-        switch (accountNumberStatus) {
-            case 'active':
-                badgeText = "Activo";
-                badgeVariant = "default";
-                badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
-                break;
-            case 'pending_cancellation':
-                badgeText = "Pendiente Canc.";
-                badgeVariant = "outline";
-                badgeDynamicClasses = cn(badgeDynamicClasses, "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400");
-                break;
-            case 'pending_acquisition':
-                badgeText = "Esperando número";
-                badgeVariant = "outline";
-                badgeDynamicClasses = cn(badgeDynamicClasses, "border-blue-400 text-blue-500 dark:border-blue-500 dark:text-blue-400");
-                break;
-            case 'cancelled':
-                badgeText = "Cancelado";
-                badgeVariant = "destructive";
-                break;
-            default: // Catches if assistant has a number but account status is weird/null
-                badgeText = "Activo";
-                badgeVariant = "default";
-                badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
-        }
+  // The account status is the source of truth for number-related states.
+  if (accountNumberStatus) {
+    switch (accountNumberStatus) {
+        case 'active':
+            badgeText = "Activo";
+            badgeVariant = "default";
+            badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
+            break;
+        case 'pending_cancellation':
+            badgeText = "Pendiente Canc.";
+            badgeVariant = "outline";
+            badgeDynamicClasses = cn(badgeDynamicClasses, "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400");
+            break;
+        case 'pending_acquisition':
+            badgeText = "Esperando número";
+            badgeVariant = "outline";
+            badgeDynamicClasses = cn(badgeDynamicClasses, "border-blue-400 text-blue-500 dark:border-blue-500 dark:text-blue-400");
+            break;
+        case 'cancelled':
+            badgeText = "Cancelado";
+            badgeVariant = "destructive";
+            break;
     }
-    // This case handles when an assistant has a number (like the default free one) but the main account status doesn't apply
-    else if (assistant.phoneLinked) {
-        badgeText = "Activo";
-        badgeVariant = "default";
-        badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
-    }
+  }
+  // This handles the case of a Free plan assistant, which has a number but no account-level status.
+  else if (assistant.phoneLinked) {
+      badgeText = "Activo";
+      badgeVariant = "default";
+      badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
   }
 
 
@@ -154,30 +148,35 @@ const AssistantCard = ({
                         {badgeText}
                     </Badge>
                 </div>
-                 {assistant.phoneLinked && (
+                {accountNumberStatus === 'pending_acquisition' ? (
+                  <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-2">
+                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                    <span className="text-muted-foreground">Preparando su asistente...</span>
+                  </CardDescription>
+                ) : assistant.phoneLinked ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                        <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
-                    </div>
-                    {isFullyActive && (
-                        <a
-                            href={whatsappUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={cn(
-                            "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
-                            "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
-                            "bg-brand-gradient"
-                            )}
-                            aria-label="Iniciar chat de WhatsApp"
-                            title="Iniciar chat de WhatsApp"
-                        >
-                            <FaWhatsapp size={14} />
-                            <span>Chatear</span>
-                        </a>
-                    )}
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                          <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
+                      </div>
+                      {isFullyActive && (
+                          <a
+                              href={whatsappUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={cn(
+                              "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
+                              "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
+                              "bg-brand-gradient"
+                              )}
+                              aria-label="Iniciar chat de WhatsApp"
+                              title="Iniciar chat de WhatsApp"
+                          >
+                              <FaWhatsapp size={14} />
+                              <span>Chatear</span>
+                          </a>
+                      )}
                     </CardDescription>
-                )}
+                ) : null}
               </div>
             </div>
 
