@@ -181,7 +181,7 @@ const SetupPage = () => {
         if (isReconfiguring) { // Reconfig: Details -> Plan
           dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // Jumps to Reconfig Step 2 (Plan)
         } else { // New Setup: Details -> Auth
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Jumps to New Setup Step 3 (Auth)
+          dispatch({ type: 'NEXT_WIZARD_STEP' }); // Go from step 1 to 2 (Auth)
         }
       }
       else if (currentStep < effectiveMaxSteps) {
@@ -199,6 +199,8 @@ const SetupPage = () => {
   const handlePrevious = () => {
     if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
+    } else if (currentStep === 2 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
+      dispatch({ type: 'PREVIOUS_WIZARD_STEP' }); // Go from 2 to 1
     } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) { // Came from Details to Plan (reconfig), go back to Details
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
     }
@@ -354,41 +356,21 @@ const SetupPage = () => {
   };
 
   const renderStepContent = () => {
-    let stepToRender = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
-    if (isReconfiguring) { // Reconfiguring flow: Details -> DB (optional) -> Plan
-      if (!dbNeeded) { // If DB is not needed, step 2 becomes the Plan step
-        if (currentStep === 2) stepToRender = 3; // Map wizard step 2 (conceptually plan) to component for step 4 (Plan)
-      }
-      // Actual components rendered based on stepToRender:
-      // currentStep 1 -> stepToRender 1 (Details)
-      // currentStep 2 -> if dbNeeded, stepToRender 2 (DB). else stepToRender 3 (Plan)
-      // currentStep 3 -> stepToRender 3 (Plan)
-      switch (stepToRender) {
-        case 1: return <Step1AssistantDetails />;
-        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // DB or Plan
-        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // Always Plan
-        default: return null;
-      }
-
-    } else { // Standard new setup flow: Details -> DB (optional) -> Auth -> Plan
-      if (!dbNeeded) { // If DB is not needed, step 2 becomes Auth, step 3 becomes Plan
-        if (currentStep === 2) stepToRender = 3; // Map wizard step 2 (conceptually auth) to component for step 3 (Auth)
-        if (currentStep === 3) stepToRender = 4; // Map wizard step 3 (conceptually plan) to component for step 4 (Plan)
-      }
-      // Actual components rendered based on stepToRender:
-      // currentStep 1 -> stepToRender 1 (Details)
-      // currentStep 2 -> if dbNeeded, stepToRender 2 (DB). else stepToRender 3 (Auth)
-      // currentStep 3 -> if dbNeeded, stepToRender 3 (Auth). else stepToRender 4 (Plan)
-      // currentStep 4 -> stepToRender 4 (Plan)
-      switch (stepToRender) {
-        case 1: return <Step1AssistantDetails />;
-        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
-        case 3: return dbNeeded ? <Step3Authentication /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
-        case 4: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
-        default: return null;
-      }
+    if (isReconfiguring) {
+      // Reconfiguring flow: Details -> DB (optional) -> Plan
+      if (currentStep === 1) return <Step1AssistantDetails />;
+      if (currentStep === 2) return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      if (currentStep === 3) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      return null;
+    } else {
+      // Standard new setup flow: Details -> DB (optional) -> Auth -> Plan
+      if (currentStep === 1) return <Step1AssistantDetails />;
+      if (currentStep === 2) return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleNext} />;
+      if (currentStep === 3) return dbNeeded ? <Step3Authentication onSuccess={handleNext} /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      if (currentStep === 4) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      return null;
     }
   };
 

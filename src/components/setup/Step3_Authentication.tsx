@@ -11,13 +11,18 @@ import { auth, googleProvider, signInWithRedirect, getRedirectResult } from '@/l
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
 
-const Step3Authentication = () => {
+interface Step3AuthenticationProps {
+  onSuccess: () => void;
+}
+
+const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
   const { authMethod } = state.wizard;
   const { isAuthenticated, authProvider: userProfileAuthProvider } = state.userProfile;
   const [isProcessingAuth, setIsProcessingAuth] = useState(true);
   const hasProcessedRedirect = useRef(false);
+  const hasCalledOnSuccess = useRef(false);
 
   // Effect to process the redirect result from Google Sign-In after returning to the page
   useEffect(() => {
@@ -33,12 +38,15 @@ const Step3Authentication = () => {
         
         if (result && result.user) {
           // User successfully signed in. AppProvider's onAuthStateChanged handles the profile update.
-          // We just need to update the wizard's auth method.
           dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
           toast({
             title: 'Inicio de Sesión Exitoso',
             description: `Has iniciado sesión como ${result.user.email}.`,
           });
+          if (!hasCalledOnSuccess.current) {
+            onSuccess();
+            hasCalledOnSuccess.current = true;
+          }
         }
       } catch (error: any) {
         if (error.code !== 'auth/redirect-cancelled-by-user' && error.code !== 'auth/no-redirect-operation' && error.code !== 'auth/web-storage-unsupported') {
@@ -51,14 +59,18 @@ const Step3Authentication = () => {
     };
     
     processRedirect();
-  }, [dispatch, toast]);
+  }, [dispatch, toast, onSuccess]);
 
-  // Effect to sync wizard state if user is ALREADY authenticated when the component loads
+  // Effect to sync wizard state AND advance if user is ALREADY authenticated when the component loads
   useEffect(() => {
     if (isAuthenticated && userProfileAuthProvider && !authMethod) {
       dispatch({ type: 'SET_AUTH_METHOD', payload: userProfileAuthProvider });
+      if (!hasCalledOnSuccess.current) {
+          onSuccess();
+          hasCalledOnSuccess.current = true;
+      }
     }
-  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch]);
+  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch, onSuccess]);
 
   const handleGoogleSignIn = async () => {
     setIsProcessingAuth(true);
@@ -125,5 +137,3 @@ const Step3Authentication = () => {
 };
 
 export default Step3Authentication;
-
-    
