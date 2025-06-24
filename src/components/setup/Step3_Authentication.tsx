@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -70,26 +71,12 @@ const Step3Authentication = () => {
       setIsProcessingAuth(false);
     }
   };
-
-  const handleNoAccountSignIn = () => {
-    dispatch({ type: 'SET_AUTH_METHOD', payload: "no_account" });
-    dispatch({ 
-      type: 'UPDATE_USER_PROFILE', 
-      payload: { 
-        isAuthenticated: true, 
-        authProvider: "no_account",
-      } 
-    });
-    toast({ title: "Continuar sin Cuenta", description: "Procederás sin vincular una cuenta." });
-  };
   
   const handleAuthSelect = (methodId: AuthProviderType) => {
     if (authMethod === methodId) return; // Don't re-trigger if already selected
 
     if (methodId === "google") {
       handleGoogleSignIn();
-    } else if (methodId === "no_account") {
-      handleNoAccountSignIn();
     }
   };
 
@@ -97,7 +84,7 @@ const Step3Authentication = () => {
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
         <CardTitle>Autenticación de Cuenta</CardTitle>
-        <CardDescription>Inicia sesión para guardar la configuración de tu asistente o continúa sin cuenta.</CardDescription>
+        <CardDescription>Inicia sesión con Google para guardar la configuración de tu asistente.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isProcessingAuth ? (
@@ -130,11 +117,6 @@ const Step3Authentication = () => {
                 <FaCheckCircle size={16} /> Autenticado como {state.userProfile.email}.
               </p>
             )}
-             {authMethod === "no_account" && isAuthenticated && (
-              <p className="text-sm text-center text-blue-500 flex items-center justify-center gap-1 pt-2">
-                <FaCheckCircle size={16} /> Has elegido continuar sin cuenta.
-              </p>
-            )}
           </>
         )}
       </CardContent>
@@ -143,3 +125,5 @@ const Step3Authentication = () => {
 };
 
 export default Step3Authentication;
+
+    

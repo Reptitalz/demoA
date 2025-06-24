@@ -81,8 +81,8 @@ const SetupPage = () => {
           if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) {
             return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
           }
-          if (selectedPlan === 'business_270' && !isReconfiguring && !customPhoneNumber?.trim()) {
-            return "Por favor, ingresa un número de teléfono para el asistente (Plan de Negocios).";
+          if ((selectedPlan === 'business_270' || selectedPlan === 'premium_179') && !isReconfiguring && !customPhoneNumber?.trim()) {
+            return "Tu plan requiere que proporciones un número de teléfono para el asistente.";
           }
           break;
         case 2: // DB Config or Auth
@@ -93,12 +93,12 @@ const SetupPage = () => {
               return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
            } else { // Auth (if DB not needed, this is step 2)
-             if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
+             if (!authMethod) return "Por favor, autentica tu cuenta para continuar.";
            }
           break;
         case 3: // Auth or Plan
           if (dbNeeded) { // Auth
-            if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
+            if (!authMethod) return "Por favor, autentica tu cuenta para continuar.";
           } else { // Plan (if DB not needed, this is step 3)
              if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           }
@@ -149,7 +149,7 @@ const SetupPage = () => {
           if (selectedPurposes.has('notify_owner')) {
             notifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
           }
-          if (selectedPlan === 'business_270' && !isReconfiguring) return baseValid && !!customPhoneNumber?.trim() && notifyOwnerValid;
+          if ((selectedPlan === 'business_270' || selectedPlan === 'premium_179') && !isReconfiguring) return baseValid && !!customPhoneNumber?.trim() && notifyOwnerValid;
           return baseValid && notifyOwnerValid;
         case 2: // DB or Auth
           if (dbNeeded) { // DB
@@ -244,15 +244,15 @@ const SetupPage = () => {
         } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
             // If was on free plan number and upgrading, set to undefined so backend can provision Vonage/handle it
             assistantPhoneNumber = undefined;
-        } else if (selectedPlan === 'business_270') {
+        } else if (selectedPlan === 'business_270' || selectedPlan === 'premium_179') {
              assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         } else {
-            // For other paid plans (premium_179) and test_plan, keep existing number if it wasn't default free, otherwise undefined for provisioning
+            // For other paid plans and test_plan, keep existing number if it wasn't default free, otherwise undefined for provisioning
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
     } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
-        if (selectedPlan === 'business_270') {
+        if (selectedPlan === 'business_270' || selectedPlan === 'premium_179') {
             assistantPhoneNumber = customPhoneNumber || undefined;
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
@@ -260,8 +260,8 @@ const SetupPage = () => {
         } else if (selectedPlan === 'test_plan') {
             assistantPhoneNumber = undefined; // Let the backend provision it
             if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
-        } else { // Other paid plans (premium_179)
-            assistantPhoneNumber = undefined; // Will be provisioned by Stripe webhook
+        } else {
+            assistantPhoneNumber = undefined;
         }
     }
 

@@ -39,7 +39,7 @@ export interface SubscriptionPlanDetails {
   stripePriceId?: string;
 }
 
-export type AuthProviderType = "google" | "no_account";
+export type AuthProviderType = "google";
 
 export interface UserProfile {
   isAuthenticated: boolean;
@@ -83,3 +83,5 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean;
 }
+
+    

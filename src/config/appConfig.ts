@@ -50,7 +50,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     name: "Plan de Negocios",
     priceMonthly: 270,
     assistantLimit: 5,
-    features: ["Hasta 5 asistentes", "Todas las funciones Premium", "Gestor de cuenta dedicado", "Permite vincular tus propios números de teléfono", "Adquisición de números virtuales con costo adicional"],
+    features: ["Hasta 5 asistentes", "Todas las funciones Pro", "Gestor de cuenta dedicado", "Adquisición de números virtuales con costo adicional"],
     stripePriceId: "price_1RQenGBwdSNcDr02fU9nVQkg"
   },
   {
@@ -71,7 +71,6 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
-  { id: "no_account", name: "Iniciar sesión sin cuenta", icon: FaUserTimes },
 ];
 
 export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
@@ -80,3 +79,5 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   business_270: FaBriefcase,
   test_plan: FaFlask,
 };
+
+    
