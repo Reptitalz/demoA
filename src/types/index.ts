@@ -28,7 +28,7 @@ export interface AssistantConfig {
   imageUrl?: string;
 }
 
-export type SubscriptionPlanType = "free" | "premium_179" | "business_270" | "test_plan";
+export type SubscriptionPlanType = "free" | "premium_179" | "business_270";
 
 export interface SubscriptionPlanDetails {
   id: SubscriptionPlanType;

@@ -47,19 +47,12 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
   },
   {
     id: "business_270",
-    name: "Plan de Negocios",
+    name: "Plan de Negocios (Próximamente)",
     priceMonthly: 270,
     assistantLimit: 5,
     features: ["Hasta 5 asistentes", "Todas las funciones Pro", "Gestor de cuenta dedicado", "Adquisición de números virtuales con costo adicional"],
-    stripePriceId: "price_1RQenGBwdSNcDr02fU9nVQkg"
+    stripePriceId: undefined
   },
-  {
-    id: "test_plan",
-    name: "Plan de Prueba (Webhook)",
-    priceMonthly: 0,
-    assistantLimit: 1,
-    features: ["Solo para pruebas de webhook", "Genera número de teléfono de SMS-Activate", "No usa Stripe", "Asistente funcional con webhook"]
-  }
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
@@ -77,7 +70,6 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   free: FaCheckCircle,
   premium_179: FaChartLine,
   business_270: FaBriefcase,
-  test_plan: FaFlask,
 };
 
     
