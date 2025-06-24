@@ -32,7 +32,7 @@ const Step1AssistantDetails = () => {
     dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: e.target.value });
   };
 
-  const showCustomPhoneInput = selectedPlan === 'business_270' && !isReconfiguring;
+  const showCustomPhoneInput = (selectedPlan === 'business_270' || selectedPlan === 'premium_179') && !isReconfiguring;
 
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
@@ -55,9 +55,9 @@ const Step1AssistantDetails = () => {
         </div>
 
         {showCustomPhoneInput && (
-          <div className="space-y-2">
+          <div className="space-y-2 animate-fadeIn">
             <Label htmlFor="customPhoneNumber" className="text-base flex items-center gap-2">
-              <FaPhone /> Número de Teléfono del Asistente (Plan de Negocios)
+              <FaPhone /> Número de Teléfono Personalizado del Asistente
             </Label>
             <Input
               id="customPhoneNumber"
@@ -69,7 +69,7 @@ const Step1AssistantDetails = () => {
               aria-required="true"
             />
             <p className="text-xs text-muted-foreground">
-              Ingresa el número de teléfono que este asistente utilizará.
+              Ingresa el número de teléfono que este asistente utilizará. Este plan requiere que proporciones tu propio número.
             </p>
           </div>
         )}
