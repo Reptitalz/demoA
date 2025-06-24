@@ -135,10 +135,14 @@ const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
                 <Button 
                   className="w-full mt-3 bg-accent hover:bg-accent/90 text-accent-foreground"
                   onClick={() => handleSelectPlan(plan)}
-                  disabled={isLoading}
+                  disabled={isLoading || !plan.stripePriceId}
                 >
                   {isLoading ? <FaSpinner className="animate-spin mr-2" /> : null}
-                  {isLoading ? 'Procesando...' : `Cambiar a ${plan.name}`}
+                  {
+                    isLoading ? 'Procesando...' : 
+                    !plan.stripePriceId ? 'No disponible' : 
+                    `Cambiar a ${plan.name}`
+                  }
                 </Button>
               )}
             </CardContent>
