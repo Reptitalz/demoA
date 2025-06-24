@@ -85,6 +85,7 @@ const AssistantCard = ({
 
   const isPending = accountNumberStatus === 'pending_acquisition';
   const isFullyActive = accountNumberStatus === 'active' || !!assistant.phoneLinked;
+  const isDefaultAssistant = assistant.name === "Hey Asistente";
   
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
@@ -212,15 +213,17 @@ const AssistantCard = ({
           )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReconfigureClick}
-              className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
-            >
-              <FaCog size={14} className="mr-1.5 sm:mr-2" />
-              Reconfigurar
-            </Button>
+            {!isDefaultAssistant && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReconfigureClick}
+                className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+              >
+                <FaCog size={14} className="mr-1.5 sm:mr-2" />
+                Reconfigurar
+              </Button>
+            )}
             {isFullyActive && (
               <Button
                 size="sm"
