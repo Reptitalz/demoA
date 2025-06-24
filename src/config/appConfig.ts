@@ -72,7 +72,6 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
-  { id: "anonymous", name: "Continuar sin cuenta (prueba)", icon: FaUserSecret },
 ];
 
 export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {

@@ -39,7 +39,7 @@ export interface SubscriptionPlanDetails {
   stripePriceId?: string;
 }
 
-export type AuthProviderType = "google" | "anonymous";
+export type AuthProviderType = "google";
 
 export interface UserProfile {
   isAuthenticated: boolean;

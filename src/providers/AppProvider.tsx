@@ -25,7 +25,7 @@ const initialWizardState: WizardState = {
 
 const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
-  authProvider: null,
+  authProvider: undefined,
   email: undefined,
   currentPlan: null,
   assistants: [],
@@ -253,7 +253,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           type: 'UPDATE_USER_PROFILE',
           payload: {
             isAuthenticated: true,
-            authProvider: user.isAnonymous ? 'anonymous' : (user.providerData[0]?.providerId as AuthProviderType) || 'google',
+            authProvider: 'google',
             email: user.email || undefined,
             firebaseUid: user.uid,
           }
