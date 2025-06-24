@@ -1,3 +1,4 @@
+
 "use client";
 import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,7 +99,6 @@ const AssistantCard = ({
       badgeText = "Cancelado";
       badgeVariant = "destructive";
   }
-  // For 'pending_acquisition', it will correctly fall back to "Inactivo" with the "secondary" badge variant.
     
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
@@ -161,8 +161,9 @@ const AssistantCard = ({
                       )}
                     </CardDescription>
                 ) : (
-                  <CardDescription className="text-xs sm:text-sm pt-1 text-muted-foreground">
-                    Este asistente está inactivo y no tiene un número vinculado.
+                  <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
+                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                    <span>Preparando su asistente, puede tomar 10 minutos, espere porfavor.</span>
                   </CardDescription>
                 )}
               </div>
