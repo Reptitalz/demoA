@@ -93,12 +93,12 @@ const SetupPage = () => {
               return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
            } else { // Auth (if DB not needed, this is step 2)
-             if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
+             if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
            }
           break;
         case 3: // Auth or Plan
           if (dbNeeded) { // Auth
-            if (!authMethod) return "Por favor, autentica tu cuenta o elige continuar sin cuenta.";
+            if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
           } else { // Plan (if DB not needed, this is step 3)
              if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           }
@@ -175,16 +175,24 @@ const SetupPage = () => {
     }
   };
 
+  const handleAuthSuccess = () => {
+    const dbNeeded = needsDatabaseConfiguration();
+    // After successful authentication, move to the plan selection step.
+    // If DB was needed, Auth was step 3, so Plan is step 4.
+    // If DB was not needed, Auth was step 2, so Plan is step 3.
+    const nextStep = dbNeeded ? 4 : 3;
+    dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
+  };
+
   const handleNext = () => {
     if (isStepValid()) {
       if (currentStep === 1 && !needsDatabaseConfiguration()) { // Skip DB step if not needed
         if (isReconfiguring) { // Reconfig: Details -> Plan
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // Jumps to Reconfig Step 2 (Plan)
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
         } else { // New Setup: Details -> Auth
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Jumps to New Setup Step 3 (Auth)
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go from step 1 to 3 (Auth)
         }
-      }
-      else if (currentStep < effectiveMaxSteps) {
+      } else if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
     } else {
@@ -354,41 +362,30 @@ const SetupPage = () => {
   };
 
   const renderStepContent = () => {
-    let stepToRender = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
-    if (isReconfiguring) { // Reconfiguring flow: Details -> DB (optional) -> Plan
-      if (!dbNeeded) { // If DB is not needed, step 2 becomes the Plan step
-        if (currentStep === 2) stepToRender = 3; // Map wizard step 2 (conceptually plan) to component for step 4 (Plan)
+    if (isReconfiguring) {
+      // Reconfiguring flow: Details -> DB (optional) -> Plan
+      if (currentStep === 1) return <Step1AssistantDetails />;
+      if (currentStep === 2) return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      if (currentStep === 3) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      return null;
+    } else {
+      // Standard new setup flow based on logical steps
+      // Step 1: Details
+      if (currentStep === 1) return <Step1AssistantDetails />;
+      // Step 2: DB (if needed) or Auth
+      if (currentStep === 2) {
+        return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleAuthSuccess} />;
       }
-      // Actual components rendered based on stepToRender:
-      // currentStep 1 -> stepToRender 1 (Details)
-      // currentStep 2 -> if dbNeeded, stepToRender 2 (DB). else stepToRender 3 (Plan)
-      // currentStep 3 -> stepToRender 3 (Plan)
-      switch (stepToRender) {
-        case 1: return <Step1AssistantDetails />;
-        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // DB or Plan
-        case 3: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />; // Always Plan
-        default: return null;
+      // Step 3: Auth (if DB was needed) or Plan
+      if (currentStep === 3) {
+        return dbNeeded ? <Step3Authentication onSuccess={handleAuthSuccess} /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
       }
-
-    } else { // Standard new setup flow: Details -> DB (optional) -> Auth -> Plan
-      if (!dbNeeded) { // If DB is not needed, step 2 becomes Auth, step 3 becomes Plan
-        if (currentStep === 2) stepToRender = 3; // Map wizard step 2 (conceptually auth) to component for step 3 (Auth)
-        if (currentStep === 3) stepToRender = 4; // Map wizard step 3 (conceptually plan) to component for step 4 (Plan)
-      }
-      // Actual components rendered based on stepToRender:
-      // currentStep 1 -> stepToRender 1 (Details)
-      // currentStep 2 -> if dbNeeded, stepToRender 2 (DB). else stepToRender 3 (Auth)
-      // currentStep 3 -> if dbNeeded, stepToRender 3 (Auth). else stepToRender 4 (Plan)
-      // currentStep 4 -> stepToRender 4 (Plan)
-      switch (stepToRender) {
-        case 1: return <Step1AssistantDetails />;
-        case 2: return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
-        case 3: return dbNeeded ? <Step3Authentication /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
-        case 4: return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
-        default: return null;
-      }
+      // Step 4: Plan (if DB was needed)
+      if (currentStep === 4) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      
+      return null;
     }
   };
 
@@ -410,7 +407,9 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go to auth step
+                // If user wants to log in first, send them to the conceptual Auth step
+                const authStep = needsDatabaseConfiguration() ? 3 : 2;
+                dispatch({ type: 'SET_WIZARD_STEP', payload: authStep });
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >

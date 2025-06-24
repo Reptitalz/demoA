@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, type User, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, type User, signInWithRedirect, getRedirectResult, signInAnonymously } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -22,6 +22,5 @@ if (!getApps().length) {
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-export { auth, googleProvider, signInWithPopup, signOut, signInWithRedirect, getRedirectResult };
+export { auth, googleProvider, signInWithPopup, signOut, signInWithRedirect, getRedirectResult, signInAnonymously };
 export type { User as FirebaseUser };
-

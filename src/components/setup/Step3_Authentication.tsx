@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AUTH_METHODS } from "@/config/appConfig";
 import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
-import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import { auth, googleProvider, signInWithPopup, signInAnonymously } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
 
@@ -38,8 +39,6 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       if (result && result.user) {
-        // AppProvider's onAuthStateChanged will handle the main profile update.
-        // We set the wizard method here and call onSuccess to advance the UI.
         dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
         toast({
           title: 'Inicio de Sesión Exitoso',
@@ -51,11 +50,33 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
         }
       }
     } catch (error: any) {
-      // Don't show an error toast if the user simply closes the pop-up
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Error durante el inicio de sesión con Google:", error);
         toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
       }
+    } finally {
+      setIsProcessingAuth(false);
+    }
+  };
+
+  const handleAnonymousSignIn = async () => {
+    setIsProcessingAuth(true);
+    try {
+      const result = await signInAnonymously(auth);
+      if (result && result.user) {
+        dispatch({ type: 'SET_AUTH_METHOD', payload: 'anonymous' });
+        toast({
+          title: 'Sesión de Invitado Iniciada',
+          description: 'Tu configuración se guardará para esta sesión.',
+        });
+        if (!hasCalledOnSuccess.current) {
+          onSuccess();
+          hasCalledOnSuccess.current = true;
+        }
+      }
+    } catch (error: any) {
+      console.error("Error durante el inicio de sesión anónimo:", error);
+      toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión de invitado.", variant: "destructive" });
     } finally {
       setIsProcessingAuth(false);
     }
@@ -66,6 +87,8 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
 
     if (methodId === "google") {
       handleGoogleSignIn();
+    } else if (methodId === "anonymous") {
+      handleAnonymousSignIn();
     }
   };
 
@@ -73,13 +96,13 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
         <CardTitle>Autenticación de Cuenta</CardTitle>
-        <CardDescription>Inicia sesión con Google para guardar la configuración de tu asistente.</CardDescription>
+        <CardDescription>Inicia sesión o continúa como invitado para guardar la configuración de tu asistente.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isProcessingAuth ? (
           <div className="flex items-center justify-center p-4 min-h-[76px]">
             <FaSpinner className="animate-spin h-8 w-8 text-primary" />
-            <p className="ml-2">Esperando a Google...</p>
+            <p className="ml-2">Procesando...</p>
           </div>
         ) : (
           <>
@@ -104,6 +127,11 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
              {authMethod === "google" && isAuthenticated && state.userProfile.email && (
               <p className="text-sm text-center text-green-500 flex items-center justify-center gap-1 pt-2">
                 <FaCheckCircle size={16} /> Autenticado como {state.userProfile.email}.
+              </p>
+            )}
+             {authMethod === "anonymous" && isAuthenticated && (
+              <p className="text-sm text-center text-green-500 flex items-center justify-center gap-1 pt-2">
+                <FaCheckCircle size={16} /> Usando una sesión de invitado. Tu progreso se guardará.
               </p>
             )}
           </>

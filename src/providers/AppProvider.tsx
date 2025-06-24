@@ -253,7 +253,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           type: 'UPDATE_USER_PROFILE',
           payload: {
             isAuthenticated: true,
-            authProvider: (user.providerData[0]?.providerId as AuthProviderType) || 'google',
+            authProvider: user.isAnonymous ? 'anonymous' : (user.providerData[0]?.providerId as AuthProviderType) || 'google',
             email: user.email || undefined,
             firebaseUid: user.uid,
           }

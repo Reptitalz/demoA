@@ -1,6 +1,6 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaGoogle, FaUserCog, FaUsers, FaUserTimes, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask, FaBrain } from 'react-icons/fa';
+import { FaGoogle, FaUserCog, FaUsers, FaUserTimes, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask, FaBrain, FaUserSecret } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
@@ -72,6 +72,7 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
+  { id: "anonymous", name: "Continuar sin cuenta (prueba)", icon: FaUserSecret },
 ];
 
 export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
@@ -80,5 +81,3 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   business_270: FaBriefcase,
   test_plan: FaFlask,
 };
-
-    
