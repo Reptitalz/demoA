@@ -1,4 +1,3 @@
-
 "use client";
 import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,54 +82,45 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  // Determine status text, variant and final component to render
-  let badgeText = "Inactivo";
-  let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-  let badgeDynamicClasses = "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0";
-  
-  if (accountNumberStatus) {
-    switch (accountNumberStatus) {
-        case 'active':
-            badgeText = "Activo";
-            badgeVariant = "default";
-            badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
-            break;
-        case 'pending_cancellation':
-            badgeText = "Pendiente Canc.";
-            badgeVariant = "outline";
-            badgeDynamicClasses = cn(badgeDynamicClasses, "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400");
-            break;
-        case 'pending_acquisition':
-            badgeText = 'pending_acquisition'; // Special value
-            break;
-        case 'cancelled':
-            badgeText = "Cancelado";
-            badgeVariant = "destructive";
-            break;
-    }
-  } else if (assistant.phoneLinked) {
-      badgeText = "Activo";
-      badgeVariant = "default";
-      badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
-  }
-
-  const isPending = badgeText === 'Inactivo' || badgeText === 'pending_acquisition';
-  const isFullyActive = badgeText === "Activo";
+  const isPending = accountNumberStatus === 'pending_acquisition' || (!assistant.phoneLinked && accountNumberStatus !== 'cancelled');
 
   let statusComponent;
   if (isPending) {
-    statusComponent = <FaSpinner className="animate-spin h-5 w-5 text-primary ml-2 shrink-0" />;
+    statusComponent = null; // Don't show a badge if pending, spinner will be in the corner
   } else {
+    let badgeText = "Inactivo";
+    let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+    
+    if (accountNumberStatus === 'active' || assistant.phoneLinked) {
+        badgeText = "Activo";
+        badgeVariant = "default";
+    } else if (accountNumberStatus === 'pending_cancellation') {
+        badgeText = "Pendiente Canc.";
+        badgeVariant = "outline";
+    } else if (accountNumberStatus === 'cancelled') {
+        badgeText = "Cancelado";
+        badgeVariant = "destructive";
+    }
+    
     statusComponent = (
-      <Badge variant={badgeVariant} className={badgeDynamicClasses}>
+      <Badge variant={badgeVariant} className={cn(
+        "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0",
+        (accountNumberStatus === 'active' || assistant.phoneLinked) && "bg-brand-gradient text-primary-foreground",
+        accountNumberStatus === 'pending_cancellation' && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      )}>
         {badgeText}
       </Badge>
     );
   }
 
+  const isFullyActive = accountNumberStatus === 'active' || !!assistant.phoneLinked;
+
   return (
     <>
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col animate-fadeIn" style={{animationDelay}}>
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col animate-fadeIn relative" style={{animationDelay}}>
+        {isPending && (
+            <FaSpinner className="animate-spin h-5 w-5 text-primary absolute top-4 right-4" />
+        )}
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
