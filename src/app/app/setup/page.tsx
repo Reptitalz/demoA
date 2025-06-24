@@ -224,6 +224,17 @@ const SetupPage = () => {
     let assistantImageUrl: string = DEFAULT_ASSISTANT_IMAGE_URL;
     let finalAssistantName = assistantName;
 
+    // If upgrading from free to paid with a new assistant, remove the old default one
+    let baseAssistantsArray = state.userProfile.assistants;
+    const wasOnFreeOrNoPlan = !state.userProfile.currentPlan || state.userProfile.currentPlan === 'free';
+    const isUpgradingToPaid = selectedPlan && (selectedPlan === 'premium_179' || selectedPlan === 'business_270');
+
+    if (!editingAssistantId && wasOnFreeOrNoPlan && isUpgradingToPaid) {
+        baseAssistantsArray = state.userProfile.assistants.filter(
+            asst => asst.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER
+        );
+    }
+
 
     if (editingAssistantId) {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
@@ -282,7 +293,7 @@ const SetupPage = () => {
                       : (needsDatabaseConfiguration() ? assistantToUpdate.databaseId : undefined),
         imageUrl: assistantImageUrl,
       };
-      updatedAssistantsArray = state.userProfile.assistants.map(asst =>
+      updatedAssistantsArray = baseAssistantsArray.map(asst =>
         asst.id === editingAssistantId ? finalAssistantConfig : asst
       );
     } else {
@@ -294,7 +305,7 @@ const SetupPage = () => {
         databaseId: newAssistantDbIdToLink,
         imageUrl: assistantImageUrl,
       };
-      updatedAssistantsArray = [...state.userProfile.assistants, finalAssistantConfig];
+      updatedAssistantsArray = [...baseAssistantsArray, finalAssistantConfig];
     }
 
     let updatedDatabasesArray = [...state.userProfile.databases, ...newDbEntries];
