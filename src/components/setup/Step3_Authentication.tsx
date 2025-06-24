@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AUTH_METHODS } from "@/config/appConfig";
 import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
-import { auth, googleProvider, signInWithRedirect, getRedirectResult } from '@/lib/firebase';
+import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
 
@@ -20,46 +19,8 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
   const { toast } = useToast();
   const { authMethod } = state.wizard;
   const { isAuthenticated, authProvider: userProfileAuthProvider } = state.userProfile;
-  const [isProcessingAuth, setIsProcessingAuth] = useState(true);
-  const hasProcessedRedirect = useRef(false);
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const hasCalledOnSuccess = useRef(false);
-
-  // Effect to process the redirect result from Google Sign-In after returning to the page
-  useEffect(() => {
-    if (hasProcessedRedirect.current) {
-      setIsProcessingAuth(false);
-      return;
-    }
-    
-    const processRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        hasProcessedRedirect.current = true;
-        
-        if (result && result.user) {
-          // User successfully signed in. AppProvider's onAuthStateChanged handles the profile update.
-          dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
-          toast({
-            title: 'Inicio de Sesión Exitoso',
-            description: `Has iniciado sesión como ${result.user.email}.`,
-          });
-          if (!hasCalledOnSuccess.current) {
-            onSuccess();
-            hasCalledOnSuccess.current = true;
-          }
-        }
-      } catch (error: any) {
-        if (error.code !== 'auth/redirect-cancelled-by-user' && error.code !== 'auth/no-redirect-operation' && error.code !== 'auth/web-storage-unsupported') {
-          console.error('Error al procesar redirección de Google:', error);
-          toast({ title: 'Error de Autenticación', description: error.message || 'No se pudo iniciar sesión con Google.', variant: 'destructive' });
-        }
-      } finally {
-        setIsProcessingAuth(false);
-      }
-    };
-    
-    processRedirect();
-  }, [dispatch, toast, onSuccess]);
 
   // Effect to sync wizard state AND advance if user is ALREADY authenticated when the component loads
   useEffect(() => {
@@ -75,11 +36,27 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
   const handleGoogleSignIn = async () => {
     setIsProcessingAuth(true);
     try {
-      await signInWithRedirect(auth, googleProvider);
-      // Redirect will occur, the useEffect above will handle the result on return.
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result && result.user) {
+        // AppProvider's onAuthStateChanged will handle the main profile update.
+        // We set the wizard method here and call onSuccess to advance the UI.
+        dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
+        toast({
+          title: 'Inicio de Sesión Exitoso',
+          description: `Has iniciado sesión como ${result.user.email}.`,
+        });
+        if (!hasCalledOnSuccess.current) {
+          onSuccess();
+          hasCalledOnSuccess.current = true;
+        }
+      }
     } catch (error: any) {
-      console.error("Error iniciando redirección de Google Sign-In:", error);
-      toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar el proceso de inicio de sesión con Google.", variant: "destructive" });
+      // Don't show an error toast if the user simply closes the pop-up
+      if (error.code !== 'auth/popup-closed-by-user') {
+        console.error("Error durante el inicio de sesión con Google:", error);
+        toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
+      }
+    } finally {
       setIsProcessingAuth(false);
     }
   };
@@ -100,9 +77,9 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {isProcessingAuth ? (
-          <div className="flex items-center justify-center p-4 min-h-[148px]">
+          <div className="flex items-center justify-center p-4 min-h-[76px]">
             <FaSpinner className="animate-spin h-8 w-8 text-primary" />
-            <p className="ml-2">Procesando...</p>
+            <p className="ml-2">Esperando a Google...</p>
           </div>
         ) : (
           <>
