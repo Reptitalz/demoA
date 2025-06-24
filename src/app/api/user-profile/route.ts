@@ -86,9 +86,12 @@ export async function POST(request: NextRequest) {
     const { db } = await connectToDatabase();
     const existingProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: decodedToken.uid });
 
-    // Test Plan logic - set to pending acquisition instead of buying number directly
-    if (userProfile.currentPlan === 'test_plan' && !existingProfile?.virtualPhoneNumber && existingProfile?.numberActivationStatus !== 'pending_acquisition') {
-        console.log(`Test plan detected for user ${decodedToken.uid}. Setting number status to 'pending_acquisition'.`);
+    const planInPayload = userProfile.currentPlan as SubscriptionPlanType | undefined;
+    const isPaidOrTestPlan = planInPayload && ['premium_179', 'business_270', 'test_plan'].includes(planInPayload);
+
+    // If on a paid/test plan and no virtual number exists yet, set status to pending_acquisition
+    if (isPaidOrTestPlan && !userProfile.virtualPhoneNumber && userProfile.numberActivationStatus !== 'pending_acquisition') {
+        console.log(`Paid/Test plan (${planInPayload}) detected for user ${decodedToken.uid} without a number. Setting status to 'pending_acquisition'.`);
         userProfile.numberActivationStatus = 'pending_acquisition';
     }
 

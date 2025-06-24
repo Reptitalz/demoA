@@ -149,10 +149,10 @@ const AssistantCard = ({
                     </Badge>
                 </div>
                 {accountNumberStatus === 'pending_acquisition' ? (
-                  <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm pt-2 text-blue-500 dark:text-blue-400">
                     <FaSpinner className="animate-spin h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">Preparando su asistente...</span>
-                  </CardDescription>
+                    <span>Preparando su asistente...</span>
+                  </div>
                 ) : assistant.phoneLinked ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
