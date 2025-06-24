@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -32,6 +33,8 @@ const AssistantCard = ({
   const [showAllPurposes, setShowAllPurposes] = useState(false);
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
+  const [isSetupDialogOpen, setIsSetupDialogOpen] = useState(false);
+
 
   useEffect(() => {
     setClientMounted(true);
@@ -83,8 +86,8 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isPending = accountNumberStatus === 'pending_acquisition';
-  const isFullyActive = accountNumberStatus === 'active' || !!assistant.phoneLinked;
+  const isPendingCustomNumberSetup = accountNumberStatus === 'pending_acquisition' && !assistant.phoneLinked;
+  const isFullyActive = accountNumberStatus === 'active' && !!assistant.phoneLinked;
   const isDefaultAssistant = assistant.name === "Hey Asistente";
   
   let badgeText = "Inactivo";
@@ -134,9 +137,9 @@ const AssistantCard = ({
                 <div className="flex items-center justify-between">
                      <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
                 </div>
-                {isPending ? (
+                {isPendingCustomNumberSetup ? (
                    <CardDescription className="text-xs sm:text-sm pt-1 text-muted-foreground">
-                    Preparando su asistente. Esto puede tomar unos 10 minutos. Se le notificará a su WhatsApp cuando esté listo.
+                    Este asistente está inactivo. Configura un número para activarlo.
                   </CardDescription>
                 ) : assistant.phoneLinked ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
@@ -213,6 +216,19 @@ const AssistantCard = ({
           )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
+            {isPendingCustomNumberSetup && (
+                 <Button
+                    size="sm"
+                    onClick={() => setIsSetupDialogOpen(true)}
+                    className={cn(
+                    "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
+                    "bg-brand-gradient"
+                    )}
+                >
+                    <FaCog size={14} className="mr-1.5 sm:mr-2" />
+                    Configurar Número Personalizado
+                </Button>
+            )}
             {!isDefaultAssistant && (
               <Button
                 variant="outline"
@@ -239,6 +255,11 @@ const AssistantCard = ({
             )}
         </CardFooter>
       </Card>
+      <PhoneNumberSetupDialog
+        isOpen={isSetupDialogOpen}
+        onOpenChange={setIsSetupDialogOpen}
+        assistantName={assistant.name}
+      />
     </>
   );
 };

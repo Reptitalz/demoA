@@ -79,9 +79,6 @@ const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
   return (
     <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
       {allPlans.map((plan) => {
-        // Don't show the test plan in the UI
-        if (plan.id === 'test_plan') return null;
-
         const Icon = planIcons[plan.id];
         const isCurrentPlan = currentPlanId === plan.id;
         const isLoading = loadingPlan === plan.id;

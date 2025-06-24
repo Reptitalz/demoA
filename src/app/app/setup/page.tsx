@@ -190,7 +190,7 @@ const SetupPage = () => {
         if (isReconfiguring) { // Reconfig: Details -> Plan
           dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
         } else { // New Setup: Details -> Auth
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // Go from step 1 to 2 (Auth)
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go from step 1 to 3 (Auth)
         }
       } else if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
@@ -205,8 +205,8 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
-    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Auth to Plan, go back to Auth
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
+    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
     } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) { // Came from Details to Plan (reconfig), go back to Details
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
     }
@@ -407,8 +407,9 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                // If user wants to log in first, send them to the conceptual Auth step (which is 2 if no DB is needed)
-                dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); 
+                // If user wants to log in first, send them to the conceptual Auth step
+                const authStep = needsDatabaseConfiguration() ? 3 : 2;
+                dispatch({ type: 'SET_WIZARD_STEP', payload: authStep });
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >
