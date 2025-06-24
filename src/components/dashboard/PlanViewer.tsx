@@ -1,15 +1,17 @@
 
 "use client";
 
+import { useState } from 'react';
 import type { SubscriptionPlanDetails, SubscriptionPlanType } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FaCheckCircle, FaStar } from "react-icons/fa"; // Removed FaTasks, FaChartLine, FaBriefcase as they come from planIcons
+import { FaCheckCircle, FaStar, FaSpinner } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/providers/AppProvider";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { planIcons } from "@/config/appConfig"; // Import planIcons from appConfig
+import { planIcons } from "@/config/appConfig";
+import { auth } from '@/lib/firebase';
 
 interface PlanViewerProps {
   currentPlanId: SubscriptionPlanType | null;
@@ -17,31 +19,72 @@ interface PlanViewerProps {
 }
 
 const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
-  const { dispatch } = useApp();
   const { toast } = useToast();
   const router = useRouter();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const handleSelectPlan = (planId: SubscriptionPlanType) => {
-    dispatch({ type: 'SET_SUBSCRIPTION_PLAN', payload: planId });
-    // The user profile update should ideally happen via a backend call if plans have implications beyond UI.
-    // For now, assuming it's mainly for wizard state, but this could be an API call in a real app.
-    dispatch({ type: 'UPDATE_USER_PROFILE', payload: { currentPlan: planId } }); 
-    
-    toast({
-      title: "Plan Actualizado",
-      description: `Has cambiado tu plan a ${allPlans.find(p => p.id === planId)?.name}.`,
-    });
+  const handleSelectPlan = async (plan: SubscriptionPlanDetails) => {
+    if (!plan.stripePriceId) {
+      toast({
+        title: "Plan no disponible",
+        description: "Este plan no se puede comprar en este momento.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Optionally, close the dialog after selection
-    // onOpenChange(false); // If onOpenChange is passed as a prop
+    setLoadingPlan(plan.id);
+
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        toast({ title: "No autenticado", description: "Debes iniciar sesión para cambiar de plan.", variant: "destructive" });
+        setLoadingPlan(null);
+        router.push('/app/setup');
+        return;
+      }
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ planId: plan.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se pudo crear la sesión de pago.');
+      }
+
+      // Redirect to Stripe Checkout
+      router.push(data.url);
+
+    } catch (error: any) {
+      console.error("Error creating checkout session:", error);
+      toast({
+        title: "Error al cambiar de plan",
+        description: error.message || "Ocurrió un error. Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
 
   return (
     <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
       {allPlans.map((plan) => {
-        const Icon = planIcons[plan.id]; // Use imported planIcons
+        // Don't show the test plan in the UI
+        if (plan.id === 'test_plan') return null;
+
+        const Icon = planIcons[plan.id];
         const isCurrentPlan = currentPlanId === plan.id;
+        const isLoading = loadingPlan === plan.id;
 
         return (
           <Card
@@ -54,10 +97,10 @@ const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  {Icon ? ( // Check if Icon exists before rendering
+                  {Icon ? (
                     <Icon className={cn("h-7 w-7", isCurrentPlan ? "text-primary" : "text-accent")} />
                   ) : (
-                    <FaStar className={cn("h-7 w-7", isCurrentPlan ? "text-primary" : "text-accent")} /> // Fallback icon
+                    <FaStar className={cn("h-7 w-7", isCurrentPlan ? "text-primary" : "text-accent")} />
                   )}
                   <CardTitle className={cn("text-lg", isCurrentPlan && "text-primary")}>{plan.name}</CardTitle>
                 </div>
@@ -88,12 +131,14 @@ const PlanViewer = ({ currentPlanId, allPlans }: PlanViewerProps) => {
                   </li>
                 ))}
               </ul>
-              {!isCurrentPlan && (
+              {!isCurrentPlan && plan.id !== 'free' && (
                 <Button 
                   className="w-full mt-3 bg-accent hover:bg-accent/90 text-accent-foreground"
-                  onClick={() => handleSelectPlan(plan.id)}
+                  onClick={() => handleSelectPlan(plan)}
+                  disabled={isLoading}
                 >
-                  Cambiar a {plan.name}
+                  {isLoading ? <FaSpinner className="animate-spin mr-2" /> : null}
+                  {isLoading ? 'Procesando...' : `Cambiar a ${plan.name}`}
                 </Button>
               )}
             </CardContent>

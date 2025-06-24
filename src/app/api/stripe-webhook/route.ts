@@ -65,73 +65,121 @@ export async function POST(request: NextRequest) {
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
 
     
-    if (event.type === 'checkout.session.completed' || event.type === 'invoice.paid') {
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const firebaseUid = session.client_reference_id;
+        const stripeCustomerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
+        const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
+
+        if (!stripeSubscriptionId) {
+            console.error('Webhook Error: checkout.session.completed event missing subscription ID.');
+            return NextResponse.json({ error: 'Webhook Error: Missing subscription ID.' }, { status: 400 });
+        }
+        
+        // Retrieve the subscription to get metadata reliably
+        const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+        const planIdFromStripe = subscription.metadata.planId || null;
+
+        if (!firebaseUid || !stripeCustomerId || !planIdFromStripe) {
+            console.error(`Webhook Error: checkout.session.completed missing crucial data. firebaseUid: ${firebaseUid}, stripeCustomerId: ${stripeCustomerId}, planId: ${planIdFromStripe}`);
+            return NextResponse.json({ error: 'Webhook Error: Missing required data in session.' }, { status: 400 });
+        }
+
+        const userProfile = await userProfileCollection.findOne({ firebaseUid });
+        const isUpgrade = userProfile && userProfile.currentPlan === 'free';
+
+        if (isUpgrade) {
+            console.log(`Processing UPGRADE for user ${firebaseUid} to plan ${planIdFromStripe}`);
+            
+            const assistantsToUpdate = (userProfile.assistants || []).map(asst => {
+                const updatedAsst = { ...asst, purposes: Array.from(asst.purposes || new Set()) };
+                if (updatedAsst.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER) {
+                    updatedAsst.phoneLinked = undefined;
+                }
+                return updatedAsst;
+            });
+
+            await userProfileCollection.updateOne(
+                { firebaseUid },
+                {
+                    $set: {
+                        currentPlan: planIdFromStripe as any,
+                        stripeCustomerId,
+                        stripeSubscriptionId,
+                        numberActivationStatus: 'pending_acquisition',
+                        virtualPhoneNumber: undefined,
+                        assistants: assistantsToUpdate,
+                    }
+                }
+            );
+            console.log(`User ${firebaseUid} upgrade processed successfully.`);
+        } else {
+            // Handles new subscriptions for users not on a free plan, or if something went wrong with the upgrade check
+            console.log(`Processing NEW subscription for user ${firebaseUid}, plan ${planIdFromStripe}`);
+            const provisionSuccess = await setNumberAcquisitionAsPending(firebaseUid, stripeCustomerId, stripeSubscriptionId, planIdFromStripe as any);
+            if (!provisionSuccess) {
+                console.error(`Failed to mark user profile for number acquisition: ${firebaseUid} after new subscription checkout.`);
+            }
+        }
+
+        return NextResponse.json({ received: true, message: 'Checkout session processed.' }, { status: 200 });
+
+    } else if (event.type === 'invoice.paid') {
       let firebaseUid: string | undefined;
       let stripeCustomerId: string | undefined;
       let stripeSubscriptionId: string | undefined;
       let shouldProvisionNumber = false;
       let planIdFromStripe: string | null = null;
 
-      if (event.type === 'checkout.session.completed') {
-          const session = event.data.object as Stripe.Checkout.Session;
-          firebaseUid = session.client_reference_id || undefined;
-          stripeCustomerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
-          stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
-          planIdFromStripe = session.line_items?.data[0]?.price?.product_metadata?.planId || session.metadata?.planId || null;
-          
-          shouldProvisionNumber = true; 
-          console.log(`Processing checkout.session.completed for firebaseUid: ${firebaseUid}, stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${stripeSubscriptionId}, planId: ${planIdFromStripe}`);
-      } else { 
-          const invoice = event.data.object as Stripe.Invoice;
-          stripeCustomerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
-          stripeSubscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
-          planIdFromStripe = invoice.lines?.data[0]?.price?.product_metadata?.planId || invoice.subscription_details?.metadata?.planId || null;
-          
-          if (!stripeCustomerId) {
-              console.error('Stripe invoice.paid event missing customer ID.');
-              return NextResponse.json({ error: 'Webhook Error: Missing customer ID for invoice.paid event.' }, { status: 400 });
-          }
-          console.log(`Processing invoice.paid for stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${stripeSubscriptionId}, billing_reason: ${invoice.billing_reason}, planId: ${planIdFromStripe}`);
+      const invoice = event.data.object as Stripe.Invoice;
+      stripeCustomerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
+      stripeSubscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+      planIdFromStripe = invoice.lines?.data[0]?.price?.product_metadata?.planId || invoice.subscription_details?.metadata?.planId || null;
+      
+      if (!stripeCustomerId) {
+          console.error('Stripe invoice.paid event missing customer ID.');
+          return NextResponse.json({ error: 'Webhook Error: Missing customer ID for invoice.paid event.' }, { status: 400 });
+      }
+      console.log(`Processing invoice.paid for stripeCustomerId: ${stripeCustomerId}, subscriptionId: ${stripeSubscriptionId}, billing_reason: ${invoice.billing_reason}, planId: ${planIdFromStripe}`);
 
-          const userProfileByStripeId = await userProfileCollection.findOne({ stripeCustomerId });
-          if (userProfileByStripeId) {
-              firebaseUid = userProfileByStripeId.firebaseUid;
-              
-              if ((invoice.billing_reason === 'subscription_create' || invoice.subscription_details?.metadata?.is_first_invoice === 'true') && !userProfileByStripeId.virtualPhoneNumber) {
-                  shouldProvisionNumber = true;
-              } else if (userProfileByStripeId.virtualPhoneNumber && userProfileByStripeId.numberActivationStatus !== 'active') {
-                  console.log(`User ${firebaseUid} payment successful, reactivating number status. Plan: ${planIdFromStripe || 'N/A'}.`);
-                  await userProfileCollection.updateOne(
-                      { firebaseUid: firebaseUid },
-                      { $set: { 
-                          numberActivationStatus: 'active', 
-                          ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }),
-                          ...(planIdFromStripe && { currentPlan: planIdFromStripe as any}) 
-                        } 
-                      }
-                  );
-              } else {
-                  console.log(`User ${firebaseUid} regular renewal. Updating plan to ${planIdFromStripe || 'N/A'}.`);
-                  await userProfileCollection.updateOne(
-                      { firebaseUid: firebaseUid },
-                      { $set: { 
-                          ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }),
-                          ...(planIdFromStripe && { currentPlan: planIdFromStripe as any}) 
-                        } 
-                      }
-                  );
-              }
+      const userProfileByStripeId = await userProfileCollection.findOne({ stripeCustomerId });
+      if (userProfileByStripeId) {
+          firebaseUid = userProfileByStripeId.firebaseUid;
+          
+          if ((invoice.billing_reason === 'subscription_create' || invoice.subscription_details?.metadata?.is_first_invoice === 'true') && !userProfileByStripeId.virtualPhoneNumber) {
+              shouldProvisionNumber = true;
+          } else if (userProfileByStripeId.virtualPhoneNumber && userProfileByStripeId.numberActivationStatus !== 'active') {
+              console.log(`User ${firebaseUid} payment successful, reactivating number status. Plan: ${planIdFromStripe || 'N/A'}.`);
+              await userProfileCollection.updateOne(
+                  { firebaseUid: firebaseUid },
+                  { $set: { 
+                      numberActivationStatus: 'active', 
+                      ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }),
+                      ...(planIdFromStripe && { currentPlan: planIdFromStripe as any}) 
+                    } 
+                  }
+              );
           } else {
-              console.warn(`Could not find user profile by stripeCustomerId: ${stripeCustomerId} for invoice.paid event.`);
-              if (invoice.billing_reason === 'subscription_create' || invoice.subscription_details?.metadata?.is_first_invoice === 'true') {
-                   firebaseUid = (invoice.customer_details?.metadata?.firebaseUid || (event.data.object as any)?.metadata?.firebaseUid);
-                   if (firebaseUid) {
-                     console.log(`Determined firebaseUid: ${firebaseUid} from invoice metadata for new subscription.`);
-                     shouldProvisionNumber = true;
-                   } else {
-                      console.error(`Critical: invoice.paid for new subscription but could not determine firebaseUid for stripeCustomerId: ${stripeCustomerId}`);
-                   }
-              }
+              console.log(`User ${firebaseUid} regular renewal. Updating plan to ${planIdFromStripe || 'N/A'}.`);
+              await userProfileCollection.updateOne(
+                  { firebaseUid: firebaseUid },
+                  { $set: { 
+                      ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }),
+                      ...(planIdFromStripe && { currentPlan: planIdFromStripe as any}) 
+                    } 
+                  }
+              );
+          }
+      } else {
+          console.warn(`Could not find user profile by stripeCustomerId: ${stripeCustomerId} for invoice.paid event.`);
+          if (invoice.billing_reason === 'subscription_create' || invoice.subscription_details?.metadata?.is_first_invoice === 'true') {
+               firebaseUid = (invoice.customer_details?.metadata?.firebaseUid || (event.data.object as any)?.metadata?.firebaseUid);
+               if (firebaseUid) {
+                 console.log(`Determined firebaseUid: ${firebaseUid} from invoice metadata for new subscription.`);
+                 shouldProvisionNumber = true;
+               } else {
+                  console.error(`Critical: invoice.paid for new subscription but could not determine firebaseUid for stripeCustomerId: ${stripeCustomerId}`);
+               }
           }
       }
 
@@ -143,26 +191,6 @@ export async function POST(request: NextRequest) {
           if (!stripeCustomerId) {
             console.error(`Stripe event ${event.type} missing customer ID.`);
             return NextResponse.json({ error: 'Webhook Error: Missing customer ID.' }, { status: 400 });
-          }
-
-          try { 
-              const existingProfile = await userProfileCollection.findOne({ firebaseUid });
-              if (existingProfile && existingProfile.virtualPhoneNumber) {
-                  console.log(`User ${firebaseUid} already has a virtual number: ${existingProfile.virtualPhoneNumber}. Ensuring status is active and plan is updated.`);
-                   await userProfileCollection.updateOne(
-                      { firebaseUid: firebaseUid },
-                      { $set: { 
-                          numberActivationStatus: 'active', 
-                          ...(stripeSubscriptionId && { stripeSubscriptionId: stripeSubscriptionId }), 
-                          ...(stripeCustomerId && { stripeCustomerId: stripeCustomerId }),
-                          ...(planIdFromStripe && { currentPlan: planIdFromStripe as any}) 
-                        } 
-                      }
-                  );
-                  return NextResponse.json({ received: true, message: 'User already has a virtual number. Status ensured to active. Plan updated.' }, { status: 200 });
-              }
-          } catch (dbError: any) {
-              console.error(`Error checking existing profile for ${firebaseUid}:`, dbError.message, dbError.stack);
           }
 
           console.log(`Setting user ${firebaseUid} to pending number acquisition status.`);
