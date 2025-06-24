@@ -83,11 +83,11 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
+  // Determine status text, variant and final component to render
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
   let badgeDynamicClasses = "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0";
-
-  // The account status is the source of truth for number-related states.
+  
   if (accountNumberStatus) {
     switch (accountNumberStatus) {
         case 'active':
@@ -101,25 +101,32 @@ const AssistantCard = ({
             badgeDynamicClasses = cn(badgeDynamicClasses, "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400");
             break;
         case 'pending_acquisition':
-            badgeText = "Esperando número";
-            badgeVariant = "outline";
-            badgeDynamicClasses = cn(badgeDynamicClasses, "border-blue-400 text-blue-500 dark:border-blue-500 dark:text-blue-400");
+            badgeText = 'pending_acquisition'; // Special value
             break;
         case 'cancelled':
             badgeText = "Cancelado";
             badgeVariant = "destructive";
             break;
     }
-  }
-  // This handles the case of a Free plan assistant, which has a number but no account-level status.
-  else if (assistant.phoneLinked) {
+  } else if (assistant.phoneLinked) {
       badgeText = "Activo";
       badgeVariant = "default";
       badgeDynamicClasses = cn(badgeDynamicClasses, "bg-brand-gradient text-primary-foreground");
   }
 
+  const isPending = badgeText === 'Inactivo' || badgeText === 'pending_acquisition';
+  const isFullyActive = badgeText === "Activo";
 
-  const isFullyActive = assistant.phoneLinked && badgeText === "Activo";
+  let statusComponent;
+  if (isPending) {
+    statusComponent = <FaSpinner className="animate-spin h-5 w-5 text-primary ml-2 shrink-0" />;
+  } else {
+    statusComponent = (
+      <Badge variant={badgeVariant} className={badgeDynamicClasses}>
+        {badgeText}
+      </Badge>
+    );
+  }
 
   return (
     <>
@@ -141,18 +148,12 @@ const AssistantCard = ({
               <div className="flex-grow">
                 <div className="flex items-center justify-between">
                      <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
-                     <Badge
-                        variant={badgeVariant}
-                        className={badgeDynamicClasses}
-                    >
-                        {badgeText}
-                    </Badge>
+                     {statusComponent}
                 </div>
-                {accountNumberStatus === 'pending_acquisition' ? (
-                  <div className="flex items-center gap-2 text-xs sm:text-sm pt-2 text-blue-500 dark:text-blue-400">
-                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                {isPending ? (
+                   <CardDescription className="flex items-center gap-1.5 text-xs sm:text-sm pt-1 text-muted-foreground">
                     <span>Preparando su asistente...</span>
-                  </div>
+                  </CardDescription>
                 ) : assistant.phoneLinked ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
