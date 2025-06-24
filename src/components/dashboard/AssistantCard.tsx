@@ -83,15 +83,14 @@ const AssistantCard = ({
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
   const isPending = accountNumberStatus === 'pending_acquisition' || (!assistant.phoneLinked && accountNumberStatus !== 'cancelled');
-
-  let statusComponent;
-  if (isPending) {
-    statusComponent = null; // Don't show a badge if pending, spinner will be in the corner
-  } else {
+  const isFullyActive = accountNumberStatus === 'active' || !!assistant.phoneLinked;
+  
+  let statusBadge = null;
+  if (!isPending) {
     let badgeText = "Inactivo";
     let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     
-    if (accountNumberStatus === 'active' || assistant.phoneLinked) {
+    if (isFullyActive) {
         badgeText = "Activo";
         badgeVariant = "default";
     } else if (accountNumberStatus === 'pending_cancellation') {
@@ -102,10 +101,10 @@ const AssistantCard = ({
         badgeVariant = "destructive";
     }
     
-    statusComponent = (
+    statusBadge = (
       <Badge variant={badgeVariant} className={cn(
-        "text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ml-2 shrink-0",
-        (accountNumberStatus === 'active' || assistant.phoneLinked) && "bg-brand-gradient text-primary-foreground",
+        "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
+        isFullyActive && "bg-brand-gradient text-primary-foreground",
         accountNumberStatus === 'pending_cancellation' && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
       )}>
         {badgeText}
@@ -113,14 +112,13 @@ const AssistantCard = ({
     );
   }
 
-  const isFullyActive = accountNumberStatus === 'active' || !!assistant.phoneLinked;
-
   return (
     <>
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col animate-fadeIn relative" style={{animationDelay}}>
         {isPending && (
             <FaSpinner className="animate-spin h-5 w-5 text-primary absolute top-4 right-4" />
         )}
+        {!isPending && statusBadge}
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
@@ -138,10 +136,10 @@ const AssistantCard = ({
               <div className="flex-grow">
                 <div className="flex items-center justify-between">
                      <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
-                     {statusComponent}
                 </div>
                 {isPending ? (
                    <CardDescription className="flex items-center gap-1.5 text-xs sm:text-sm pt-1 text-muted-foreground">
+                    <FaSpinner className="animate-spin h-3 w-3" />
                     <span>Preparando su asistente...</span>
                   </CardDescription>
                 ) : assistant.phoneLinked ? (
