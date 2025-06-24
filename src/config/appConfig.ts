@@ -53,14 +53,6 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     features: ["Hasta 5 asistentes", "Todas las funciones Pro", "Gestor de cuenta dedicado", "Adquisición de números virtuales con costo adicional"],
     stripePriceId: undefined
   },
-   {
-    id: "test_plan",
-    name: "Plan de Pruebas",
-    priceMonthly: 0,
-    assistantLimit: 1,
-    features: ["1 asistente con funciones Pro", "Soporte comunitario", "Permite vincular un número personalizado para pruebas", "No requiere pago"],
-    stripePriceId: undefined
-  },
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
@@ -78,5 +70,4 @@ export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
   free: FaCheckCircle,
   premium_179: FaChartLine,
   business_270: FaBriefcase,
-  test_plan: FaFlask,
 };

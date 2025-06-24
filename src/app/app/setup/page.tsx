@@ -255,7 +255,7 @@ const SetupPage = () => {
         } else if (selectedPlan === 'business_270' || selectedPlan === 'premium_179') {
              assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         } else {
-            // For other paid plans and test_plan, keep existing number if it wasn't default free, otherwise undefined for provisioning
+            // For other paid plans, keep existing number if it wasn't default free, otherwise undefined for provisioning
             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
         }
     } else { // New assistant
@@ -264,9 +264,6 @@ const SetupPage = () => {
             assistantPhoneNumber = customPhoneNumber || undefined;
         } else if (selectedPlan === 'free') {
             assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-            if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
-        } else if (selectedPlan === 'test_plan') {
-            assistantPhoneNumber = undefined; // Let the backend provision it
             if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
         } else {
             assistantPhoneNumber = undefined;
@@ -500,5 +497,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-
-    
