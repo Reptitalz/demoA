@@ -175,16 +175,24 @@ const SetupPage = () => {
     }
   };
 
+  const handleAuthSuccess = () => {
+    const dbNeeded = needsDatabaseConfiguration();
+    // After successful authentication, move to the plan selection step.
+    // If DB was needed, Auth was step 3, so Plan is step 4.
+    // If DB was not needed, Auth was step 2, so Plan is step 3.
+    const nextStep = dbNeeded ? 4 : 3;
+    dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
+  };
+
   const handleNext = () => {
     if (isStepValid()) {
       if (currentStep === 1 && !needsDatabaseConfiguration()) { // Skip DB step if not needed
         if (isReconfiguring) { // Reconfig: Details -> Plan
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // Jumps to Reconfig Step 2 (Plan)
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
         } else { // New Setup: Details -> Auth
-          dispatch({ type: 'NEXT_WIZARD_STEP' }); // Go from step 1 to 2 (Auth)
+          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // Go from step 1 to 2 (Auth)
         }
-      }
-      else if (currentStep < effectiveMaxSteps) {
+      } else if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
     } else {
@@ -197,10 +205,8 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
-    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
-    } else if (currentStep === 2 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
-      dispatch({ type: 'PREVIOUS_WIZARD_STEP' }); // Go from 2 to 1
+    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Auth to Plan, go back to Auth
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
     } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) { // Came from Details to Plan (reconfig), go back to Details
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
     }
@@ -365,11 +371,20 @@ const SetupPage = () => {
       if (currentStep === 3) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
       return null;
     } else {
-      // Standard new setup flow: Details -> DB (optional) -> Auth -> Plan
+      // Standard new setup flow based on logical steps
+      // Step 1: Details
       if (currentStep === 1) return <Step1AssistantDetails />;
-      if (currentStep === 2) return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleNext} />;
-      if (currentStep === 3) return dbNeeded ? <Step3Authentication onSuccess={handleNext} /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      // Step 2: DB (if needed) or Auth
+      if (currentStep === 2) {
+        return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleAuthSuccess} />;
+      }
+      // Step 3: Auth (if DB was needed) or Plan
+      if (currentStep === 3) {
+        return dbNeeded ? <Step3Authentication onSuccess={handleAuthSuccess} /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      }
+      // Step 4: Plan (if DB was needed)
       if (currentStep === 4) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      
       return null;
     }
   };
@@ -392,7 +407,8 @@ const SetupPage = () => {
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={() => {
                 setUserHasMadeInitialChoice(true);
-                dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go to auth step
+                // If user wants to log in first, send them to the conceptual Auth step (which is 2 if no DB is needed)
+                dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); 
                 toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
               }}
             >
