@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
@@ -19,6 +19,7 @@ import { auth, signOut } from '@/lib/firebase';
 const DashboardPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isSetupComplete, isLoading } = state;
 
@@ -32,6 +33,26 @@ const DashboardPage = () => {
       router.replace('/app/setup');
     }
   }, [isLoading, userProfile.isAuthenticated, isSetupComplete, router, dispatch]);
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      toast({
+        title: "¡Pago Exitoso!",
+        description: "Tu plan ha sido actualizado. ¡Bienvenido/a!",
+        duration: 5000,
+      });
+      router.replace('/app/dashboard', {scroll: false});
+    } else if (paymentStatus === 'cancelled') {
+      toast({
+        title: "Pago Cancelado",
+        description: "El proceso de pago fue cancelado. Puedes intentar de nuevo desde tu panel.",
+        variant: "destructive",
+        duration: 7000,
+      });
+      router.replace('/app/dashboard', {scroll: false});
+    }
+  }, [searchParams, toast, router]);
 
 
   const handleReconfigureAssistant = (assistantId: string) => {
