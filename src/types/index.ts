@@ -71,7 +71,6 @@ export interface WizardState {
   };
   authMethod: AuthProviderType | null;
   selectedPlan: SubscriptionPlanType | null;
-  customPhoneNumber?: string;
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;

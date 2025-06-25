@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
-  const { assistantName, selectedPurposes, customPhoneNumber, selectedPlan, isReconfiguring, ownerPhoneNumberForNotifications } = state.wizard;
+  const { assistantName, selectedPurposes, selectedPlan, isReconfiguring, ownerPhoneNumberForNotifications } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
@@ -24,15 +24,9 @@ const Step1AssistantDetails = () => {
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
-  const handleCustomPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: 'UPDATE_CUSTOM_PHONE_NUMBER', payload: e.target.value });
-  };
-
   const handleOwnerPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: e.target.value });
   };
-
-  const showCustomPhoneInput = (selectedPlan === 'business_270' || selectedPlan === 'premium_179') && !isReconfiguring;
 
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
@@ -53,26 +47,6 @@ const Step1AssistantDetails = () => {
             aria-required="true"
           />
         </div>
-
-        {showCustomPhoneInput && (
-          <div className="space-y-2 animate-fadeIn">
-            <Label htmlFor="customPhoneNumber" className="text-base flex items-center gap-2">
-              <FaPhone /> Número de Teléfono Personalizado del Asistente
-            </Label>
-            <Input
-              id="customPhoneNumber"
-              type="tel"
-              placeholder="Ej: +12345678900"
-              value={customPhoneNumber || ''}
-              onChange={handleCustomPhoneChange}
-              className="text-base"
-              aria-required="true"
-            />
-            <p className="text-xs text-muted-foreground">
-              Ingresa el número de teléfono que este asistente utilizará. Este plan requiere que proporciones tu propio número.
-            </p>
-          </div>
-        )}
 
         {selectedPurposes.has('notify_owner') && (
           <div className="space-y-2 animate-fadeIn">

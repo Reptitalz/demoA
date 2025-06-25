@@ -216,30 +216,6 @@ const AssistantCard = ({
           )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-            {isPendingCustomNumberSetup && (
-                 <Button
-                    size="sm"
-                    onClick={() => setIsSetupDialogOpen(true)}
-                    className={cn(
-                    "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                    "bg-brand-gradient"
-                    )}
-                >
-                    <FaCog size={14} className="mr-1.5 sm:mr-2" />
-                    Configurar Número Personalizado
-                </Button>
-            )}
-            {!isDefaultAssistant && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReconfigureClick}
-                className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
-              >
-                <FaCog size={14} className="mr-1.5 sm:mr-2" />
-                Reconfigurar
-              </Button>
-            )}
             {isFullyActive && (
               <Button
                 size="sm"
@@ -251,6 +227,30 @@ const AssistantCard = ({
               >
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
+              </Button>
+            )}
+            {isPendingCustomNumberSetup && (
+                 <Button
+                    size="sm"
+                    onClick={() => setIsSetupDialogOpen(true)}
+                    className={cn(
+                    "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
+                    "bg-brand-gradient"
+                    )}
+                >
+                    <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
+                    Agregar número para tu asistente
+                </Button>
+            )}
+            {!isDefaultAssistant && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReconfigureClick}
+                className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+              >
+                <FaCog size={14} className="mr-1.5 sm:mr-2" />
+                Reconfigurar
               </Button>
             )}
         </CardFooter>

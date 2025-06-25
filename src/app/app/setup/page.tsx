@@ -24,7 +24,7 @@ const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, customPhoneNumber, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
+  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
@@ -80,9 +80,6 @@ const SetupPage = () => {
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
           if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) {
             return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
-          }
-          if ((selectedPlan === 'business_270' || selectedPlan === 'premium_179') && !isReconfiguring && !customPhoneNumber?.trim()) {
-            return "Tu plan requiere que proporciones un número de teléfono para el asistente.";
           }
           break;
         case 2: // DB Config or Auth
@@ -149,7 +146,6 @@ const SetupPage = () => {
           if (selectedPurposes.has('notify_owner')) {
             notifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
           }
-          if ((selectedPlan === 'business_270' || selectedPlan === 'premium_179') && !isReconfiguring) return baseValid && !!customPhoneNumber?.trim() && notifyOwnerValid;
           return baseValid && notifyOwnerValid;
         case 2: // DB or Auth
           if (dbNeeded) { // DB
@@ -250,7 +246,7 @@ const SetupPage = () => {
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
         assistantPhoneNumber = (selectedPlan === 'free') 
             ? DEFAULT_FREE_PLAN_PHONE_NUMBER 
-            : customPhoneNumber || undefined;
+            : undefined; // No custom phone number at creation
         if (selectedPlan === 'free' && state.userProfile.assistants.length === 0) {
             finalAssistantName = "Hey Asistente";
         }
