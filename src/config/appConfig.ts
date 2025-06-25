@@ -43,7 +43,7 @@ export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
     priceMonthly: 179,
     assistantLimit: 1,
     features: ["1 asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)", "Permite vincular tu propio número de teléfono nuevo"],
-    stripePriceId: "price_1RQdzjBwdSNcDr02SfU6zNHW"
+    stripePriceId: "price_1RRGyHBwdSNcDr02a7oH7iNc"
   },
   {
     id: "business_270",
