@@ -18,7 +18,7 @@ import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } fro
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL, subscriptionPlansConfig } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { auth } from '@/lib/firebase';
+import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 
 const SetupPage = () => {
   const { state, dispatch } = useApp();
@@ -357,6 +357,31 @@ const SetupPage = () => {
     }
 };
 
+  const handleDirectSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result && result.user) {
+        // The onAuthStateChanged listener in AppProvider will handle the rest:
+        // 1. Update userProfile in state
+        // 2. Fetch full profile from API
+        // 3. /app/page.tsx will redirect based on isSetupComplete
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: "Redirigiendo a tu panel...",
+        });
+      }
+    } catch (error: any) {
+      if (error.code !== 'auth/popup-closed-by-user') {
+        console.error("Error directo de inicio de sesión con Google:", error);
+        toast({
+          title: "Error de Autenticación",
+          description: error.message || "No se pudo iniciar sesión con Google.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
 
   const renderStepContent = () => {
     const dbNeeded = needsDatabaseConfiguration();
@@ -402,16 +427,10 @@ const SetupPage = () => {
               variant="outline"
               size="lg"
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={() => {
-                setUserHasMadeInitialChoice(true);
-                // If user wants to log in first, send them to the conceptual Auth step
-                const authStep = needsDatabaseConfiguration() ? 3 : 2;
-                dispatch({ type: 'SET_WIZARD_STEP', payload: authStep });
-                toast({ title: "Iniciar Sesión", description: "Por favor, elige un método de autenticación."});
-              }}
+              onClick={handleDirectSignIn}
             >
               <LogIn className="mr-3 h-5 w-5 text-primary" />
-              Iniciar sesión (si ya tienes cuenta)
+              Iniciar sesión
             </Button>
             <Button
               size="lg"
@@ -497,3 +516,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    
