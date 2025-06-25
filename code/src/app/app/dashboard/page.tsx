@@ -2,7 +2,7 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import DashboardPageContent from '@/app/dashboard/page'; // This now acts as the client component
+import DashboardPageContent from '@/components/dashboard/ConsumptionViewDialog';
 
 const DashboardPage = () => {
   return (
