@@ -13,10 +13,10 @@ import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';
-import { LogIn, UserPlus } from 'lucide-react';
+import { LogIn, UserPlus, UserX } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL, subscriptionPlansConfig } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import { auth } from '@/lib/firebase';
 
@@ -93,12 +93,12 @@ const SetupPage = () => {
               return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
            } else { // Auth (if DB not needed, this is step 2)
-             if (!authMethod) return "Por favor, autentica tu cuenta para continuar.";
+             if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
            }
           break;
         case 3: // Auth or Plan
           if (dbNeeded) { // Auth
-            if (!authMethod) return "Por favor, autentica tu cuenta para continuar.";
+            if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
           } else { // Plan (if DB not needed, this is step 3)
              if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           }
@@ -176,13 +176,17 @@ const SetupPage = () => {
   };
 
   const handleAuthSuccess = () => {
+    if (state.wizard.authMethod === 'anonymous') {
+      const nextStep = needsDatabaseConfiguration() ? 4 : 3;
+      dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
+      return;
+    }
+  
     const dbNeeded = needsDatabaseConfiguration();
-    // After successful authentication, move to the plan selection step.
-    // If DB was needed, Auth was step 3, so Plan is step 4.
-    // If DB was not needed, Auth was step 2, so Plan is step 3.
     const nextStep = dbNeeded ? 4 : 3;
     dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
   };
+  
 
   const handleNext = () => {
     if (isStepValid()) {
@@ -217,13 +221,14 @@ const SetupPage = () => {
 
   const handleCompleteSetup = async () => {
     if (!isStepValid()) {
-      toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
-      return;
+        toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
+        return;
     }
 
     setIsFinalizingSetup(true);
-    let currentDatabaseOption = { ...state.wizard.databaseOption }; 
 
+    // --- 1. Build the final user profile object based on wizard state ---
+    let currentDatabaseOption = { ...state.wizard.databaseOption }; 
     let finalAssistantConfig: AssistantConfig;
     let updatedAssistantsArray: AssistantConfig[];
     const newDbEntries: DatabaseConfig[] = [];
@@ -231,8 +236,6 @@ const SetupPage = () => {
     let assistantPhoneNumber: string | undefined;
     let assistantImageUrl: string = DEFAULT_ASSISTANT_IMAGE_URL;
     let finalAssistantName = assistantName;
-
-    // If upgrading from free to paid with a new assistant, remove the old default one
     let baseAssistantsArray = state.userProfile.assistants;
     const wasOnFreeOrNoPlan = !state.userProfile.currentPlan || state.userProfile.currentPlan === 'free';
     const isUpgradingToPaid = selectedPlan && (selectedPlan === 'premium_179' || selectedPlan === 'business_270');
@@ -242,121 +245,124 @@ const SetupPage = () => {
             asst => asst.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER
         );
     }
-
-
+    
     if (editingAssistantId) {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
         assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
-        if (selectedPlan === 'free') {
-            assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-        } else if (assistantToUpdate.phoneLinked === DEFAULT_FREE_PLAN_PHONE_NUMBER && selectedPlan !== 'free') {
-            // If was on free plan number and upgrading, set to undefined so backend can provision Vonage/handle it
-            assistantPhoneNumber = undefined;
-        } else if (selectedPlan === 'business_270' || selectedPlan === 'premium_179') {
-             assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
-        } else {
-            // For other paid plans, keep existing number if it wasn't default free, otherwise undefined for provisioning
-            assistantPhoneNumber = assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined;
-        }
+        assistantPhoneNumber = (selectedPlan === 'free') 
+            ? DEFAULT_FREE_PLAN_PHONE_NUMBER 
+            : (assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined);
     } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
-        if (selectedPlan === 'business_270' || selectedPlan === 'premium_179') {
-            assistantPhoneNumber = customPhoneNumber || undefined;
-        } else if (selectedPlan === 'free') {
-            assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER;
-            if (state.userProfile.assistants.length === 0) finalAssistantName = "Hey Asistente";
-        } else {
-            assistantPhoneNumber = undefined;
+        assistantPhoneNumber = (selectedPlan === 'free') 
+            ? DEFAULT_FREE_PLAN_PHONE_NUMBER 
+            : customPhoneNumber || undefined;
+        if (selectedPlan === 'free' && state.userProfile.assistants.length === 0) {
+            finalAssistantName = "Hey Asistente";
         }
     }
-
     if (needsDatabaseConfiguration() && currentDatabaseOption.type) {
       const dbId = `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       newDbEntries.push({
         id: dbId,
         name: currentDatabaseOption.name || `Mi ${currentDatabaseOption.type === 'google_sheets' ? 'Hoja de Google' : 'Base Inteligente'}`,
         source: currentDatabaseOption.type,
-        details: currentDatabaseOption.type === 'google_sheets' 
-            ? currentDatabaseOption.name // For GSheet, details could be the name provided
-            : currentDatabaseOption.name, // For SmartDB, name can be details
+        details: currentDatabaseOption.name,
         accessUrl: currentDatabaseOption.type === 'google_sheets' ? currentDatabaseOption.accessUrl : undefined,
       });
       newAssistantDbIdToLink = dbId;
     } else if (!needsDatabaseConfiguration()) {
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: null, name: '', accessUrl: '' } });
     }
-
-
     if (editingAssistantId) {
       const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
-      finalAssistantConfig = {
-        ...assistantToUpdate,
-        name: finalAssistantName,
-        purposes: selectedPurposes,
-        phoneLinked: assistantPhoneNumber,
-        databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink
-                      : (needsDatabaseConfiguration() ? assistantToUpdate.databaseId : undefined),
-        imageUrl: assistantImageUrl,
-      };
-      updatedAssistantsArray = baseAssistantsArray.map(asst =>
-        asst.id === editingAssistantId ? finalAssistantConfig : asst
-      );
+      finalAssistantConfig = { ...assistantToUpdate, name: finalAssistantName, purposes: selectedPurposes, phoneLinked: assistantPhoneNumber, databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : (needsDatabaseConfiguration() ? assistantToUpdate.databaseId : undefined), imageUrl: assistantImageUrl };
+      updatedAssistantsArray = baseAssistantsArray.map(asst => asst.id === editingAssistantId ? finalAssistantConfig : asst);
     } else {
-      finalAssistantConfig = {
-        id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        name: finalAssistantName,
-        purposes: selectedPurposes,
-        phoneLinked: assistantPhoneNumber,
-        databaseId: newAssistantDbIdToLink,
-        imageUrl: assistantImageUrl,
-      };
+      finalAssistantConfig = { id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, name: finalAssistantName, purposes: selectedPurposes, phoneLinked: assistantPhoneNumber, databaseId: newAssistantDbIdToLink, imageUrl: assistantImageUrl };
       updatedAssistantsArray = [...baseAssistantsArray, finalAssistantConfig];
     }
-
     let updatedDatabasesArray = [...state.userProfile.databases, ...newDbEntries];
     if (editingAssistantId && (newAssistantDbIdToLink || !needsDatabaseConfiguration())) {
-        const oldAssistantVersion = state.userProfile.assistants.find(a => a.id === editingAssistantId);
-        const oldDbId = oldAssistantVersion?.databaseId;
-        if (oldDbId) {
-          if (!needsDatabaseConfiguration() || (newAssistantDbIdToLink && oldDbId !== newAssistantDbIdToLink)) {
+        const oldDbId = state.userProfile.assistants.find(a => a.id === editingAssistantId)?.databaseId;
+        if (oldDbId && (!needsDatabaseConfiguration() || (newAssistantDbIdToLink && oldDbId !== newAssistantDbIdToLink))) {
             const isOldDbUsedByOthers = updatedAssistantsArray.some(a => a.id !== editingAssistantId && a.databaseId === oldDbId);
-            if (!isOldDbUsedByOthers && !newDbEntries.find(ndb => ndb.id === oldDbId)) {
+            if (!isOldDbUsedByOthers) {
                 updatedDatabasesArray = updatedDatabasesArray.filter(db => db.id !== oldDbId);
             }
-          }
         }
     }
+    // --- End of profile build logic ---
 
-    const finalUserProfile: UserProfile = {
-      ...state.userProfile,
-      currentPlan: selectedPlan,
-      assistants: updatedAssistantsArray,
-      databases: updatedDatabasesArray,
-      ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
-    };
-    
-    dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
-    setIsFinalizingSetup(false);
+    const planDetails = subscriptionPlansConfig.find(p => p.id === selectedPlan);
 
-    if (!editingAssistantId && finalAssistantConfig) {
-      const assistantDb = newAssistantDbIdToLink
-        ? updatedDatabasesArray.find(db => db.id === newAssistantDbIdToLink)
-        : null;
-      sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, assistantDb || null)
-        .catch(err => console.error("Error sending assistant created webhook:", err));
+    // --- 2. Branch logic for Free/Test vs. Paid plans ---
+    if (selectedPlan && selectedPlan !== 'free' && planDetails?.stripePriceId) {
+        try {
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                toast({ title: "No autenticado", description: "Debes iniciar sesión para comprar un plan.", variant: "destructive" });
+                setIsFinalizingSetup(false);
+                router.push('/app/setup');
+                return;
+            }
+            const token = await currentUser.getIdToken();
+
+            // First, save the assistant/db configuration but keep the *current* plan.
+            const profileToSavePrePayment: UserProfile = { ...state.userProfile, assistants: updatedAssistantsArray, databases: updatedDatabasesArray, ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications };
+            const saveResponse = await fetch('/api/user-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ userId: currentUser.uid, userProfile: profileToSavePrePayment }),
+            });
+
+            if (!saveResponse.ok) {
+                const errorData = await saveResponse.json();
+                throw new Error(errorData.message || 'No se pudo guardar la configuración del asistente antes del pago.');
+            }
+
+            // Then, create the checkout session.
+            const checkoutResponse = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ planId: selectedPlan }),
+            });
+
+            const checkoutData = await checkoutResponse.json();
+            if (!checkoutResponse.ok) {
+                throw new Error(checkoutData.error || 'No se pudo crear la sesión de pago.');
+            }
+            
+            // Optimistically update local state with new assistant/db before redirecting.
+            dispatch({ type: 'COMPLETE_SETUP', payload: profileToSavePrePayment });
+            router.push(checkoutData.url);
+
+        } catch (error: any) {
+            console.error("Error processing paid plan selection:", error);
+            toast({ title: "Error al proceder al pago", description: error.message || "Ocurrió un error. Por favor, inténtalo de nuevo.", variant: "destructive" });
+            setIsFinalizingSetup(false);
+        }
+    } else {
+        // This handles the 'free' plan and any non-purchasable plans (like 'test_plan').
+        const finalUserProfile: UserProfile = { ...state.userProfile, currentPlan: selectedPlan, assistants: updatedAssistantsArray, databases: updatedDatabasesArray, ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications };
+        
+        dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
+        setIsFinalizingSetup(false);
+
+        if (!editingAssistantId && finalAssistantConfig) {
+            sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, newDbEntries.find(db => db.id === newAssistantDbIdToLink) || null)
+                .catch(err => console.error("Error sending assistant created webhook:", err));
+        }
+
+        toast({
+            title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
+            description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
+            action: <Button variant="ghost" size="sm" onClick={() => router.push('/app/dashboard')}>Ir al Panel</Button>,
+        });
+        router.push('/app/dashboard');
     }
+};
 
-    toast({
-      title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
-      description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
-      action: (
-        <Button variant="ghost" size="sm" onClick={() => router.push('/app/dashboard')}>
-          Ir al Panel
-        </Button>
-      ),
-    });
-    router.push('/app/dashboard');
-  };
 
   const renderStepContent = () => {
     const dbNeeded = needsDatabaseConfiguration();
@@ -424,6 +430,20 @@ const SetupPage = () => {
             >
               <UserPlus className="mr-3 h-5 w-5" />
               Define tu Asistente
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+              onClick={() => {
+                setUserHasMadeInitialChoice(true);
+                dispatch({ type: 'SET_AUTH_METHOD', payload: 'anonymous' });
+                const nextStep = needsDatabaseConfiguration() ? 4 : 3;
+                dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
+              }}
+            >
+              <UserX className="mr-3 h-5 w-5 text-muted-foreground" />
+              Continuar sin cuenta (prueba)
             </Button>
           </CardContent>
         </Card>
