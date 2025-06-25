@@ -8,7 +8,6 @@ import {
   type User, 
   signInWithRedirect, 
   getRedirectResult, 
-  signInAnonymously,
   type Auth
 } from "firebase/auth";
 
@@ -43,7 +42,6 @@ if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
       },
       // Mock other functions used in the app to prevent crashes
       signInWithPopup: () => Promise.reject(new Error("Firebase is not configured. Please add credentials to .env.local.")),
-      signInAnonymously: () => Promise.reject(new Error("Firebase is not configured. Please add credentials to .env.local.")),
       signOut: () => Promise.resolve(),
       currentUser: null,
     } as unknown as Auth;
@@ -60,5 +58,5 @@ if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
 }
 
 
-export { auth, googleProvider, signInWithPopup, signOut, signInWithRedirect, getRedirectResult, signInAnonymously };
+export { auth, googleProvider, signInWithPopup, signOut, signInWithRedirect, getRedirectResult };
 export type { User as FirebaseUser };

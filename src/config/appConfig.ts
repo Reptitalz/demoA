@@ -1,6 +1,6 @@
 
 import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaGoogle, FaUserCog, FaUsers, FaUserTimes, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask, FaBrain, FaUserSecret } from 'react-icons/fa';
+import { FaGoogle, FaUserCog, FaUsers, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask, FaBrain } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";

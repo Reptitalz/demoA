@@ -13,7 +13,7 @@ import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';
-import { LogIn, UserPlus, UserX } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL, subscriptionPlansConfig } from '@/config/appConfig';
@@ -176,12 +176,6 @@ const SetupPage = () => {
   };
 
   const handleAuthSuccess = () => {
-    if (state.wizard.authMethod === 'anonymous') {
-      const nextStep = needsDatabaseConfiguration() ? 4 : 3;
-      dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
-      return;
-    }
-  
     const dbNeeded = needsDatabaseConfiguration();
     const nextStep = dbNeeded ? 4 : 3;
     dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
@@ -430,20 +424,6 @@ const SetupPage = () => {
             >
               <UserPlus className="mr-3 h-5 w-5" />
               Define tu Asistente
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={() => {
-                setUserHasMadeInitialChoice(true);
-                dispatch({ type: 'SET_AUTH_METHOD', payload: 'anonymous' });
-                const nextStep = needsDatabaseConfiguration() ? 4 : 3;
-                dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
-              }}
-            >
-              <UserX className="mr-3 h-5 w-5 text-muted-foreground" />
-              Continuar sin cuenta (prueba)
             </Button>
           </CardContent>
         </Card>
