@@ -86,9 +86,9 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isPendingCustomNumberSetup = accountNumberStatus === 'pending_acquisition' && !assistant.phoneLinked;
-  const isFullyActive = accountNumberStatus === 'active' && !!assistant.phoneLinked;
   const isDefaultAssistant = assistant.name === "Hey Asistente";
+  const isPendingCustomNumberSetup = accountNumberStatus === 'pending_acquisition' && !assistant.phoneLinked;
+  const isFullyActive = (accountNumberStatus === 'active' && !!assistant.phoneLinked) || isDefaultAssistant;
   
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
