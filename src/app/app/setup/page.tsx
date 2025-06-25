@@ -358,6 +358,14 @@ const SetupPage = () => {
 };
 
   const handleDirectSignIn = async () => {
+    if (!googleProvider) {
+      toast({
+        title: "Configuración Incompleta",
+        description: "La autenticación de Firebase no está configurada. Por favor, revisa las variables de entorno.",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
       const result = await signInWithPopup(auth, googleProvider);
       if (result && result.user) {
@@ -516,5 +524,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-
-    

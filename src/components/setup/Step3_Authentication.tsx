@@ -35,6 +35,14 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
   }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch, onSuccess]);
 
   const handleGoogleSignIn = async () => {
+    if (!googleProvider) {
+      toast({
+        title: "Configuración Incompleta",
+        description: "La autenticación de Firebase no está configurada. Por favor, revisa las variables de entorno.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsProcessingAuth(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
