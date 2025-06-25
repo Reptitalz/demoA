@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -16,7 +16,7 @@ import { subscriptionPlansConfig, APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { auth, signOut } from '@/lib/firebase';
 
-const DashboardPage = () => {
+const DashboardPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -227,6 +227,19 @@ const DashboardPage = () => {
       </div>
     </PageContainer>
   );
-};
+}
+
+
+const DashboardPage = () => {
+  return (
+    <Suspense fallback={
+      <PageContainer className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size={36} />
+      </PageContainer>
+    }>
+      <DashboardPageContent />
+    </Suspense>
+  )
+}
 
 export default DashboardPage;
