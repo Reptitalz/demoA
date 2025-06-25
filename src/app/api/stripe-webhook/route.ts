@@ -10,57 +10,52 @@ import { cancelActivation } from '@/services/vonage';
 import { DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN, subscriptionPlansConfig } from '@/config/appConfig';
 
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_LIVE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_TEST_SECRET_KEY = 'sk_test_51NGmAyBwdSNcDr02417QVOTCSX6k9vyL30pdwZB6sCS73kG9czW62GYi5apNSv8ypIpwYdktZHIQ9zartOlnfa8p00NcJ0EyJv';
 const STRIPE_WEBHOOK_SIGNING_SECRET = process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
 
-let stripe: Stripe;
-if (STRIPE_SECRET_KEY) {
-  stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: '2024-06-20',
-  });
-} else {
-  console.error('Stripe Secret Key (STRIPE_SECRET_KEY) is not defined in environment variables. Stripe webhook handler will not function.');
-}
 
 export async function POST(request: NextRequest) {
   try {
-    if (!STRIPE_SECRET_KEY) {
-      console.error('Stripe Secret Key (STRIPE_SECRET_KEY) is not defined. Stripe webhook handler cannot function.');
-      return NextResponse.json({ error: 'Server configuration issue (Missing Stripe Secret Key).' }, { status: 500 });
+    const rawBody = await request.text();
+    let event: Stripe.Event;
+
+    // First, do a raw parse of the event to check its `livemode`.
+    // This allows us to select the correct API key before verifying the signature.
+    try {
+        event = JSON.parse(rawBody) as Stripe.Event;
+    } catch (err) {
+        console.error('Webhook Error: Invalid JSON body.');
+        return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
     }
-    if (!stripe) {
-        console.error('Stripe client not initialized due to missing STRIPE_SECRET_KEY.');
-        return NextResponse.json({ error: 'Server configuration issue (Stripe client not initialized).' }, { status: 500 });
+
+    const secretKeyToUse = event.livemode ? STRIPE_LIVE_SECRET_KEY : STRIPE_TEST_SECRET_KEY;
+    const mode = event.livemode ? 'live' : 'test';
+
+    if (!secretKeyToUse) {
+        console.error(`Stripe Secret Key for ${mode} mode is not defined. Cannot process webhook.`);
+        return NextResponse.json({ error: `Server configuration issue (Missing Stripe ${mode} key).` }, { status: 500 });
     }
     
-    if (!STRIPE_WEBHOOK_SIGNING_SECRET && process.env.NODE_ENV === 'production') {
-        console.error('Stripe Webhook Signing Secret (STRIPE_WEBHOOK_SIGNING_SECRET) is not defined. This is a critical security risk in production.');
-        return NextResponse.json({ error: 'Server configuration issue (Missing Webhook Signing Secret).' }, { status: 500 });
-    }
+    const stripe = new Stripe(secretKeyToUse, {
+        apiVersion: '2024-06-20',
+    });
 
-
-    const rawBody = await request.text();
+    // Now, with the correct key, verify the webhook signature if required.
     const signature = request.headers.get('stripe-signature');
-
-    if (!signature && STRIPE_WEBHOOK_SIGNING_SECRET) {
-      console.warn('Stripe webhook request missing signature.');
-      return NextResponse.json({ error: 'Webhook Error: Missing signature.' }, { status: 400 });
+    if (STRIPE_WEBHOOK_SIGNING_SECRET && signature) {
+        try {
+            // Re-construct the event, this time with signature verification
+            event = stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SIGNING_SECRET);
+        } catch (err: any) {
+            console.error(`Stripe webhook signature verification failed for ${mode} mode: ${err.message}`);
+            return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+        }
+    } else if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
+        console.warn('Processed Stripe event without signature verification. THIS IS A SECURITY RISK IN PRODUCTION.');
     }
 
-    let event: Stripe.Event;
-    try {
-      event = STRIPE_WEBHOOK_SIGNING_SECRET && signature
-              ? stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SIGNING_SECRET)
-              : JSON.parse(rawBody) as Stripe.Event; 
-      if (!STRIPE_WEBHOOK_SIGNING_SECRET && process.env.NODE_ENV !== 'development') {
-          console.warn('Processed Stripe event without signature verification. THIS IS A SECURITY RISK IN PRODUCTION.');
-      }
-    } catch (err: any) {
-      console.error(`Stripe webhook signature verification or parsing failed: ${err.message}`);
-      return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
-    }
-
-    console.log(`Received Stripe event: ${event.type}, ID: ${event.id}`);
+    console.log(`Received Stripe event: ${event.type}, ID: ${event.id}, Livemode: ${event.livemode}`);
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
 

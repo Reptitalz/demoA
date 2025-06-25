@@ -6,14 +6,9 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { subscriptionPlansConfig } from '@/config/appConfig';
 import type { UserProfile } from '@/types';
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-if (!STRIPE_SECRET_KEY) {
-  throw new Error('Stripe secret key is not defined in environment variables.');
-}
-
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
-});
+// Hardcode the test key provided by the user to ensure test mode works.
+const STRIPE_TEST_SECRET_KEY = 'sk_test_51NGmAyBwdSNcDr02417QVOTCSX6k9vyL30pdwZB6sCS73kG9czW62GYi5apNSv8ypIpwYdktZHIQ9zartOlnfa8p00NcJ0EyJv';
+const STRIPE_LIVE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
@@ -34,6 +29,31 @@ export async function POST(request: NextRequest) {
     if (!planDetails || !planDetails.stripePriceId) {
       return NextResponse.json({ error: 'Invalid or un-purchasable plan ID' }, { status: 400 });
     }
+    
+    // Logic to select the correct Stripe key based on the price ID
+    let stripeKey;
+    const testPriceIds = ["price_1RRGyHBwdSNcDr02a7oH7iNc"]; // Known test price IDs
+    
+    if (testPriceIds.includes(planDetails.stripePriceId)) {
+        // This is a test purchase, use the test key.
+        stripeKey = STRIPE_TEST_SECRET_KEY;
+        console.log("Using Stripe test key for test price ID.");
+    } else {
+        // This is a live purchase, use the live key from env vars.
+        stripeKey = STRIPE_LIVE_SECRET_KEY;
+        console.log("Using Stripe live key.");
+    }
+
+    if (!stripeKey) {
+      const errorMessage = testPriceIds.includes(planDetails.stripePriceId)
+        ? 'Stripe test secret key is not available.'
+        : 'Stripe live secret key is not defined in environment variables.';
+      throw new Error(errorMessage);
+    }
+    
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: '2024-06-20',
+    });
 
     const { db } = await connectToDatabase();
     const userProfile = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid });
