@@ -9,14 +9,13 @@ import SetupProgressBar from '@/components/setup/SetupProgressBar';
 import Step1AssistantDetails from '@/components/setup/Step1_AssistantDetails';
 import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
-import Step4SubscriptionPlan from '@/components/setup/Step4_SubscriptionPlan';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaEye } from 'react-icons/fa';
 import { LogIn, UserPlus } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL, subscriptionPlansConfig } from '@/config/appConfig';
+import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 
@@ -24,7 +23,7 @@ const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, selectedPlan, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
+  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
@@ -41,14 +40,14 @@ const SetupPage = () => {
 
 
   const effectiveMaxSteps = isReconfiguring
-    ? (needsDatabaseConfiguration() ? 3 : 2) // Details, DB (Opt), Plan
-    : (needsDatabaseConfiguration() ? MAX_WIZARD_STEPS : MAX_WIZARD_STEPS - 1); // Details, DB (Opt), Auth, Plan
-
+    ? (needsDatabaseConfiguration() ? 2 : 1) // Reconfig: Details -> DB (optional)
+    : (needsDatabaseConfiguration() ? MAX_WIZARD_STEPS : MAX_WIZARD_STEPS - 1); // New: Details -> DB (optional) -> Auth
 
   const getValidationMessage = (): string => {
     const currentValidationStep = currentStep;
     const dbNeeded = needsDatabaseConfiguration();
 
+    // Reconfiguring flow
     if (isReconfiguring) {
       switch (currentValidationStep) {
         case 1: // Assistant Details
@@ -58,19 +57,12 @@ const SetupPage = () => {
             return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
           }
           break;
-        case 2: // DB config or Plan
-          if (dbNeeded) { // DB config
-            if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-            if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
-            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) {
-              return "Por favor, proporciona una URL válida de Hoja de Google.";
-            }
-          } else { // Plan (if DB not needed, this is step 2)
-             if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
+        case 2: // DB config
+          if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
+          if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
+          if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) {
+            return "Por favor, proporciona una URL válida de Hoja de Google.";
           }
-          break;
-        case 3: // Plan (if DB was needed and was step 2)
-          if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           break;
       }
     } else { // Standard flow
@@ -93,15 +85,8 @@ const SetupPage = () => {
              if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
            }
           break;
-        case 3: // Auth or Plan
-          if (dbNeeded) { // Auth
+        case 3: // Auth
             if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
-          } else { // Plan (if DB not needed, this is step 3)
-             if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
-          }
-          break;
-        case 4: // Plan (if DB was present)
-          if (!selectedPlan) return "Por favor, selecciona un plan de suscripción.";
           break;
       }
     }
@@ -114,6 +99,7 @@ const SetupPage = () => {
 
     if (isFinalizingSetup) return false;
 
+    // Reconfiguring flow
     if (isReconfiguring) {
       switch (currentValidationStep) {
         case 1:
@@ -123,19 +109,13 @@ const SetupPage = () => {
             reconfigNotifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
           }
           return reconfigBaseValid && reconfigNotifyOwnerValid;
-        case 2: // DB or Plan
-          if (dbNeeded) { // DB config
-            if (!databaseOption.type) return false;
-            if (!databaseOption.name?.trim()) return false;
-            if (databaseOption.type === "google_sheets") {
-                return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
-            }
-            return true; // For smart_db, name is enough
-          } else { // Plan
-            return !!selectedPlan;
+        case 2: // DB config
+          if (!databaseOption.type) return false;
+          if (!databaseOption.name?.trim()) return false;
+          if (databaseOption.type === "google_sheets") {
+              return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
           }
-        case 3: // Plan
-          return !!selectedPlan;
+          return true;
         default: return false;
       }
     } else { // Standard flow
@@ -154,38 +134,28 @@ const SetupPage = () => {
             if (databaseOption.type === "google_sheets") {
                 return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             }
-            return true; // For smart_db, name is enough
+            return true;
           } else { // Auth
             return !!authMethod;
           }
-        case 3: // Auth or Plan
-           if (dbNeeded) { // Auth
-            return !!authMethod;
-           } else { // Plan
-            return !!selectedPlan;
-           }
-        case 4: // Plan
-          return !!selectedPlan;
+        case 3: // Auth
+           return !!authMethod;
         default: return false;
       }
     }
   };
 
   const handleAuthSuccess = () => {
-    const dbNeeded = needsDatabaseConfiguration();
-    const nextStep = dbNeeded ? 4 : 3;
-    dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
+    // Authentication was successful, now complete the setup process.
+    handleCompleteSetup();
   };
   
 
   const handleNext = () => {
     if (isStepValid()) {
       if (currentStep === 1 && !needsDatabaseConfiguration()) { // Skip DB step if not needed
-        if (isReconfiguring) { // Reconfig: Details -> Plan
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
-        } else { // New Setup: Details -> Auth
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); // Go from step 1 to 3 (Auth)
-        }
+         // For both new setup and reconfig, if no DB needed, next step is Auth
+         dispatch({ type: 'SET_WIZARD_STEP', payload: isReconfiguring ? 2 : 3 });
       } else if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
@@ -199,19 +169,22 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
-    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) { // Came from Details to Auth, go back to Details
+    // If on Auth step (3) and came from Details (skipped DB), go back to step 1
+    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) {
       dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
-    } else if (currentStep === 2 && !needsDatabaseConfiguration() && isReconfiguring) { // Came from Details to Plan (reconfig), go back to Details
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
-    }
-    else if (currentStep > 1) {
+    } else if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
   };
 
   const handleCompleteSetup = async () => {
-    if (!isStepValid()) {
+    if (isReconfiguring && !isStepValid()) {
         toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
+        return;
+    }
+
+    if (!isReconfiguring && !state.userProfile.isAuthenticated) {
+        toast({ title: "Autenticación Requerida", description: "Por favor, inicia sesión para completar la configuración.", variant: "destructive" });
         return;
     }
     
@@ -227,7 +200,6 @@ const SetupPage = () => {
 
     setIsFinalizingSetup(true);
 
-    // --- 1. Build the final user profile object based on wizard state ---
     let currentDatabaseOption = { ...state.wizard.databaseOption }; 
     let finalAssistantConfig: AssistantConfig;
     let updatedAssistantsArray: AssistantConfig[];
@@ -237,27 +209,15 @@ const SetupPage = () => {
     let assistantImageUrl: string = DEFAULT_ASSISTANT_IMAGE_URL;
     let finalAssistantName = assistantName;
     let baseAssistantsArray = state.userProfile.assistants;
-    const wasOnFreeOrNoPlan = !state.userProfile.currentPlan || state.userProfile.currentPlan === 'free';
-    const isUpgradingToPaid = selectedPlan && (selectedPlan === 'premium_179' || selectedPlan === 'business_270');
 
-    if (!editingAssistantId && wasOnFreeOrNoPlan && isUpgradingToPaid) {
-        baseAssistantsArray = state.userProfile.assistants.filter(
-            asst => asst.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER
-        );
-    }
-    
     if (editingAssistantId) {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
         assistantImageUrl = assistantToUpdate.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
-        assistantPhoneNumber = (selectedPlan === 'free') 
-            ? DEFAULT_FREE_PLAN_PHONE_NUMBER 
-            : (assistantToUpdate.phoneLinked !== DEFAULT_FREE_PLAN_PHONE_NUMBER ? assistantToUpdate.phoneLinked : undefined);
+        assistantPhoneNumber = assistantToUpdate.phoneLinked;
     } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
-        assistantPhoneNumber = (selectedPlan === 'free') 
-            ? DEFAULT_FREE_PLAN_PHONE_NUMBER 
-            : undefined; // No custom phone number at creation
-        if (selectedPlan === 'free' && state.userProfile.assistants.length === 0) {
+        assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER; 
+        if (state.userProfile.assistants.length === 0) {
             finalAssistantName = "Hey Asistente";
         }
     }
@@ -292,75 +252,23 @@ const SetupPage = () => {
             }
         }
     }
-    // --- End of profile build logic ---
 
-    const planDetails = subscriptionPlansConfig.find(p => p.id === selectedPlan);
+    const finalUserProfile: UserProfile = { ...state.userProfile, assistants: updatedAssistantsArray, databases: updatedDatabasesArray, ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications };
+    
+    dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
+    setIsFinalizingSetup(false);
 
-    // --- 2. Branch logic for Free/Test vs. Paid plans ---
-    if (selectedPlan && selectedPlan !== 'free' && planDetails?.stripePriceId) {
-        try {
-            const currentUser = auth.currentUser;
-            if (!currentUser) {
-                toast({ title: "No autenticado", description: "Debes iniciar sesión para comprar un plan.", variant: "destructive" });
-                setIsFinalizingSetup(false);
-                router.push('/app/setup');
-                return;
-            }
-            const token = await currentUser.getIdToken();
-
-            // First, save the assistant/db configuration but keep the *current* plan.
-            const profileToSavePrePayment: UserProfile = { ...state.userProfile, assistants: updatedAssistantsArray, databases: updatedDatabasesArray, ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications };
-            const saveResponse = await fetch('/api/user-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ userId: currentUser.uid, userProfile: profileToSavePrePayment }),
-            });
-
-            if (!saveResponse.ok) {
-                const errorData = await saveResponse.json();
-                throw new Error(errorData.message || 'No se pudo guardar la configuración del asistente antes del pago.');
-            }
-
-            // Then, create the checkout session.
-            const checkoutResponse = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ planId: selectedPlan }),
-            });
-
-            const checkoutData = await checkoutResponse.json();
-            if (!checkoutResponse.ok) {
-                throw new Error(checkoutData.error || 'No se pudo crear la sesión de pago.');
-            }
-            
-            // Optimistically update local state with new assistant/db before redirecting.
-            dispatch({ type: 'COMPLETE_SETUP', payload: profileToSavePrePayment });
-            router.push(checkoutData.url);
-
-        } catch (error: any) {
-            console.error("Error processing paid plan selection:", error);
-            toast({ title: "Error al proceder al pago", description: error.message || "Ocurrió un error. Por favor, inténtalo de nuevo.", variant: "destructive" });
-            setIsFinalizingSetup(false);
-        }
-    } else {
-        // This handles the 'free' plan and any non-purchasable plans (like 'test_plan').
-        const finalUserProfile: UserProfile = { ...state.userProfile, currentPlan: selectedPlan, assistants: updatedAssistantsArray, databases: updatedDatabasesArray, ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications };
-        
-        dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
-        setIsFinalizingSetup(false);
-
-        if (!editingAssistantId && finalAssistantConfig) {
-            sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, newDbEntries.find(db => db.id === newAssistantDbIdToLink) || null)
-                .catch(err => console.error("Error sending assistant created webhook:", err));
-        }
-
-        toast({
-            title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
-            description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
-            action: <Button variant="ghost" size="sm" onClick={() => router.push('/app/dashboard')}>Ir al Panel</Button>,
-        });
-        router.push('/app/dashboard');
+    if (!editingAssistantId && finalAssistantConfig) {
+        sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, newDbEntries.find(db => db.id === newAssistantDbIdToLink) || null)
+            .catch(err => console.error("Error sending assistant created webhook:", err));
     }
+
+    toast({
+        title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
+        description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
+        action: <Button variant="ghost" size="sm" onClick={() => router.push('/app/dashboard')}>Ir al Panel</Button>,
+    });
+    router.push('/app/dashboard');
 };
 
   const handleAuthFlow = async (flowType: 'create' | 'login') => {
@@ -376,14 +284,11 @@ const SetupPage = () => {
       const result = await signInWithPopup(auth, googleProvider);
       if (result && result.user) {
         if (flowType === 'create') {
-          // For 'Create', always reset and go to step 1
           dispatch({ type: 'RESET_WIZARD' });
           setUserHasMadeInitialChoice(true);
           dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
           toast({ title: "Define tu Asistente", description: "Comencemos a definir tu asistente."});
         } else {
-          // For 'Login', the AppProvider's onAuthStateChanged listener will handle
-          // fetching the profile and redirecting to the dashboard if setup is complete.
           toast({
             title: "Inicio de sesión exitoso",
             description: "Redirigiendo...",
@@ -416,25 +321,22 @@ const SetupPage = () => {
     const dbNeeded = needsDatabaseConfiguration();
 
     if (isReconfiguring) {
-      // Reconfiguring flow: Details -> DB (optional) -> Plan
+      // Reconfiguring flow: Details -> DB (optional)
       if (currentStep === 1) return <Step1AssistantDetails />;
-      if (currentStep === 2) return dbNeeded ? <Step2DatabaseConfig /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
-      if (currentStep === 3) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+      if (currentStep === 2) return <Step2DatabaseConfig />;
       return null;
     } else {
-      // Standard new setup flow based on logical steps
-      // Step 1: Details
+      // New setup flow: Details -> DB (optional) -> Auth
       if (currentStep === 1) return <Step1AssistantDetails />;
-      // Step 2: DB (if needed) or Auth
+      
+      const authStepNumber = dbNeeded ? 3 : 2;
+
       if (currentStep === 2) {
         return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleAuthSuccess} />;
       }
-      // Step 3: Auth (if DB was needed) or Plan
       if (currentStep === 3) {
-        return dbNeeded ? <Step3Authentication onSuccess={handleAuthSuccess} /> : <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
+        return dbNeeded ? <Step3Authentication onSuccess={handleAuthSuccess} /> : null;
       }
-      // Step 4: Plan (if DB was needed)
-      if (currentStep === 4) return <Step4SubscriptionPlan onCompleteSetup={handleCompleteSetup} />;
       
       return null;
     }
@@ -532,14 +434,14 @@ const SetupPage = () => {
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           )}
-          {currentStep === effectiveMaxSteps && (
+          {currentStep === effectiveMaxSteps && isReconfiguring && (
              <Button
               onClick={handleCompleteSetup}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid() || isFinalizingSetup}
             >
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
-              {isReconfiguring ? "Guardar Cambios" : "Completar Configuración"}
+              Guardar Cambios
               {!isFinalizingSetup && <FaArrowRight className="ml-1 h-3 w-3" />}
             </Button>
           )}

@@ -28,17 +28,6 @@ export interface AssistantConfig {
   imageUrl?: string;
 }
 
-export type SubscriptionPlanType = "free" | "premium_179" | "business_270";
-
-export interface SubscriptionPlanDetails {
-  id: SubscriptionPlanType;
-  name: string;
-  priceMonthly: number;
-  assistantLimit: number | "unlimited";
-  features: string[];
-  stripePriceId?: string;
-}
-
 export type AuthProviderType = "google";
 
 export interface UserProfile {
@@ -46,12 +35,9 @@ export interface UserProfile {
   isGuest?: boolean;
   authProvider?: AuthProviderType;
   email?: string;
-  currentPlan: SubscriptionPlanType | null;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   firebaseUid?: string;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
   ownerPhoneNumberForNotifications?: string;
 }
 
@@ -67,7 +53,6 @@ export interface WizardState {
     accessUrl?: string; // Only for Google Sheets
   };
   authMethod: AuthProviderType | null;
-  selectedPlan: SubscriptionPlanType | null;
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;

@@ -3,8 +3,8 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, SubscriptionPlanType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
-import { MAX_WIZARD_STEPS, assistantPurposesConfig, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
+import { MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
 
@@ -16,7 +16,6 @@ const initialWizardState: WizardState = {
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '' },
   authMethod: null,
-  selectedPlan: null,
   ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
   editingAssistantId: null,
@@ -27,7 +26,6 @@ const initialUserProfileState: UserProfile = {
   isGuest: false,
   authProvider: undefined,
   email: undefined,
-  currentPlan: null,
   assistants: [],
   databases: [],
   firebaseUid: undefined,
@@ -52,7 +50,6 @@ type Action =
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
-  | { type: 'SET_SUBSCRIPTION_PLAN'; payload: SubscriptionPlanType | null }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
@@ -119,8 +116,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, databaseOption: { ...state.wizard.databaseOption, ...action.payload } } };
     case 'SET_AUTH_METHOD':
       return { ...state, wizard: { ...state.wizard, authMethod: action.payload } };
-    case 'SET_SUBSCRIPTION_PLAN':
-      return { ...state, wizard: { ...state.wizard, selectedPlan: action.payload } };
     case 'UPDATE_OWNER_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, ownerPhoneNumberForNotifications: action.payload } };
     case 'COMPLETE_SETUP':
@@ -182,7 +177,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
             ...assistant,
             purposes: new Set(Array.isArray(assistant.purposes) ? assistant.purposes : []) as Set<AssistantPurposeType>,
         }));
-        const newIsSetupComplete = !!apiProfile.currentPlan || (apiProfile.assistants && apiProfile.assistants.length > 0);
+        const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
 
         return {
             ...state,
@@ -243,7 +238,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
           isAuthenticated: true,
           isGuest: true,
           email: 'invitado@example.com',
-          currentPlan: 'free',
           assistants: guestAssistants,
           databases: guestDatabases,
           firebaseUid: 'guest_user_id',
