@@ -118,6 +118,11 @@ const DashboardPageContent = () => {
   };
 
   const handleLogout = async () => {
+    if (state.userProfile.isGuest) {
+      dispatch({ type: 'LOGOUT_USER' });
+      router.push('/app/setup');
+      return;
+    }
     try {
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
@@ -183,8 +188,6 @@ const DashboardPageContent = () => {
                 assistant={assistant} 
                 onReconfigure={handleReconfigureAssistant}
                 animationDelay={`${0.4 + index * 0.1}s`}
-                accountVirtualPhoneNumber={userProfile.virtualPhoneNumber}
-                accountNumberStatus={userProfile.numberActivationStatus}
               />
             ))}
           </div>
