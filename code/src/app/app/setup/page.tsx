@@ -15,7 +15,7 @@ import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaEye } from 'react-icons
 import { LogIn, UserPlus } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 
@@ -216,10 +216,7 @@ const SetupPage = () => {
         assistantPhoneNumber = assistantToUpdate.phoneLinked;
     } else { // New assistant
         assistantImageUrl = DEFAULT_ASSISTANT_IMAGE_URL;
-        assistantPhoneNumber = DEFAULT_FREE_PLAN_PHONE_NUMBER; 
-        if (state.userProfile.assistants.length === 0) {
-            finalAssistantName = "Hey Asistente";
-        }
+        assistantPhoneNumber = undefined; // Do not assign phone number on creation
     }
     if (needsDatabaseConfiguration() && currentDatabaseOption.type) {
       const dbId = `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;

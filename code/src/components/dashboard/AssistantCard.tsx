@@ -4,12 +4,13 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -27,6 +28,7 @@ const AssistantCard = ({
   const [showAllPurposes, setShowAllPurposes] = useState(false);
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
+  const [isSetupDialogOpen, setIsSetupDialogOpen] = useState(false);
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
@@ -74,7 +76,6 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isDefaultAssistant = assistant.name === "Hey Asistente";
   const isAssistantActive = !!assistant.phoneLinked;
   
   const statusBadge = (
@@ -108,7 +109,7 @@ const AssistantCard = ({
                 <div className="flex items-center justify-between">
                      <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
                 </div>
-                {assistant.phoneLinked ? (
+                {isAssistantActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
                           <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
@@ -130,8 +131,9 @@ const AssistantCard = ({
                       </a>
                     </CardDescription>
                 ) : (
-                  <CardDescription className="text-xs sm:text-sm pt-1 text-muted-foreground">
-                    Este asistente no tiene un número de teléfono vinculado.
+                  <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
+                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                    <span>Esperando número de teléfono para activar.</span>
                   </CardDescription>
                 )}
               </div>
@@ -180,7 +182,7 @@ const AssistantCard = ({
           )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-            {isAssistantActive && (
+            {isAssistantActive ? (
               <Button
                 size="sm"
                 onClick={handleShareOnWhatsApp}
@@ -192,20 +194,36 @@ const AssistantCard = ({
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
               </Button>
-            )}
-            {!isDefaultAssistant && (
+            ) : (
               <Button
-                variant="outline"
                 size="sm"
-                onClick={handleReconfigureClick}
-                className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+                onClick={() => setIsSetupDialogOpen(true)}
+                className={cn(
+                  "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
+                  "bg-brand-gradient"
+                )}
               >
-                <FaCog size={14} className="mr-1.5 sm:mr-2" />
-                Reconfigurar
+                <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
+                Integrar número de teléfono
               </Button>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReconfigureClick}
+              className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+            >
+              <FaCog size={14} className="mr-1.5 sm:mr-2" />
+              Reconfigurar
+            </Button>
         </CardFooter>
       </Card>
+       <PhoneNumberSetupDialog
+        isOpen={isSetupDialogOpen}
+        onOpenChange={setIsSetupDialogOpen}
+        assistantId={assistant.id}
+        assistantName={assistant.name}
+      />
     </>
   );
 };
