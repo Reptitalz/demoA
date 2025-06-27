@@ -27,6 +27,7 @@ export interface AssistantConfig {
   databaseId?: string;
   imageUrl?: string;
   verificationCode?: string;
+  numberReady?: boolean;
 }
 
 export type AuthProviderType = "google";

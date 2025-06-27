@@ -51,13 +51,18 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
       setTimeout(() => { // Simulate API call to verify code
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === assistantId);
         if (assistantToUpdate) {
-          const updatedAssistant: AssistantConfig = { ...assistantToUpdate, phoneLinked: phoneNumber, verificationCode: verificationCode };
+          const updatedAssistant: AssistantConfig = { 
+            ...assistantToUpdate, 
+            phoneLinked: phoneNumber, 
+            verificationCode: verificationCode,
+            numberReady: false // Set to false, external process will set it to true
+          };
           dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
           setIsVerifying(false);
           setStep(3);
           toast({
             title: "¡Verificación Exitosa!",
-            description: `El número ${phoneNumber} ha sido vinculado a ${assistantName}.`,
+            description: `El número ${phoneNumber} ha sido vinculado a ${assistantName}. La activación está en proceso.`,
           });
         } else {
             toast({ title: "Error", description: "No se encontró el asistente a actualizar.", variant: "destructive" });
@@ -144,9 +149,10 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
             {step === 3 && (
                 <div className="animate-fadeIn text-center flex flex-col items-center gap-3">
                     <FaCheckCircle className="h-12 w-12 text-green-500" />
-                    <h3 className="font-semibold text-base">¡Número Vinculado Exitosamente!</h3>
+                    <h3 className="font-semibold text-base">¡Número Vinculado!</h3>
                      <p className="text-sm text-muted-foreground">
-                        El asistente <strong className="text-foreground">{assistantName}</strong> ahora está activo con el número <strong className="text-foreground">{phoneNumber}</strong>.
+                        El asistente <strong className="text-foreground">{assistantName}</strong> se está activando con el número <strong className="text-foreground">{phoneNumber}</strong>.
+                        Este proceso puede tardar hasta 10 minutos. Te notificaremos cuando esté listo para usarse.
                     </p>
                 </div>
             )}

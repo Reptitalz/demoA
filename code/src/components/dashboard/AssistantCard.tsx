@@ -76,14 +76,28 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isAssistantActive = !!assistant.phoneLinked;
+  const isAssistantActive = !!assistant.phoneLinked && assistant.numberReady === true;
+  const isActivationPending = !!assistant.phoneLinked && assistant.numberReady === false;
   
+  let badgeText = "Inactivo";
+  let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+
+  if (isAssistantActive) {
+      badgeText = "Activo";
+      badgeVariant = "default";
+  } else if (isActivationPending) {
+      badgeText = "Activando";
+      badgeVariant = "outline";
+  }
+    
   const statusBadge = (
-    <Badge variant={isAssistantActive ? 'default' : 'secondary'} className={cn(
+    <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      isAssistantActive && "bg-brand-gradient text-primary-foreground"
+      isAssistantActive && "bg-brand-gradient text-primary-foreground",
+      isActivationPending && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
-      {isAssistantActive ? 'Activo' : 'Inactivo'}
+      {isActivationPending && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+      {badgeText}
     </Badge>
   );
 
@@ -130,9 +144,14 @@ const AssistantCard = ({
                           <span>Chatear</span>
                       </a>
                     </CardDescription>
+                ) : isActivationPending ? (
+                   <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
+                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                    <span>Activación en proceso, por favor espere...</span>
+                  </CardDescription>
                 ) : (
                   <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
-                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                    <FaPhoneAlt size={12} className="text-muted-foreground" />
                     <span>Esperando número de teléfono para activar.</span>
                   </CardDescription>
                 )}
@@ -194,7 +213,7 @@ const AssistantCard = ({
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
               </Button>
-            ) : (
+            ) : !isActivationPending ? (
               <Button
                 size="sm"
                 onClick={() => setIsSetupDialogOpen(true)}
@@ -206,7 +225,7 @@ const AssistantCard = ({
                 <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
                 Integrar número de teléfono
               </Button>
-            )}
+            ) : null }
             <Button
               variant="outline"
               size="sm"
