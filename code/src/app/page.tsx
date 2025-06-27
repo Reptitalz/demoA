@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave } from 'react-icons/fa';
 import { MessagesSquare, CircleDollarSign, Coins } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
+import React from 'react';
 
 const PayAsYouGoCalculator = () => {
   const MESSAGES_PER_CREDIT = 1000;
@@ -118,37 +119,37 @@ export default function MarketingPage() {
       </div>
 
       <section id="features" className="w-full mt-12 sm:mt-16 scroll-mt-20">
-        <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Características Principales</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-left max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-10">Potencia sin Complejidad</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <FeatureCard
-            icon={<FaCogs size={24} className="text-brand-gradient mb-3" />}
-            title="Configuración Sencilla"
-            description="Un asistente intuitivo paso a paso para configurar tus agentes virtuales en minutos."
+            icon={<FaCogs size={28} className="text-primary" />}
+            title="Configuración Intuitiva"
+            description="Lanza tus asistentes en minutos con nuestro asistente guiado paso a paso. Sin necesidad de código."
           />
           <FeatureCard
-            icon={<FaBrain size={24} className="text-brand-gradient mb-3" />}
-            title="Integración de Datos Inteligente"
-            description="Conecta con Hojas de Google, Excel o crea bases de datos inteligentes con ayuda de IA."
+            icon={<FaBrain size={28} className="text-primary" />}
+            title="Conexión de Datos Flexible"
+            description="Vincula Hojas de Google o crea bases de datos inteligentes que la IA gestiona por ti."
           />
           <FeatureCard
-            icon={<FaWhatsapp size={24} className="text-brand-gradient mb-3" />}
-            title="Comunicación Directa por WhatsApp"
-            description="Interactúa con tus asistentes y clientes directamente a través de la plataforma de WhatsApp."
+            icon={<FaWhatsapp size={28} className="text-primary" />}
+            title="Automatización en WhatsApp"
+            description="Despliega tus asistentes directamente en WhatsApp para interactuar con clientes y recibir notificaciones."
           />
           <FeatureCard
-            icon={<FaUsers size={24} className="text-brand-gradient mb-3" />}
-            title="Gestión de Múltiples Asistentes"
-            description="Crea y administra varios asistentes para diferentes propósitos desde un solo lugar."
+            icon={<FaSitemap size={28} className="text-primary" />}
+            title="Gestión Centralizada"
+            description="Crea y administra múltiples asistentes para diferentes propósitos desde un único panel de control."
           />
           <FeatureCard
-            icon={<FaShieldAlt size={24} className="text-brand-gradient mb-3" />}
-            title="Seguridad y Privacidad"
-            description="Tus datos y los de tus clientes están protegidos con altos estándares de seguridad."
+            icon={<FaShieldAlt size={28} className="text-primary" />}
+            title="Seguridad y Confianza"
+            description="Construido con la seguridad como prioridad para proteger tus datos y los de tus clientes."
           />
-          <FeatureCard
-            icon={<FaChartLine size={24} className="text-brand-gradient mb-3" />}
-            title="Planes Flexibles"
-            description="Elige el plan que mejor se adapte a tus necesidades, desde gratuito hasta opciones empresariales."
+           <FeatureCard
+            icon={<FaMoneyBillWave size={28} className="text-primary" />}
+            title="Paga por lo que Usas"
+            description="Sin suscripciones ni sorpresas. Nuestro modelo de créditos te da control total sobre tus costos."
           />
         </div>
       </section>
@@ -194,13 +195,15 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-    <CardHeader className="pb-3">
-      {icon}
-      <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
+  <Card className="bg-card/60 backdrop-blur-sm shadow-xl hover:shadow-primary/20 transition-all duration-300 border border-border/10 hover:border-primary/30 group text-center h-full flex flex-col items-center justify-start p-6">
+    <CardHeader className="items-center pb-4 p-0">
+      <div className="bg-primary/10 p-4 rounded-full mb-4 border-2 border-primary/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+        {icon}
+      </div>
+      <CardTitle className="text-lg sm:text-xl text-foreground">{title}</CardTitle>
     </CardHeader>
-    <CardContent>
-      <p className="text-sm sm:text-base text-muted-foreground">{description}</p>
+    <CardContent className="flex-grow p-0 pt-2">
+      <p className="text-sm text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
 );
