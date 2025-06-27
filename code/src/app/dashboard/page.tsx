@@ -1,4 +1,5 @@
-// This file's logic has been moved to src/components/dashboard/ConsumptionViewDialog.tsx
-// to prevent a file from being both a route and an importable component.
-// This architectural change resolves a build/runtime error in Next.js.
-// This file can now be safely removed.
+// This file created a conflicting route at /dashboard and caused build errors
+// because it was being imported as a component into another page.
+// Its logic has been consolidated into /src/components/dashboard/ConsumptionViewDialog.tsx
+// and this file is now intentionally left blank to disable the conflicting route.
+// It can be safely deleted.
