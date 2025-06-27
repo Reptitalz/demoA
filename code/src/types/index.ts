@@ -26,6 +26,7 @@ export interface AssistantConfig {
   purposes: Set<AssistantPurposeType>;
   databaseId?: string;
   imageUrl?: string;
+  verificationCode?: string;
 }
 
 export type AuthProviderType = "google";

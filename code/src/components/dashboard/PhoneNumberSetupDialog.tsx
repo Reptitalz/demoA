@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaMobileAlt, FaKey, FaCheckCircle } from 'react-icons/fa';
+import type { AssistantConfig } from '@/types';
 
 interface PhoneNumberSetupDialogProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
       setTimeout(() => { // Simulate API call to verify code
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === assistantId);
         if (assistantToUpdate) {
-          const updatedAssistant = { ...assistantToUpdate, phoneLinked: phoneNumber };
+          const updatedAssistant: AssistantConfig = { ...assistantToUpdate, phoneLinked: phoneNumber, verificationCode: verificationCode };
           dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
           setIsVerifying(false);
           setStep(3);
