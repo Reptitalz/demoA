@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaSignOutAlt } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { subscriptionPlansConfig, APP_NAME } from '@/config/appConfig';
+import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { auth, signOut } from '@/lib/firebase';
 
@@ -78,9 +78,6 @@ const DashboardPageContent = () => {
                 dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, file: undefined, accessUrl: db.accessUrl, originalFileName: db.details }});
             }
         }
-        if (userProfile.currentPlan) {
-            dispatch({ type: 'SET_SUBSCRIPTION_PLAN', payload: userProfile.currentPlan });
-        }
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
         router.push('/app/setup'); 
@@ -91,18 +88,7 @@ const DashboardPageContent = () => {
   };
 
   const handleAddNewAssistant = () => {
-    const plan = userProfile.currentPlan;
-    const planDetails = plan ? subscriptionPlansConfig.find(p => p.id === plan) : null;
-
-    if (planDetails && planDetails.assistantLimit !== "unlimited" && userProfile.assistants.length >= planDetails.assistantLimit) {
-      toast({
-        title: "Límite de Asistentes Alcanzado",
-        description: `Has alcanzado el límite de ${userProfile.assistants.length} asistentes para tu plan actual (${planDetails.name}). Por favor, actualiza tu plan para añadir más asistentes.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
+    // No more plan limits
     dispatch({ type: 'RESET_WIZARD' }); 
     router.push('/app/setup'); 
   };
