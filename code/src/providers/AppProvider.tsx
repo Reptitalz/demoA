@@ -30,6 +30,7 @@ const initialUserProfileState: UserProfile = {
   databases: [],
   firebaseUid: undefined,
   ownerPhoneNumberForNotifications: undefined,
+  credits: 0,
 };
 
 const initialState: AppState = {
@@ -121,7 +122,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'COMPLETE_SETUP':
       return {
         ...state,
-        userProfile: action.payload,
+        userProfile: {
+          ...action.payload,
+          credits: action.payload.credits || state.userProfile.credits || 0,
+        },
         isSetupComplete: true,
         wizard: {
           ...initialWizardState,
@@ -156,6 +160,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...initialUserProfileState,
           ...(loadedState.userProfile || {}),
           assistants: assistantsWithSetPurposes,
+          credits: loadedState.userProfile?.credits || 0,
         },
         wizard: {
           ...initialWizardState,
@@ -186,6 +191,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
                 ...apiProfile,
                 isGuest: false,
                 assistants: assistantsWithSetPurposes,
+                credits: apiProfile.credits || 0,
             },
             isSetupComplete: newIsSetupComplete,
             isLoading: false,
@@ -241,6 +247,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
           assistants: guestAssistants,
           databases: guestDatabases,
           firebaseUid: 'guest_user_id',
+          credits: 1,
       };
   
       return {

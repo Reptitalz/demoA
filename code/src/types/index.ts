@@ -39,6 +39,7 @@ export interface UserProfile {
   databases: DatabaseConfig[];
   firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
+  credits?: number;
 }
 
 // For wizard state
