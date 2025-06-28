@@ -3,8 +3,8 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, SubscriptionPlanType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
-import { MAX_WIZARD_STEPS, assistantPurposesConfig } from '@/config/appConfig';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
+import { MAX_WIZARD_STEPS, DEFAULT_FREE_PLAN_PHONE_NUMBER, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
 
@@ -13,10 +13,10 @@ const initialWizardState: WizardState = {
   currentStep: 1,
   maxSteps: MAX_WIZARD_STEPS,
   assistantName: '',
+  assistantPrompt: '',
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '' },
   authMethod: null,
-  selectedPlan: null,
   ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
   editingAssistantId: null,
@@ -26,10 +26,11 @@ const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
   authProvider: undefined,
   email: undefined,
-  currentPlan: null,
   assistants: [],
   databases: [],
   firebaseUid: undefined,
+  ownerPhoneNumberForNotifications: undefined,
+  credits: 0,
 };
 
 const initialState: AppState = {
@@ -47,14 +48,14 @@ type Action =
   | { type: 'PREVIOUS_WIZARD_STEP' }
   | { type: 'SET_WIZARD_STEP'; payload: number }
   | { type: 'UPDATE_ASSISTANT_NAME'; payload: string }
+  | { type: 'UPDATE_ASSISTANT_PROMPT'; payload: string }
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
-  | { type: 'SET_SUBSCRIPTION_PLAN'; payload: SubscriptionPlanType | null }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
-  | { type: 'LOAD_STATE'; payload: AppState }
+  | { type: 'LOAD_WIZARD_STATE'; payload: WizardState }
   | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
   | { type: 'UPDATE_USER_PROFILE'; payload: Partial<UserProfile> }
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
@@ -82,6 +83,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, currentStep: action.payload } };
     case 'UPDATE_ASSISTANT_NAME':
       return { ...state, wizard: { ...state.wizard, assistantName: action.payload } };
+    case 'UPDATE_ASSISTANT_PROMPT':
+      return { ...state, wizard: { ...state.wizard, assistantPrompt: action.payload } };
     case 'TOGGLE_ASSISTANT_PURPOSE': {
       const newPurposes = new Set(state.wizard.selectedPurposes);
       const purposeToToggle = action.payload;
@@ -116,14 +119,15 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, databaseOption: { ...state.wizard.databaseOption, ...action.payload } } };
     case 'SET_AUTH_METHOD':
       return { ...state, wizard: { ...state.wizard, authMethod: action.payload } };
-    case 'SET_SUBSCRIPTION_PLAN':
-      return { ...state, wizard: { ...state.wizard, selectedPlan: action.payload } };
     case 'UPDATE_OWNER_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, ownerPhoneNumberForNotifications: action.payload } };
     case 'COMPLETE_SETUP':
       return {
         ...state,
-        userProfile: action.payload,
+        userProfile: {
+          ...action.payload,
+          credits: action.payload.credits || state.userProfile.credits || 0,
+        },
         isSetupComplete: true,
         wizard: {
           ...initialWizardState,
@@ -140,37 +144,26 @@ const appReducer = (state: AppState, action: Action): AppState => {
           editingAssistantId: null,
         }
       };
-    case 'LOAD_STATE': {
-      const loadedState = action.payload;
-      const wizardSelectedPurposesSet = Array.isArray(loadedState.wizard?.selectedPurposes)
-        ? new Set(loadedState.wizard.selectedPurposes as AssistantPurposeType[])
+    case 'LOAD_WIZARD_STATE': {
+      const loadedWizardState = action.payload;
+      const wizardSelectedPurposesSet = Array.isArray(loadedWizardState?.selectedPurposes)
+        ? new Set(loadedWizardState.selectedPurposes as AssistantPurposeType[])
         : new Set<AssistantPurposeType>();
 
-      const assistantsWithSetPurposes = (loadedState.userProfile?.assistants || []).map(assistant => ({
-        ...assistant,
-        purposes: new Set(Array.isArray(assistant.purposes) ? assistant.purposes : []) as Set<AssistantPurposeType>,
-      }));
-
       return {
-        ...initialState,
-        ...loadedState,
-        userProfile: {
-          ...initialUserProfileState,
-          ...(loadedState.userProfile || {}),
-          assistants: assistantsWithSetPurposes,
-        },
+        ...state,
         wizard: {
           ...initialWizardState,
-          ...(loadedState.wizard || {}),
+          ...(loadedWizardState || {}),
+          assistantPrompt: loadedWizardState?.assistantPrompt || '',
           selectedPurposes: wizardSelectedPurposesSet,
-          ownerPhoneNumberForNotifications: loadedState.wizard?.ownerPhoneNumberForNotifications || '',
+          ownerPhoneNumberForNotifications: loadedWizardState?.ownerPhoneNumberForNotifications || '',
           databaseOption: { 
-            type: (loadedState.wizard?.databaseOption?.type as DatabaseSource | null) || null,
-            name: loadedState.wizard?.databaseOption?.name || '',
-            accessUrl: loadedState.wizard?.databaseOption?.accessUrl || '',
+            type: (loadedWizardState?.databaseOption?.type as DatabaseSource | null) || null,
+            name: loadedWizardState?.databaseOption?.name || '',
+            accessUrl: loadedWizardState?.databaseOption?.accessUrl || '',
           },
         },
-        isLoading: false,
       };
     }
     case 'SYNC_PROFILE_FROM_API': {
@@ -179,15 +172,22 @@ const appReducer = (state: AppState, action: Action): AppState => {
             ...assistant,
             purposes: new Set(Array.isArray(assistant.purposes) ? assistant.purposes : []) as Set<AssistantPurposeType>,
         }));
-        const newIsSetupComplete = !!apiProfile.currentPlan || (apiProfile.assistants && apiProfile.assistants.length > 0);
+        const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
+        
+        const freshUserProfile: UserProfile = {
+            ...initialUserProfileState,
+            isAuthenticated: true,
+            authProvider: state.userProfile.authProvider,
+            firebaseUid: state.userProfile.firebaseUid,
+            email: state.userProfile.email,
+            ...apiProfile,
+            assistants: assistantsWithSetPurposes,
+            credits: apiProfile.credits || 0,
+        };
 
         return {
             ...state,
-            userProfile: {
-                ...state.userProfile,
-                ...apiProfile,
-                assistants: assistantsWithSetPurposes,
-            },
+            userProfile: freshUserProfile,
             isSetupComplete: newIsSetupComplete,
             isLoading: false,
         };
@@ -203,15 +203,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'ADD_DATABASE':
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
     case 'LOGOUT_USER':
+      // Clear localStorage on logout to ensure a clean slate for the next user.
+      localStorage.removeItem('assistAIManagerState');
       return {
-        ...state,
-        userProfile: initialUserProfileState,
-        wizard: {
-            ...initialWizardState,
-            isReconfiguring: false,
-            editingAssistantId: null,
-        },
-        isSetupComplete: false,
+        ...initialState,
         isLoading: false,
       };
     case 'SET_IS_RECONFIGURING':
@@ -230,16 +225,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const persistedState = localStorage.getItem('assistAIManagerState');
-      if (persistedState) {
-        const parsedState = JSON.parse(persistedState);
-        dispatch({ type: 'LOAD_STATE', payload: parsedState });
-      } else {
-        dispatch({ type: 'LOAD_STATE', payload: initialState });
+      const persistedStateJSON = localStorage.getItem('assistAIManagerState');
+      if (persistedStateJSON) {
+        const persistedState = JSON.parse(persistedStateJSON);
+        // Only load non-critical wizard state, never user profile or setup completion.
+        if (persistedState.wizard) {
+          dispatch({ type: 'LOAD_WIZARD_STATE', payload: persistedState.wizard });
+        }
       }
     } catch (error) {
-      console.error("Error al cargar estado desde localStorage", error);
-      dispatch({ type: 'LOAD_STATE', payload: initialState });
+      console.error("Error loading wizard state from localStorage", error);
     }
 
     const unsubscribe = auth.onAuthStateChanged(async user => {
@@ -281,19 +276,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-        } else if (response.status === 404) {
-          dispatch({ type: 'SET_LOADING', payload: false });
         } else {
+           // User authenticated but no profile found in DB, means it's a new user.
+           // We stop loading and the app logic will direct them to setup.
           dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
         if (response.status === 401 || response.status === 403) {
           dispatch({ type: 'LOGOUT_USER' });
-        } else {
-          dispatch({ type: 'SET_LOADING', payload: false });
         }
+        // For other server errors, stop loading so the UI can render an appropriate state.
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
     } catch (error) {
+      console.error("Failed to fetch user profile", error);
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [dispatch]);
@@ -301,46 +297,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isLoading) {
       fetchProfileCallback(state.userProfile.firebaseUid);
-    } else if (!state.userProfile.isAuthenticated && state.isLoading) {
-      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading, fetchProfileCallback]);
 
 
   useEffect(() => {
+    // This effect now ONLY saves the wizard state to localStorage, not the whole app state.
+    // This prevents stale user profiles from being persisted.
     if (state.isLoading) {
       return;
     }
     try {
       const serializableState = {
-        ...state,
-        isLoading: false,
         wizard: {
           ...state.wizard,
           selectedPurposes: Array.from(state.wizard.selectedPurposes),
-          databaseOption: { 
-            type: state.wizard.databaseOption.type,
-            name: state.wizard.databaseOption.name,
-            accessUrl: state.wizard.databaseOption.accessUrl,
-          },
         },
-        userProfile: {
-          ...state.userProfile,
-          assistants: state.userProfile.assistants.map(assistant => ({
-            ...assistant,
-            purposes: Array.from(assistant.purposes),
-          })),
-        }
       };
       localStorage.setItem('assistAIManagerState', JSON.stringify(serializableState));
     } catch (error) {
-      console.error("Error al guardar estado en localStorage", error);
+      console.error("Error saving wizard state to localStorage", error);
     }
-  }, [state]);
+  }, [state.wizard, state.isLoading]);
 
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
+    // We only save the profile if setup is complete and user is authenticated.
     if (state.isLoading || !state.isSetupComplete || !state.userProfile.isAuthenticated || !state.userProfile.firebaseUid) {
       return;
     }
@@ -350,6 +333,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         const currentUser = auth.currentUser;
         if (!currentUser || currentUser.uid !== state.userProfile.firebaseUid) {
+          setIsSavingProfile(false);
           return;
         }
         const token = await currentUser.getIdToken();
@@ -361,24 +345,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           })),
         };
 
-        const cleanedProfile: Partial<UserProfile> = {};
-        for (const key in serializableProfile) {
-            if (Object.prototype.hasOwnProperty.call(serializableProfile, key)) {
-                const typedKey = key as keyof UserProfile;
-                if (serializableProfile[typedKey] !== undefined) {
-                    (cleanedProfile as any)[typedKey] = serializableProfile[typedKey];
-                }
-            }
-        }
-
-
         const response = await fetch('/api/user-profile', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ userId: state.userProfile.firebaseUid, userProfile: cleanedProfile }),
+          body: JSON.stringify({ userId: state.userProfile.firebaseUid, userProfile: serializableProfile }),
         });
         if (!response.ok) {
           const errorData = await response.text();
@@ -392,7 +365,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(saveProfileToApi, 1000);
+    debounceTimer = setTimeout(saveProfileToApi, 1500); // Increased debounce to 1.5s
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isSetupComplete, state.isLoading, dispatch]);
