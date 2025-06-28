@@ -22,6 +22,7 @@ export interface DatabaseConfig {
 export interface AssistantConfig {
   id: string;
   name: string;
+  prompt?: string;
   phoneLinked?: string;
   purposes: Set<AssistantPurposeType>;
   databaseId?: string;
@@ -49,6 +50,7 @@ export interface WizardState {
   currentStep: number;
   maxSteps: number;
   assistantName: string;
+  assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
     type: DatabaseSource | null;

@@ -13,6 +13,7 @@ const initialWizardState: WizardState = {
   currentStep: 1,
   maxSteps: MAX_WIZARD_STEPS,
   assistantName: '',
+  assistantPrompt: '',
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '' },
   authMethod: null,
@@ -48,6 +49,7 @@ type Action =
   | { type: 'PREVIOUS_WIZARD_STEP' }
   | { type: 'SET_WIZARD_STEP'; payload: number }
   | { type: 'UPDATE_ASSISTANT_NAME'; payload: string }
+  | { type: 'UPDATE_ASSISTANT_PROMPT'; payload: string }
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
@@ -83,6 +85,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, currentStep: action.payload } };
     case 'UPDATE_ASSISTANT_NAME':
       return { ...state, wizard: { ...state.wizard, assistantName: action.payload } };
+    case 'UPDATE_ASSISTANT_PROMPT':
+      return { ...state, wizard: { ...state.wizard, assistantPrompt: action.payload } };
     case 'TOGGLE_ASSISTANT_PURPOSE': {
       const newPurposes = new Set(state.wizard.selectedPurposes);
       const purposeToToggle = action.payload;
@@ -165,6 +169,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
         wizard: {
           ...initialWizardState,
           ...(loadedState.wizard || {}),
+          assistantPrompt: loadedState.wizard?.assistantPrompt || '',
           selectedPurposes: wizardSelectedPurposesSet,
           ownerPhoneNumberForNotifications: loadedState.wizard?.ownerPhoneNumberForNotifications || '',
           databaseOption: { 
@@ -235,10 +240,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
       const guestAssistants: AssistantConfig[] = [{
           id: 'asst_guest_demo_1',
           name: 'Asistente de Demostración',
+          prompt: 'Eres un asistente de demostración amigable. Responde preguntas sobre Hey Manito! y sus capacidades.',
           purposes: new Set(['notify_clients', 'create_smart_db']),
           phoneLinked: DEFAULT_FREE_PLAN_PHONE_NUMBER,
           databaseId: 'db_guest_demo_1',
-          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL
+          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+          numberReady: true,
       }];
   
       const guestDatabases: DatabaseConfig[] = [{

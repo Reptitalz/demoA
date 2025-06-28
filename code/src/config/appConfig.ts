@@ -4,7 +4,7 @@ import { FaGoogle, FaUserCog, FaUsers, FaBrain } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 3; 
+export const MAX_WIZARD_STEPS = 4; 
 export const DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN = 1; // This can be used for guest mode or future limits
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
@@ -30,8 +30,9 @@ export const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167";
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   1: "Configura tu Asistente",
-  2: "Configura la Base de Datos",
-  3: "Autenticación de Cuenta",
+  2: "Define el Prompt",
+  3: "Configura la Base de Datos",
+  4: "Autenticación de Cuenta",
 };
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [

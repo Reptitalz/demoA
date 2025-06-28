@@ -63,6 +63,7 @@ const DashboardPageContent = () => {
         dispatch({ type: 'SET_IS_RECONFIGURING', payload: true });
         dispatch({ type: 'SET_EDITING_ASSISTANT_ID', payload: assistant.id });
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
+        dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
         
         const purposesArray = Array.isArray(assistant.purposes) 
           ? assistant.purposes 

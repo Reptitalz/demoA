@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -6,14 +7,15 @@ import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
 import Step1AssistantDetails from '@/components/setup/Step1_AssistantDetails';
+import Step2AssistantPrompt from '@/components/setup/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaEye, FaGoogle } from 'react-icons/fa';
-import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
+import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 
@@ -21,7 +23,7 @@ const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
 
   const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
@@ -37,25 +39,28 @@ const SetupPage = () => {
   }, [state.userProfile.isAuthenticated, isReconfiguring]);
 
 
-  const effectiveMaxSteps = isReconfiguring
-    ? (needsDatabaseConfiguration() ? 2 : 1) // Reconfig: Details -> DB (optional)
-    : (needsDatabaseConfiguration() ? MAX_WIZARD_STEPS : MAX_WIZARD_STEPS - 1); // New: Details -> DB (optional) -> Auth
+  const dbNeeded = needsDatabaseConfiguration();
+  const effectiveMaxSteps = isReconfiguring 
+    ? (dbNeeded ? 3 : 2) // Reconfig: 1.Details, 2.Prompt, 3.DB
+    : (dbNeeded ? 4 : 3); // New: 1.Details, 2.Prompt, 3.DB, 4.Auth
 
   const getValidationMessage = (): string => {
     const currentValidationStep = currentStep;
-    const dbNeeded = needsDatabaseConfiguration();
-
-    // Reconfiguring flow
+    
+    // Reconfiguring flow (1.Details, 2.Prompt, 3.DB)
     if (isReconfiguring) {
       switch (currentValidationStep) {
-        case 1: // Assistant Details
+        case 1: // Details
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
           if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) {
             return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
           }
           break;
-        case 2: // DB config
+        case 2: // Prompt
+          if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+          break;
+        case 3: // DB
           if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
           if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
           if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) {
@@ -63,27 +68,30 @@ const SetupPage = () => {
           }
           break;
       }
-    } else { // Standard flow
+    } else { // Standard flow (1.Details, 2.Prompt, 3.DB(opt), 4.Auth)
       switch (currentValidationStep) {
-        case 1: // Assistant Details
+        case 1: // Details
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
           if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
           if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) {
             return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
           }
           break;
-        case 2: // DB Config or Auth
-           if (dbNeeded) { // DB config
+        case 2: // Prompt
+          if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+          break;
+        case 3: // DB or Auth
+           if (dbNeeded) { // DB
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
             if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu ${databaseOption.type === "google_sheets" ? "Hoja de Google" : "Base de Datos Inteligente"}.`;
             if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) {
               return "Por favor, proporciona una URL válida de Hoja de Google.";
             }
-           } else { // Auth (if DB not needed, this is step 2)
+           } else { // Auth
              if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
            }
           break;
-        case 3: // Auth
+        case 4: // Auth
             if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
           break;
       }
@@ -93,7 +101,6 @@ const SetupPage = () => {
 
   const isStepValid = (): boolean => {
     const currentValidationStep = currentStep;
-    const dbNeeded = needsDatabaseConfiguration();
 
     if (isFinalizingSetup) return false;
 
@@ -107,7 +114,9 @@ const SetupPage = () => {
             reconfigNotifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
           }
           return reconfigBaseValid && reconfigNotifyOwnerValid;
-        case 2: // DB config
+        case 2: // Prompt
+          return assistantPrompt.trim() !== '';
+        case 3: // DB config
           if (!databaseOption.type) return false;
           if (!databaseOption.name?.trim()) return false;
           if (databaseOption.type === "google_sheets") {
@@ -125,7 +134,9 @@ const SetupPage = () => {
             notifyOwnerValid = !!ownerPhoneNumberForNotifications?.trim();
           }
           return baseValid && notifyOwnerValid;
-        case 2: // DB or Auth
+        case 2: // Prompt
+          return assistantPrompt.trim() !== '';
+        case 3: // DB or Auth
           if (dbNeeded) { // DB
             if (!databaseOption.type) return false;
             if (!databaseOption.name?.trim()) return false;
@@ -136,7 +147,7 @@ const SetupPage = () => {
           } else { // Auth
             return !!authMethod;
           }
-        case 3: // Auth
+        case 4: // Auth
            return !!authMethod;
         default: return false;
       }
@@ -144,16 +155,15 @@ const SetupPage = () => {
   };
 
   const handleAuthSuccess = () => {
-    // Authentication was successful, now complete the setup process.
     handleCompleteSetup();
   };
   
-
   const handleNext = () => {
     if (isStepValid()) {
-      if (currentStep === 1 && !needsDatabaseConfiguration()) { // Skip DB step if not needed
-         // For both new setup and reconfig, if no DB needed, next step is Auth
-         dispatch({ type: 'SET_WIZARD_STEP', payload: isReconfiguring ? 2 : 3 });
+      if (currentStep === 2 && !needsDatabaseConfiguration()) { // Skip DB step
+         if (!isReconfiguring) {
+            dispatch({ type: 'SET_WIZARD_STEP', payload: 4 }); // New setup: skip from Prompt (2) to Auth (4)
+         }
       } else if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
@@ -167,9 +177,9 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
-    // If on Auth step (3) and came from Details (skipped DB), go back to step 1
-    if (currentStep === 3 && !needsDatabaseConfiguration() && !isReconfiguring) {
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
+    // If on Auth step (4) and came from Prompt (2) (skipped DB), go back to step 2
+    if (currentStep === 4 && !needsDatabaseConfiguration() && !isReconfiguring) {
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
     } else if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
@@ -231,10 +241,10 @@ const SetupPage = () => {
     }
     if (editingAssistantId) {
       const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
-      finalAssistantConfig = { ...assistantToUpdate, name: finalAssistantName, purposes: selectedPurposes, phoneLinked: assistantPhoneNumber, databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : (needsDatabaseConfiguration() ? assistantToUpdate.databaseId : undefined), imageUrl: assistantImageUrl };
+      finalAssistantConfig = { ...assistantToUpdate, name: finalAssistantName, prompt: assistantPrompt, purposes: selectedPurposes, phoneLinked: assistantPhoneNumber, databaseId: newAssistantDbIdToLink !== undefined ? newAssistantDbIdToLink : (needsDatabaseConfiguration() ? assistantToUpdate.databaseId : undefined), imageUrl: assistantImageUrl };
       updatedAssistantsArray = baseAssistantsArray.map(asst => asst.id === editingAssistantId ? finalAssistantConfig : asst);
     } else {
-      finalAssistantConfig = { id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, name: finalAssistantName, purposes: selectedPurposes, phoneLinked: assistantPhoneNumber, databaseId: newAssistantDbIdToLink, imageUrl: assistantImageUrl };
+      finalAssistantConfig = { id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, name: finalAssistantName, prompt: assistantPrompt, purposes: selectedPurposes, phoneLinked: assistantPhoneNumber, databaseId: newAssistantDbIdToLink, imageUrl: assistantImageUrl };
       updatedAssistantsArray = [...baseAssistantsArray, finalAssistantConfig];
     }
     let updatedDatabasesArray = [...state.userProfile.databases, ...newDbEntries];
@@ -282,8 +292,6 @@ const SetupPage = () => {
           title: "Autenticación exitosa",
           description: "Redirigiendo...",
         });
-        // Central logic in AppProvider and /app/page.tsx will now handle
-        // redirection based on whether the user has a profile in the database.
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -308,23 +316,21 @@ const SetupPage = () => {
 
 
   const renderStepContent = () => {
-    const dbNeeded = needsDatabaseConfiguration();
-
+    // Reconfiguring flow: Details -> Prompt -> DB (optional)
     if (isReconfiguring) {
-      // Reconfiguring flow: Details -> DB (optional)
       if (currentStep === 1) return <Step1AssistantDetails />;
-      if (currentStep === 2) return <Step2DatabaseConfig />;
+      if (currentStep === 2) return <Step2AssistantPrompt />;
+      if (currentStep === 3) return <Step2DatabaseConfig />;
       return null;
     } else {
-      // New setup flow: Details -> DB (optional) -> Auth
+      // New setup flow: Details -> Prompt -> DB (optional) -> Auth
       if (currentStep === 1) return <Step1AssistantDetails />;
+      if (currentStep === 2) return <Step2AssistantPrompt />;
       
-      const authStepNumber = dbNeeded ? 3 : 2;
-
-      if (currentStep === 2) {
+      if (currentStep === 3) {
         return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleAuthSuccess} />;
       }
-      if (currentStep === 3) {
+      if (currentStep === 4) {
         return dbNeeded ? <Step3Authentication onSuccess={handleAuthSuccess} /> : null;
       }
       
@@ -415,15 +421,15 @@ const SetupPage = () => {
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           )}
-          {currentStep === effectiveMaxSteps && isReconfiguring && (
+          {currentStep === effectiveMaxSteps && (
              <Button
               onClick={handleCompleteSetup}
               className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1"
               disabled={!isStepValid() || isFinalizingSetup}
             >
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
-              Guardar Cambios
-              {!isFinalizingSetup && <FaArrowRight className="ml-1 h-3 w-3" />}
+              {isReconfiguring ? 'Guardar Cambios' : 'Completar Configuración'}
+              {!isReconfiguring && <FaArrowRight className="ml-1 h-3 w-3" />}
             </Button>
           )}
         </div>
