@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState } from 'react';
 import { cn } from "@/lib/utils";
@@ -213,7 +213,17 @@ const AssistantCard = ({
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
               </Button>
-            ) : !isActivationPending ? (
+            ) : isActivationPending ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setIsSetupDialogOpen(true)}
+                className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+              >
+                <FaKey size={13} className="mr-1.5 sm:mr-2" />
+                Reenviar Código
+              </Button>
+            ) : (
               <Button
                 size="sm"
                 onClick={() => setIsSetupDialogOpen(true)}
@@ -225,7 +235,7 @@ const AssistantCard = ({
                 <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
                 Integrar número de teléfono
               </Button>
-            ) : null }
+            )}
             <Button
               variant="outline"
               size="sm"

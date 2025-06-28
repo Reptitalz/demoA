@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,20 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const assistant = state.userProfile.assistants.find(a => a.id === assistantId);
+      if (assistant?.phoneLinked && !assistant.numberReady) {
+        setPhoneNumber(assistant.phoneLinked);
+        setStep(2);
+      } else {
+        setStep(1);
+        setPhoneNumber('');
+        setVerificationCode('');
+      }
+    }
+  }, [isOpen, assistantId, state.userProfile.assistants]);
 
   const handleNextStep = () => {
     if (step === 1) {
