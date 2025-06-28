@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -75,7 +76,7 @@ const DashboardPageContent = () => {
         if(assistant.databaseId) {
             const db = userProfile.databases.find(d => d.id === assistant.databaseId);
             if (db) {
-                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, file: undefined, accessUrl: db.accessUrl, originalFileName: db.details }});
+                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, accessUrl: db.accessUrl, }});
             }
         }
         
