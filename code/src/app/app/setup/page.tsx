@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -11,8 +10,7 @@ import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaEye } from 'react-icons/fa';
-import { LogIn, UserPlus } from 'lucide-react';
+import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaEye, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, MAX_WIZARD_STEPS, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
@@ -268,7 +266,7 @@ const SetupPage = () => {
     router.push('/app/dashboard');
 };
 
-  const handleAuthFlow = async (flowType: 'create' | 'login') => {
+  const handleAuthFlow = async () => {
     if (!googleProvider) {
       toast({
         title: "Configuración Incompleta",
@@ -280,17 +278,12 @@ const SetupPage = () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       if (result && result.user) {
-        if (flowType === 'create') {
-          dispatch({ type: 'RESET_WIZARD' });
-          setUserHasMadeInitialChoice(true);
-          dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
-          toast({ title: "Define tu Asistente", description: "Comencemos a definir tu asistente."});
-        } else {
-          toast({
-            title: "Inicio de sesión exitoso",
-            description: "Redirigiendo...",
-          });
-        }
+        toast({
+          title: "Autenticación exitosa",
+          description: "Redirigiendo...",
+        });
+        // Central logic in AppProvider and /app/page.tsx will now handle
+        // redirection based on whether the user has a profile in the database.
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -347,26 +340,17 @@ const SetupPage = () => {
           <CardHeader>
             <CardTitle className="text-center text-2xl">Bienvenido/a a {APP_NAME}!</CardTitle>
             <CardDescription className="text-center pt-1">
-              ¿Cómo deseas comenzar?
+              Crea una cuenta o inicia sesión para comenzar.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             <Button
               size="lg"
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
-              onClick={() => handleAuthFlow('create')}
+              onClick={handleAuthFlow}
             >
-              <UserPlus className="mr-3 h-5 w-5" />
-              Crear Nuevo Asistente
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={() => handleAuthFlow('login')}
-            >
-              <LogIn className="mr-3 h-5 w-5 text-primary" />
-              Iniciar Sesión
+              <FaGoogle className="mr-3 h-5 w-5" />
+              Continuar con Google
             </Button>
             <Button
               variant="secondary"
