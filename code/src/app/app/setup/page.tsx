@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -12,7 +11,7 @@ import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaEye, FaGoogle } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
@@ -196,16 +195,6 @@ const SetupPage = () => {
         return;
     }
     
-    if (state.userProfile.isGuest) {
-      toast({
-          title: "Modo de Demostración",
-          description: "Para guardar los cambios, por favor, crea una cuenta.",
-          variant: "destructive"
-      });
-      setIsFinalizingSetup(false);
-      return;
-    }
-
     setIsFinalizingSetup(true);
 
     let currentDatabaseOption = { ...state.wizard.databaseOption }; 
@@ -305,16 +294,6 @@ const SetupPage = () => {
     }
   };
 
-  const handleGuestSession = () => {
-    dispatch({ type: 'START_GUEST_SESSION' });
-    router.push('/app/dashboard');
-    toast({
-        title: "Modo de Demostración",
-        description: "Estás viendo el panel con datos de ejemplo."
-    });
-  };
-
-
   const renderStepContent = () => {
     // Reconfiguring flow: Details -> Prompt -> DB (optional)
     if (isReconfiguring) {
@@ -357,15 +336,6 @@ const SetupPage = () => {
             >
               <FaGoogle className="mr-3 h-5 w-5" />
               Continuar con Google
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleGuestSession}
-            >
-              <FaEye className="mr-3 h-5 w-5 text-primary" />
-              Continuar sin cuenta (Ver demo)
             </Button>
           </CardContent>
         </Card>

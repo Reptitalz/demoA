@@ -6,7 +6,7 @@ import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AUTH_METHODS } from "@/config/appConfig";
-import { FaCheckCircle, FaSpinner, FaEye } from 'react-icons/fa';
+import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
@@ -26,14 +26,14 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
 
   // Effect to sync wizard state AND advance if user is ALREADY authenticated when the component loads
   useEffect(() => {
-    if (isAuthenticated && userProfileAuthProvider && !authMethod && !state.userProfile.isGuest) {
+    if (isAuthenticated && userProfileAuthProvider && !authMethod) {
       dispatch({ type: 'SET_AUTH_METHOD', payload: userProfileAuthProvider });
       if (!hasCalledOnSuccess.current) {
           onSuccess();
           hasCalledOnSuccess.current = true;
       }
     }
-  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch, onSuccess, state.userProfile.isGuest]);
+  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch, onSuccess]);
 
   const handleGoogleSignIn = async () => {
     if (!googleProvider) {
@@ -76,20 +76,11 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
     }
   };
 
-  const handleGuestSession = () => {
-    dispatch({ type: 'START_GUEST_SESSION' });
-    router.push('/app/dashboard');
-    toast({
-        title: "Modo de Demostración",
-        description: "Estás viendo el panel con datos de ejemplo. Tu configuración actual no se guardará."
-    });
-  };
-
   return (
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
         <CardTitle>Autenticación de Cuenta</CardTitle>
-        <CardDescription>Inicia sesión para guardar la configuración de tu asistente, o continúa como invitado para ver una demostración.</CardDescription>
+        <CardDescription>Inicia sesión para guardar la configuración de tu asistente.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isProcessingAuth ? (
@@ -117,15 +108,6 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
                 </Button>
               );
             })}
-             <Button
-              variant="secondary"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleGuestSession}
-              disabled={isProcessingAuth}
-            >
-              <FaEye className="mr-3 h-5 w-5 text-primary" />
-              Continuar sin cuenta (Ver demo)
-            </Button>
              {authMethod === "google" && isAuthenticated && state.userProfile.email && (
               <p className="text-sm text-center text-green-500 flex items-center justify-center gap-1 pt-2">
                 <FaCheckCircle size={16} /> Autenticado como {state.userProfile.email}.

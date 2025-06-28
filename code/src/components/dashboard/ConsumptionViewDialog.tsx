@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -105,11 +104,6 @@ const DashboardPageContent = () => {
   };
 
   const handleLogout = async () => {
-    if (state.userProfile.isGuest) {
-      dispatch({ type: 'LOGOUT_USER' });
-      router.push('/app/setup');
-      return;
-    }
     try {
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });

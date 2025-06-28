@@ -1,5 +1,3 @@
-
-
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
@@ -35,7 +33,6 @@ export type AuthProviderType = "google";
 
 export interface UserProfile {
   isAuthenticated: boolean;
-  isGuest?: boolean;
   authProvider?: AuthProviderType;
   email?: string;
   assistants: AssistantConfig[];

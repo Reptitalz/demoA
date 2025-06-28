@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from 'react';
@@ -24,7 +23,6 @@ const initialWizardState: WizardState = {
 
 const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
-  isGuest: false,
   authProvider: undefined,
   email: undefined,
   assistants: [],
@@ -65,8 +63,7 @@ type Action =
   | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
-  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null }
-  | { type: 'START_GUEST_SESSION' };
+  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
 
 
 const appReducer = (state: AppState, action: Action): AppState => {
@@ -194,7 +191,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
         const freshUserProfile: UserProfile = {
             ...initialUserProfileState, // Start with a clean slate
             isAuthenticated: true,       // But keep the user authenticated
-            isGuest: false,              // Not a guest
             authProvider: state.userProfile.authProvider, // Keep known auth provider from the current session
             firebaseUid: state.userProfile.firebaseUid,    // Keep the UID from the current auth session
             email: state.userProfile.email,                // Keep the email from the current auth session
@@ -236,45 +232,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
     case 'SET_EDITING_ASSISTANT_ID':
       return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
-    case 'START_GUEST_SESSION': {
-      const guestAssistants: AssistantConfig[] = [{
-          id: 'asst_guest_demo_1',
-          name: 'Asistente de Demostración',
-          prompt: 'Eres un asistente de demostración amigable. Responde preguntas sobre Hey Manito! y sus capacidades.',
-          purposes: new Set(['notify_clients', 'create_smart_db']),
-          phoneLinked: DEFAULT_FREE_PLAN_PHONE_NUMBER,
-          databaseId: 'db_guest_demo_1',
-          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-          numberReady: true,
-      }];
-  
-      const guestDatabases: DatabaseConfig[] = [{
-          id: 'db_guest_demo_1',
-          name: 'Base de Datos de Demo',
-          source: 'smart_db',
-          details: 'Una base de datos de ejemplo para el modo de demostración.'
-      }];
-      
-      const guestProfile: UserProfile = {
-          isAuthenticated: true,
-          isGuest: true,
-          email: 'invitado@example.com',
-          assistants: guestAssistants,
-          databases: guestDatabases,
-          firebaseUid: 'guest_user_id',
-          credits: 1,
-      };
-  
-      return {
-        ...state,
-        userProfile: guestProfile,
-        isSetupComplete: true,
-        isLoading: false,
-        wizard: {
-          ...initialWizardState,
-        }
-      };
-    }
     default:
       return state;
   }
@@ -311,7 +268,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           }
         });
       } else {
-        if (state.userProfile.isAuthenticated && !state.userProfile.isGuest) {
+        if (state.userProfile.isAuthenticated) {
           dispatch({ type: 'LOGOUT_USER' });
         } else {
           dispatch({type: 'SET_LOADING', payload: false });
@@ -356,16 +313,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (state.userProfile.isAuthenticated && !state.userProfile.isGuest && state.userProfile.firebaseUid && state.isLoading) {
+    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isLoading) {
       fetchProfileCallback(state.userProfile.firebaseUid);
     } else if (!state.userProfile.isAuthenticated && state.isLoading) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.userProfile.isAuthenticated, state.userProfile.isGuest, state.userProfile.firebaseUid, state.isLoading, fetchProfileCallback]);
+  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading, fetchProfileCallback]);
 
 
   useEffect(() => {
-    if (state.isLoading || state.userProfile.isGuest) {
+    if (state.isLoading) {
       return;
     }
     try {
@@ -398,7 +355,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
-    if (state.isLoading || state.userProfile.isGuest || !state.isSetupComplete || !state.userProfile.isAuthenticated || !state.userProfile.firebaseUid) {
+    if (state.isLoading || !state.isSetupComplete || !state.userProfile.isAuthenticated || !state.userProfile.firebaseUid) {
       return;
     }
 
