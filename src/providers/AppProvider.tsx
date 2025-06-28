@@ -203,8 +203,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'ADD_DATABASE':
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
     case 'LOGOUT_USER':
-      // Clear localStorage on logout to ensure a clean slate for the next user.
-      localStorage.removeItem('assistAIManagerState');
       return {
         ...initialState,
         isLoading: false,
@@ -228,7 +226,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const persistedStateJSON = localStorage.getItem('assistAIManagerState');
       if (persistedStateJSON) {
         const persistedState = JSON.parse(persistedStateJSON);
-        // Only load non-critical wizard state, never user profile or setup completion.
         if (persistedState.wizard) {
           dispatch({ type: 'LOAD_WIZARD_STATE', payload: persistedState.wizard });
         }
@@ -250,6 +247,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
       } else {
         if (state.userProfile.isAuthenticated) {
+          localStorage.removeItem('assistAIManagerState');
           dispatch({ type: 'LOGOUT_USER' });
         } else {
           dispatch({type: 'SET_LOADING', payload: false });
@@ -277,19 +275,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
         } else {
-           // User authenticated but no profile found in DB, means it's a new user.
-           // We stop loading and the app logic will direct them to setup.
           dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
         if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('assistAIManagerState');
           dispatch({ type: 'LOGOUT_USER' });
+        } else {
+          dispatch({ type: 'SET_LOADING', payload: false });
         }
-        // For other server errors, stop loading so the UI can render an appropriate state.
-        dispatch({ type: 'SET_LOADING', payload: false });
       }
     } catch (error) {
-      console.error("Failed to fetch user profile", error);
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [dispatch]);
@@ -297,13 +293,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && state.isLoading) {
       fetchProfileCallback(state.userProfile.firebaseUid);
+    } else if (!state.userProfile.isAuthenticated && state.isLoading) {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isLoading, fetchProfileCallback]);
 
 
   useEffect(() => {
-    // This effect now ONLY saves the wizard state to localStorage, not the whole app state.
-    // This prevents stale user profiles from being persisted.
     if (state.isLoading) {
       return;
     }
@@ -323,7 +319,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
-    // We only save the profile if setup is complete and user is authenticated.
     if (state.isLoading || !state.isSetupComplete || !state.userProfile.isAuthenticated || !state.userProfile.firebaseUid) {
       return;
     }
@@ -333,7 +328,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         const currentUser = auth.currentUser;
         if (!currentUser || currentUser.uid !== state.userProfile.firebaseUid) {
-          setIsSavingProfile(false);
           return;
         }
         const token = await currentUser.getIdToken();
@@ -345,13 +339,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           })),
         };
 
+        const cleanedProfile: Partial<UserProfile> = {};
+        for (const key in serializableProfile) {
+            if (Object.prototype.hasOwnProperty.call(serializableProfile, key)) {
+                const typedKey = key as keyof UserProfile;
+                if (serializableProfile[typedKey] !== undefined) {
+                    (cleanedProfile as any)[typedKey] = serializableProfile[typedKey];
+                }
+            }
+        }
+
+
         const response = await fetch('/api/user-profile', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ userId: state.userProfile.firebaseUid, userProfile: serializableProfile }),
+          body: JSON.stringify({ userId: state.userProfile.firebaseUid, userProfile: cleanedProfile }),
         });
         if (!response.ok) {
           const errorData = await response.text();
@@ -365,7 +370,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(saveProfileToApi, 1500); // Increased debounce to 1.5s
+    debounceTimer = setTimeout(saveProfileToApi, 1000);
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isSetupComplete, state.isLoading, dispatch]);
