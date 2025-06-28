@@ -184,15 +184,23 @@ const appReducer = (state: AppState, action: Action): AppState => {
         }));
         const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
 
+        // This logic ensures the database is the single source of truth upon login.
+        // It builds a fresh user profile, ignoring any stale data from localStorage.
+        const freshUserProfile: UserProfile = {
+            ...initialUserProfileState, // Start with a clean slate
+            isAuthenticated: true,       // But keep the user authenticated
+            isGuest: false,              // Not a guest
+            authProvider: state.userProfile.authProvider, // Keep known auth provider from the current session
+            firebaseUid: state.userProfile.firebaseUid,    // Keep the UID from the current auth session
+            email: state.userProfile.email,                // Keep the email from the current auth session
+            ...apiProfile,                                 // Overlay the entire fetched profile from DB
+            assistants: assistantsWithSetPurposes,         // With correctly parsed Sets
+            credits: apiProfile.credits || 0,              // And credits
+        };
+
         return {
             ...state,
-            userProfile: {
-                ...state.userProfile,
-                ...apiProfile,
-                isGuest: false,
-                assistants: assistantsWithSetPurposes,
-                credits: apiProfile.credits || 0,
-            },
+            userProfile: freshUserProfile,
             isSetupComplete: newIsSetupComplete,
             isLoading: false,
         };
