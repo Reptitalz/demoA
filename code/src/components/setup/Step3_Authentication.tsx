@@ -1,7 +1,7 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,29 +11,19 @@ import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
 
-interface Step3AuthenticationProps {
-  onSuccess: () => void;
-}
-
-const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
+const Step3Authentication = () => {
   const { state, dispatch } = useApp();
-  const router = useRouter();
   const { toast } = useToast();
   const { authMethod } = state.wizard;
   const { isAuthenticated, authProvider: userProfileAuthProvider } = state.userProfile;
   const [isProcessingAuth, setIsProcessingAuth] = useState(false);
-  const hasCalledOnSuccess = useRef(false);
 
-  // Effect to sync wizard state AND advance if user is ALREADY authenticated when the component loads
+  // Effect to sync wizard state if user is ALREADY authenticated when the component loads
   useEffect(() => {
     if (isAuthenticated && userProfileAuthProvider && !authMethod) {
       dispatch({ type: 'SET_AUTH_METHOD', payload: userProfileAuthProvider });
-      if (!hasCalledOnSuccess.current) {
-          onSuccess();
-          hasCalledOnSuccess.current = true;
-      }
     }
-  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch, onSuccess]);
+  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch]);
 
   const handleGoogleSignIn = async () => {
     if (!googleProvider) {
@@ -51,12 +41,8 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
         dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
         toast({
           title: 'Inicio de Sesión Exitoso',
-          description: `Has iniciado sesión como ${result.user.email}.`,
+          description: `Has iniciado sesión como ${result.user.email}. Por favor, continúa con la configuración.`,
         });
-        if (!hasCalledOnSuccess.current) {
-          onSuccess();
-          hasCalledOnSuccess.current = true;
-        }
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
@@ -80,7 +66,7 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
         <CardTitle>Autenticación de Cuenta</CardTitle>
-        <CardDescription>Inicia sesión para guardar la configuración de tu asistente.</CardDescription>
+        <CardDescription>Inicia sesión para guardar la configuración de tu asistente. Este es el último paso antes de finalizar.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isProcessingAuth ? (
@@ -121,3 +107,5 @@ const Step3Authentication = ({ onSuccess }: Step3AuthenticationProps) => {
 };
 
 export default Step3Authentication;
+
+    

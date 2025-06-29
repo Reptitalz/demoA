@@ -18,7 +18,7 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import { auth, googleProvider, signInWithPopup, signOut } from '@/lib/firebase';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const SetupPage = () => {
@@ -26,7 +26,9 @@ const SetupPage = () => {
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
-
+  
+  // New state to manage UI flow for unauthenticated users
+  const [showWizard, setShowWizard] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   // Effect to redirect authenticated users with complete setups away from this page.
@@ -127,12 +129,6 @@ const SetupPage = () => {
     }
   };
 
-  const handleAuthSuccess = () => {
-    // This function is called after successful authentication from Step3.
-    // In this simplified flow, the next action is to complete the setup.
-    handleCompleteSetup();
-  };
-  
   const handleNext = () => {
     if (isStepValid()) {
       if (currentStep === 2 && !dbNeeded && !isReconfiguring) {
@@ -243,21 +239,44 @@ const SetupPage = () => {
     router.push('/app/dashboard');
   };
 
-  const handleAuthFlow = async () => {
+  const handleLoginOnly = async () => {
     if (!googleProvider) {
       toast({ title: "Configuración Incompleta", description: "La autenticación de Firebase no está configurada.", variant: "destructive" });
       return;
     }
     try {
-      await signInWithPopup(auth, googleProvider);
-      // The onAuthStateChanged listener in AppProvider and the useEffect on this page
-      // will handle fetching data and redirecting to the dashboard if the user is not new.
-      toast({ title: "Autenticación exitosa", description: "Verificando tu cuenta..." });
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const token = await user.getIdToken();
+
+      const response = await fetch(`/api/user-profile?userId=${user.uid}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.status === 404) {
+        await signOut(auth); // Sign out if no profile exists
+        toast({
+          title: "Usuario No Encontrado",
+          description: "No encontramos una cuenta con este correo. Por favor, usa la opción 'Define tu Asistente' para crear una.",
+          variant: "destructive",
+          duration: 7000,
+        });
+      } else if (response.ok) {
+        // AppProvider's listener will fetch data and the useEffect will redirect to dashboard
+        toast({ title: "Bienvenido/a de nuevo" });
+      } else {
+        await signOut(auth);
+        toast({ title: "Error", description: `No se pudo verificar la cuenta: ${response.statusText}`, variant: "destructive" });
+      }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
       }
     }
+  };
+
+  const handleStartSetup = () => {
+    setShowWizard(true);
   };
 
   const renderStepContent = () => {
@@ -269,8 +288,8 @@ const SetupPage = () => {
     } else {
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
-      if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication onSuccess={handleAuthSuccess} />;
-      if (currentStep === 4) return dbNeeded ? <Step3Authentication onSuccess={handleAuthSuccess} /> : null;
+      if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
+      if (currentStep === 4) return dbNeeded ? <Step3Authentication /> : null;
       return null;
     }
   };
@@ -284,7 +303,7 @@ const SetupPage = () => {
   }
 
   // Show welcome screen ONLY if the user is not authenticated and not in a reconfiguration flow.
-  if (!state.userProfile.isAuthenticated && !isReconfiguring) {
+  if (!state.userProfile.isAuthenticated && !isReconfiguring && !showWizard) {
     return (
       <PageContainer>
         <Card className="w-full max-w-md mx-auto shadow-xl animate-fadeIn mt-10 sm:mt-16">
@@ -297,7 +316,7 @@ const SetupPage = () => {
               variant="outline"
               size="lg"
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleAuthFlow}
+              onClick={handleLoginOnly}
             >
               <LogIn className="mr-3 h-5 w-5 text-primary" />
               Iniciar sesión
@@ -305,7 +324,7 @@ const SetupPage = () => {
             <Button
               size="lg"
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
-              onClick={handleAuthFlow} // Both buttons now trigger the same auth flow
+              onClick={handleStartSetup}
             >
               <UserPlus className="mr-3 h-5 w-5" />
               Define tu Asistente
@@ -316,7 +335,7 @@ const SetupPage = () => {
     );
   }
 
-  // If authenticated OR reconfiguring, show the wizard.
+  // If authenticated OR reconfiguring OR user started the wizard, show the wizard.
   return (
     <PageContainer>
       <div className="space-y-5">
@@ -359,3 +378,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    
