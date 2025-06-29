@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from 'react';
@@ -275,6 +274,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
         } else {
+          // This case handles a 404 Not Found, meaning the user is authenticated but has no profile.
+          // We just stop loading and let the app state reflect this (isAuthenticated: true, isSetupComplete: false).
           dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
@@ -300,6 +301,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
 
   useEffect(() => {
+    // Only save the wizard state, which is non-sensitive and useful for persistence across reloads during setup.
+    // User profile is now always fetched from the DB.
     if (state.isLoading) {
       return;
     }
