@@ -71,33 +71,26 @@ export async function POST(request: NextRequest) {
     }
     
     const { db } = await connectToDatabase();
-    const existingProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: decodedToken.uid });
 
-    const incomingAssistantsRaw = userProfile.assistants || [];
-    const finalAssistantsToSave: AssistantConfig[] = Array.isArray(incomingAssistantsRaw) ? incomingAssistantsRaw.map((asst: any) => ({
-      ...asst,
-      id: asst.id || `asst_fallback_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
-      purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
-      imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
-    })) : [];
-
-    // Construct a clean payload for MongoDB to avoid saving undefined fields
-    const updatePayload: Partial<UserProfile> = {
-      firebaseUid: decodedToken.uid,
-      isAuthenticated: true, // This is a server-side confirmation
+    // Prepare a clean, serializable profile for MongoDB
+    const serializableProfile = {
+      ...userProfile,
+      firebaseUid: decodedToken.uid, // Enforce correct UID from token
+      assistants: (userProfile.assistants || []).map((asst: any) => ({
+        ...asst,
+        purposes: Array.from(asst.purposes || []), // Ensure Set is converted to Array
+        imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
+      })),
+      databases: userProfile.databases || [],
     };
-
-    if (userProfile.authProvider !== undefined) updatePayload.authProvider = userProfile.authProvider;
-    if (userProfile.email !== undefined) updatePayload.email = userProfile.email;
-    if (userProfile.assistants !== undefined) updatePayload.assistants = finalAssistantsToSave;
-    if (userProfile.databases !== undefined) updatePayload.databases = userProfile.databases;
-    if (userProfile.ownerPhoneNumberForNotifications !== undefined) updatePayload.ownerPhoneNumberForNotifications = userProfile.ownerPhoneNumberForNotifications;
-    if (userProfile.credits !== undefined) updatePayload.credits = userProfile.credits;
+    
+    // Remove _id if it exists to prevent mongo error on update with upsert
+    delete (serializableProfile as any)._id;
 
     try {
       const result = await db.collection<UserProfile>(PROFILES_COLLECTION).updateOne(
         { firebaseUid: decodedToken.uid },
-        { $set: updatePayload },
+        { $set: serializableProfile },
         { upsert: true }
       );
 

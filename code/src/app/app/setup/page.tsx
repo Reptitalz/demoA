@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const SetupPage = () => {
   const { state, dispatch } = useApp();
@@ -26,23 +27,14 @@ const SetupPage = () => {
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
 
-  const [userHasMadeInitialChoice, setUserHasMadeInitialChoice] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   // Effect to redirect authenticated users with complete setups away from this page.
   useEffect(() => {
-    if (state.userProfile.isAuthenticated && state.isSetupComplete) {
+    if (!state.isLoading && state.userProfile.isAuthenticated && state.isSetupComplete && !isReconfiguring) {
       router.replace('/app/dashboard');
     }
-  }, [state.userProfile.isAuthenticated, state.isSetupComplete, router]);
-
-  // Effect to automatically show the wizard if the user is authenticated but hasn't completed setup.
-  useEffect(() => {
-    if (state.userProfile.isAuthenticated || isReconfiguring) {
-      setUserHasMadeInitialChoice(true);
-    }
-  }, [state.userProfile.isAuthenticated, isReconfiguring]);
-
+  }, [state.isLoading, state.userProfile.isAuthenticated, state.isSetupComplete, isReconfiguring, router]);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -136,6 +128,8 @@ const SetupPage = () => {
   };
 
   const handleAuthSuccess = () => {
+    // This function is called after successful authentication from Step3.
+    // In this simplified flow, the next action is to complete the setup.
     handleCompleteSetup();
   };
   
@@ -256,7 +250,9 @@ const SetupPage = () => {
     }
     try {
       await signInWithPopup(auth, googleProvider);
-      toast({ title: "Autenticación exitosa", description: "Redirigiendo..." });
+      // The onAuthStateChanged listener in AppProvider and the useEffect on this page
+      // will handle fetching data and redirecting to the dashboard if the user is not new.
+      toast({ title: "Autenticación exitosa", description: "Verificando tu cuenta..." });
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
@@ -279,7 +275,16 @@ const SetupPage = () => {
     }
   };
 
-  if (!state.userProfile.isAuthenticated && !isReconfiguring && !userHasMadeInitialChoice) {
+  if (state.isLoading) {
+    return (
+      <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+        <LoadingSpinner size={36} />
+      </PageContainer>
+    );
+  }
+
+  // Show welcome screen ONLY if the user is not authenticated and not in a reconfiguration flow.
+  if (!state.userProfile.isAuthenticated && !isReconfiguring) {
     return (
       <PageContainer>
         <Card className="w-full max-w-md mx-auto shadow-xl animate-fadeIn mt-10 sm:mt-16">
@@ -300,7 +305,7 @@ const SetupPage = () => {
             <Button
               size="lg"
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
-              onClick={() => setUserHasMadeInitialChoice(true)}
+              onClick={handleAuthFlow} // Both buttons now trigger the same auth flow
             >
               <UserPlus className="mr-3 h-5 w-5" />
               Define tu Asistente
@@ -311,6 +316,7 @@ const SetupPage = () => {
     );
   }
 
+  // If authenticated OR reconfiguring, show the wizard.
   return (
     <PageContainer>
       <div className="space-y-5">
