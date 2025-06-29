@@ -18,15 +18,15 @@ const DashboardSummary = () => {
       <div className="grid gap-4 grid-cols-2 mb-8">
         <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.1s"}}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Asistentes Activos</CardTitle>
-            <FaRobot className="h-5 w-5 text-brand-gradient" />
+            <CardTitle className="text-sm font-medium">Asistentes Configurados</CardTitle>
+            <FaRobot className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-brand-gradient">
               {assistants.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total de asistentes configurados
+              Total de asistentes creados
             </p>
           </CardContent>
         </Card>
@@ -38,7 +38,7 @@ const DashboardSummary = () => {
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Saldo de Créditos</CardTitle>
-            <Wallet className="h-5 w-5 text-brand-gradient" />
+            <Wallet className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-brand-gradient flex items-center gap-2">

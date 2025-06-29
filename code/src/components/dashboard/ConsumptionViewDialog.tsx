@@ -16,45 +16,17 @@ import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { auth, signOut } from '@/lib/firebase';
 
-// This component now holds the client-side logic for the dashboard.
 const DashboardPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isSetupComplete, isLoading } = state;
 
   useEffect(() => {
     if (!isLoading && !userProfile.isAuthenticated) {
-      if (isSetupComplete) { 
-         dispatch({ type: 'SET_WIZARD_STEP', payload: 3 });
-         dispatch({ type: 'SET_IS_RECONFIGURING', payload: false }); 
-         dispatch({ type: 'SET_EDITING_ASSISTANT_ID', payload: null });
-      }
       router.replace('/app/setup');
     }
-  }, [isLoading, userProfile.isAuthenticated, isSetupComplete, router, dispatch]);
-
-  useEffect(() => {
-    const paymentStatus = searchParams.get('payment');
-    if (paymentStatus === 'success') {
-      toast({
-        title: "¡Pago Exitoso!",
-        description: "Tu plan ha sido actualizado. ¡Bienvenido/a!",
-        duration: 5000,
-      });
-      router.replace('/app/dashboard', {scroll: false});
-    } else if (paymentStatus === 'cancelled') {
-      toast({
-        title: "Pago Cancelado",
-        description: "El proceso de pago fue cancelado. Puedes intentar de nuevo desde tu panel.",
-        variant: "destructive",
-        duration: 7000,
-      });
-      router.replace('/app/dashboard', {scroll: false});
-    }
-  }, [searchParams, toast, router]);
-
+  }, [isLoading, userProfile.isAuthenticated, router]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -82,35 +54,33 @@ const DashboardPageContent = () => {
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
         router.push('/app/setup'); 
-        toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name} en el asistente. Estás en el paso 1.` });
+        toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
     }
   };
 
   const handleAddNewAssistant = () => {
-    // No more plan limits
     dispatch({ type: 'RESET_WIZARD' }); 
     router.push('/app/setup'); 
   };
 
   const handleAddNewDatabase = () => {
     dispatch({ type: 'RESET_WIZARD' });
-    router.push('/app/setup');
     toast({
       title: "Añadir Nueva Base de Datos",
-      description: "Configura un nuevo asistente y su base de datos. La base de datos creada estará disponible para otros asistentes.",
+      description: "Para añadir una base de datos, inicia el proceso de 'Añadir Nuevo' asistente y configúrala allí.",
       duration: 7000,
     });
+    router.push('/app/setup');
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      dispatch({ type: 'LOGOUT_USER' });
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 3 }); 
+      // AppProvider listener will handle state reset
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      router.push('/app/setup'); 
+      router.push('/'); 
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
@@ -190,10 +160,6 @@ const DashboardPageContent = () => {
             <FaDatabase size={18} className="text-primary" /> 
             Bases de Datos Vinculadas
           </h3>
-          <Button onClick={handleAddNewDatabase} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-            <FaPlusCircle size={13} className="mr-1" />
-            Añadir Base de Datos
-          </Button>
         </div>
         {userProfile.databases.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-1">  

@@ -103,6 +103,7 @@ const SetupPage = () => {
         case 2:
           return assistantPrompt.trim() !== '';
         case 3:
+          if (!dbNeeded) return true; // No validation needed if DB step is skipped
           if (!databaseOption.type || !databaseOption.name?.trim()) return false;
           if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
           return true;
@@ -131,8 +132,9 @@ const SetupPage = () => {
 
   const handleNext = () => {
     if (isStepValid()) {
+      // Logic for skipping DB step if not needed
       if (currentStep === 2 && !dbNeeded && !isReconfiguring) {
-        dispatch({ type: 'SET_WIZARD_STEP', payload: 4 });
+        dispatch({ type: 'SET_WIZARD_STEP', payload: 4 }); // From Prompt (2) to Auth (4)
       } else if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
@@ -146,19 +148,20 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
+    // Logic for skipping DB step if not needed
     if (currentStep === 4 && !dbNeeded && !isReconfiguring) {
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 2 });
+      dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // From Auth (4) back to Prompt (2)
     } else if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
   };
 
   const handleCompleteSetup = async () => {
-    if (isReconfiguring && !isStepValid()) {
+    if (!isStepValid()) {
         toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
         return;
     }
-    if (!isReconfiguring && !state.userProfile.isAuthenticated) {
+    if (!state.userProfile.isAuthenticated) {
         toast({ title: "Autenticación Requerida", description: "Por favor, inicia sesión para completar la configuración.", variant: "destructive" });
         return;
     }
@@ -222,6 +225,7 @@ const SetupPage = () => {
         assistants: updatedAssistantsArray,
         databases: updatedDatabasesArray,
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
+        credits: state.userProfile.credits || 0, // Ensure credits are carried over
     };
     
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
@@ -262,7 +266,7 @@ const SetupPage = () => {
           duration: 7000,
         });
       } else if (response.ok) {
-        // AppProvider's listener will fetch data and the useEffect will redirect to dashboard
+        // AppProvider's listener will fetch data and redirect to dashboard
         toast({ title: "Bienvenido/a de nuevo" });
       } else {
         await signOut(auth);
@@ -283,7 +287,7 @@ const SetupPage = () => {
     if (isReconfiguring) {
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
-      if (currentStep === 3) return <Step2DatabaseConfig />;
+      if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : null; // In reconfig, there is no auth step
       return null;
     } else {
       if (currentStep === 1) return <Step1AssistantDetails />;
@@ -378,5 +382,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-
-    

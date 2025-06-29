@@ -1,6 +1,6 @@
 
 "use client";
-
+import { Suspense } from 'react';
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
@@ -230,4 +230,10 @@ const DashboardPageContent = () => {
   );
 }
 
-export default DashboardPageContent;
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <DashboardPageContent />
+    </Suspense>
+  );
+}

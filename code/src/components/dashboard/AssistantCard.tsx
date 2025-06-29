@@ -120,9 +120,7 @@ const AssistantCard = ({
                 />
               </div>
               <div className="flex-grow">
-                <div className="flex items-center justify-between">
-                     <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
-                </div>
+                <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
                 {isAssistantActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">

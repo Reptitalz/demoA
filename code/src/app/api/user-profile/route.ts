@@ -1,5 +1,5 @@
 
-import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
+import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
@@ -29,13 +29,19 @@ export async function GET(request: NextRequest) {
     const profile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: queryUserId });
 
     if (profile) {
-      const profileSafe = {
-        ...profile,
-        assistants: Array.isArray(profile.assistants) ? profile.assistants.map(asst => ({
+      // Ensure the returned profile conforms to the latest UserProfile structure
+      const profileSafe: UserProfile = {
+        firebaseUid: profile.firebaseUid,
+        email: profile.email,
+        isAuthenticated: true,
+        assistants: (profile.assistants || []).map(asst => ({
           ...asst,
           purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
-        })) : [],
+        })),
+        databases: profile.databases || [],
+        ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
+        credits: profile.credits || 0, // Ensure credits field exists
       };
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
     } else {
@@ -56,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    let { userId: bodyUserId, userProfile } = body;
+    const { userId: bodyUserId, userProfile } = body;
 
     if (!bodyUserId || !userProfile) {
       return NextResponse.json({ message: 'User ID and userProfile are required in the body' }, { status: 400 });
@@ -65,17 +71,16 @@ export async function POST(request: NextRequest) {
     if (decodedToken.uid !== bodyUserId) {
       return NextResponse.json({ message: 'Forbidden: Token UID does not match User ID in request body' }, { status: 403 });
     }
-
-    if (userProfile.firebaseUid && userProfile.firebaseUid !== decodedToken.uid) {
-      console.warn("Mismatch between userProfile.firebaseUid in body and token UID. Using token UID.");
-    }
     
     const { db } = await connectToDatabase();
 
-    // Prepare a clean, serializable profile for MongoDB
+    // Prepare a clean, serializable profile for MongoDB, ensuring it matches the latest structure
     const serializableProfile = {
-      ...userProfile,
-      firebaseUid: decodedToken.uid, // Enforce correct UID from token
+      firebaseUid: decodedToken.uid,
+      email: userProfile.email,
+      isAuthenticated: userProfile.isAuthenticated,
+      ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
+      credits: userProfile.credits || 0,
       assistants: (userProfile.assistants || []).map((asst: any) => ({
         ...asst,
         purposes: Array.from(asst.purposes || []), // Ensure Set is converted to Array
@@ -84,9 +89,6 @@ export async function POST(request: NextRequest) {
       databases: userProfile.databases || [],
     };
     
-    // Remove _id if it exists to prevent mongo error on update with upsert
-    delete (serializableProfile as any)._id;
-
     try {
       const result = await db.collection<UserProfile>(PROFILES_COLLECTION).updateOne(
         { firebaseUid: decodedToken.uid },

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,21 +15,21 @@ const Step3Authentication = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
   const { authMethod } = state.wizard;
-  const { isAuthenticated, authProvider: userProfileAuthProvider } = state.userProfile;
+  const { isAuthenticated, email } = state.userProfile;
   const [isProcessingAuth, setIsProcessingAuth] = useState(false);
 
   // Effect to sync wizard state if user is ALREADY authenticated when the component loads
   useEffect(() => {
-    if (isAuthenticated && userProfileAuthProvider && !authMethod) {
-      dispatch({ type: 'SET_AUTH_METHOD', payload: userProfileAuthProvider });
+    if (isAuthenticated && !authMethod) {
+      dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
     }
-  }, [isAuthenticated, userProfileAuthProvider, authMethod, dispatch]);
+  }, [isAuthenticated, authMethod, dispatch]);
 
   const handleGoogleSignIn = async () => {
     if (!googleProvider) {
       toast({
         title: "Configuración Incompleta",
-        description: "La autenticación de Firebase no está configurada. Por favor, revisa las variables de entorno.",
+        description: "La autenticación de Firebase no está configurada.",
         variant: "destructive",
       });
       return;
@@ -38,10 +38,10 @@ const Step3Authentication = () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       if (result && result.user) {
-        dispatch({ type: 'SET_AUTH_METHOD', payload: 'google' });
+        // AppProvider's onAuthStateChanged will handle the rest
         toast({
           title: 'Inicio de Sesión Exitoso',
-          description: `Has iniciado sesión como ${result.user.email}. Por favor, continúa con la configuración.`,
+          description: `Has iniciado sesión como ${result.user.email}. Continúa para finalizar.`,
         });
       }
     } catch (error: any) {
@@ -66,7 +66,7 @@ const Step3Authentication = () => {
     <Card className="w-full shadow-lg animate-fadeIn">
       <CardHeader>
         <CardTitle>Autenticación de Cuenta</CardTitle>
-        <CardDescription>Inicia sesión para guardar la configuración de tu asistente. Este es el último paso antes de finalizar.</CardDescription>
+        <CardDescription>Inicia sesión o crea una cuenta para guardar la configuración de tu asistente. Este es el último paso.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isProcessingAuth ? (
@@ -78,7 +78,7 @@ const Step3Authentication = () => {
           <>
             {AUTH_METHODS.map((method) => {
               const Icon = method.icon;
-              const isSelected = authMethod === method.id;
+              const isSelected = authMethod === method.id && isAuthenticated;
               return (
                 <Button
                   key={method.id}
@@ -94,9 +94,9 @@ const Step3Authentication = () => {
                 </Button>
               );
             })}
-             {authMethod === "google" && isAuthenticated && state.userProfile.email && (
+             {authMethod === "google" && isAuthenticated && email && (
               <p className="text-sm text-center text-green-500 flex items-center justify-center gap-1 pt-2">
-                <FaCheckCircle size={16} /> Autenticado como {state.userProfile.email}.
+                <FaCheckCircle size={16} /> Autenticado como {email}.
               </p>
             )}
           </>
@@ -107,5 +107,3 @@ const Step3Authentication = () => {
 };
 
 export default Step3Authentication;
-
-    

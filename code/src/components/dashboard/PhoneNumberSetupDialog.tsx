@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -31,7 +32,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
       const assistant = state.userProfile.assistants.find(a => a.id === assistantId);
       if (assistant?.phoneLinked && !assistant.numberReady) {
         setPhoneNumber(assistant.phoneLinked);
-        setStep(2);
+        setStep(2); // Skip to step 2 if phone is linked but not ready
       } else {
         setStep(1);
         setPhoneNumber('');
@@ -51,7 +52,8 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         return;
       }
       setIsVerifying(true);
-      setTimeout(() => { // Simulate API call to send code
+      // Simulate API call to send code
+      setTimeout(() => {
         setIsVerifying(false);
         setStep(2);
         toast({ title: "Código Enviado", description: `Hemos enviado un código SMS de verificación a ${phoneNumber}.` });
@@ -62,14 +64,15 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         return;
       }
       setIsVerifying(true);
-      setTimeout(() => { // Simulate API call to verify code
+      // Simulate API call to verify code
+      setTimeout(() => {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === assistantId);
         if (assistantToUpdate) {
           const updatedAssistant: AssistantConfig = { 
             ...assistantToUpdate, 
             phoneLinked: phoneNumber, 
             verificationCode: verificationCode,
-            numberReady: false // Set to false, external process will set it to true
+            numberReady: false // Set to false, an external process will set it to true
           };
           dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
           setIsVerifying(false);
@@ -88,7 +91,8 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
 
   const handleResendCode = () => {
     setIsVerifying(true);
-    setTimeout(() => { // Simulate API call to resend
+    // Simulate API call to resend
+    setTimeout(() => {
       setIsVerifying(false);
       toast({ title: "Código Reenviado", description: `Hemos reenviado el código a ${phoneNumber}.` });
     }, 2000);
@@ -155,7 +159,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
                         maxLength={6}
                         />
                         <p className="text-xs text-muted-foreground">
-                            El código llegará a tu teléfono en unos minutos. No te preocupes, tu asistente te notificará en esta página cuando lo necesites.
+                            El código llegará a tu teléfono en unos minutos. Si no lo recibes, puedes reenviarlo.
                         </p>
                     </div>
                 </div>
