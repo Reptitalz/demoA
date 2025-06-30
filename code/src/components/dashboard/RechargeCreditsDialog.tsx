@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,19 +17,15 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CreditCard, MessagesSquare, Coins, Wallet, CheckCircle, Loader2 } from 'lucide-react';
-
-const CREDIT_PACKAGES = [
-  { credits: 1, price: 50, name: "Básico" },
-  { credits: 5, price: 240, name: "Estándar" }, // Small discount
-  { credits: 10, price: 450, name: "Pro" }, // Better discount
-  { credits: 25, price: 1000, name: "Premium" }, // Best discount
-];
-const MESSAGES_PER_CREDIT = 1000;
+import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT } from '@/config/appConfig';
+import { auth } from '@/lib/firebase';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+type DialogStep = 'selection' | 'payment' | 'success';
 
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
   const { state, dispatch } = useApp();
@@ -38,9 +34,17 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [purchaseComplete, setPurchaseComplete] = useState(false);
+  const [step, setStep] = useState<DialogStep>('selection');
 
-  const handleRecharge = () => {
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY) {
+      (window as any).Conekta.setPublicKey(process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY);
+    } else {
+        console.warn("La clave pública de Conekta no está configurada. Los pagos fallarán.");
+    }
+  }, []);
+
+  const handleRecharge = async () => {
     if (selectedPackage === null) {
       toast({
         title: "Selección Requerida",
@@ -50,34 +54,126 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       return;
     }
     
+    if (!process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY) {
+        toast({ title: "Error de Configuración", description: "La pasarela de pago no está configurada.", variant: "destructive" });
+        return;
+    }
+    
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      const packageDetails = CREDIT_PACKAGES.find(p => p.credits === selectedPackage);
-      if (packageDetails) {
-        const newTotalCredits = currentCredits + packageDetails.credits;
-        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { credits: newTotalCredits } });
-        setPurchaseComplete(true);
-      }
-      setIsProcessing(false);
-    }, 1500);
+    setStep('payment');
+
+    try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+            throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
+        }
+
+        const response = await fetch('/api/create-conekta-order', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ packageCredits: selectedPackage }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'No se pudo crear la orden de pago.');
+        }
+
+        const checkout = new (window as any).Conekta.Checkout({
+            target: '#conekta-checkout-container',
+            checkout_order_id: data.checkout.id,
+            onFinalize: (details: any) => {
+                if (details.charge && details.charge.status === 'paid') {
+                    const packageDetails = CREDIT_PACKAGES.find(p => p.credits === selectedPackage);
+                    if (packageDetails) {
+                        const newTotalCredits = currentCredits + packageDetails.credits;
+                        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { credits: newTotalCredits } });
+                        setStep('success');
+                    }
+                } else {
+                    toast({
+                        title: "Pago no completado",
+                        description: `El estado del pago es: ${details.charge?.status || 'desconocido'}. Intenta de nuevo.`,
+                        variant: "destructive",
+                    });
+                    handleClose();
+                }
+            },
+            onError: (error: any) => {
+                toast({
+                    title: "Error en el Pago",
+                    description: error.message_to_purchaser || "Ocurrió un error. Por favor, intenta de nuevo.",
+                    variant: "destructive",
+                });
+                handleClose();
+            }
+        });
+        
+        checkout.render();
+        
+    } catch (error: any) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        handleClose();
+    }
   };
   
   const handleClose = () => {
     onOpenChange(false);
-    // Reset state after dialog closes
     setTimeout(() => {
+        setStep('selection');
         setSelectedPackage(null);
-        setPurchaseComplete(false);
+        setIsProcessing(false);
     }, 300);
   };
   
   const selectedPackageDetails = selectedPackage !== null ? CREDIT_PACKAGES.find(p => p.credits === selectedPackage) : null;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        {!purchaseComplete ? (
+  const renderContent = () => {
+    switch (step) {
+      case 'payment':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Finaliza tu Compra</DialogTitle>
+              <DialogDescription>
+                Haz clic en el botón de abajo para completar tu pago de forma segura con Conekta.
+              </DialogDescription>
+            </DialogHeader>
+            <div id="conekta-checkout-container" className="min-h-[100px] flex items-center justify-center">
+              {/* Conekta injects its button here */}
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
+            </DialogFooter>
+          </>
+        );
+
+      case 'success':
+        return (
+            <div className="py-8 flex flex-col items-center justify-center text-center animate-fadeIn">
+                <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
+                <DialogTitle className="text-xl">¡Recarga Exitosa!</DialogTitle>
+                <DialogDescription className="mt-2">
+                    Se han añadido {selectedPackage} créditos a tu cuenta.
+                </DialogDescription>
+                <p className="mt-4 text-2xl font-bold text-foreground">
+                    Saldo total: {currentCredits + (selectedPackage || 0)} créditos
+                </p>
+                 <DialogFooter className="mt-6 w-full">
+                    <Button onClick={handleClose} className="w-full">
+                        Cerrar
+                    </Button>
+                </DialogFooter>
+            </div>
+        );
+
+      case 'selection':
+      default:
+        return (
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl">
@@ -137,7 +233,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Procesando Pago...
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Redirigiendo a Conekta...
                   </>
                 ) : (
                   <>
@@ -148,23 +244,14 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               </Button>
             </DialogFooter>
           </>
-        ) : (
-            <div className="py-8 flex flex-col items-center justify-center text-center animate-fadeIn">
-                <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-                <DialogTitle className="text-xl">¡Recarga Exitosa!</DialogTitle>
-                <DialogDescription className="mt-2">
-                    Se han añadido {selectedPackage} créditos a tu cuenta.
-                </DialogDescription>
-                <p className="mt-4 text-2xl font-bold text-foreground">
-                    Saldo total: {currentCredits} créditos
-                </p>
-                 <DialogFooter className="mt-6 w-full">
-                    <Button onClick={handleClose} className="w-full">
-                        Cerrar
-                    </Button>
-                </DialogFooter>
-            </div>
-        )}
+        );
+    }
+  };
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        {renderContent()}
       </DialogContent>
     </Dialog>
   );

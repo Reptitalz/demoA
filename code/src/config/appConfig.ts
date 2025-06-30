@@ -36,3 +36,12 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "google", name: "Continuar con Google", icon: FaGoogle },
 ];
+
+export const CREDIT_PACKAGES = [
+  { credits: 1, price: 50, name: "Básico" },
+  { credits: 5, price: 240, name: "Estándar" }, // Small discount
+  { credits: 10, price: 450, name: "Pro" }, // Better discount
+  { credits: 25, price: 1000, name: "Premium" }, // Best discount
+];
+
+export const MESSAGES_PER_CREDIT = 1000;
