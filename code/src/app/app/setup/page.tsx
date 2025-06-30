@@ -10,6 +10,7 @@ import Step1AssistantDetails from '@/components/setup/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/setup/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/setup/Step2_DatabaseConfig';
 import Step3Authentication from '@/components/setup/Step3_Authentication';
+import Step5_TermsAndConditions from '@/components/setup/Step5_TermsAndConditions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';
@@ -25,13 +26,11 @@ const SetupPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
   
-  // New state to manage UI flow for unauthenticated users
   const [showWizard, setShowWizard] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
-  // Effect to redirect authenticated users with complete setups away from this page.
   useEffect(() => {
     if (!state.isLoading && state.userProfile.isAuthenticated && state.isSetupComplete && !isReconfiguring) {
       router.replace('/app/dashboard');
@@ -43,50 +42,66 @@ const SetupPage = () => {
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
+  
+  // Reconfig Flow: [Details(1), Prompt(2), DB?(3), Terms(4)] -> 3 or 4 steps
+  // New Setup Flow: [Details(1), Prompt(2), DB?(3), Auth(4), Terms(5)] -> 4 or 5 steps
   const effectiveMaxSteps = isReconfiguring 
-    ? (dbNeeded ? 3 : 2) // Reconfig: 1.Details, 2.Prompt, 3.DB
-    : (dbNeeded ? 4 : 3); // New: 1.Details, 2.Prompt, 3.DB, 4.Auth
+    ? (dbNeeded ? 4 : 3)
+    : (dbNeeded ? 5 : 4);
 
   const getValidationMessage = (): string => {
-    const currentValidationStep = currentStep;
-    
+    // This logic is now based on the sequential flow defined in renderStepContent
     if (isReconfiguring) {
-      switch (currentValidationStep) {
+      switch (currentStep) {
         case 1:
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
-          if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
+          if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
           if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
           break;
         case 2:
           if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
           break;
         case 3:
-          if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-          if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-          if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
-          break;
-      }
-    } else {
-      switch (currentValidationStep) {
-        case 1:
-          if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
-          if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito para tu asistente.";
-          if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
-          break;
-        case 2:
-          if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
-          break;
-        case 3:
-           if (dbNeeded) {
+          if (dbNeeded) {
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
             if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
             if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
-           } else {
-             if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
-           }
+          } else { // No DB, this is the Terms step
+            if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+          }
+          break;
+        case 4: // DB was present, this is the Terms step
+          if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+          break;
+      }
+    } else { // New Setup Flow
+      switch (currentStep) {
+        case 1:
+          if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
+          if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
+          if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
+          break;
+        case 2:
+          if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+          break;
+        case 3:
+          if (dbNeeded) { // DB step
+            if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
+            if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
+            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
+          } else { // No DB, this is Auth step
+            if (!authMethod) return "Por favor, elige un método de autenticación.";
+          }
           break;
         case 4:
-            if (!authMethod) return "Por favor, elige un método de autenticación para continuar.";
+          if (dbNeeded) { // DB was present, this is Auth step
+            if (!authMethod) return "Por favor, elige un método de autenticación.";
+          } else { // No DB, this is Terms step
+             if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+          }
+          break;
+        case 5: // DB was present, this is Terms step
+          if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
           break;
       }
     }
@@ -96,20 +111,8 @@ const SetupPage = () => {
   const isStepValid = (): boolean => {
     if (isFinalizingSetup) return false;
 
+    // This logic is now based on the sequential flow defined in renderStepContent
     if (isReconfiguring) {
-      switch (currentStep) {
-        case 1:
-          return assistantName.trim() !== '' && selectedPurposes.size > 0 && (!selectedPurposes.has('notify_owner') || !!ownerPhoneNumberForNotifications?.trim());
-        case 2:
-          return assistantPrompt.trim() !== '';
-        case 3:
-          if (!dbNeeded) return true; // No validation needed if DB step is skipped
-          if (!databaseOption.type || !databaseOption.name?.trim()) return false;
-          if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
-          return true;
-        default: return false;
-      }
-    } else {
       switch (currentStep) {
         case 1:
           return assistantName.trim() !== '' && selectedPurposes.size > 0 && (!selectedPurposes.has('notify_owner') || !!ownerPhoneNumberForNotifications?.trim());
@@ -120,11 +123,35 @@ const SetupPage = () => {
             if (!databaseOption.type || !databaseOption.name?.trim()) return false;
             if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             return true;
-          } else {
+          } else { // No DB, this is Terms step
+            return acceptedTerms;
+          }
+        case 4: // DB was present, this is Terms step
+          return acceptedTerms;
+        default: return false;
+      }
+    } else { // New Setup Flow
+      switch (currentStep) {
+        case 1:
+          return assistantName.trim() !== '' && selectedPurposes.size > 0 && (!selectedPurposes.has('notify_owner') || !!ownerPhoneNumberForNotifications?.trim());
+        case 2:
+          return assistantPrompt.trim() !== '';
+        case 3:
+          if (dbNeeded) { // DB step
+            if (!databaseOption.type || !databaseOption.name?.trim()) return false;
+            if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
+            return true;
+          } else { // No DB, this is Auth step
             return !!authMethod;
           }
         case 4:
-           return !!authMethod;
+          if (dbNeeded) { // DB was present, this is Auth step
+            return !!authMethod;
+          } else { // No DB, this is Terms step
+             return acceptedTerms;
+          }
+        case 5: // DB was present, this is Terms step
+          return acceptedTerms;
         default: return false;
       }
     }
@@ -132,10 +159,7 @@ const SetupPage = () => {
 
   const handleNext = () => {
     if (isStepValid()) {
-      // Logic for skipping DB step if not needed
-      if (currentStep === 2 && !dbNeeded && !isReconfiguring) {
-        dispatch({ type: 'SET_WIZARD_STEP', payload: 4 }); // From Prompt (2) to Auth (4)
-      } else if (currentStep < effectiveMaxSteps) {
+      if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
     } else {
@@ -148,10 +172,7 @@ const SetupPage = () => {
   };
 
   const handlePrevious = () => {
-    // Logic for skipping DB step if not needed
-    if (currentStep === 4 && !dbNeeded && !isReconfiguring) {
-      dispatch({ type: 'SET_WIZARD_STEP', payload: 2 }); // From Auth (4) back to Prompt (2)
-    } else if (currentStep > 1) {
+    if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
   };
@@ -225,7 +246,7 @@ const SetupPage = () => {
         assistants: updatedAssistantsArray,
         databases: updatedDatabasesArray,
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
-        credits: state.userProfile.credits || 0, // Ensure credits are carried over
+        credits: state.userProfile.credits || 0,
     };
     
     dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
@@ -258,7 +279,7 @@ const SetupPage = () => {
       });
 
       if (response.status === 404) {
-        await signOut(auth); // Sign out if no profile exists
+        await signOut(auth);
         toast({
           title: "Usuario No Encontrado",
           description: "No encontramos una cuenta con este correo. Por favor, usa la opción 'Define tu Asistente' para crear una.",
@@ -266,7 +287,6 @@ const SetupPage = () => {
           duration: 7000,
         });
       } else if (response.ok) {
-        // AppProvider's listener will fetch data and redirect to dashboard
         toast({ title: "Bienvenido/a de nuevo" });
       } else {
         await signOut(auth);
@@ -284,16 +304,21 @@ const SetupPage = () => {
   };
 
   const renderStepContent = () => {
+    // Reconfiguring flow: [Details(1), Prompt(2), DB?(3), Terms(4)]
     if (isReconfiguring) {
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
-      if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : null; // In reconfig, there is no auth step
+      if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step5_TermsAndConditions />;
+      if (currentStep === 4) return dbNeeded ? <Step5_TermsAndConditions /> : null;
       return null;
-    } else {
+    } 
+    // New setup flow: [Details(1), Prompt(2), DB?(3), Auth(4), Terms(5)]
+    else {
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
       if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
-      if (currentStep === 4) return dbNeeded ? <Step3Authentication /> : null;
+      if (currentStep === 4) return dbNeeded ? <Step3Authentication /> : <Step5_TermsAndConditions />;
+      if (currentStep === 5) return dbNeeded ? <Step5_TermsAndConditions /> : null;
       return null;
     }
   };
@@ -306,7 +331,6 @@ const SetupPage = () => {
     );
   }
 
-  // Show welcome screen ONLY if the user is not authenticated and not in a reconfiguration flow.
   if (!state.userProfile.isAuthenticated && !isReconfiguring && !showWizard) {
     return (
       <PageContainer>
@@ -339,7 +363,6 @@ const SetupPage = () => {
     );
   }
 
-  // If authenticated OR reconfiguring OR user started the wizard, show the wizard.
   return (
     <PageContainer>
       <div className="space-y-5">

@@ -20,6 +20,7 @@ const initialWizardState: WizardState = {
   ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
   editingAssistantId: null,
+  acceptedTerms: false,
 };
 
 const initialUserProfileState: UserProfile = {
@@ -53,6 +54,7 @@ type Action =
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
+  | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
   | { type: 'LOAD_WIZARD_STATE'; payload: Partial<WizardState> }
@@ -103,6 +105,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, authMethod: action.payload } };
     case 'UPDATE_OWNER_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, ownerPhoneNumberForNotifications: action.payload } };
+    case 'SET_TERMS_ACCEPTED':
+        return { ...state, wizard: { ...state.wizard, acceptedTerms: action.payload } };
     case 'COMPLETE_SETUP':
       return {
         ...state,
@@ -127,6 +131,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...initialWizardState,
           ...loadedWizardState,
           selectedPurposes: wizardSelectedPurposesSet,
+          acceptedTerms: !!loadedWizardState.acceptedTerms,
         },
       };
     }

@@ -58,6 +58,7 @@ export interface WizardState {
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
+  acceptedTerms: boolean;
 }
 
 export interface AppState {

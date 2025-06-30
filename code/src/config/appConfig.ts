@@ -4,7 +4,7 @@ import { FaGoogle, FaUserCog, FaUsers, FaBrain } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 4; // This is the conceptual max, logic will adjust based on flow
+export const MAX_WIZARD_STEPS = 5; // This is the conceptual max, logic will adjust based on flow
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
 
@@ -30,6 +30,7 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   2: "Personalidad (Prompt)",
   3: "Base de Datos",
   4: "Autenticación",
+  5: "Términos y Condiciones",
 };
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
