@@ -37,8 +37,10 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [step, setStep] = useState<DialogStep>('selection');
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY) {
-      (window as any).Conekta.setPublicKey(process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY);
+    // This key is safe to be public.
+    const CONEKTA_PUBLIC_KEY = process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY || 'key_L6wKGoQwrHZE1jWrnHomiCx';
+    if (CONEKTA_PUBLIC_KEY) {
+      (window as any).Conekta.setPublicKey(CONEKTA_PUBLIC_KEY);
     } else {
         console.warn("La clave pública de Conekta no está configurada. Los pagos fallarán.");
     }
@@ -54,7 +56,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       return;
     }
     
-    if (!process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY) {
+    if (!process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY && !'key_L6wKGoQwrHZE1jWrnHomiCx') {
         toast({ title: "Error de Configuración", description: "La pasarela de pago no está configurada.", variant: "destructive" });
         return;
     }
@@ -140,11 +142,11 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             <DialogHeader>
               <DialogTitle>Finaliza tu Compra</DialogTitle>
               <DialogDescription>
-                Haz clic en el botón de abajo para completar tu pago de forma segura con Conekta.
+                Serás redirigido a Conekta para completar tu pago de forma segura.
               </DialogDescription>
             </DialogHeader>
-            <div id="conekta-checkout-container" className="min-h-[100px] flex items-center justify-center">
-              {/* Conekta injects its button here */}
+            <div id="conekta-checkout-container" className="min-h-[250px] flex items-center justify-center">
+              <Loader2 className="animate-spin h-8 w-8 text-primary" />
             </div>
             <DialogFooter>
               <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
@@ -227,13 +229,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 
             <DialogFooter>
               <Button
-                className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+                className="w-full bg-primary text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
                 onClick={handleRecharge}
                 disabled={isProcessing || selectedPackage === null}
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Redirigiendo a Conekta...
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Redirigiendo...
                   </>
                 ) : (
                   <>

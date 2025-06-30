@@ -4,7 +4,7 @@ import { FaGoogle, FaUserCog, FaUsers, FaBrain } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 5; // This is the conceptual max, logic will adjust based on flow
+export const MAX_WIZARD_STEPS = 5;
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
 
@@ -39,9 +39,9 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
 
 export const CREDIT_PACKAGES = [
   { credits: 1, price: 50, name: "Básico" },
-  { credits: 5, price: 240, name: "Estándar" }, // Small discount
-  { credits: 10, price: 450, name: "Pro" }, // Better discount
-  { credits: 25, price: 1000, name: "Premium" }, // Best discount
+  { credits: 5, price: 240, name: "Estándar" },
+  { credits: 10, price: 450, name: "Pro" },
+  { credits: 25, price: 1000, name: "Premium" },
 ];
 
 export const MESSAGES_PER_CREDIT = 1000;

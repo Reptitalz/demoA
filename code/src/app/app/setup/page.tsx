@@ -43,14 +43,11 @@ const SetupPage = () => {
 
   const dbNeeded = needsDatabaseConfiguration();
   
-  // Reconfig Flow: [Details(1), Prompt(2), DB?(3), Terms(4)] -> 3 or 4 steps
-  // New Setup Flow: [Details(1), Prompt(2), DB?(3), Auth(4), Terms(5)] -> 4 or 5 steps
   const effectiveMaxSteps = isReconfiguring 
     ? (dbNeeded ? 4 : 3)
     : (dbNeeded ? 5 : 4);
 
   const getValidationMessage = (): string => {
-    // This logic is now based on the sequential flow defined in renderStepContent
     if (isReconfiguring) {
       switch (currentStep) {
         case 1:
@@ -66,15 +63,15 @@ const SetupPage = () => {
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
             if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
             if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
-          } else { // No DB, this is the Terms step
+          } else { 
             if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
           }
           break;
-        case 4: // DB was present, this is the Terms step
+        case 4: 
           if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
           break;
       }
-    } else { // New Setup Flow
+    } else { 
       switch (currentStep) {
         case 1:
           if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
@@ -85,22 +82,22 @@ const SetupPage = () => {
           if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
           break;
         case 3:
-          if (dbNeeded) { // DB step
+          if (dbNeeded) { 
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
             if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
             if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
-          } else { // No DB, this is Auth step
+          } else {
             if (!authMethod) return "Por favor, elige un método de autenticación.";
           }
           break;
         case 4:
-          if (dbNeeded) { // DB was present, this is Auth step
+          if (dbNeeded) { 
             if (!authMethod) return "Por favor, elige un método de autenticación.";
-          } else { // No DB, this is Terms step
+          } else { 
              if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
           }
           break;
-        case 5: // DB was present, this is Terms step
+        case 5:
           if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
           break;
       }
@@ -111,7 +108,6 @@ const SetupPage = () => {
   const isStepValid = (): boolean => {
     if (isFinalizingSetup) return false;
 
-    // This logic is now based on the sequential flow defined in renderStepContent
     if (isReconfiguring) {
       switch (currentStep) {
         case 1:
@@ -123,34 +119,34 @@ const SetupPage = () => {
             if (!databaseOption.type || !databaseOption.name?.trim()) return false;
             if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             return true;
-          } else { // No DB, this is Terms step
+          } else {
             return acceptedTerms;
           }
-        case 4: // DB was present, this is Terms step
+        case 4:
           return acceptedTerms;
         default: return false;
       }
-    } else { // New Setup Flow
+    } else {
       switch (currentStep) {
         case 1:
           return assistantName.trim() !== '' && selectedPurposes.size > 0 && (!selectedPurposes.has('notify_owner') || !!ownerPhoneNumberForNotifications?.trim());
         case 2:
           return assistantPrompt.trim() !== '';
         case 3:
-          if (dbNeeded) { // DB step
+          if (dbNeeded) {
             if (!databaseOption.type || !databaseOption.name?.trim()) return false;
             if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
             return true;
-          } else { // No DB, this is Auth step
+          } else {
             return !!authMethod;
           }
         case 4:
-          if (dbNeeded) { // DB was present, this is Auth step
+          if (dbNeeded) {
             return !!authMethod;
-          } else { // No DB, this is Terms step
+          } else {
              return acceptedTerms;
           }
-        case 5: // DB was present, this is Terms step
+        case 5:
           return acceptedTerms;
         default: return false;
       }
@@ -304,7 +300,6 @@ const SetupPage = () => {
   };
 
   const renderStepContent = () => {
-    // Reconfiguring flow: [Details(1), Prompt(2), DB?(3), Terms(4)]
     if (isReconfiguring) {
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
@@ -312,7 +307,6 @@ const SetupPage = () => {
       if (currentStep === 4) return dbNeeded ? <Step5_TermsAndConditions /> : null;
       return null;
     } 
-    // New setup flow: [Details(1), Prompt(2), DB?(3), Auth(4), Terms(5)]
     else {
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
@@ -351,7 +345,7 @@ const SetupPage = () => {
             </Button>
             <Button
               size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
+              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-primary text-primary-foreground hover:opacity-90"
               onClick={handleStartSetup}
             >
               <UserPlus className="mr-3 h-5 w-5" />
@@ -388,11 +382,11 @@ const SetupPage = () => {
             </Button>
           </div>
           {currentStep < effectiveMaxSteps ? (
-            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
+            <Button onClick={handleNext} className="bg-primary text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           ) : (
-             <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
+             <Button onClick={handleCompleteSetup} className="bg-primary text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
               {isReconfiguring ? 'Guardar Cambios' : 'Completar Configuración'}
               {!isReconfiguring && <FaArrowRight className="ml-1 h-3 w-3" />}

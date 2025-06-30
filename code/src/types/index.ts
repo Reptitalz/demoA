@@ -1,10 +1,11 @@
+
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;
   name: string;
   description: string;
-  icon?: React.ElementType; // For associating an icon
+  icon?: React.ElementType;
 }
 
 export type DatabaseSource = "google_sheets" | "smart_db"; 
@@ -13,8 +14,8 @@ export interface DatabaseConfig {
   id: string;
   name: string;
   source: DatabaseSource;
-  details?: string; // For GSheet (orig Excel name), for SmartDB (could be description or same as name)
-  accessUrl?: string; // Only for Google Sheets
+  details?: string;
+  accessUrl?: string;
 }
 
 export interface AssistantConfig {
@@ -42,7 +43,6 @@ export interface UserProfile {
   credits: number;
 }
 
-// For wizard state
 export interface WizardState {
   currentStep: number;
   maxSteps: number;
@@ -52,7 +52,7 @@ export interface WizardState {
   databaseOption: {
     type: DatabaseSource | null;
     name?: string;
-    accessUrl?: string; // Only for Google Sheets
+    accessUrl?: string;
   };
   authMethod: AuthProviderType | null;
   ownerPhoneNumberForNotifications: string;

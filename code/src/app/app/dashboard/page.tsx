@@ -2,7 +2,7 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import DashboardPageContent from '@/components/dashboard/ConsumptionViewDialog';
+import DashboardPageContent from '@/components/dashboard/DashboardPageContent';
 
 const DashboardPage = () => {
   return (

@@ -3,11 +3,10 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, DatabaseSource, AssistantConfig, DatabaseConfig, AuthProviderType } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
-
 
 const initialWizardState: WizardState = {
   currentStep: 1,

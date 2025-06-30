@@ -22,7 +22,7 @@ const DashboardSummary = () => {
             <FaRobot className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-brand-gradient">
+            <div className="text-2xl font-bold text-primary">
               {assistants.length}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -41,7 +41,7 @@ const DashboardSummary = () => {
             <Wallet className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-brand-gradient flex items-center gap-2">
+            <div className="text-2xl font-bold text-primary flex items-center gap-2">
               <Coins className="h-5 w-5 text-accent" /> {credits || 0}
             </div>
             <p className="text-xs text-muted-foreground">
