@@ -1,8 +1,9 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
@@ -58,6 +59,10 @@ type Action =
   | { type: 'LOAD_WIZARD_STATE'; payload: Partial<WizardState> }
   | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
   | { type: 'UPDATE_USER_PROFILE'; payload: Partial<UserProfile> }
+  | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
+  | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
+  | { type: 'REMOVE_ASSISTANT'; payload: string }
+  | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
@@ -161,6 +166,14 @@ const appReducer = (state: AppState, action: Action): AppState => {
     }
     case 'UPDATE_USER_PROFILE':
       return { ...state, userProfile: { ...state.userProfile, ...action.payload }};
+    case 'ADD_ASSISTANT':
+      return { ...state, userProfile: { ...state.userProfile, assistants: [...state.userProfile.assistants, action.payload] }};
+    case 'UPDATE_ASSISTANT':
+      return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.map(a => a.id === action.payload.id ? action.payload : a) }};
+    case 'REMOVE_ASSISTANT':
+      return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.filter(a => a.id !== action.payload) }};
+    case 'ADD_DATABASE':
+      return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
     case 'LOGOUT_USER':
       return {
         ...initialState,
@@ -330,3 +343,5 @@ export const useApp = () => {
   }
   return context;
 };
+
+    

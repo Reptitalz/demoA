@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -331,7 +332,6 @@ const SetupPage = () => {
     );
   }
 
-  // Show welcome screen if not authenticated and not explicitly started wizard
   if (!state.userProfile.isAuthenticated && !showWizard) {
     return (
       <PageContainer>
@@ -407,3 +407,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    

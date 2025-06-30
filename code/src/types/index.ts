@@ -1,3 +1,4 @@
+
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
@@ -66,3 +67,5 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean;
 }
+
+    
