@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -14,7 +13,7 @@ const BottomNavigationBar = () => {
     { href: '/dashboard', label: 'Inicio', icon: Home },
   ];
 
-  const isAppArea = pathname.startsWith('/app/') || pathname.startsWith('/dashboard');
+  const isAppArea = pathname.startsWith('/dashboard');
 
   if (pathname === '/app/setup' || !isAppArea) {
     return null;

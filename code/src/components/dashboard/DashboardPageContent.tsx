@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -20,13 +19,10 @@ const DashboardPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { userProfile, isSetupComplete, isLoading } = state;
+  const { userProfile, isLoading } = state;
 
-  useEffect(() => {
-    if (!isLoading && !userProfile.isAuthenticated) {
-      router.replace('/app/setup');
-    }
-  }, [isLoading, userProfile.isAuthenticated, router]);
+  // This useEffect was removed to prevent redirect loops.
+  // AppRootPage (/app/page.tsx) is now the single source of truth for initial routing.
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -78,6 +74,9 @@ const DashboardPageContent = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // AppProvider listener will handle state reset
+      toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
+      // Force a full page reload by navigating via window.location
       window.location.href = '/';
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
@@ -93,6 +92,7 @@ const DashboardPageContent = () => {
     );
   }
 
+  // This check is now primarily a fallback. AppRootPage should prevent unauthenticated users from ever reaching here.
   if (!userProfile.isAuthenticated) { 
     return (
       <PageContainer className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-150px)]">

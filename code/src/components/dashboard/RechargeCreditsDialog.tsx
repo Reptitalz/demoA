@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -35,28 +34,51 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<DialogStep>('selection');
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
+  // Dynamically load Conekta script when the dialog is opened
   useEffect(() => {
-    // This key is safe to be public.
-    const CONEKTA_PUBLIC_KEY = process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY || 'key_L6wKGoQwrHZE1jWrnHomiCx';
-    if (CONEKTA_PUBLIC_KEY) {
-      (window as any).Conekta.setPublicKey(CONEKTA_PUBLIC_KEY);
-    } else {
-        console.warn("La clave pública de Conekta no está configurada. Los pagos fallarán.");
+    if (isOpen && !isScriptLoaded) {
+      const scriptId = 'conekta-js';
+      if (document.getElementById(scriptId)) {
+        if(typeof (window as any).Conekta !== 'undefined' && typeof (window as any).Conekta.Checkout !== 'undefined') {
+          setIsScriptLoaded(true);
+        }
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://cdn.conekta.io/checkout/latest/conekta.js';
+      script.async = true;
+      script.onload = () => {
+        // Double-check if the object is available on load
+        if(typeof (window as any).Conekta !== 'undefined') {
+          setIsScriptLoaded(true);
+          console.log("Conekta script loaded successfully.");
+        } else {
+           toast({ title: "Error de Carga", description: "La pasarela de pago no se cargó correctamente. Por favor, intenta de nuevo.", variant: "destructive"});
+        }
+      };
+      script.onerror = () => {
+        toast({ title: "Error de Carga", description: "No se pudo cargar la pasarela de pago. Revisa tu conexión a internet e intenta de nuevo.", variant: "destructive"});
+      };
+      document.body.appendChild(script);
     }
-  }, []);
+  }, [isOpen, isScriptLoaded, toast]);
 
   const handleRecharge = async () => {
     if (selectedPackage === null) {
-      toast({
-        title: "Selección Requerida",
-        description: "Por favor, selecciona un paquete de créditos para continuar.",
-        variant: "destructive",
-      });
+      toast({ title: "Selección Requerida", description: "Por favor, selecciona un paquete de créditos para continuar.", variant: "destructive" });
       return;
     }
     
-    if (!process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY && !'key_L6wKGoQwrHZE1jWrnHomiCx') {
+    if (!isScriptLoaded || typeof (window as any).Conekta === 'undefined' || typeof (window as any).Conekta.Checkout === 'undefined') {
+        toast({ title: "Error", description: "La pasarela de pago aún no ha cargado. Por favor, espera un momento e intenta de nuevo.", variant: "destructive" });
+        return;
+    }
+
+    const CONEKTA_PUBLIC_KEY = process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY;
+    if (!CONEKTA_PUBLIC_KEY) {
         toast({ title: "Error de Configuración", description: "La pasarela de pago no está configurada.", variant: "destructive" });
         return;
     }
@@ -69,6 +91,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
         if (!token) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
         }
+
+        (window as any).Conekta.setPublicKey(CONEKTA_PUBLIC_KEY);
 
         const response = await fetch('/api/create-conekta-order', {
             method: 'POST',
@@ -231,11 +255,15 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               <Button
                 className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
                 onClick={handleRecharge}
-                disabled={isProcessing || selectedPackage === null}
+                disabled={isProcessing || selectedPackage === null || !isScriptLoaded}
               >
                 {isProcessing ? (
                   <>
                     <Loader2 className="animate-spin mr-2 h-4 w-4" /> Redirigiendo...
+                  </>
+                ) : !isScriptLoaded ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Cargando pasarela...
                   </>
                 ) : (
                   <>

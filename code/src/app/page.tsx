@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -80,7 +79,7 @@ export default function MarketingPage() {
   return (
     <PageContainer className="flex flex-col items-center text-center py-8 sm:py-12 animate-fadeIn" fullWidth={true}>
       <AppIcon
-        className="h-14 w-14 text-foreground mb-6 sm:mb-8"
+        className="h-14 w-14 mb-6 sm:mb-8"
         aria-label={`${APP_NAME} Icon`}
       />
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
