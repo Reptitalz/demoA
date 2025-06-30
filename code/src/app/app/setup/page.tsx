@@ -33,7 +33,7 @@ const SetupPage = () => {
 
   useEffect(() => {
     if (!state.isLoading && state.userProfile.isAuthenticated && state.isSetupComplete && !isReconfiguring) {
-      router.replace('/app/dashboard');
+      router.replace('/dashboard');
     }
   }, [state.isLoading, state.userProfile.isAuthenticated, state.isSetupComplete, isReconfiguring, router]);
 
@@ -257,7 +257,7 @@ const SetupPage = () => {
         title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
         description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
     });
-    router.push('/app/dashboard');
+    router.push('/dashboard');
   };
 
   const handleLoginOnly = async () => {
@@ -345,7 +345,7 @@ const SetupPage = () => {
             </Button>
             <Button
               size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-primary text-primary-foreground hover:opacity-90"
+              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
               onClick={handleStartSetup}
             >
               <UserPlus className="mr-3 h-5 w-5" />
@@ -373,7 +373,7 @@ const SetupPage = () => {
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex gap-1.5">
             {state.isSetupComplete && !isReconfiguring && (
-              <Button variant="outline" onClick={() => router.push('/app/dashboard')} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
+              <Button variant="outline" onClick={() => router.push('/dashboard')} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
                 <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
               </Button>
             )}
@@ -382,11 +382,11 @@ const SetupPage = () => {
             </Button>
           </div>
           {currentStep < effectiveMaxSteps ? (
-            <Button onClick={handleNext} className="bg-primary text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
+            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           ) : (
-             <Button onClick={handleCompleteSetup} className="bg-primary text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
+             <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
               {isReconfiguring ? 'Guardar Cambios' : 'Completar Configuración'}
               {!isReconfiguring && <FaArrowRight className="ml-1 h-3 w-3" />}

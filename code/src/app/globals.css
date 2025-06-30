@@ -9,67 +9,67 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme Variables - Professional Dark Gray/Green/Lime */
+    /* Light Theme Variables */
     --background: 0 0% 98%; /* Almost white */
-    --foreground: 222 84% 4%; /* Dark Slate/Near Black */
+    --foreground: 240 10% 3.9%; /* Dark gray */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 222 84% 4%;
+    --card-foreground: 240 10% 3.9%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 4%;
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 142 76% 36%; /* WhatsApp Green - A bit darker for better bg contrast: #12B358 */
-    --primary-foreground: 0 0% 100%; /* White text on Green */
+    --primary: 260 70% 60%; /* Vibrant Purple */
+    --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 0 0% 94%; /* Light Gray */
-    --secondary-foreground: 222 84% 4%;
+    --secondary-foreground: 240 5% 25%;
 
     --muted: 0 0% 90%; /* Lighter Gray */
     --muted-foreground: 240 5% 45%;
 
-    --accent: 75 100% 50%; /* Electric Lime: #CCFF00 */
-    --accent-foreground: 222 84% 4%; /* Dark text on Lime */
+    --accent: 30 100% 55%; /* Bright Orange */
+    --accent-foreground: 20 90% 5%; /* Dark brown/black for orange */
 
     --destructive: 0 84.2% 60.2%; /* Standard destructive red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 93.3%;
-    --ring: 75 100% 50%; /* Electric lime for focus rings */
+    --border: 0 0% 89.8%; /* Light border */
+    --input: 0 0% 93.3%; /* Light input background */
+    --ring: 260 70% 60%; /* New primary purple for focus rings */
 
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Dark Theme Variables - Professional Dark Gray/Green/Lime */
-    --background: 222 84% 4%; /* Dark Slate/Near Black */
-    --foreground: 210 40% 98%; /* Almost white */
+    /* Dark Theme Variables */
+    --background: 220 10% 10%; /* Dark Slate Blue/Near Black */
+    --foreground: 210 30% 95%; /* Very Light Gray/Almost White */
 
-    --card: 222 84% 6%; /* Slightly lighter than background */
-    --card-foreground: 210 40% 98%;
+    --card: 220 10% 15%;
+    --card-foreground: 210 30% 95%;
 
-    --popover: 222 84% 8%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 10% 12%;
+    --popover-foreground: 210 30% 95%;
 
-    --primary: 142 76% 40%; /* WhatsApp Green: #25D366 */
-    --primary-foreground: 0 0% 0%; /* Black text on Green */
+    --primary: 260 70% 60%; /* Vibrant Purple */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 217 33% 17%; /* Dark blue-gray */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 10% 25%; /* Darker Gray for secondary elements */
+    --secondary-foreground: 210 30% 85%;
 
-    --muted: 217 33% 12%;
-    --muted-foreground: 210 40% 60%;
+    --muted: 220 10% 20%;
+    --muted-foreground: 210 30% 60%;
 
-    --accent: 75 100% 50%; /* Electric Lime: #CCFF00 */
-    --accent-foreground: 75 100% 10%; /* Dark text on Lime */
+    --accent: 30 100% 55%; /* Bright Orange */
+    --accent-foreground: 20 90% 5%; /* Dark brown/black for orange */
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 70% 55%; /* Adjusted Red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 75 100% 50%; /* Electric lime for focus rings */
+    --border: 220 10% 30%;
+    --input: 220 10% 22%;
+    --ring: 260 70% 60%; /* New primary purple for focus rings */
   }
 }
 
@@ -113,10 +113,14 @@ body {
   }
 
   .text-brand-gradient {
-    @apply text-primary;
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
   }
 
   .bg-brand-gradient {
-    @apply bg-primary;
+    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   }
 }

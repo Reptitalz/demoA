@@ -93,7 +93,7 @@ const AssistantCard = ({
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      isAssistantActive && "bg-primary text-primary-foreground",
+      isAssistantActive && "bg-brand-gradient text-primary-foreground",
       isActivationPending && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
       {isActivationPending && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
@@ -133,7 +133,7 @@ const AssistantCard = ({
                           className={cn(
                           "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
                           "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
-                          "bg-primary"
+                          "bg-brand-gradient"
                           )}
                           aria-label="Iniciar chat de WhatsApp"
                           title="Iniciar chat de WhatsApp"
@@ -205,7 +205,7 @@ const AssistantCard = ({
                 onClick={handleShareOnWhatsApp}
                 className={cn(
                   "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                  "bg-primary"
+                  "bg-brand-gradient"
                 )}
               >
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
@@ -227,7 +227,7 @@ const AssistantCard = ({
                 onClick={() => setIsSetupDialogOpen(true)}
                 className={cn(
                   "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                  "bg-primary"
+                  "bg-brand-gradient"
                 )}
               >
                 <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />

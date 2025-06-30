@@ -11,10 +11,12 @@ const BottomNavigationBar = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/app/dashboard', label: 'Inicio', icon: Home },
+    { href: '/dashboard', label: 'Inicio', icon: Home },
   ];
 
-  if (pathname === '/app/setup' || !pathname.startsWith('/app/')) {
+  const isAppArea = pathname.startsWith('/app/') || pathname.startsWith('/dashboard');
+
+  if (pathname === '/app/setup' || !isAppArea) {
     return null;
   }
 

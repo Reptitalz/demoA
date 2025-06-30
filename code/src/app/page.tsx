@@ -84,13 +84,13 @@ export default function MarketingPage() {
         aria-label={`${APP_NAME} Icon`}
       />
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
-        Bienvenido a <span className="text-primary">{APP_NAME}</span>
+        Bienvenido a <span className="text-brand-gradient">{APP_NAME}</span>
       </h1>
       <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-xl lg:max-w-2xl mx-auto">
         La solución definitiva para gestionar tus asistentes de IA de forma inteligente y eficiente, automatizando la comunicación y optimizando tus procesos.
       </p>
       <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-12">
-        <Button asChild size="lg" className={cn("text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3 transition-transform transform hover:scale-105 bg-primary text-primary-foreground hover:opacity-90")}>
+        <Button asChild size="lg" className={cn("text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90")}>
           <Link href="/app">Acceder a la Aplicación</Link>
         </Button>
         <Button asChild variant="outline" size="lg" className="text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3 transition-transform transform hover:scale-105">

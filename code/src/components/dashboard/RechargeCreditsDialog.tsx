@@ -229,7 +229,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 
             <DialogFooter>
               <Button
-                className="w-full bg-primary text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+                className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
                 onClick={handleRecharge}
                 disabled={isProcessing || selectedPackage === null}
               >
