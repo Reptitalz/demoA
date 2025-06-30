@@ -80,7 +80,8 @@ const DashboardPageContent = () => {
       await signOut(auth);
       // AppProvider listener will handle state reset
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      router.push('/'); 
+      // Force a full page reload by navigating via window.location
+      window.location.href = '/';
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
