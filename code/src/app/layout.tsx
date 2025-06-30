@@ -1,7 +1,7 @@
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google'; // Using Inter for a more modern feel
-import './globals.css';
+import '@/app/globals.css';
 import { AppProvider } from '@/providers/AppProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
