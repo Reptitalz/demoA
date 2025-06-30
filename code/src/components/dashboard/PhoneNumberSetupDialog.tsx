@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -66,15 +65,22 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
       setIsVerifying(true);
       // Simulate API call to verify code
       setTimeout(() => {
-        const assistantToUpdate = state.userProfile.assistants.find(a => a.id === assistantId);
-        if (assistantToUpdate) {
-          const updatedAssistant: AssistantConfig = { 
-            ...assistantToUpdate, 
-            phoneLinked: phoneNumber, 
-            verificationCode: verificationCode,
-            numberReady: false // Set to false, an external process will set it to true
-          };
-          dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
+        const assistantExists = state.userProfile.assistants.some(a => a.id === assistantId);
+        if (assistantExists) {
+          const updatedAssistants = state.userProfile.assistants.map(asst => {
+            if (asst.id === assistantId) {
+                return {
+                    ...asst,
+                    phoneLinked: phoneNumber, 
+                    verificationCode: verificationCode,
+                    numberReady: false // Set to false, an external process will set it to true
+                };
+            }
+            return asst;
+          });
+
+          dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants } });
+          
           setIsVerifying(false);
           setStep(3);
           toast({
