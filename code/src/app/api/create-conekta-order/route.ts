@@ -92,11 +92,12 @@ export async function POST(request: NextRequest) {
     console.error('--- CONEKTA API ERROR ---');
     console.error('Error Type:', error.type); // Conekta-specific
     console.error('Error Message:', error.message);
-    console.error('Full Error Object:', JSON.stringify(error, null, 2));
+    // SAFELY log the error object without stringifying it, to avoid circular reference crashes.
+    console.error('Full Error Object:', error);
     
     // Create a user-friendly message
-    const errorMessage = error.details 
-      ? error.details.map((d: any) => d.message).join(', ') 
+    const errorMessage = error.details && Array.isArray(error.details)
+      ? error.details.map((d: any) => d.message || String(d)).join(', ') 
       : (error.message || 'Ocurrió un error inesperado al procesar el pago.');
       
     return NextResponse.json({ 
