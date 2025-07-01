@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import DatabaseConnectionsDialog from "./DatabaseConnectionsDialog";
 import { cn } from "@/lib/utils";
 
 interface DatabaseInfoCardProps {
@@ -15,7 +14,6 @@ interface DatabaseInfoCardProps {
 }
 
 const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardProps) => {
-  const [isConnectionsDialogOpen, setIsConnectionsDialogOpen] = useState(false);
 
   const getDatabaseIcon = (source: DatabaseSource) => {
     if (source === "google_sheets") return FaGoogle;
@@ -32,8 +30,6 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
 
   const getDisplayDetails = () => {
     if (database.source === 'google_sheets' && database.details) {
-        // Assuming details might store original Excel filename if it was converted
-        // Or simply the user-provided name for the GSheet if linked directly.
         return `Nombre descriptivo: ${database.details}`; 
     }
     if (database.source === 'smart_db' && database.details) {
@@ -90,30 +86,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
               </div>
            )}
         </CardContent>
-        <CardFooter className={cn("border-t pt-3 flex flex-col sm:flex-row gap-2 items-center", (database.source === 'google_sheets' && database.accessUrl) ? "justify-between" : "justify-center")}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsConnectionsDialogOpen(true)}
-            className="w-full sm:w-auto transition-transform transform hover:scale-105 text-xs"
-          >
-            <FaLink size={14} className="mr-1.5" />
-            Asistentes Vinculados
-          </Button>
-          {database.source === 'google_sheets' && database.accessUrl && (
-            <Button asChild size="sm" className="w-full sm:w-auto transition-transform transform hover:scale-105 text-xs bg-brand-gradient text-primary-foreground hover:opacity-90">
-              <a href={database.accessUrl} target="_blank" rel="noopener noreferrer">
-                <FaExternalLinkAlt size={14} className="mr-1.5" />
-                Abrir Enlace
-              </a>
-            </Button>
-          )}
-        </CardFooter>
       </Card>
-      <DatabaseConnectionsDialog
-        isOpen={isConnectionsDialogOpen}
-        onOpenChange={setIsConnectionsDialogOpen}
-      />
     </>
   );
 };

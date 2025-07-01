@@ -190,7 +190,7 @@ const Step2DatabaseConfig = () => {
             )}
             {selectedDbConfig.description && (
               <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
-                 {selectedDbConfig.id === 'google_sheets' ? <FaGoogle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" /> : <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />}
+                 {selectedDbConfig.id === 'google_sheets' ? <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" /> : <FaBrain className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />}
                 {selectedDbConfig.description}
               </p>
             )}
@@ -202,4 +202,3 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
-

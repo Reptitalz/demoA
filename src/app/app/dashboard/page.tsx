@@ -1,19 +1,2 @@
-
-import { Suspense } from 'react';
-import PageContainer from '@/components/layout/PageContainer';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import DashboardPageContent from '@/app/dashboard/page'; // This now acts as the client component
-
-const DashboardPage = () => {
-  return (
-    <Suspense fallback={
-      <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
-        <LoadingSpinner size={36} />
-      </PageContainer>
-    }>
-      <DashboardPageContent />
-    </Suspense>
-  );
-};
-
-export default DashboardPage;
+// This file is deprecated and can be safely deleted.
+// The correct dashboard is at /src/app/dashboard/page.tsx

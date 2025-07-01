@@ -8,13 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
-import { FaPhone, FaWhatsapp } from "react-icons/fa";
-import { useToast } from "@/hooks/use-toast";
+import { FaWhatsapp } from "react-icons/fa";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
-  const { toast } = useToast();
-  const { assistantName, selectedPurposes, selectedPlan, isReconfiguring, ownerPhoneNumberForNotifications } = state.wizard;
+  const { assistantName, selectedPurposes, ownerPhoneNumberForNotifications } = state.wizard;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
