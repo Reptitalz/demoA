@@ -12,15 +12,11 @@ if (!GOOGLE_API_KEY_ENV && process.env.NODE_ENV !== 'test') {
   console.error('**********************************************************************************');
   console.error(errorMessage);
   console.error('**********************************************************************************');
-
-  // For production or CI builds, it's better to fail loudly.
-  // For local development, throwing here might be too disruptive if AI isn't the current focus.
-  // However, any attempt to use `ai.generate()` would fail later anyway.
-  // Let's throw to make the problem immediately obvious.
-  throw new Error(errorMessage);
+  // NOTE: Intentionally not throwing an error here to prevent the entire server from crashing on startup.
+  // Genkit will fail with a more specific error when an AI function is actually called.
 }
 
 export const ai = genkit({
-  plugins: [googleAI({ apiKey: GOOGLE_API_KEY_ENV })], // Pass the key explicitly
+  plugins: [googleAI({ apiKey: GOOGLE_API_KEY_ENV })], // Pass the key explicitly, even if undefined
   model: 'googleai/gemini-2.0-flash',
 });

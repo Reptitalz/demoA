@@ -4,10 +4,6 @@ import { MongoClient, type Db, type MongoClientOptions } from 'mongodb';
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'heyManitoApp'; // Default DB name if not set
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
-
 interface CustomMongoClientOptions extends MongoClientOptions {
   useNewUrlParser?: boolean;
   useUnifiedTopology?: boolean;
@@ -17,6 +13,12 @@ let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
 export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
+  // Moved the check inside the function to prevent server startup crash.
+  if (!MONGODB_URI) {
+    console.error("CRITICAL: MONGODB_URI environment variable is not set. Database connection will fail.");
+    throw new Error('Database connection string is not configured on the server.');
+  }
+
   if (cachedClient && cachedDb) {
     // Check if the client is still connected
     try {
