@@ -119,4 +119,3 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
 };
 
 export default DatabaseInfoCard;
-

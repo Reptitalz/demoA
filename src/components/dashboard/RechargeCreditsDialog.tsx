@@ -174,7 +174,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                     <p className="text-2xl font-bold">{currentCredits}</p>
                     <span className="text-xs text-muted-foreground mt-2">Créditos</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <MessagesSquare className="h-5 w-5 text-accent" />
                     <p className="text-2xl font-bold">{(currentCredits * MESSAGES_PER_CREDIT).toLocaleString()}</p>
                     <span className="text-xs text-muted-foreground mt-2">Mensajes</span>
