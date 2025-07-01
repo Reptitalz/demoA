@@ -34,6 +34,8 @@ interface SpeiDetails {
     beneficiary: string;
 }
 
+const IVA_RATE = 1.16; // 16% IVA
+
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
   const { state } = useApp();
   const { toast } = useToast();
@@ -104,6 +106,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   };
   
   const selectedPackageDetails = selectedPackage !== null ? CREDIT_PACKAGES.find(p => p.credits === selectedPackage) : null;
+  const finalPriceWithIva = selectedPackageDetails ? (selectedPackageDetails.price * IVA_RATE).toFixed(2) : '0.00';
 
   const renderContent = () => {
     switch (step) {
@@ -189,7 +192,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                     onValueChange={(value) => setSelectedPackage(Number(value))}
                     className="mt-2 grid grid-cols-2 gap-3"
                 >
-                    {CREDIT_PACKAGES.map((pkg) => (
+                    {CREDIT_PACKAGES.map((pkg) => {
+                      const priceWithIva = (pkg.price * IVA_RATE).toFixed(2);
+                      return (
                         <Label
                             key={pkg.credits}
                             htmlFor={`pkg-${pkg.credits}`}
@@ -199,9 +204,11 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         >
                             <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
                             <p className="font-bold text-lg">{pkg.credits} Créditos</p>
-                            <p className="text-sm text-muted-foreground">${pkg.price} MXN</p>
+                            <p className="text-sm text-muted-foreground">${priceWithIva} MXN</p>
+                            <p className="text-xs text-muted-foreground/80">(IVA incluido)</p>
                         </Label>
-                    ))}
+                      )
+                    })}
                 </RadioGroup>
               </div>
             </div>
@@ -219,7 +226,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pagar ${selectedPackageDetails ? selectedPackageDetails.price : '0'} MXN con SPEI
+                    Pagar ${finalPriceWithIva} MXN con SPEI
                   </>
                 )}
               </Button>
