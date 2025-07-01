@@ -6,15 +6,17 @@ import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 
 export async function POST(request: NextRequest) {
-  // TODO: For production, move this key to an environment variable for security.
-  const CONEKTA_PRIVATE_KEY = 'key_rW4WNzhBSWpDK01TKZZJjxZ';
+  // Lee las claves desde las variables de entorno.
+  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
   const CONEKTA_WEBHOOK_SIGNING_SECRET = process.env.CONEKTA_WEBHOOK_SIGNING_SECRET;
 
+  // Verifica si la clave privada está configurada en el servidor.
   if (!CONEKTA_PRIVATE_KEY) {
     console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set. Webhook processing will fail.");
-    return NextResponse.json({ error: 'Payment processing not configured on server.' }, { status: 500 });
+    return NextResponse.json({ error: 'La pasarela de pago no está configurada en el servidor.' }, { status: 500 });
   }
 
+  // Configura la instancia de Conekta para esta solicitud.
   Conekta.api_key = CONEKTA_PRIVATE_KEY;
   Conekta.locale = 'es';
   
@@ -27,11 +29,11 @@ export async function POST(request: NextRequest) {
   let event;
 
   try {
-    // TODO: For production, enable signature verification by uncommenting the logic below
-    // and ensuring CONEKTA_WEBHOOK_SIGNING_SECRET is set.
+    // TODO: Para producción, habilita la verificación de la firma descomentando la lógica
+    // y asegurándote de que CONEKTA_WEBHOOK_SIGNING_SECRET esté configurado.
     // if (CONEKTA_WEBHOOK_SIGNING_SECRET && signature) {
-    //   // This part is commented out because we don't have the user's secret.
-    //   // In a real scenario, this verification is critical.
+    //   // Esta parte está comentada porque no tenemos el secreto del usuario.
+    //   // En un escenario real, esta verificación es crítica.
     //   // event = Conekta.Webhook.find(rawBody, signature, CONEKTA_WEBHOOK_SIGNING_SECRET);
     //   event = JSON.parse(rawBody);
     // } else {
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Webhook error: ${error.message}` }, { status: 400 });
   }
 
-  // Handle the order.paid event, which is triggered when SPEI payment is confirmed
+  // Maneja el evento order.paid, que se dispara cuando el pago por SPEI se confirma.
   if (event.type === 'order.paid') {
     const order = event.data.object;
 
@@ -51,8 +53,8 @@ export async function POST(request: NextRequest) {
 
     if (!firebaseUid || !creditsToAdd) {
       console.error('Webhook received for order.paid but metadata (firebaseUid or credits) is missing.', { orderId: order.id });
-      // Return 200 to acknowledge receipt and prevent Conekta from retrying.
-      // We can't process it, but it's not Conekta's fault.
+      // Devuelve 200 para acusar recibo y evitar que Conekta reintente.
+      // No podemos procesarlo, pero no es culpa de Conekta.
       return NextResponse.json({ received: true, message: 'Metadata missing, cannot process.' });
     }
 
@@ -68,20 +70,20 @@ export async function POST(request: NextRequest) {
 
       if (result) {
         console.log(`Successfully added ${creditsToAdd} credits to user ${firebaseUid}. New balance: ${result.credits}`);
-        // Here you could trigger another service, like sending a confirmation email/notification to the user.
+        // Aquí podrías disparar otro servicio, como enviar un email de confirmación al usuario.
       } else {
         console.error(`User with firebaseUid ${firebaseUid} not found. Could not add credits for order ${order.id}.`);
       }
 
     } catch (dbError) {
       console.error('Database error while processing webhook:', dbError);
-      // Return a 500 to signal to Conekta that something went wrong on our end and it should retry.
+      // Devuelve 500 para indicarle a Conekta que algo salió mal de nuestro lado y que debe reintentar.
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
   } else {
     console.log(`Received unhandled Conekta event type: ${event.type}`);
   }
 
-  // Acknowledge receipt of the event to Conekta
+  // Acusa recibo del evento a Conekta.
   return NextResponse.json({ received: true });
 }
