@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -34,37 +35,25 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<DialogStep>('selection');
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [isConektaReady, setIsConektaReady] = useState(false);
 
-  // Dynamically load Conekta script when the dialog is opened
+  // Check for Conekta when the dialog opens
   useEffect(() => {
-    if (isOpen && !isScriptLoaded) {
-      const scriptId = 'conekta-js';
-      if (document.getElementById(scriptId)) {
-        if(typeof (window as any).Conekta !== 'undefined' && typeof (window as any).Conekta.Checkout !== 'undefined') {
-          setIsScriptLoaded(true);
-        }
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://cdn.conekta.io/checkout/latest/conekta.js';
-      script.async = true;
-      script.onload = () => {
-        // Double-check if the object is available on load
-        if(typeof (window as any).Conekta !== 'undefined') {
-          setIsScriptLoaded(true);
-          console.log("Conekta script loaded successfully.");
+    // The Conekta script is now loaded globally via layout.tsx
+    if (isOpen) {
+      // Use a small timeout to ensure the script has had time to attach to the window object.
+      const timer = setTimeout(() => {
+        if (typeof (window as any).Conekta !== 'undefined' && typeof (window as any).Conekta.Checkout !== 'undefined') {
+          setIsConektaReady(true);
         } else {
-           toast({ title: "Error de Carga", description: "La pasarela de pago no se cargó correctamente. Por favor, intenta de nuevo.", variant: "destructive"});
+          setIsConektaReady(false);
+          console.error("Conekta script not found. The payment gateway will be disabled.");
         }
-      };
-      script.onerror = () => {
-        toast({ title: "Error de Carga", description: "No se pudo cargar la pasarela de pago. Revisa tu conexión a internet e intenta de nuevo.", variant: "destructive"});
-      };
-      document.body.appendChild(script);
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [isOpen, isScriptLoaded, toast]);
+  }, [isOpen]);
 
   const handleRecharge = async () => {
     if (selectedPackage === null) {
@@ -72,8 +61,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       return;
     }
     
-    if (!isScriptLoaded || typeof (window as any).Conekta === 'undefined' || typeof (window as any).Conekta.Checkout === 'undefined') {
-        toast({ title: "Error", description: "La pasarela de pago aún no ha cargado. Por favor, espera un momento e intenta de nuevo.", variant: "destructive" });
+    if (!isConektaReady) {
+        toast({ title: "Error", description: "La pasarela de pago no está lista. Revisa tu conexión a internet y vuelve a abrir el diálogo.", variant: "destructive" });
         return;
     }
 
@@ -255,13 +244,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               <Button
                 className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
                 onClick={handleRecharge}
-                disabled={isProcessing || selectedPackage === null || !isScriptLoaded}
+                disabled={isProcessing || selectedPackage === null || !isConektaReady}
               >
                 {isProcessing ? (
                   <>
                     <Loader2 className="animate-spin mr-2 h-4 w-4" /> Redirigiendo...
                   </>
-                ) : !isScriptLoaded ? (
+                ) : !isConektaReady ? (
                   <>
                     <Loader2 className="animate-spin mr-2 h-4 w-4" /> Cargando pasarela...
                   </>
