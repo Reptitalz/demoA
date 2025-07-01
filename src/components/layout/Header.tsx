@@ -1,10 +1,11 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -24,7 +25,15 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           />
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <Button asChild size="sm" className="hidden sm:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
+             <Link href="/app">
+              <Download className="mr-1.5 h-4 w-4" />
+              Obtener App
+            </Link>
+          </Button>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
