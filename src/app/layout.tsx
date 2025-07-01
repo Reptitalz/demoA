@@ -119,6 +119,10 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        {/* PWA & Themeing */}
+        <meta name="theme-color" content="#8a4fff" />
+        <link rel="manifest" href="/manifest.json" />
+
         {/* El link del favicon ya está aquí, los metadatos manejan los demás */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <Script src="https://cdn.conekta.io/checkout/latest/conekta.js" strategy="beforeInteractive" />
