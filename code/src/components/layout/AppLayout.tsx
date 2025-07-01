@@ -1,7 +1,7 @@
 "use client"; 
 import type { ReactNode } from 'react';
 import Header from './Header';
-import Footer from './Footer';
+import Footer from '@/app/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation'; 
 import { cn } from '@/lib/utils';
