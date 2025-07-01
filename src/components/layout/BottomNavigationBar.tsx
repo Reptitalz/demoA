@@ -1,14 +1,40 @@
-
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home } from 'lucide-react';
+import { Home, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { useToast } from "@/hooks/use-toast";
+
 
 const BottomNavigationBar = () => {
   const pathname = usePathname();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        toast({ title: "¡Aplicación Instalada!", description: "Gracias por instalar la aplicación." });
+      }
+      setDeferredPrompt(null);
+    }
+  };
 
   const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
@@ -19,6 +45,8 @@ const BottomNavigationBar = () => {
   if (pathname === '/app/setup' || !isAppArea) {
     return null;
   }
+
+  const showInstallButton = !!deferredPrompt;
 
   return (
     <>
@@ -43,6 +71,32 @@ const BottomNavigationBar = () => {
               </Button>
             );
           })}
+
+          {showInstallButton ? (
+             <Button
+                variant="ghost"
+                onClick={handleInstallClick}
+                className={cn(
+                  "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-primary font-semibold" 
+                )}
+              >
+                <Download className="h-5 w-5 mb-0.5 text-primary" />
+                Instalar
+              </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              asChild
+              className={cn(
+                "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-muted-foreground"
+              )}
+            >
+              <Link href="/app" className="flex flex-col items-center">
+                <Download className="h-5 w-5 mb-0.5" />
+                Obtener App
+              </Link>
+            </Button>
+          )}
         </div>
       </nav>
     </>

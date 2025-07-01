@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -69,14 +68,14 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           {showInstallButton ? (
             <Button 
               size="sm" 
-              className="hidden sm:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+              className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
               onClick={handleInstallClick}
             >
               <Download className="mr-1.5 h-4 w-4" />
               Instalar App
             </Button>
           ) : (
-             <Button asChild size="sm" className="hidden sm:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
+             <Button asChild size="sm" className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
                <Link href="/app">
                 <Download className="mr-1.5 h-4 w-4" />
                 Obtener App
