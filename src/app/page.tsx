@@ -18,13 +18,11 @@ const PayAsYouGoCalculator = () => {
   const MESSAGES_PER_CREDIT = 1000;
   const PRICE_PER_CREDIT_MXN = 50;
   const MAX_MESSAGES = 50000;
-  const IVA_RATE = 1.16;
 
   const [messages, setMessages] = useState(10000);
 
   const credits = Math.ceil(messages / MESSAGES_PER_CREDIT);
   const price = credits * PRICE_PER_CREDIT_MXN;
-  const priceWithIva = price * IVA_RATE;
 
   const handleSliderChange = (value: number[]) => {
     setMessages(value[0]);
@@ -68,9 +66,9 @@ const PayAsYouGoCalculator = () => {
             <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Costo Estimado (MXN)</p>
                  <p className="text-2xl font-bold flex items-center justify-center gap-2">
-                    <CircleDollarSign className="text-green-500"/> ${priceWithIva.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    <CircleDollarSign className="text-green-500"/> ${price.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">(${(PRICE_PER_CREDIT_MXN * IVA_RATE).toFixed(2)} MXN por crédito, IVA incl.)</p>
+                <p className="text-xs text-muted-foreground mt-1">($50 MXN por crédito)</p>
             </div>
         </div>
       </CardContent>

@@ -37,11 +37,12 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "google", name: "Continuar con Google", icon: FaGoogle },
 ];
 
+// Prices updated to be a flat rate of 50 MXN per credit, removing previous discounts.
 export const CREDIT_PACKAGES = [
   { credits: 1, price: 50, name: "Básico" },
-  { credits: 5, price: 240, name: "Estándar" },
-  { credits: 10, price: 450, name: "Pro" },
-  { credits: 25, price: 1000, name: "Premium" },
+  { credits: 5, price: 250, name: "Estándar" },
+  { credits: 10, price: 500, name: "Pro" },
+  { credits: 25, price: 1250, name: "Premium" },
 ];
 
 export const MESSAGES_PER_CREDIT = 1000;
