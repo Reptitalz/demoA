@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { CreditCard, MessagesSquare, Coins, Wallet, CheckCircle, Loader2 } from 'lucide-react';
+import { CreditCard, MessagesSquare, Coins, Wallet, Loader2, Copy, CheckCircle } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { auth } from '@/lib/firebase';
 
@@ -25,35 +25,25 @@ interface RechargeCreditsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type DialogStep = 'selection' | 'payment' | 'success';
+type DialogStep = 'selection' | 'display_clabe';
+
+interface SpeiDetails {
+    clabe: string;
+    bank: string;
+    amount: number;
+    beneficiary: string;
+}
 
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const { toast } = useToast();
   const currentCredits = state.userProfile.credits || 0;
   
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<DialogStep>('selection');
-  const [isConektaReady, setIsConektaReady] = useState(false);
-
-  // Check for Conekta when the dialog opens
-  useEffect(() => {
-    // The Conekta script is now loaded globally via layout.tsx
-    if (isOpen) {
-      // Use a small timeout to ensure the script has had time to attach to the window object.
-      const timer = setTimeout(() => {
-        if (typeof (window as any).Conekta !== 'undefined' && typeof (window as any).Conekta.Checkout !== 'undefined') {
-          setIsConektaReady(true);
-        } else {
-          setIsConektaReady(false);
-          console.error("Conekta script not found. The payment gateway will be disabled.");
-        }
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
+  const [speiDetails, setSpeiDetails] = useState<SpeiDetails | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleRecharge = async () => {
     if (selectedPackage === null) {
@@ -61,27 +51,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       return;
     }
     
-    if (!isConektaReady) {
-        toast({ title: "Error", description: "La pasarela de pago no está lista. Revisa tu conexión a internet y vuelve a abrir el diálogo.", variant: "destructive" });
-        return;
-    }
-
-    const CONEKTA_PUBLIC_KEY = process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY;
-    if (!CONEKTA_PUBLIC_KEY) {
-        toast({ title: "Error de Configuración", description: "La pasarela de pago no está configurada.", variant: "destructive" });
-        return;
-    }
-    
     setIsProcessing(true);
-    setStep('payment');
 
     try {
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
         }
-
-        (window as any).Conekta.setPublicKey(CONEKTA_PUBLIC_KEY);
 
         const response = await fetch('/api/create-conekta-order', {
             method: 'POST',
@@ -97,43 +73,23 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
         if (!response.ok) {
             throw new Error(data.error || 'No se pudo crear la orden de pago.');
         }
+        
+        setSpeiDetails(data.speiInfo);
+        setStep('display_clabe');
 
-        const checkout = new (window as any).Conekta.Checkout({
-            target: '#conekta-checkout-container',
-            checkout_order_id: data.checkout.id,
-            onFinalize: (details: any) => {
-                if (details.charge && details.charge.status === 'paid') {
-                    const packageDetails = CREDIT_PACKAGES.find(p => p.credits === selectedPackage);
-                    if (packageDetails) {
-                        const newTotalCredits = currentCredits + packageDetails.credits;
-                        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { credits: newTotalCredits } });
-                        setStep('success');
-                    }
-                } else {
-                    toast({
-                        title: "Pago no completado",
-                        description: `El estado del pago es: ${details.charge?.status || 'desconocido'}. Intenta de nuevo.`,
-                        variant: "destructive",
-                    });
-                    handleClose();
-                }
-            },
-            onError: (error: any) => {
-                toast({
-                    title: "Error en el Pago",
-                    description: error.message_to_purchaser || "Ocurrió un error. Por favor, intenta de nuevo.",
-                    variant: "destructive",
-                });
-                handleClose();
-            }
-        });
-        
-        checkout.render();
-        
     } catch (error: any) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
-        handleClose();
+    } finally {
+      setIsProcessing(false);
     }
+  };
+
+  const copyToClipboard = () => {
+    if (!speiDetails?.clabe) return;
+    navigator.clipboard.writeText(speiDetails.clabe);
+    setIsCopied(true);
+    toast({ title: 'Copiado', description: 'El número de CLABE se ha copiado al portapapeles.' });
+    setTimeout(() => setIsCopied(false), 2000); // Reset icon after 2 seconds
   };
   
   const handleClose = () => {
@@ -142,6 +98,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
         setStep('selection');
         setSelectedPackage(null);
         setIsProcessing(false);
+        setSpeiDetails(null);
+        setIsCopied(false);
     }, 300);
   };
   
@@ -149,41 +107,49 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 
   const renderContent = () => {
     switch (step) {
-      case 'payment':
+      case 'display_clabe':
         return (
           <>
             <DialogHeader>
-              <DialogTitle>Finaliza tu Compra</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                Completa tu pago por SPEI
+              </DialogTitle>
               <DialogDescription>
-                Serás redirigido a Conekta para completar tu pago de forma segura.
+                Realiza la transferencia desde tu app bancaria para completar la compra. Tus créditos se añadirán automáticamente al confirmar el pago.
               </DialogDescription>
             </DialogHeader>
-            <div id="conekta-checkout-container" className="min-h-[250px] flex items-center justify-center">
-              <Loader2 className="animate-spin h-8 w-8 text-primary" />
+            <div className="py-4 space-y-3">
+                <div className="space-y-1 p-3 bg-muted/50 rounded-md">
+                    <Label className="text-xs text-muted-foreground">Beneficiario</Label>
+                    <p className="font-semibold text-lg">{speiDetails?.beneficiary}</p>
+                </div>
+                <div className="space-y-1 p-3 bg-muted/50 rounded-md">
+                    <Label className="text-xs text-muted-foreground">CLABE</Label>
+                    <div className="flex items-center justify-between">
+                        <p className="font-mono text-lg">{speiDetails?.clabe}</p>
+                        <Button variant="ghost" size="icon" onClick={copyToClipboard} aria-label="Copiar CLABE">
+                            {isCopied ? <CheckCircle className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
+                        </Button>
+                    </div>
+                </div>
+                 <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1 p-3 bg-muted/50 rounded-md">
+                        <Label className="text-xs text-muted-foreground">Monto a pagar (MXN)</Label>
+                        <p className="font-semibold text-lg">${speiDetails?.amount.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1 p-3 bg-muted/50 rounded-md">
+                        <Label className="text-xs text-muted-foreground">Banco Destino</Label>
+                        <p className="font-semibold text-lg">{speiDetails?.bank}</p>
+                    </div>
+                </div>
+                <p className="text-center text-xs text-muted-foreground pt-2">Esta referencia de pago expirará en 24 horas.</p>
             </div>
             <DialogFooter>
-              <Button variant="ghost" onClick={handleClose}>Cancelar</Button>
+              <Button onClick={handleClose} className="w-full">
+                Finalizar
+              </Button>
             </DialogFooter>
           </>
-        );
-
-      case 'success':
-        return (
-            <div className="py-8 flex flex-col items-center justify-center text-center animate-fadeIn">
-                <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-                <DialogTitle className="text-xl">¡Recarga Exitosa!</DialogTitle>
-                <DialogDescription className="mt-2">
-                    Se han añadido {selectedPackage} créditos a tu cuenta.
-                </DialogDescription>
-                <p className="mt-4 text-2xl font-bold text-foreground">
-                    Saldo total: {currentCredits + (selectedPackage || 0)} créditos
-                </p>
-                 <DialogFooter className="mt-6 w-full">
-                    <Button onClick={handleClose} className="w-full">
-                        Cerrar
-                    </Button>
-                </DialogFooter>
-            </div>
         );
 
       case 'selection':
@@ -244,20 +210,16 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               <Button
                 className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
                 onClick={handleRecharge}
-                disabled={isProcessing || selectedPackage === null || !isConektaReady}
+                disabled={isProcessing || selectedPackage === null}
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Redirigiendo...
-                  </>
-                ) : !isConektaReady ? (
-                  <>
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Cargando pasarela...
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" /> Generando...
                   </>
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pagar ${selectedPackageDetails ? selectedPackageDetails.price : '0'} MXN
+                    Pagar ${selectedPackageDetails ? selectedPackageDetails.price : '0'} MXN con SPEI
                   </>
                 )}
               </Button>
