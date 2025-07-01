@@ -4,19 +4,16 @@ import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import Conekta from 'conekta';
 import { CREDIT_PACKAGES } from '@/config/appConfig';
 
-const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
-
-if (!CONEKTA_PRIVATE_KEY) {
-  console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set. Payment processing will fail.");
-} else {
-  Conekta.api_key = CONEKTA_PRIVATE_KEY;
-  Conekta.locale = 'es';
-}
-
 export async function POST(request: NextRequest) {
+  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
+
   if (!CONEKTA_PRIVATE_KEY) {
+    console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set. Payment processing will fail.");
     return NextResponse.json({ error: 'La pasarela de pago no está configurada en el servidor.' }, { status: 500 });
   }
+
+  Conekta.api_key = CONEKTA_PRIVATE_KEY;
+  Conekta.locale = 'es';
 
   try {
     const decodedToken = await verifyFirebaseToken(request);

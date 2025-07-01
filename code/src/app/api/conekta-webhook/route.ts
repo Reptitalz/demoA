@@ -5,20 +5,18 @@ import Conekta from 'conekta';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 
-// It's crucial to set these in your environment variables
-const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
-const CONEKTA_WEBHOOK_SIGNING_SECRET = process.env.CONEKTA_WEBHOOK_SIGNING_SECRET;
-
-if (CONEKTA_PRIVATE_KEY) {
-  Conekta.api_key = CONEKTA_PRIVATE_KEY;
-  Conekta.locale = 'es';
-}
-
 export async function POST(request: NextRequest) {
+  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
+  const CONEKTA_WEBHOOK_SIGNING_SECRET = process.env.CONEKTA_WEBHOOK_SIGNING_SECRET;
+
   if (!CONEKTA_PRIVATE_KEY) {
     console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set. Webhook processing will fail.");
     return NextResponse.json({ error: 'Payment processing not configured on server.' }, { status: 500 });
   }
+
+  Conekta.api_key = CONEKTA_PRIVATE_KEY;
+  Conekta.locale = 'es';
+  
   if (!CONEKTA_WEBHOOK_SIGNING_SECRET) {
     console.warn("WARNING: CONEKTA_WEBHOOK_SIGNING_SECRET is not set. Webhook verification is disabled, THIS IS A SECURITY RISK.");
   }
