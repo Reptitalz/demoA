@@ -6,7 +6,8 @@ import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 
 export async function POST(request: NextRequest) {
-  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
+  // TODO: For production, move this key to an environment variable for security.
+  const CONEKTA_PRIVATE_KEY = 'key_rW4WNzhBSWpDK01TKZZJjxZ';
   const CONEKTA_WEBHOOK_SIGNING_SECRET = process.env.CONEKTA_WEBHOOK_SIGNING_SECRET;
 
   if (!CONEKTA_PRIVATE_KEY) {

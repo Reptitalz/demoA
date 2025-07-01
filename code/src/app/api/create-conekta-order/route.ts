@@ -5,7 +5,8 @@ import Conekta from 'conekta';
 import { CREDIT_PACKAGES } from '@/config/appConfig';
 
 export async function POST(request: NextRequest) {
-  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
+  // TODO: For production, move this key to an environment variable for security.
+  const CONEKTA_PRIVATE_KEY = 'key_rW4WNzhBSWpDK01TKZZJjxZ';
 
   if (!CONEKTA_PRIVATE_KEY) {
     console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set. Payment processing will fail.");
