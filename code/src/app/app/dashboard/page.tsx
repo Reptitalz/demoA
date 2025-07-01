@@ -1,5 +1,1 @@
-// This file is deprecated and can be safely deleted.
-// The correct dashboard is at /src/app/dashboard/page.tsx
-export default function DeprecatedDashboardPage() {
-  return null;
-}
+// This file is obsolete. The correct route is /src/app/dashboard/page.tsx. This file and the 'code' directory can be safely deleted.
