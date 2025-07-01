@@ -1,26 +1,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import Conekta from 'conekta';
+// Conekta import is removed as it's not used in the current implementation.
+// To re-enable signature verification, you would need to use Conekta v5 SDK.
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 
 export async function POST(request: NextRequest) {
   console.log("API ROUTE: /api/conekta-webhook reached.");
 
-  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
   const CONEKTA_WEBHOOK_SIGNING_SECRET = process.env.CONEKTA_WEBHOOK_SIGNING_SECRET;
 
-  if (!CONEKTA_PRIVATE_KEY) {
-    console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set. Webhook processing will fail.");
-    return NextResponse.json({ error: 'La pasarela de pago no está configurada en el servidor.' }, { status: 500 });
-  }
-  console.log("CONEKTA_PRIVATE_KEY found for webhook processing.");
-
-  // Configure Conekta instance for THIS request
-  Conekta.api_key = CONEKTA_PRIVATE_KEY;
-  Conekta.locale = 'es';
-  
   if (!CONEKTA_WEBHOOK_SIGNING_SECRET) {
     console.warn("WARNING: CONEKTA_WEBHOOK_SIGNING_SECRET is not set. Webhook signature verification is disabled. THIS IS A SECURITY RISK.");
   }
@@ -31,16 +21,13 @@ export async function POST(request: NextRequest) {
 
   try {
     // IMPORTANT: In a real production environment, signature verification is critical for security.
-    // The user should be advised to set CONEKTA_WEBHOOK_SIGNING_SECRET.
-    // For now, we'll parse the body directly as signature verification is commented out.
-    // if (CONEKTA_WEBHOOK_SIGNING_SECRET && signature) {
-    //   event = Conekta.Webhook.find(rawBody, signature, CONEKTA_WEBHOOK_SIGNING_SECRET);
-    // } else {
-      event = JSON.parse(rawBody);
-    // }
+    // The commented out code below is for Conekta v4. To implement verification,
+    // you would need to use the Conekta v5 SDK with its own verification logic.
+    // For now, we'll parse the body directly as signature verification is disabled.
+    event = JSON.parse(rawBody);
     console.log("Conekta event received and parsed. Type:", event.type);
   } catch (error: any) {
-    console.error('Webhook Error: Could not parse or verify event.', error);
+    console.error('Webhook Error: Could not parse event body.', error);
     return NextResponse.json({ error: `Webhook error: ${error.message}` }, { status: 400 });
   }
 
