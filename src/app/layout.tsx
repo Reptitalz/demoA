@@ -1,11 +1,12 @@
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google'; // Using Inter for a more modern feel
-import './globals.css';
+import '@/app/globals.css';
 import { AppProvider } from '@/providers/AppProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
+import Script from 'next/script';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -108,15 +109,6 @@ export const metadata: Metadata = {
       'max-snippet': -1, // Sin límite para fragmentos
     },
   },
-
-  // Verificación del sitio (descomenta y añade tus códigos si los tienes)
-  // verification: {
-  //   google: 'TU_CODIGO_DE_GOOGLE_SEARCH_CONSOLE',
-  //   // yandex: 'TU_CODIGO_DE_YANDEX',
-  // },
-
-  // Manifest (si planeas hacerla una PWA más adelante)
-  // manifest: '/manifest.json', // DEBES CREAR ESTE ARCHIVO: public/manifest.json
 };
 
 export default function RootLayout({
@@ -129,6 +121,7 @@ export default function RootLayout({
       <head>
         {/* El link del favicon ya está aquí, los metadatos manejan los demás */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <Script src="https://cdn.conekta.io/checkout/latest/conekta.js" strategy="beforeInteractive" />
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider

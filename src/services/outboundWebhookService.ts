@@ -12,15 +12,11 @@ interface AssistantWebhookPayload {
   userProfile: {
     firebaseUid?: string;
     email?: string;
-    currentPlan: UserProfile['currentPlan'];
-    stripeCustomerId?: string;
-    virtualPhoneNumber?: string; // Número de Vonage principal de la cuenta
     ownerPhoneNumberForNotifications?: string;
   };
   assistant: {
     id: string;
     name: string;
-    phoneLinked?: string; // Número vinculado directamente al asistente
     purposes: string[]; // Convertido a array
     imageUrl?: string; // Image URL for the assistant
     database?: {
@@ -30,9 +26,6 @@ interface AssistantWebhookPayload {
       details?: string;
     } | null;
   };
-  // NO SE INCLUYEN VONAGE_API_KEY y VONAGE_API_SECRET por seguridad.
-  // La aplicación receptora debe usar sus propias credenciales de Vonage
-  // para interactuar con la API de Vonage si es necesario, usando el phoneLinked.
 }
 
 const USER_ASSISTANT_WEBHOOK_URL = process.env.USER_ASSISTANT_WEBHOOK_URL;
@@ -53,15 +46,11 @@ export async function sendAssistantCreatedWebhook(
     userProfile: {
       firebaseUid: userProfile.firebaseUid,
       email: userProfile.email,
-      currentPlan: userProfile.currentPlan,
-      stripeCustomerId: userProfile.stripeCustomerId,
-      virtualPhoneNumber: userProfile.virtualPhoneNumber,
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
     },
     assistant: {
       id: assistant.id,
       name: assistant.name,
-      phoneLinked: assistant.phoneLinked,
       purposes: Array.from(assistant.purposes || new Set()), // Asegurar que purposes sea un array
       imageUrl: assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL, // Include imageUrl
       database: assistantDatabase
@@ -69,7 +58,7 @@ export async function sendAssistantCreatedWebhook(
             id: assistantDatabase.id,
             name: assistantDatabase.name,
             source: assistantDatabase.source,
-            details: typeof assistantDatabase.details === 'string' ? assistantDatabase.details : assistantDatabase.details?.name,
+            details: typeof assistantDatabase.details === 'string' ? assistantDatabase.details : undefined,
           }
         : null,
     },

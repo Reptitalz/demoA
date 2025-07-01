@@ -4,9 +4,9 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaRobot, FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -16,8 +16,6 @@ interface AssistantCardProps {
   assistant: AssistantConfig;
   onReconfigure: (assistantId: string) => void;
   animationDelay?: string;
-  accountVirtualPhoneNumber?: string;
-  accountNumberStatus?: 'active' | 'pending_cancellation' | 'cancelled' | 'pending_acquisition';
 }
 
 const INITIAL_PURPOSES_TO_SHOW = 2;
@@ -26,19 +24,11 @@ const AssistantCard = ({
   assistant, 
   onReconfigure, 
   animationDelay = "0s",
-  accountVirtualPhoneNumber,
-  accountNumberStatus
 }: AssistantCardProps) => {
-  const [clientMounted, setClientMounted] = useState(false);
   const [showAllPurposes, setShowAllPurposes] = useState(false);
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
   const [isSetupDialogOpen, setIsSetupDialogOpen] = useState(false);
-
-
-  useEffect(() => {
-    setClientMounted(true);
-  }, []);
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
@@ -86,34 +76,30 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isDefaultAssistant = assistant.name === "Hey Asistente";
-  const isPendingCustomNumberSetup = accountNumberStatus === 'pending_acquisition' && !assistant.phoneLinked;
-  const isFullyActive = (accountNumberStatus === 'active' && !!assistant.phoneLinked) || isDefaultAssistant;
+  const isAssistantActive = !!assistant.phoneLinked && assistant.numberReady === true;
+  const isActivationPending = !!assistant.phoneLinked && assistant.numberReady === false;
   
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-  
-  if (isFullyActive) {
+
+  if (isAssistantActive) {
       badgeText = "Activo";
       badgeVariant = "default";
-  } else if (accountNumberStatus === 'pending_cancellation') {
-      badgeText = "Pendiente Canc.";
+  } else if (isActivationPending) {
+      badgeText = "Activando";
       badgeVariant = "outline";
-  } else if (accountNumberStatus === 'cancelled') {
-      badgeText = "Cancelado";
-      badgeVariant = "destructive";
   }
     
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      isFullyActive && "bg-brand-gradient text-primary-foreground",
-      accountNumberStatus === 'pending_cancellation' && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      isAssistantActive && "bg-brand-gradient text-primary-foreground",
+      isActivationPending && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
+      {isActivationPending && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
       {badgeText}
     </Badge>
   );
-
 
   return (
     <>
@@ -134,40 +120,37 @@ const AssistantCard = ({
                 />
               </div>
               <div className="flex-grow">
-                <div className="flex items-center justify-between">
-                     <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
-                </div>
-                {isPendingCustomNumberSetup ? (
-                   <CardDescription className="text-xs sm:text-sm pt-1 text-muted-foreground">
-                    Este asistente está inactivo. Configura un número para activarlo.
-                  </CardDescription>
-                ) : assistant.phoneLinked ? (
+                <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
+                {isAssistantActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
                           <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
                       </div>
-                      {isFullyActive && (
-                          <a
-                              href={whatsappUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={cn(
-                              "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
-                              "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
-                              "bg-brand-gradient"
-                              )}
-                              aria-label="Iniciar chat de WhatsApp"
-                              title="Iniciar chat de WhatsApp"
-                          >
-                              <FaWhatsapp size={14} />
-                              <span>Chatear</span>
-                          </a>
-                      )}
+                      <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(
+                          "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
+                          "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
+                          "bg-brand-gradient"
+                          )}
+                          aria-label="Iniciar chat de WhatsApp"
+                          title="Iniciar chat de WhatsApp"
+                      >
+                          <FaWhatsapp size={14} />
+                          <span>Chatear</span>
+                      </a>
                     </CardDescription>
+                ) : isActivationPending ? (
+                   <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
+                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
+                    <span>Activación en proceso, por favor espere...</span>
+                  </CardDescription>
                 ) : (
                   <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
-                    <FaSpinner className="animate-spin h-4 w-4 text-primary" />
-                    <span>Preparando su asistente, puede tomar 10 minutos, espere porfavor.</span>
+                    <FaPhoneAlt size={12} className="text-muted-foreground" />
+                    <span>Esperando número de teléfono para activar.</span>
                   </CardDescription>
                 )}
               </div>
@@ -216,7 +199,7 @@ const AssistantCard = ({
           )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-            {isFullyActive && (
+            {isAssistantActive ? (
               <Button
                 size="sm"
                 onClick={handleShareOnWhatsApp}
@@ -228,36 +211,44 @@ const AssistantCard = ({
                 <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
                 Compartir por WhatsApp
               </Button>
-            )}
-            {isPendingCustomNumberSetup && (
-                 <Button
-                    size="sm"
-                    onClick={() => setIsSetupDialogOpen(true)}
-                    className={cn(
-                    "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                    "bg-brand-gradient"
-                    )}
-                >
-                    <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
-                    Agregar número para tu asistente
-                </Button>
-            )}
-            {!isDefaultAssistant && (
+            ) : isActivationPending ? (
               <Button
-                variant="outline"
                 size="sm"
-                onClick={handleReconfigureClick}
+                variant="secondary"
+                onClick={() => setIsSetupDialogOpen(true)}
                 className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
               >
-                <FaCog size={14} className="mr-1.5 sm:mr-2" />
-                Reconfigurar
+                <FaKey size={13} className="mr-1.5 sm:mr-2" />
+                Reenviar Código
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => setIsSetupDialogOpen(true)}
+                className={cn(
+                  "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
+                  "bg-brand-gradient"
+                )}
+              >
+                <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
+                Integrar número de teléfono
               </Button>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReconfigureClick}
+              className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+            >
+              <FaCog size={14} className="mr-1.5 sm:mr-2" />
+              Reconfigurar
+            </Button>
         </CardFooter>
       </Card>
-      <PhoneNumberSetupDialog
+       <PhoneNumberSetupDialog
         isOpen={isSetupDialogOpen}
         onOpenChange={setIsSetupDialogOpen}
+        assistantId={assistant.id}
         assistantName={assistant.name}
       />
     </>

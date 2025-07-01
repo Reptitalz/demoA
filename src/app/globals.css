@@ -39,23 +39,6 @@ body {
     --ring: 260 70% 60%; /* New primary purple for focus rings */
 
     --radius: 0.5rem;
-
-    /* Sidebar variables for light theme */
-    --sidebar-background: 0 0% 96%;
-    --sidebar-foreground: 240 10% 10%;
-    --sidebar-primary: 260 70% 60%; /* Purple */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 100% 55%; /* Orange */
-    --sidebar-accent-foreground: 20 90% 5%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 260 70% 60%; /* Purple */
-
-    /* Chart colors for light theme */
-    --chart-1: 260 70% 60%; /* Purple */
-    --chart-2: 30 100% 55%; /* Orange */
-    --chart-3: 190 70% 50%; /* Teal */
-    --chart-4: 320 70% 60%; /* Pink/Magenta */
-    --chart-5: 120 50% 55%; /* Green (complementary) */
   }
 
   .dark {
@@ -87,29 +70,12 @@ body {
     --border: 220 10% 30%;
     --input: 220 10% 22%;
     --ring: 260 70% 60%; /* New primary purple for focus rings */
-    
-    /* Sidebar variables, themed for dark mode */
-    --sidebar-background: 220 10% 8%;
-    --sidebar-foreground: 210 30% 90%;
-    --sidebar-primary: 260 70% 60%; /* Purple */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 100% 55%; /* Orange */
-    --sidebar-accent-foreground: 20 90% 5%;
-    --sidebar-border: 220 10% 25%;
-    --sidebar-ring: 260 70% 60%; /* Purple */
-    
-    /* Chart colors for dark theme */
-    --chart-1: 260 70% 60%; /* Purple */
-    --chart-2: 30 100% 55%; /* Orange */
-    --chart-3: 190 70% 65%; /* Teal */
-    --chart-4: 320 70% 70%; /* Pink/Magenta */
-    --chart-5: 120 50% 60%; /* Green (complementary) */
   }
 }
 
 @layer base {
   html {
-    font-size: 15px; /* Adjust global rem baseline for smaller text and UI elements */
+    font-size: 15px;
   }
   * {
     @apply border-border;
@@ -121,7 +87,6 @@ body {
   }
 }
 
-/* Add subtle scrollbar styling for a more polished look */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -135,7 +100,7 @@ body {
   border-radius: 0.5rem;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary)); /* Uses new primary purple for scrollbar hover */
+  background: hsl(var(--primary));
 }
 
 @layer utilities {
@@ -158,8 +123,4 @@ body {
   .bg-brand-gradient {
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   }
-
-  /* Removed .dynamic-particle-grid-bg and its related ::before, ::after, and keyframes */
-  /* The canvas will handle the background now */
-
 }

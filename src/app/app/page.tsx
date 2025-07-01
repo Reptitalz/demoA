@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -15,7 +16,7 @@ export default function AppRootPage() {
     if (!state.isLoading) {
       // If user is authenticated and has completed setup, go to dashboard.
       if (state.userProfile.isAuthenticated && state.isSetupComplete) {
-        router.replace('/app/dashboard');
+        router.replace('/dashboard');
       } else {
         // Otherwise, send them to the setup page.
         // The setup page will decide whether to show the welcome screen (for unauthenticated users)

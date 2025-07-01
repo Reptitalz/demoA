@@ -1,23 +1,86 @@
 
 "use client";
 
+import { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
-import { APP_NAME, subscriptionPlansConfig, planIcons } from '@/config/appConfig';
-import type { SubscriptionPlanDetails } from '@/types';
-import Link from 'next/link'; // Ensure Link is imported
-import { FaWhatsapp, FaBrain, FaUsers, FaCogs, FaShieldAlt, FaChartLine, FaCheckCircle } from 'react-icons/fa';
+import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { APP_NAME } from '@/config/appConfig';
+import Link from 'next/link';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave } from 'react-icons/fa';
+import { MessagesSquare, CircleDollarSign, Coins } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
-import AppIcon from '@/components/shared/AppIcon'; // Import the new AppIcon component
+import AppIcon from '@/components/shared/AppIcon';
+import React from 'react';
+
+const PayAsYouGoCalculator = () => {
+  const MESSAGES_PER_CREDIT = 1000;
+  const PRICE_PER_CREDIT_MXN = 50;
+  const MAX_MESSAGES = 50000;
+
+  const [messages, setMessages] = useState(10000);
+
+  const credits = Math.ceil(messages / MESSAGES_PER_CREDIT);
+  const price = credits * PRICE_PER_CREDIT_MXN;
+
+  const handleSliderChange = (value: number[]) => {
+    setMessages(value[0]);
+  };
+
+  return (
+    <Card className="shadow-xl hover:shadow-primary/20 hover:border-primary transition-all duration-300 text-left p-6 sm:p-8">
+      <CardHeader className="p-0 mb-6">
+        <CardTitle className="text-2xl sm:text-3xl">Paga Solo Por Lo Que Usas</CardTitle>
+        <CardDescription className="text-sm sm:text-base pt-2 text-muted-foreground">
+          Sin suscripciones ni compromisos. Ajusta tu consumo según tus necesidades y obtén siempre el mejor precio.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0 space-y-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center font-semibold text-lg">
+            <span className="flex items-center gap-2"><MessagesSquare className="h-5 w-5 text-primary" /> Número de Mensajes</span>
+            <span className="text-primary">{messages.toLocaleString()}</span>
+          </div>
+          <Slider
+            value={[messages]}
+            onValueChange={handleSliderChange}
+            min={1000}
+            max={MAX_MESSAGES}
+            step={1000}
+            aria-label="Calculadora de mensajes"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>1,000</span>
+            <span>{MAX_MESSAGES.toLocaleString()}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+            <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Total de Créditos</p>
+                <p className="text-2xl font-bold flex items-center justify-center gap-2">
+                    <Coins className="text-accent"/> {credits.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">(1 crédito = 1,000 mensajes)</p>
+            </div>
+            <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Costo Estimado (MXN)</p>
+                 <p className="text-2xl font-bold flex items-center justify-center gap-2">
+                    <CircleDollarSign className="text-green-500"/> ${price.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">($50 MXN por crédito)</p>
+            </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function MarketingPage() {
   return (
     <PageContainer className="flex flex-col items-center text-center py-8 sm:py-12 animate-fadeIn" fullWidth={true}>
-      {/* Hero Section */}
-      {/* Replace FaRocket with the AppIcon component */}
       <AppIcon
-        className="h-14 w-14 text-foreground mb-6 sm:mb-8" // text-foreground will handle theme color
+        className="h-14 w-14 mb-6 sm:mb-8"
         aria-label={`${APP_NAME} Icon`}
       />
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
@@ -38,7 +101,6 @@ export default function MarketingPage() {
         Potencia tu comunicación y automatiza tareas con {APP_NAME}.
       </p>
 
-      {/* Video Section - Replaced Image with Video */}
       <div className="my-10 sm:my-16 w-full max-w-2xl lg:max-w-3xl aspect-video bg-muted rounded-lg shadow-xl overflow-hidden mx-auto">
         <video
             data-ai-hint="app demo video" 
@@ -56,55 +118,51 @@ export default function MarketingPage() {
         </video>
       </div>
 
-      {/* Features Section */}
       <section id="features" className="w-full mt-12 sm:mt-16 scroll-mt-20">
-        <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Características Principales</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 text-left max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-10">Potencia sin Complejidad</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <FeatureCard
-            icon={<FaCogs size={24} className="text-brand-gradient mb-3" />}
-            title="Configuración Sencilla"
-            description="Un asistente intuitivo paso a paso para configurar tus agentes virtuales en minutos."
+            icon={<FaCogs size={28} className="text-primary" />}
+            title="Configuración Intuitiva"
+            description="Lanza tus asistentes en minutos con nuestro asistente guiado paso a paso. Sin necesidad de código."
           />
           <FeatureCard
-            icon={<FaBrain size={24} className="text-brand-gradient mb-3" />}
-            title="Integración de Datos Inteligente"
-            description="Conecta con Hojas de Google, Excel o crea bases de datos inteligentes con ayuda de IA."
+            icon={<FaBrain size={28} className="text-primary" />}
+            title="Conexión de Datos Flexible"
+            description="Vincula Hojas de Google o crea bases de datos inteligentes que la IA gestiona por ti."
           />
           <FeatureCard
-            icon={<FaWhatsapp size={24} className="text-brand-gradient mb-3" />}
-            title="Comunicación Directa por WhatsApp"
-            description="Interactúa con tus asistentes y clientes directamente a través de la plataforma de WhatsApp."
+            icon={<FaWhatsapp size={28} className="text-primary" />}
+            title="Automatización en WhatsApp"
+            description="Despliega tus asistentes directamente en WhatsApp para interactuar con clientes y recibir notificaciones."
           />
           <FeatureCard
-            icon={<FaUsers size={24} className="text-brand-gradient mb-3" />}
-            title="Gestión de Múltiples Asistentes"
-            description="Crea y administra varios asistentes para diferentes propósitos desde un solo lugar."
+            icon={<FaSitemap size={28} className="text-primary" />}
+            title="Gestión Centralizada"
+            description="Crea y administra múltiples asistentes para diferentes propósitos desde un único panel de control."
           />
           <FeatureCard
-            icon={<FaShieldAlt size={24} className="text-brand-gradient mb-3" />}
-            title="Seguridad y Privacidad"
-            description="Tus datos y los de tus clientes están protegidos con altos estándares de seguridad."
+            icon={<FaShieldAlt size={28} className="text-primary" />}
+            title="Seguridad y Confianza"
+            description="Construido con la seguridad como prioridad para proteger tus datos y los de tus clientes."
           />
-          <FeatureCard
-            icon={<FaChartLine size={24} className="text-brand-gradient mb-3" />}
-            title="Planes Flexibles"
-            description="Elige el plan que mejor se adapte a tus necesidades, desde gratuito hasta opciones empresariales."
+           <FeatureCard
+            icon={<FaMoneyBillWave size={28} className="text-primary" />}
+            title="Paga por lo que Usas"
+            description="Sin suscripciones ni sorpresas. Nuestro modelo de créditos te da control total sobre tus costos."
           />
         </div>
       </section>
 
       {/* Pricing Section */}
       <section id="pricing" className="w-full mt-16 sm:mt-20 scroll-mt-20">
-        <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Planes y Precios</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {subscriptionPlansConfig.map((plan) => {
-            const Icon = planIcons[plan.id] || AppIcon; // Fallback icon can be AppIcon or FaRocket
-            return <PricingPlanCard key={plan.id} plan={plan} icon={<Icon size={28} className="text-brand-gradient mb-2" />} />;
-          })}
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-8 sm:mb-10">Precios Flexibles y Transparentes</h2>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <PayAsYouGoCalculator />
         </div>
       </section>
 
-      {/* Call to Action Section */}
+
       <section className="w-full mt-16 sm:mt-20 py-10 sm:py-12 bg-card rounded-lg shadow-xl max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
          <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">¿Listo para Empezar?</h2>
          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
@@ -137,52 +195,15 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-    <CardHeader className="pb-3">
-      {icon}
-      <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-sm sm:text-base text-muted-foreground">{description}</p>
-    </CardContent>
-  </Card>
-);
-
-interface PricingPlanCardProps {
-  plan: SubscriptionPlanDetails;
-  icon: React.ReactNode;
-}
-
-const PricingPlanCard = ({ plan, icon }: PricingPlanCardProps) => (
-  <Card className="shadow-lg hover:shadow-primary/20 hover:border-primary transition-all duration-300 flex flex-col text-left">
-    <CardHeader className="p-6 items-start"> {/* Increased padding for more whitespace */}
-      <div className="flex items-center gap-3 w-full">
+  <Card className="bg-card/60 backdrop-blur-sm shadow-xl hover:shadow-primary/20 transition-all duration-300 border border-border/10 hover:border-primary/30 group text-center h-full flex flex-col items-center justify-start p-6">
+    <CardHeader className="items-center pb-4 p-0">
+      <div className="bg-primary/10 p-4 rounded-full mb-4 border-2 border-primary/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
         {icon}
-        <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
       </div>
-      <p className="text-3xl sm:text-4xl font-bold text-brand-gradient pt-3"> {/* Increased top padding, apply gradient to price */}
-        ${plan.priceMonthly}
-        <span className="text-xs font-normal text-muted-foreground ml-1">/mes</span> {/* Made '/mes' smaller and added margin */}
-      </p>
+      <CardTitle className="text-lg sm:text-xl text-foreground">{title}</CardTitle>
     </CardHeader>
-    <CardContent className="flex-grow space-y-3">
-      <p className="text-sm font-semibold text-foreground">
-        {plan.assistantLimit === "unlimited" ? "Asistentes Ilimitados" : `${plan.assistantLimit} ${plan.assistantLimit === 1 ? 'Asistente' : 'Asistentes'}`}
-      </p>
-      <ul className="space-y-1.5 text-xs sm:text-sm text-muted-foreground">
-        {plan.features.map((feature, idx) => (
-          <li key={idx} className="flex items-start">
-            <FaCheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 mt-0.5 shrink-0 text-green-500" /> {/* Keeping checkmark green for universal "good" indication */}
-            {feature}
-          </li>
-        ))}
-      </ul>
+    <CardContent className="flex-grow p-0 pt-2">
+      <p className="text-sm text-muted-foreground">{description}</p>
     </CardContent>
-    <CardFooter className="pt-4">
-      <Button asChild size="lg" className={cn("w-full text-sm sm:text-base transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90")}>
-        <Link href="/app">Elegir Plan</Link>
-      </Button>
-    </CardFooter>
   </Card>
 );
-

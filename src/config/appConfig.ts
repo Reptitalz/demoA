@@ -1,14 +1,12 @@
 
-import type { SubscriptionPlanDetails, AssistantPurpose, AuthProviderType, SubscriptionPlanType } from '@/types';
-import { FaGoogle, FaUserCog, FaUsers, FaCheckCircle, FaChartLine, FaBriefcase, FaFlask, FaBrain } from 'react-icons/fa';
+import type { AssistantPurpose, AuthProviderType } from '@/types';
+import { FaGoogle, FaUserCog, FaUsers, FaBrain } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 4; 
-export const DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN = 1;
+export const MAX_WIZARD_STEPS = 5; // Details, Prompt, DB(opt), Auth, Terms
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
-
 
 export const assistantPurposesConfig: AssistantPurpose[] = [
   {
@@ -27,47 +25,23 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
   { id: "notify_clients", name: "Comunicarse con Clientes", description: "El asistente interactuará con tus clientes vía WhatsApp.", icon: FaUsers },
 ];
 
-export const DEFAULT_FREE_PLAN_PHONE_NUMBER = "+523344090167"; 
-
-export const subscriptionPlansConfig: SubscriptionPlanDetails[] = [
-  {
-    id: "free",
-    name: "Nivel Gratuito",
-    priceMonthly: 0,
-    assistantLimit: DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN,
-    features: [`${DEFAULT_ASSISTANTS_LIMIT_FOR_FREE_PLAN} asistente básico`, "Interacciones limitadas", "Soporte comunitario", `Número telefónico: ${DEFAULT_FREE_PLAN_PHONE_NUMBER}`]
-  },
-  {
-    id: "premium_179",
-    name: "Plan Pro",
-    priceMonthly: 179,
-    assistantLimit: 1,
-    features: ["1 asistente", "Todas las funciones completas de asistente", "Soporte prioritario", "Analíticas avanzadas (próximamente)", "Permite vincular tu propio número de teléfono nuevo"],
-    stripePriceId: "price_1RRGyHBwdSNcDr02a7oH7iNc"
-  },
-  {
-    id: "business_270",
-    name: "Plan de Negocios (Próximamente)",
-    priceMonthly: 270,
-    assistantLimit: 5,
-    features: ["Hasta 5 asistentes", "Todas las funciones Pro", "Gestor de cuenta dedicado", "Adquisición de números virtuales con costo adicional"],
-    stripePriceId: undefined
-  },
-];
-
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
-  1: "Configura tu Asistente",
-  2: "Configura la Base de Datos",
-  3: "Autenticación de Cuenta",
-  4: "Elige tu Plan",
+  1: "Detalles del Asistente",
+  2: "Personalidad (Prompt)",
+  3: "Base de Datos",
+  4: "Autenticación",
+  5: "Términos y Condiciones",
 };
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
-  { id: "google", name: "Iniciar sesión con Google", icon: FaGoogle },
+  { id: "google", name: "Continuar con Google", icon: FaGoogle },
 ];
 
-export const planIcons: { [key in SubscriptionPlanType]: React.ElementType } = {
-  free: FaCheckCircle,
-  premium_179: FaChartLine,
-  business_270: FaBriefcase,
-};
+export const CREDIT_PACKAGES = [
+  { credits: 1, price: 50, name: "Básico" },
+  { credits: 5, price: 240, name: "Estándar" },
+  { credits: 10, price: 450, name: "Pro" },
+  { credits: 25, price: 1000, name: "Premium" },
+];
+
+export const MESSAGES_PER_CREDIT = 1000;

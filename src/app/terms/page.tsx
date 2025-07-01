@@ -1,55 +1,90 @@
-import React from 'react';
 
-const TermsPage: React.FC = () => {
-  const APP_NAME = "{APP_NAME}"; // Placeholder for the actual app name
+"use client";
 
+import PageContainer from '@/components/layout/PageContainer';
+import { APP_NAME } from '@/config/appConfig';
+import Link from 'next/link';
+
+const TermsOfServicePage = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Términos y Condiciones de {APP_NAME}</h1>
+    <PageContainer className="space-y-6" fullWidth={true}>
+      <div className="bg-card p-6 sm:p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold text-brand-gradient mb-6 text-center">
+          Términos y Condiciones de Servicio de {APP_NAME}
+        </h1>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">1. Aceptación de los Términos</h2>
-        <p className="text-gray-700">Al acceder o utilizar la plataforma {APP_NAME} (el "Servicio"), aceptas cumplir con estos términos y condiciones (los "Términos"). Si no estás de acuerdo con estos Términos, no utilices el Servicio.</p>
-      </section>
+        <p className="mb-4 text-muted-foreground">
+          Última actualización: 1 de Julio de 2024
+        </p>
+        
+        <p className="mb-4">
+          Bienvenido a {APP_NAME}. Estos Términos y Condiciones de Servicio ("Términos") rigen tu acceso y uso de nuestra plataforma, software y servicios (colectivamente, el "Servicio"). Al acceder o utilizar el Servicio, aceptas estar sujeto a estos Términos. Si no estás de acuerdo con estos Términos, no puedes acceder ni utilizar el Servicio.
+        </p>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">2. Uso del Servicio</h2>
-        <p className="text-gray-700">El Servicio proporciona herramientas, incluyendo asistentes de inteligencia artificial, para ayudarte en diversas tareas. El uso del Servicio es bajo tu propio riesgo. No garantizamos la precisión, integridad o utilidad de ninguna información generada por los asistentes de IA.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">1. Cuentas de Usuario</h2>
+        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
+          <li><strong>Registro:</strong> Debes registrarte para obtener una cuenta para acceder al Servicio. Aceptas proporcionar información precisa, actual y completa durante el proceso de registro y mantenerla actualizada.</li>
+          <li><strong>Seguridad:</strong> Eres responsable de salvaguardar tu contraseña y de cualquier actividad o acción bajo tu cuenta. Notifícanos inmediatamente sobre cualquier uso no autorizado de tu cuenta.</li>
+          <li><strong>Edad Mínima:</strong> Debes tener al menos 18 años para utilizar el Servicio.</li>
+        </ul>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">3. Privacidad</h2>
-        <p className="text-gray-700">Podemos recopilar metadatos de uso agregados y anónimos para mejorar el Servicio. No recopilamos intencionalmente información de identificación personal a menos que se especifique lo contrario y sea necesario para proporcionar el Servicio. Consulta nuestra Política de Privacidad (si aplica) para más detalles sobre cómo manejamos la información.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">2. Uso del Servicio</h2>
+        <p className="mb-4">
+          Te otorgamos una licencia limitada, no exclusiva, intransferible y revocable para utilizar el Servicio para tus fines personales o comerciales internos, sujeto a estos Términos.
+        </p>
+        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
+          <li><strong>Uso Aceptable:</strong> No utilizarás el Servicio para ningún propósito ilegal, no autorizado o que infrinja los derechos de terceros. Aceptas cumplir con todas las leyes, normas y regulaciones aplicables, incluidas las relacionadas con la protección de datos, la privacidad y las comunicaciones electrónicas (como GDPR, CCPA, etc.).</li>
+          <li><strong>Contenido y Responsabilidad del Usuario:</strong> Eres el único responsable de todo el contenido, datos e información que ingresas, configuras o transmites a través del Servicio ("Contenido del Usuario"). Esto incluye los prompts de los asistentes, los datos en las bases de datos vinculadas y las interacciones que tus asistentes tienen con los usuarios finales. {APP_NAME} es una herramienta; tú eres el controlador y responsable final del comportamiento de tu asistente.</li>
+          <li><strong>Prohibiciones:</strong> Aceptas no realizar ninguna de las siguientes acciones: (a) realizar ingeniería inversa, descompilar o intentar descubrir el código fuente del Servicio; (b) utilizar el Servicio de manera que pueda dañar, deshabilitar o sobrecargar nuestros servidores o redes; (c) transmitir virus, gusanos o cualquier código de naturaleza destructiva; (d) utilizar el Servicio para enviar spam o comunicaciones no solicitadas.</li>
+        </ul>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">4. Responsabilidades del Usuario</h2>
-        <p className="text-gray-700">Eres responsable del uso que haces del Servicio y de cualquier contenido que generes o gestiones a través de él. Te recomendamos cumplir con las leyes y regulaciones aplicables en tu jurisdicción, incluyendo las leyes de protección de datos como GDPR y CCPA, al utilizar el Servicio y al interactuar con tus propios usuarios. Debes ser transparente con tus usuarios sobre cómo utilizas el Servicio.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">3. Datos y Privacidad</h2>
+        <p className="mb-4">
+          Nuestra <Link href="/privacy" className="text-primary hover:underline">Política de Privacidad</Link> describe cómo manejamos la información que nos proporcionas al registrarte y configurar tu cuenta. Al utilizar el Servicio, aceptas que podemos utilizar dicha información de acuerdo con nuestra Política de Privacidad. Tú eres el controlador de los datos de tus clientes y usuarios finales, y {APP_NAME} actúa como un procesador de datos en tu nombre, proporcionando la plataforma tecnológica.
+        </p>
+        
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">4. Tarifas y Pago</h2>
+        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
+          <li><strong>Créditos:</strong> El Servicio opera con un sistema de créditos de pago por uso. Debes comprar créditos para utilizar las funciones de los asistentes. Las tarifas de los paquetes de créditos se presentan claramente en la aplicación antes de la compra.</li>
+          <li><strong>No Reembolsable:</strong> Los créditos comprados no son reembolsables y no tienen valor monetario fuera del Servicio. Los créditos no utilizados no caducan mientras tu cuenta permanezca activa.</li>
+          <li><strong>Cambios de Precios:</strong> Nos reservamos el derecho de cambiar los precios de los créditos en cualquier momento. Se te notificará de cualquier cambio de precio con antelación razonable.</li>
+        </ul>
+        
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">5. Propiedad Intelectual</h2>
+        <p className="mb-4">
+          El Servicio y su contenido original (excluyendo tu Contenido de Usuario), características y funcionalidad son y seguirán siendo propiedad exclusiva de {APP_NAME} y sus licenciantes. Por otro lado, todo tu Contenido de Usuario, como tus prompts y los datos que conectas, sigue siendo de tu propiedad.
+        </p>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">5. Exención de Garantías</h2>
-        <p className="text-gray-700">EL SERVICIO SE PROPORCIONA "TAL CUAL" Y "SEGÚN DISPONIBILIDAD", SIN GARANTÍAS DE NINGÚN TIPO, EXPRESAS O IMPLÍCITAS. NO GARANTIZAMOS QUE EL SERVICIO SERÁ ININTERRUMPIDO, LIBRE DE ERRORES O SEGURO.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">6. Terminación</h2>
+        <p className="mb-4">
+          Podemos suspender o terminar tu acceso al Servicio de inmediato, sin previo aviso ni responsabilidad, por cualquier motivo, incluido el incumplimiento de estos Términos. Tras la terminación, tu derecho a utilizar el Servicio cesará inmediatamente y los créditos restantes se perderán.
+        </p>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">6. Limitación de Responsabilidad</h2>
-        <p className="text-gray-700">EN LA MEDIDA MÁXIMA PERMITIDA POR LA LEY, {APP_NAME} NO SERÁ RESPONSABLE POR NINGÚN DAÑO DIRECTO, INDIRECTO, INCIDENTAL, ESPECIAL, CONSECUENTE O EJEMPLAR, INCLUYENDO PERO NO LIMITADO A, DAÑOS POR PÉRDIDA DE GANANCIAS, DATOS U OTRAS PÉRDIDAS INTANGIBLES, QUE RESULTEN DEL USO O LA IMPOSIBILIDAD DE USAR EL SERVICIO.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">7. Renuncia de Garantías y Limitación de Responsabilidad</h2>
+        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
+          <li>El Servicio se proporciona "TAL CUAL" y "SEGÚN DISPONIBILIDAD". No garantizamos que el servicio será ininterrumpido, seguro o libre de errores.</li>
+          <li>En la máxima medida permitida por la ley, en ningún caso {APP_NAME}, ni sus directores, empleados o socios, serán responsables de ningún daño indirecto, incidental, especial, consecuente o punitivo resultante de tu acceso o uso del Servicio.</li>
+          <li>Reconoces que las respuestas generadas por los asistentes de IA pueden no ser siempre precisas y que eres responsable de verificar la información crítica.</li>
+        </ul>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">7. Modificaciones a los Términos</h2>
-        <p className="text-gray-700">Nos reservamos el derecho de modificar estos Términos en cualquier momento. Se te notificará sobre cualquier cambio publicando los nuevos Términos en esta página. Tu uso continuado del Servicio después de dichas modificaciones constituye tu aceptación de los nuevos Términos.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">8. Cambios a los Términos</h2>
+        <p className="mb-4">
+          Nos reservamos el derecho, a nuestra entera discreción, de modificar o reemplazar estos Términos en cualquier momento. Si una revisión es material, intentaremos proporcionar un aviso con al menos 30 días de antelación antes de que los nuevos términos entren en vigor.
+        </p>
 
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">8. Contacto</h2>
-        <p className="text-gray-700">Si tienes alguna pregunta sobre estos Términos, por favor contáctanos a través de los canales de soporte proporcionados en el Servicio.</p>
-      </section>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">9. Contacto</h2>
+        <p className="mb-4">
+          Si tienes alguna pregunta sobre estos Términos, contáctanos a través de los canales de soporte proporcionados en nuestra página principal.
+        </p>
 
-      <p className="text-sm text-gray-500 mt-8">Este documento es una plantilla básica y debe ser revisado por un profesional legal.</p>
-    </div>
+        <div className="mt-8 text-center">
+            <Link href="/" className="text-primary hover:underline">
+              Volver a la página principal
+            </Link>
+        </div>
+      </div>
+    </PageContainer>
   );
 };
 
-export default TermsPage;
+export default TermsOfServicePage;

@@ -1,12 +1,11 @@
 
-
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;
   name: string;
   description: string;
-  icon?: React.ElementType; // For associating an icon
+  icon?: React.ElementType;
 }
 
 export type DatabaseSource = "google_sheets" | "smart_db"; 
@@ -15,28 +14,20 @@ export interface DatabaseConfig {
   id: string;
   name: string;
   source: DatabaseSource;
-  details?: string; // For GSheet (orig Excel name), for SmartDB (could be description or same as name)
-  accessUrl?: string; // Only for Google Sheets
+  details?: string;
+  accessUrl?: string;
 }
 
 export interface AssistantConfig {
   id: string;
   name: string;
+  prompt?: string;
   phoneLinked?: string;
   purposes: Set<AssistantPurposeType>;
   databaseId?: string;
   imageUrl?: string;
-}
-
-export type SubscriptionPlanType = "free" | "premium_179" | "business_270";
-
-export interface SubscriptionPlanDetails {
-  id: SubscriptionPlanType;
-  name: string;
-  priceMonthly: number;
-  assistantLimit: number | "unlimited";
-  features: string[];
-  stripePriceId?: string;
+  verificationCode?: string;
+  numberReady?: boolean;
 }
 
 export type AuthProviderType = "google";
@@ -45,35 +36,29 @@ export interface UserProfile {
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
   email?: string;
-  currentPlan: SubscriptionPlanType | null;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   firebaseUid?: string;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
-  virtualPhoneNumber?: string;
-  numberActivationStatus?: 'active' | 'pending_cancellation' | 'cancelled' | 'pending_acquisition';
-  numberCountryCode?: string;
-  numberActivationId?: string;
   ownerPhoneNumberForNotifications?: string;
+  credits: number;
 }
 
-// For wizard state
 export interface WizardState {
   currentStep: number;
   maxSteps: number;
   assistantName: string;
+  assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
     type: DatabaseSource | null;
     name?: string;
-    accessUrl?: string; // Only for Google Sheets
+    accessUrl?: string;
   };
   authMethod: AuthProviderType | null;
-  selectedPlan: SubscriptionPlanType | null;
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
+  acceptedTerms: boolean;
 }
 
 export interface AppState {

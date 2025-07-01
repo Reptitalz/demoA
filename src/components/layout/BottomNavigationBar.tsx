@@ -3,22 +3,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BarChart2 } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-// Removed useState and ConsumptionViewDialog import
 
 const BottomNavigationBar = () => {
   const pathname = usePathname();
-  // Removed isConsumptionDialogOpen state
 
   const navItems = [
-    { href: '/app/dashboard', label: 'Inicio', icon: Home },
-    { href: '/app/consumption', label: 'Consumos', icon: BarChart2 }, // Changed from action to href
+    { href: '/dashboard', label: 'Inicio', icon: Home },
   ];
 
-  // Hide on setup page or if not on an /app/ route
-  if (pathname === '/app/setup' || !pathname.startsWith('/app/')) {
+  const isAppArea = pathname.startsWith('/dashboard');
+
+  if (pathname === '/app/setup' || !isAppArea) {
     return null;
   }
 
@@ -27,14 +25,14 @@ const BottomNavigationBar = () => {
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-md md:hidden z-[60]">
         <div className="container mx-auto px-2 h-16 flex justify-around items-center">
           {navItems.map((item) => {
-            const isActive = pathname === item.href; // Updated active state logic
+            const isActive = pathname === item.href;
             return (
               <Button
                 key={item.label}
                 variant="ghost"
                 asChild
                 className={cn(
-                  "flex flex-col items-center justify-center h-full w-1/2 rounded-none text-xs p-1",
+                  "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1",
                   isActive ? "text-primary font-semibold" : "text-muted-foreground"
                 )}
               >
@@ -47,7 +45,6 @@ const BottomNavigationBar = () => {
           })}
         </div>
       </nav>
-      {/* Removed ConsumptionViewDialog instance */}
     </>
   );
 };
