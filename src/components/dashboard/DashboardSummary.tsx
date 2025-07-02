@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -12,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 
 const DashboardSummary = () => {
-  const { state, enablePushNotifications, isSubscribingToPush } = useApp();
+  const { state, enablePushNotifications: enablePushInContext, isSubscribingToPush } = useApp();
   const { assistants, credits, pushSubscriptions } = state.userProfile;
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
@@ -27,8 +26,17 @@ const DashboardSummary = () => {
     }
   }, []);
 
+  const handleEnableNotifications = async () => {
+    await enablePushInContext();
+    // After the attempt, re-check the permission status to update the UI correctly
+    if ('Notification' in window) {
+      setNotificationStatus(Notification.permission);
+    }
+  };
+
   const hasActiveSubscription = pushSubscriptions && pushSubscriptions.length > 0;
-  const isNotificationActive = notificationStatus === 'granted' || hasActiveSubscription;
+  // A user has notifications active if the browser permission is granted.
+  const isNotificationActive = notificationStatus === 'granted'; 
   const isNotificationPromptDefault = notificationStatus === 'default' && !hasActiveSubscription;
 
   return (
@@ -82,7 +90,7 @@ const DashboardSummary = () => {
                   <p className="text-xs text-muted-foreground pt-1">Bloqueadas. Habilítalas en la configuración de tu navegador.</p>
               ) : (
                 <>
-                  <Button size="sm" className="mt-2" onClick={enablePushNotifications} disabled={isSubscribingToPush}>
+                  <Button size="sm" className="mt-2" onClick={handleEnableNotifications} disabled={isSubscribingToPush}>
                       {isSubscribingToPush ? <FaSpinner className="animate-spin mr-2" /> : <BellRing className="mr-2 h-4 w-4" />}
                       Activar
                   </Button>
