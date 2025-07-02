@@ -13,8 +13,14 @@ const BottomNavigationBar = () => {
   const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    // Check if the app is running in standalone mode (already installed)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsStandalone(true);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -72,30 +78,32 @@ const BottomNavigationBar = () => {
             );
           })}
 
-          {showInstallButton ? (
-             <Button
+          {!isStandalone && (
+            showInstallButton ? (
+               <Button
+                  variant="ghost"
+                  onClick={handleInstallClick}
+                  className={cn(
+                    "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-primary font-semibold" 
+                  )}
+                >
+                  <Download className="h-5 w-5 mb-0.5 text-primary" />
+                  Instalar
+                </Button>
+            ) : (
+              <Button
                 variant="ghost"
-                onClick={handleInstallClick}
+                asChild
                 className={cn(
-                  "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-primary font-semibold" 
+                  "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-muted-foreground"
                 )}
               >
-                <Download className="h-5 w-5 mb-0.5 text-primary" />
-                Instalar
+                <Link href="/app" className="flex flex-col items-center">
+                  <Download className="h-5 w-5 mb-0.5" />
+                  Obtener App
+                </Link>
               </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              asChild
-              className={cn(
-                "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-muted-foreground"
-              )}
-            >
-              <Link href="/app" className="flex flex-col items-center">
-                <Download className="h-5 w-5 mb-0.5" />
-                Obtener App
-              </Link>
-            </Button>
+            )
           )}
         </div>
       </nav>

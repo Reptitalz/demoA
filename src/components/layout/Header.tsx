@@ -16,8 +16,14 @@ interface HeaderProps {
 const Header = ({ fullWidth = false }: HeaderProps) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    // Check if the app is running in standalone mode (already installed)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsStandalone(true);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the browser's default install prompt
       e.preventDefault();
@@ -65,22 +71,24 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <div className="flex items-center gap-2">
-          {showInstallButton ? (
-            <Button 
-              size="sm" 
-              className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
-              onClick={handleInstallClick}
-            >
-              <Download className="mr-1.5 h-4 w-4" />
-              Instalar App
-            </Button>
-          ) : (
-             <Button asChild size="sm" className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
-               <Link href="/app">
+          {!isStandalone && (
+            showInstallButton ? (
+              <Button 
+                size="sm" 
+                className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+                onClick={handleInstallClick}
+              >
                 <Download className="mr-1.5 h-4 w-4" />
-                Obtener App
-              </Link>
-            </Button>
+                Instalar App
+              </Button>
+            ) : (
+               <Button asChild size="sm" className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
+                 <Link href="/app">
+                  <Download className="mr-1.5 h-4 w-4" />
+                  Obtener App
+                </Link>
+              </Button>
+            )
           )}
           <ThemeToggle />
         </div>
