@@ -18,6 +18,14 @@ export interface DatabaseConfig {
   accessUrl?: string;
 }
 
+export interface AssistantBusinessInfo {
+  companyEmail?: string;
+  companyAddress?: string;
+  googleMapsUrl?: string;
+  openingHours?: string;
+  websiteUrl?: string;
+}
+
 export interface AssistantConfig {
   id: string;
   name: string;
@@ -28,6 +36,7 @@ export interface AssistantConfig {
   imageUrl?: string;
   verificationCode?: string;
   numberReady?: boolean;
+  businessInfo?: AssistantBusinessInfo;
 }
 
 export type AuthProviderType = "google";

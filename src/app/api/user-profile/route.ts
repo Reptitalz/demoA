@@ -1,5 +1,5 @@
 
-import type { UserProfile } from '@/types';
+import type { UserProfile, AssistantConfig } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
           ...asst,
           purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
+          businessInfo: asst.businessInfo || {}, // Ensure businessInfo is an object
         })),
         databases: profile.databases || [],
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
         ...asst,
         purposes: Array.from(asst.purposes || []), // Ensure Set is converted to Array
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
+        businessInfo: asst.businessInfo || {}, // Pass businessInfo through
       })),
       databases: userProfile.databases || [],
       pushSubscriptions: userProfile.pushSubscriptions || [],

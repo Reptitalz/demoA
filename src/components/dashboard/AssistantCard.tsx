@@ -4,13 +4,14 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
+import BusinessInfoDialog from './BusinessInfoDialog';
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -29,6 +30,7 @@ const AssistantCard = ({
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
   const [isSetupDialogOpen, setIsSetupDialogOpen] = useState(false);
+  const [isBusinessInfoDialogOpen, setIsBusinessInfoDialogOpen] = useState(false);
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
@@ -200,17 +202,28 @@ const AssistantCard = ({
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
             {isAssistantActive ? (
-              <Button
-                size="sm"
-                onClick={handleShareOnWhatsApp}
-                className={cn(
-                  "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                  "bg-brand-gradient"
-                )}
-              >
-                <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
-                Compartir por WhatsApp
-              </Button>
+              <>
+                <Button
+                    size="sm"
+                    onClick={() => setIsBusinessInfoDialogOpen(true)}
+                    variant="secondary"
+                    className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
+                >
+                    <FaInfoCircle size={14} className="mr-1.5 sm:mr-2" />
+                    Editar Información de Negocio
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleShareOnWhatsApp}
+                  className={cn(
+                    "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
+                    "bg-brand-gradient"
+                  )}
+                >
+                  <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
+                  Compartir por WhatsApp
+                </Button>
+              </>
             ) : isActivationPending ? (
               <Button
                 size="sm"
@@ -245,11 +258,16 @@ const AssistantCard = ({
             </Button>
         </CardFooter>
       </Card>
-       <PhoneNumberSetupDialog
+      <PhoneNumberSetupDialog
         isOpen={isSetupDialogOpen}
         onOpenChange={setIsSetupDialogOpen}
         assistantId={assistant.id}
         assistantName={assistant.name}
+      />
+      <BusinessInfoDialog
+        isOpen={isBusinessInfoDialogOpen}
+        onOpenChange={setIsBusinessInfoDialogOpen}
+        assistant={assistant}
       />
     </>
   );
