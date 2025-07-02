@@ -81,10 +81,14 @@ const PayAsYouGoCalculator = () => {
 export default function MarketingPage() {
   return (
     <PageContainer className="flex flex-col items-center text-center py-8 sm:py-12 animate-fadeIn" fullWidth={true}>
-      <AppIcon
-        className="h-14 w-14 mb-6 sm:mb-8"
-        aria-label={`${APP_NAME} Icon`}
-      />
+      <div className="flex items-center justify-center gap-4 mb-6 sm:mb-8" aria-label="Colaboración de Hey Manito y WhatsApp">
+        <AppIcon
+          className="h-14 w-14"
+          aria-label={`${APP_NAME} Icon`}
+        />
+        <span className="text-4xl font-thin text-muted-foreground">+</span>
+        <FaWhatsapp className="h-16 w-16 text-green-500" />
+      </div>
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
         Bienvenido a <span className="text-brand-gradient">{APP_NAME}</span>
       </h1>
