@@ -28,6 +28,7 @@ const DashboardSummary = () => {
   }, []);
 
   const hasActiveSubscription = pushSubscriptions && pushSubscriptions.length > 0;
+  const isNotificationActive = notificationStatus === 'granted' || hasActiveSubscription;
   const isNotificationPromptDefault = notificationStatus === 'default' && !hasActiveSubscription;
 
   return (
@@ -67,35 +68,30 @@ const DashboardSummary = () => {
           </CardContent>
         </Card>
         
-        <Card className={cn(
-          "shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn col-span-2 md:col-span-1",
-          isNotificationPromptDefault && "border-primary ring-2 ring-primary/50 shadow-primary/20"
-        )} style={{animationDelay: "0.3s"}}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Notificaciones Push</CardTitle>
-            <FaBell className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            {notificationStatus === 'granted' || hasActiveSubscription ? (
+        {!isNotificationActive && notificationStatus !== 'unsupported' && (
+          <Card className={cn(
+            "shadow-lg hover:shadow-xl transition-all duration-300 animate-fadeIn col-span-2 md:col-span-1",
+            isNotificationPromptDefault && "border-primary ring-2 ring-primary/50 shadow-primary/20"
+          )} style={{animationDelay: "0.3s"}}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Notificaciones Push</CardTitle>
+              <FaBell className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardContent>
+              {notificationStatus === 'denied' ? (
+                  <p className="text-xs text-muted-foreground pt-1">Bloqueadas. Habilítalas en la configuración de tu navegador.</p>
+              ) : (
                 <>
-                  <div className="text-2xl font-bold text-green-500">Activadas</div>
-                  <p className="text-xs text-muted-foreground">Recibirás alertas y actualizaciones.</p>
+                  <Button size="sm" className="mt-2" onClick={enablePushNotifications} disabled={isSubscribingToPush}>
+                      {isSubscribingToPush ? <FaSpinner className="animate-spin mr-2" /> : <BellRing className="mr-2 h-4 w-4" />}
+                      Activar
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">Recibe alertas importantes de tus asistentes.</p>
                 </>
-            ) : notificationStatus === 'denied' ? (
-                <p className="text-xs text-muted-foreground pt-1">Bloqueadas. Habilítalas en la configuración de tu navegador.</p>
-            ) : notificationStatus === 'unsupported' ? (
-                <p className="text-xs text-muted-foreground pt-1">No soportado en este navegador.</p>
-            ) : (
-              <>
-                <Button size="sm" className="mt-2" onClick={enablePushNotifications} disabled={isSubscribingToPush}>
-                    {isSubscribingToPush ? <FaSpinner className="animate-spin mr-2" /> : <BellRing className="mr-2 h-4 w-4" />}
-                    Activar
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">Recibe alertas importantes de tus asistentes.</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
       <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
     </>

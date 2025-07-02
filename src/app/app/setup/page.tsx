@@ -27,18 +27,23 @@ const SetupPage = () => {
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
+  const { isSetupComplete } = state;
   
   const [showWizard, setShowWizard] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   useEffect(() => {
     if (!state.isLoading && state.userProfile.isAuthenticated) {
+        // Redirect existing users away from setup unless they are reconfiguring or adding a new assistant
         if (state.isSetupComplete && !isReconfiguring) {
-            router.replace('/dashboard');
-        } else {
-            // If authenticated but setup is not complete, show the wizard
-            setShowWizard(true);
+             const isAddingNew = new URLSearchParams(window.location.search).get('action') === 'add';
+             if (!isAddingNew) {
+                // If they land here by mistake, send them to dashboard.
+                // Reconfigure/Add flows will be handled by buttons in the dashboard.
+                // This logic is simplified as the primary navigation is handled by AppRootPage
+             }
         }
+        setShowWizard(true); // Always show wizard if authenticated and not redirected
     }
   }, [state.isLoading, state.userProfile.isAuthenticated, state.isSetupComplete, isReconfiguring, router]);
 
@@ -48,115 +53,72 @@ const SetupPage = () => {
 
   const dbNeeded = needsDatabaseConfiguration();
   
-  const effectiveMaxSteps = isReconfiguring 
-    ? (dbNeeded ? 4 : 3)
-    : (dbNeeded ? 5 : 4);
+  const isAddingNewForExistingUser = !isReconfiguring && isSetupComplete;
+
+  const effectiveMaxSteps = (() => {
+    if (isReconfiguring) { // Reconfiguring an assistant
+      return dbNeeded ? 4 : 3;
+    }
+    if (isAddingNewForExistingUser) { // Adding a new assistant
+      return dbNeeded ? 3 : 2;
+    }
+    // First time setup for a new user
+    return dbNeeded ? 5 : 4;
+  })();
 
   const getValidationMessage = (): string => {
-    if (isReconfiguring) {
-      switch (currentStep) {
-        case 1:
-          if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
-          if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
-          if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
-          break;
-        case 2:
-          if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
-          break;
-        case 3:
-          if (dbNeeded) {
-            if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-            if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
-          } else { 
-            if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-          }
-          break;
-        case 4: 
-          if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-          break;
-      }
-    } else { 
-      switch (currentStep) {
-        case 1:
-          if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
-          if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
-          if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
-          break;
-        case 2:
-          if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
-          break;
-        case 3:
-          if (dbNeeded) { 
-            if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-            if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
-          } else {
-            if (!authMethod) return "Por favor, elige un método de autenticación.";
-          }
-          break;
-        case 4:
-          if (dbNeeded) { 
-            if (!authMethod) return "Por favor, elige un método de autenticación.";
-          } else { 
-             if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-          }
-          break;
-        case 5:
-          if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-          break;
-      }
+    const validateStep1 = () => {
+      if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
+      if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
+      if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
+      return null;
     }
-    return "Por favor, completa el paso actual.";
-  };
+    const validateStep2 = () => {
+      if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+      return null;
+    }
+    const validateDbStep = () => {
+      if (!dbNeeded) return null;
+      if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
+      if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
+      if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
+      return null;
+    }
+    const validateAuthStep = () => {
+      if (!authMethod) return "Por favor, elige un método de autenticación.";
+      return null;
+    }
+    const validateTermsStep = () => {
+      if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+      return null;
+    }
+    
+    let message: string | null = null;
+    if (isReconfiguring) {
+      if (currentStep === 1) message = validateStep1();
+      else if (currentStep === 2) message = validateStep2();
+      else if (currentStep === 3) message = dbNeeded ? validateDbStep() : validateTermsStep();
+      else if (currentStep === 4) message = dbNeeded ? validateTermsStep() : null;
+    } else if (isAddingNewForExistingUser) {
+      if (currentStep === 1) message = validateStep1();
+      else if (currentStep === 2) message = validateStep2();
+      else if (currentStep === 3) message = dbNeeded ? validateDbStep() : null;
+    } else { // New user
+      if (currentStep === 1) message = validateStep1();
+      else if (currentStep === 2) message = validateStep2();
+      else if (currentStep === 3) message = dbNeeded ? validateDbStep() : validateAuthStep();
+      else if (currentStep === 4) message = dbNeeded ? validateAuthStep() : validateTermsStep();
+      else if (currentStep === 5) message = dbNeeded ? validateTermsStep() : null;
+    }
 
+    return message || "OK";
+  };
+  
   const isStepValid = (): boolean => {
     if (isFinalizingSetup) return false;
-
-    if (isReconfiguring) {
-      switch (currentStep) {
-        case 1:
-          return assistantName.trim() !== '' && selectedPurposes.size > 0 && (!selectedPurposes.has('notify_owner') || !!ownerPhoneNumberForNotifications?.trim());
-        case 2:
-          return assistantPrompt.trim() !== '';
-        case 3:
-          if (dbNeeded) {
-            if (!databaseOption.type || !databaseOption.name?.trim()) return false;
-            if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
-            return true;
-          } else {
-            return acceptedTerms;
-          }
-        case 4:
-          return acceptedTerms;
-        default: return false;
-      }
-    } else {
-      switch (currentStep) {
-        case 1:
-          return assistantName.trim() !== '' && selectedPurposes.size > 0 && (!selectedPurposes.has('notify_owner') || !!ownerPhoneNumberForNotifications?.trim());
-        case 2:
-          return assistantPrompt.trim() !== '';
-        case 3:
-          if (dbNeeded) {
-            if (!databaseOption.type || !databaseOption.name?.trim()) return false;
-            if (databaseOption.type === "google_sheets") return !!databaseOption.accessUrl?.trim() && databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/');
-            return true;
-          } else {
-            return !!authMethod;
-          }
-        case 4:
-          if (dbNeeded) {
-            return !!authMethod;
-          } else {
-             return acceptedTerms;
-          }
-        case 5:
-          return acceptedTerms;
-        default: return false;
-      }
-    }
+    return getValidationMessage() === "OK";
   };
+
 
   const handleNext = () => {
     if (isStepValid()) {
@@ -183,7 +145,9 @@ const SetupPage = () => {
         toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
         return;
     }
-    if (!state.userProfile.isAuthenticated) {
+
+    // For new users, an extra check for authentication
+    if (!isAddingNewForExistingUser && !isReconfiguring && !state.userProfile.isAuthenticated) {
         toast({ title: "Autenticación Requerida", description: "Por favor, inicia sesión para completar la configuración.", variant: "destructive" });
         return;
     }
@@ -259,7 +223,7 @@ const SetupPage = () => {
     }
 
     toast({
-        title: isReconfiguring ? "¡Asistente Actualizado!" : "¡Configuración Completa!",
+        title: isReconfiguring || isAddingNewForExistingUser ? "¡Asistente Guardado!" : "¡Configuración Completa!",
         description: `${finalAssistantConfig.name} ${isReconfiguring ? 'ha sido actualizado.' : `está listo.`}`,
     });
     router.push('/dashboard');
@@ -312,17 +276,20 @@ const SetupPage = () => {
       if (currentStep === 2) return <Step2AssistantPrompt />;
       if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step5_TermsAndConditions />;
       if (currentStep === 4) return dbNeeded ? <Step5_TermsAndConditions /> : null;
-      return null;
-    } 
-    else {
+    } else if (isAddingNewForExistingUser) {
+      if (currentStep === 1) return <Step1AssistantDetails />;
+      if (currentStep === 2) return <Step2AssistantPrompt />;
+      if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : null;
+    } else { // New user
       if (currentStep === 1) return <Step1AssistantDetails />;
       if (currentStep === 2) return <Step2AssistantPrompt />;
       if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
       if (currentStep === 4) return dbNeeded ? <Step3Authentication /> : <Step5_TermsAndConditions />;
       if (currentStep === 5) return dbNeeded ? <Step5_TermsAndConditions /> : null;
-      return null;
     }
+    return null;
   };
+
 
   if (state.isLoading) {
     return (
@@ -380,7 +347,7 @@ const SetupPage = () => {
         </div>
         <div className="flex justify-between items-center pt-4 border-t">
           <div className="flex gap-1.5">
-            {state.isSetupComplete && !isReconfiguring && (
+            {state.isSetupComplete && (
               <Button variant="outline" onClick={() => router.push('/dashboard')} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
                 <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
               </Button>
@@ -396,8 +363,8 @@ const SetupPage = () => {
           ) : (
              <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
-              {isReconfiguring ? 'Guardar Cambios' : 'Completar Configuración'}
-              {!isReconfiguring && <FaArrowRight className="ml-1 h-3 w-3" />}
+              {isReconfiguring || isAddingNewForExistingUser ? 'Guardar Asistente' : 'Completar Configuración'}
+              <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           )}
         </div>

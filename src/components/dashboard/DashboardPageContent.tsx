@@ -58,18 +58,19 @@ const DashboardPageContent = () => {
   };
 
   const handleAddNewAssistant = () => {
-    dispatch({ type: 'RESET_WIZARD' }); 
-    router.push('/app/setup'); 
+    dispatch({ type: 'RESET_WIZARD' });
+    // Using a query param to differentiate from mistaken navigation to /setup
+    router.push('/app/setup?action=add'); 
   };
 
   const handleAddNewDatabase = () => {
     dispatch({ type: 'RESET_WIZARD' });
     toast({
       title: "Añadir Nueva Base de Datos",
-      description: "Para añadir una base de datos, inicia el proceso de 'Añadir Nuevo' asistente y configúrala allí.",
+      description: "Para añadir una base de datos, inicia el proceso de 'Añadir Asistente' y configúrala allí.",
       duration: 7000,
     });
-    router.push('/app/setup');
+    router.push('/app/setup?action=add');
   };
 
   const handleLogout = async () => {
@@ -128,7 +129,7 @@ const DashboardPageContent = () => {
           </h3>
           <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
             <FaPlusCircle size={13} className="mr-1" /> 
-            Añadir Nuevo
+            Añadir Asistente
           </Button>
         </div>
         {userProfile.assistants.length > 0 ? (
@@ -147,7 +148,7 @@ const DashboardPageContent = () => {
             <CardContent className="flex flex-col items-center gap-2.5"> 
               <FaRobot size={36} className="text-muted-foreground" /> 
               <p className="text-xs text-muted-foreground">Aún no has configurado ningún asistente.</p>
-              <Button onClick={handleAddNewAssistant} size="sm" className="text-xs px-2 py-1">Crea tu Primer Asistente</Button> 
+              <Button onClick={handleAddNewAssistant} size="sm" className="text-xs px-2 py-1">Crear Asistente</Button> 
             </CardContent>
           </Card>
         )}
@@ -171,7 +172,7 @@ const DashboardPageContent = () => {
             <CardContent className="flex flex-col items-center gap-2.5"> 
               <FaDatabase size={36} className="text-muted-foreground" /> 
               <p className="text-xs text-muted-foreground">No hay bases de datos vinculadas o creadas aún.</p>
-              <Button onClick={handleAddNewDatabase} size="sm" className="text-xs px-2 py-1">Crea tu Primera Base de Datos</Button>
+              <Button onClick={handleAddNewDatabase} size="sm" className="text-xs px-2 py-1">Crear Base de Datos</Button>
             </CardContent>
           </Card>
         )}
