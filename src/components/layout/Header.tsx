@@ -16,7 +16,7 @@ interface HeaderProps {
 }
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
-  const { state } = useApp();
+  const { state, enablePushNotifications } = useApp();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
   const [isStandalone, setIsStandalone] = useState(false);
@@ -49,7 +49,11 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
       // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        toast({ title: "¡Aplicación Instalada!", description: "Gracias por instalar la aplicación." });
+        toast({ title: "¡Aplicación Instalada!", description: "A continuación, activa las notificaciones para una mejor experiencia." });
+        // Wait a bit for the toast to show, then prompt for notifications
+        setTimeout(async () => {
+            await enablePushNotifications();
+        }, 2500);
       } else {
         console.log('User dismissed the A2HS prompt');
       }

@@ -8,6 +8,7 @@ import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { urlBase64ToUint8Array } from '@/lib/utils';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -42,7 +43,13 @@ const initialState: AppState = {
   isLoading: true,
 };
 
-const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action>; isSavingProfile: boolean } | undefined>(undefined);
+const AppContext = createContext<{ 
+  state: AppState; 
+  dispatch: React.Dispatch<Action>; 
+  isSavingProfile: boolean;
+  enablePushNotifications: () => Promise<boolean>;
+  isSubscribingToPush: boolean;
+} | undefined>(undefined);
 
 type Action =
   | { type: 'SET_LOADING'; payload: boolean }
@@ -209,6 +216,59 @@ const queryClient = new QueryClient();
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSubscribingToPush, setIsSubscribingToPush] = useState(false);
+
+  const enablePushNotifications = useCallback(async (): Promise<boolean> => {
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+      console.error("VAPID public key is not set in .env.local");
+      toast({ title: "Error de Configuración", description: "El administrador no ha configurado las notificaciones.", variant: "destructive" });
+      return false;
+    }
+    if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
+      toast({ title: "No Soportado", description: "Las notificaciones push no son soportadas por tu navegador.", variant: "destructive" });
+      return false;
+    }
+
+    setIsSubscribingToPush(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast({ title: "Permiso Denegado", description: "No se podrán activar las notificaciones. Puedes hacerlo más tarde en la configuración de tu navegador." });
+        return false;
+      }
+      
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY),
+        });
+      }
+
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error("Usuario no autenticado.");
+      
+      const response = await fetch('/api/save-push-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(subscription),
+      });
+
+      if (!response.ok) throw new Error('No se pudo guardar la suscripción en el servidor.');
+      
+      dispatch({ type: 'ADD_PUSH_SUBSCRIPTION', payload: subscription.toJSON() });
+      toast({ title: "¡Notificaciones Activadas!", description: "Recibirás alertas y actualizaciones." });
+      return true;
+
+    } catch (error) {
+      console.error("Error subscribing:", error);
+      toast({ title: "Error", description: `No se pudieron activar las notificaciones: ${(error as Error).message}`, variant: "destructive" });
+      return false;
+    } finally {
+      setIsSubscribingToPush(false);
+    }
+  }, [dispatch]);
 
   const fetchProfileCallback = useCallback(async (userId: string) => {
     try {
@@ -384,7 +444,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch, isSavingProfile }}>
+        <AppContext.Provider value={{ state, dispatch, isSavingProfile, enablePushNotifications, isSubscribingToPush }}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>
