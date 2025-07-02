@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         databases: profile.databases || [],
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
         credits: profile.credits || 0, // Ensure credits field exists
+        pushSubscriptions: profile.pushSubscriptions || [],
       };
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
     } else {
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
       })),
       databases: userProfile.databases || [],
+      pushSubscriptions: userProfile.pushSubscriptions || [],
     };
     
     try {

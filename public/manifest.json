@@ -1,11 +1,10 @@
-
 {
   "name": "Hey Manito!",
   "short_name": "Hey Manito!",
-  "description": "La plataforma líder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicación por WhatsApp, integra bases de datos y optimiza procesos.",
+  "description": "Asistentes Virtuales IA y Automatización WhatsApp",
   "start_url": "/app",
   "display": "standalone",
-  "background_color": "#1a1b1d",
+  "background_color": "#111827",
   "theme_color": "#8a4fff",
   "icons": [
     {
@@ -16,6 +15,16 @@
     {
       "src": "/apple-icon.png",
       "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]

@@ -41,6 +41,7 @@ export interface UserProfile {
   firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
   credits: number;
+  pushSubscriptions?: PushSubscriptionJSON[];
 }
 
 export interface WizardState {

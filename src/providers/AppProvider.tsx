@@ -31,6 +31,7 @@ const initialUserProfileState: UserProfile = {
   firebaseUid: undefined,
   ownerPhoneNumberForNotifications: undefined,
   credits: 0,
+  pushSubscriptions: [],
 };
 
 const initialState: AppState = {
@@ -65,6 +66,7 @@ type Action =
   | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
+  | { type: 'ADD_PUSH_SUBSCRIPTION', payload: PushSubscriptionJSON }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
 
 
@@ -174,6 +176,19 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.filter(a => a.id !== action.payload) }};
     case 'ADD_DATABASE':
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
+    case 'ADD_PUSH_SUBSCRIPTION': {
+      const existingSubs = state.userProfile.pushSubscriptions || [];
+      if (existingSubs.some(sub => sub.endpoint === action.payload.endpoint)) {
+        return state;
+      }
+      return {
+        ...state,
+        userProfile: {
+          ...state.userProfile,
+          pushSubscriptions: [...existingSubs, action.payload],
+        },
+      };
+    }
     case 'LOGOUT_USER':
       return {
         ...initialState,
@@ -193,6 +208,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   useEffect(() => {
+    // Register service worker on component mount
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(registration => console.log('Service Worker registered with scope:', registration.scope))
+        .catch(error => console.error('Service Worker registration failed:', error));
+    }
+    
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const persistedWizardStateJSON = localStorage.getItem('assistAIManagerWizardState');
