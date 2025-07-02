@@ -31,7 +31,7 @@ const PayAsYouGoCalculator = () => {
   };
 
   return (
-    <Card className="shadow-xl hover:shadow-primary/20 hover:border-primary transition-all duration-300 text-left p-6 sm:p-8">
+    <Card className="bg-card/80 backdrop-blur-sm border border-border/20 shadow-xl hover:shadow-primary/20 transition-all duration-300 text-left p-6 sm:p-8">
       <CardHeader className="p-0 mb-6">
         <CardTitle className="text-2xl sm:text-3xl">Paga Solo Por Lo Que Usas</CardTitle>
         <CardDescription className="text-sm sm:text-base pt-2 text-muted-foreground">
@@ -70,7 +70,7 @@ const PayAsYouGoCalculator = () => {
                  <p className="text-2xl font-bold flex items-center justify-center gap-2">
                     <CircleDollarSign className="text-green-500"/> ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">($50 MXN por crédito + IVA)</p>
+                <p className="text-xs text-muted-foreground mt-1">(50 MXN por crédito + IVA)</p>
             </div>
         </div>
       </CardContent>
@@ -103,7 +103,7 @@ export default function MarketingPage() {
         Potencia tu comunicación y automatiza tareas con {APP_NAME}.
       </p>
 
-      <div className="my-10 sm:my-16 w-full max-w-2xl lg:max-w-3xl aspect-video bg-muted rounded-lg shadow-xl overflow-hidden mx-auto">
+      <div className="my-10 sm:my-16 w-full max-w-2xl lg:max-w-3xl aspect-video bg-muted/50 backdrop-blur-sm border border-border/20 rounded-lg shadow-xl overflow-hidden mx-auto">
         <video
             data-ai-hint="app demo video" 
             src="/hey.mp4"
@@ -165,7 +165,7 @@ export default function MarketingPage() {
       </section>
 
 
-      <section className="w-full mt-16 sm:mt-20 py-10 sm:py-12 bg-card rounded-lg shadow-xl max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full mt-16 sm:mt-20 py-10 sm:py-12 bg-card/80 backdrop-blur-sm border border-border/20 rounded-lg shadow-xl max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
          <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">¿Listo para Empezar?</h2>
          <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
            Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas.

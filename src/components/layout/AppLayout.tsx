@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation'; 
 import { cn } from '@/lib/utils';
 import BottomNavigationBar from './BottomNavigationBar';
+import DynamicCanvasBackground from './DynamicCanvasBackground';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
+      {isMarketingPage && <DynamicCanvasBackground />}
       <Header fullWidth={layoutShouldBeFullWidth} />
       <div className={cn("flex-grow w-full", isDashboardPage && "pb-16 md:pb-0")}>
         {children}
