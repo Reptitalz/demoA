@@ -11,8 +11,9 @@ const createOrder = (payload: any): Promise<any> => {
             if (err) {
                 return reject(err);
             }
-            // Use toObject() to get a plain JS object from the Conekta object
-            resolve(res.toObject());
+            // Resolve with the raw Conekta object, not the plain JS object,
+            // to align with the provided working code snippet.
+            resolve(res);
         });
     });
 };
@@ -87,16 +88,18 @@ export async function POST(request: NextRequest) {
     // Use the promisified Conekta v4 function
     const order = await createOrder(orderPayload);
     
-    // Check for the clabe in the v4 response structure
+    // Check for the clabe in the v4 response structure, which is on the raw Conekta object.
     if (!order?.charges?._json?.data?.[0]?.payment_method?.clabe) {
-        console.error('Error: SPEI CLABE not found in Conekta v4 response. Full response:', JSON.stringify(order, null, 2));
+        // Use .toObject() for safe logging to avoid circular reference errors.
+        const orderForLogging = typeof order?.toObject === 'function' ? order.toObject() : order;
+        console.error('Error: SPEI CLABE not found in Conekta v4 response. Full response:', JSON.stringify(orderForLogging, null, 2));
         throw new Error('No se pudo generar la información de pago SPEI desde Conekta.');
     }
     
     const speiInfo = {
         clabe: order.charges._json.data[0].payment_method.clabe,
         bank: order.charges._json.data[0].payment_method.bank,
-        amount: order.amount / 100,
+        amount: order.amount / 100, // `amount` is a top-level property on the raw Conekta object
         beneficiary: process.env.NEXT_PUBLIC_APP_NAME || 'Hey Manito!', // Use a reliable name
     };
 
@@ -105,9 +108,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('--- CONEKTA API V4 ERROR ---');
-    console.error('Error Type:', error.type); // Conekta-specific
+    console.error('Error Type:', error.type); // Conekta-specific error type
     console.error('Error Message:', error.message || error.message_to_purchaser);
-    console.error('Full Error Object:', error);
+    
+    // Use .toObject() for safe logging of the error object
+    const errorForLogging = typeof error?.toObject === 'function' ? error.toObject() : error;
+    console.error('Full Error Object:', JSON.stringify(errorForLogging, null, 2));
     
     const errorMessage = error.details && Array.isArray(error.details)
       ? error.details.map((d: any) => d.message || String(d)).join(', ') 
