@@ -34,6 +34,8 @@ interface SpeiDetails {
     beneficiary: string;
 }
 
+const IVA_RATE = 1.16; // 16% IVA
+
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
   const { state } = useApp();
   const { toast } = useToast();
@@ -104,6 +106,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   };
   
   const selectedPackageDetails = selectedPackage !== null ? CREDIT_PACKAGES.find(p => p.credits === selectedPackage) : null;
+  const priceWithIva = selectedPackageDetails ? selectedPackageDetails.price * IVA_RATE : 0;
 
   const renderContent = () => {
     switch (step) {
@@ -199,7 +202,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         >
                             <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
                             <p className="font-bold text-lg">{pkg.credits} Créditos</p>
-                            <p className="text-sm text-muted-foreground">${pkg.price} MXN</p>
+                            <p className="text-sm text-muted-foreground">
+                                ${(pkg.price * IVA_RATE).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+                            </p>
                         </Label>
                     ))}
                 </RadioGroup>
@@ -219,7 +224,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pagar ${selectedPackageDetails ? selectedPackageDetails.price : '0'} MXN con SPEI
+                    Pagar ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN con SPEI
                   </>
                 )}
               </Button>
