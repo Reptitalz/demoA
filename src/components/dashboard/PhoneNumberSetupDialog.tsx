@@ -75,9 +75,9 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     }
     setIsProcessing(true);
 
-    // Optimistically update the UI before the API call
+    // Optimistically update the UI, now including the verification code.
     const updatedAssistants = state.userProfile.assistants.map(asst => 
-        asst.id === assistantId ? { ...asst, phoneLinked: phoneNumber, numberReady: false } : asst
+        asst.id === assistantId ? { ...asst, phoneLinked: phoneNumber, verificationCode: verificationCode, numberReady: false } : asst
     );
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants } });
     
@@ -115,7 +115,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         const originalAssistant = state.userProfile.assistants.find(a => a.id === assistantId);
         if (originalAssistant) {
             // Restore the assistant to its state before the optimistic update
-             dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...originalAssistant, numberReady: undefined } });
+             dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...originalAssistant, numberReady: undefined, verificationCode: undefined } });
         }
     } finally {
         setIsProcessing(false);

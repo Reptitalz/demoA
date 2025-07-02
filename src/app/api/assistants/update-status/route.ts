@@ -39,7 +39,11 @@ export async function POST(request: NextRequest) {
     // Update the assistant's status in the user's profile
     const userProfileUpdateResult = await userProfileCollection.updateOne(
       { firebaseUid: decodedToken.uid, "assistants.id": assistantId },
-      { $set: { "assistants.$.numberReady": outcome.status } }
+      { 
+        $set: { "assistants.$.numberReady": outcome.status },
+        // If the activation fails, clear the verification code to allow retries
+        ...(!outcome.status && { $unset: { "assistants.$.verificationCode": "" } })
+      }
     );
     
     if (userProfileUpdateResult.matchedCount === 0) {
