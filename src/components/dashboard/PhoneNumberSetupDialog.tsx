@@ -29,19 +29,26 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
   const [verificationCode, setVerificationCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Effect to reset state when dialog opens or assistant changes
   useEffect(() => {
     if (isOpen) {
       const assistant = state.userProfile.assistants.find(a => a.id === assistantId);
-      if (assistant?.phoneLinked && !assistant.numberReady) {
+      // If phone is already linked but not ready, start at step 2.
+      if (assistant?.phoneLinked && assistant.numberReady === false) {
         setPhoneNumber(assistant.phoneLinked);
-        setStep(2); // Skip to step 2 if phone is linked but not ready
+        setStep(2);
       } else {
+        // Otherwise, reset to step 1
         setStep(1);
-        setPhoneNumber('');
+        setPhoneNumber(assistant?.phoneLinked || '');
         setVerificationCode('');
       }
     }
   }, [isOpen, assistantId, state.userProfile.assistants]);
+  
+  const handleClose = () => {
+    onOpenChange(false);
+  };
 
   const handleRequestCode = () => {
     if (!phoneNumber.trim() || !isValidPhoneNumber(phoneNumber)) {
@@ -68,15 +75,21 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     }
     setIsProcessing(true);
 
+    // Optimistically update the UI before the API call
+    const updatedAssistants = state.userProfile.assistants.map(asst => 
+        asst.id === assistantId ? { ...asst, phoneLinked: phoneNumber, numberReady: false } : asst
+    );
+    dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants } });
+    
+    // Close the dialog and show a toast
+    handleClose();
+    toast({
+        title: "Procesando Activación...",
+        description: `Tu asistente se está activando. Recibirás una notificación cuando esté listo.`,
+        duration: 10000,
+    });
+
     try {
-        // 1. Dispatch local state change to show pending status immediately
-        const updatedAssistants = state.userProfile.assistants.map(asst => 
-            asst.id === assistantId ? { ...asst, phoneLinked: phoneNumber, numberReady: false } : asst
-        );
-        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants } });
-        setStep(3); // Move to the "pending" view
-        
-        // 2. Make the API call to the backend to start the real process
         const token = await auth.currentUser?.getIdToken();
         if (!token) throw new Error("No autenticado.");
 
@@ -90,25 +103,22 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         });
         
         if (!response.ok) {
-            // The backend process failed to start, so we should revert the UI change.
-            throw new Error("No se pudo iniciar el proceso de activación.");
+             const errorData = await response.json().catch(() => ({ message: "Ocurrió un error al iniciar la activación." }));
+            throw new Error(errorData.message || "No se pudo iniciar el proceso de activación.");
         }
-        
-        toast({
-            title: "Procesando Activación...",
-            description: `Se está activando tu asistente. Recibirás una notificación cuando esté listo.`,
-            duration: 10000,
-        });
+        // The backend process is now running. It will send a push notification upon completion.
 
     } catch (error: any) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-        // Revert UI change on error
-        const revertedAssistants = state.userProfile.assistants.map(asst => 
-            asst.id === assistantId ? { ...asst, numberReady: undefined } : asst
-        );
-        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: revertedAssistants } });
+        toast({ title: "Error de Activación", description: error.message, variant: "destructive" });
+        
+        // Revert the optimistic UI update on failure
+        const originalAssistant = state.userProfile.assistants.find(a => a.id === assistantId);
+        if (originalAssistant) {
+            // Restore the assistant to its state before the optimistic update
+             dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...originalAssistant, numberReady: undefined } });
+        }
+    } finally {
         setIsProcessing(false);
-        setStep(2); // Go back to the verification step on error
     }
   };
 
@@ -122,27 +132,13 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     }, 2000);
   };
 
-  const handleClose = () => {
-    if (isProcessing && step !== 3) return;
-    onOpenChange(false);
-    setTimeout(() => {
-        setStep(1);
-        setPhoneNumber('');
-        setVerificationCode('');
-        setIsProcessing(false);
-    }, 300);
-  };
-  
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle>Integrar Número de Teléfono</DialogTitle>
           <DialogDescription>
-            {step < 3 
-              ? `Vincula un número de WhatsApp a tu asistente "${assistantName}".` 
-              : "Proceso de activación iniciado."
-            }
+            Vincula un número de WhatsApp a tu asistente "{assistantName}".
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -188,20 +184,10 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
                     </div>
                 </div>
             )}
-            {step === 3 && (
-                <div className="animate-fadeIn text-center flex flex-col items-center gap-3">
-                    <FaSpinner className="h-12 w-12 text-primary animate-spin" />
-                    <h3 className="font-semibold text-base">Activación en Proceso...</h3>
-                     <p className="text-sm text-muted-foreground">
-                        El asistente <strong className="text-foreground">{assistantName}</strong> se está activando con el número <strong className="text-foreground">{phoneNumber}</strong>.
-                        Este proceso puede tardar hasta 10 minutos. Recibirás una notificación cuando esté listo.
-                    </p>
-                </div>
-            )}
         </div>
         <DialogFooter>
             {step === 1 && (
-                 <Button onClick={handleRequestCode} disabled={isProcessing || !phoneNumber.trim()}>
+                 <Button onClick={handleRequestCode} disabled={isProcessing || !isValidPhoneNumber(phoneNumber || '')}>
                     {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
                     Enviar Código
                 </Button>
@@ -216,11 +202,6 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
                         Verificar Número
                     </Button>
                 </div>
-            )}
-            {step === 3 && (
-                <Button onClick={handleClose} className="w-full">
-                    Cerrar
-                </Button>
             )}
         </DialogFooter>
       </DialogContent>
