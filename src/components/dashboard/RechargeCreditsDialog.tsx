@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,16 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [step, setStep] = useState<DialogStep>('selection');
   const [speiDetails, setSpeiDetails] = useState<SpeiDetails | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  // Set Conekta Public Key when the dialog is open
+  useEffect(() => {
+    if (isOpen && window.Conekta) {
+      // NOTE: This should be in a .env.local file as NEXT_PUBLIC_CONEKTA_PUBLIC_KEY
+      const CONEKTA_PUBLIC_KEY = 'key_A0GUrByZfeUSVFjLgtiUVQF';
+      window.Conekta.setPublicKey(CONEKTA_PUBLIC_KEY);
+      console.log('Conekta public key set for payment processing.');
+    }
+  }, [isOpen]);
 
   const handleRecharge = async () => {
     if (selectedPackage === null) {
