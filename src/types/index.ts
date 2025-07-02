@@ -32,6 +32,16 @@ export interface AssistantConfig {
 
 export type AuthProviderType = "google";
 
+export interface AppNotification {
+  _id?: string;
+  userId: string;
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  read: boolean;
+  link?: string;
+  createdAt: Date;
+}
+
 export interface UserProfile {
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;

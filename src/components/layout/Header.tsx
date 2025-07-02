@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import NotificationsBell from '../notifications/NotificationsBell';
+import { useApp } from '@/providers/AppProvider';
 
 interface HeaderProps {
   fullWidth?: boolean;
 }
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
+  const { state } = useApp();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
   const [isStandalone, setIsStandalone] = useState(false);
@@ -71,6 +74,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <div className="flex items-center gap-2">
+          {state.userProfile.isAuthenticated && <NotificationsBell />}
           {!isStandalone && (
             showInstallButton ? (
               <Button 

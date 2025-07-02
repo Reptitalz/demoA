@@ -7,6 +7,7 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { auth } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -203,9 +204,69 @@ const appReducer = (state: AppState, action: Action): AppState => {
   }
 };
 
+const queryClient = new QueryClient();
+
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const fetchProfileCallback = useCallback(async (userId: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        dispatch({ type: 'LOGOUT_USER' });
+        return;
+      }
+      const token = await currentUser.getIdToken();
+      const response = await fetch(`/api/user-profile?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.userProfile) {
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+        } else {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      } else {
+        if (response.status === 401 || response.status === 403) {
+          dispatch({ type: 'LOGOUT_USER' });
+        } else {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      }
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [dispatch]);
+  
+  useEffect(() => {
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'PROFILE_UPDATED') {
+        console.log('Profile update message received from service worker. Refetching profile...');
+        if (state.userProfile.firebaseUid) {
+          fetchProfileCallback(state.userProfile.firebaseUid);
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          toast({
+            title: "Actualización en tiempo real",
+            description: "Tu panel ha sido actualizado con los últimos cambios."
+          });
+        }
+      }
+    };
+    
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
+    
+    return () => {
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+        }
+    };
+  }, [state.userProfile.firebaseUid, fetchProfileCallback]);
+
 
   useEffect(() => {
     // Register service worker on component mount
@@ -250,37 +311,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const fetchProfileCallback = useCallback(async (userId: string) => {
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        dispatch({ type: 'LOGOUT_USER' });
-        return;
-      }
-      const token = await currentUser.getIdToken();
-      const response = await fetch(`/api/user-profile?userId=${userId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.userProfile) {
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-        } else {
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }
-      } else {
-        if (response.status === 401 || response.status === 403) {
-          dispatch({ type: 'LOGOUT_USER' });
-        } else {
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }
-      }
-    } catch (error) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [dispatch]);
 
   useEffect(() => {
     if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && !state.isSetupComplete) {
@@ -353,9 +383,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [state.userProfile, state.isSetupComplete, state.isLoading]);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, isSavingProfile }}>
-      {children}
-    </AppContext.Provider>
+    <QueryClientProvider client={queryClient}>
+        <AppContext.Provider value={{ state, dispatch, isSavingProfile }}>
+            {children}
+        </AppContext.Provider>
+    </QueryClientProvider>
   );
 };
 
