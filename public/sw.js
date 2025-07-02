@@ -1,59 +1,88 @@
 // public/sw.js
 
-self.addEventListener('push', event => {
-  if (!event.data) {
-    console.log('Push event but no data');
-    return;
+// Listener for the install event
+self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
+  // Skip waiting so the new service worker becomes active immediately
+  event.waitUntil(self.skipWaiting());
+});
+
+// Listener for the activate event
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Activating...');
+  // Take control of all clients immediately
+  event.waitUntil(self.clients.claim());
+});
+
+// Listener for push events from the server
+self.addEventListener('push', (event) => {
+  console.log('Service Worker: Push Received.');
+
+  let pushData;
+  try {
+    pushData = event.data.json();
+  } catch (e) {
+    console.error('Service Worker: Failed to parse push data.', e);
+    pushData = {
+      title: 'Nueva Notificación',
+      body: 'Has recibido una nueva actualización.',
+    };
   }
 
-  const data = event.data.json();
-  console.log('Push received...', data);
+  const { title, body, icon, url, tag } = pushData;
 
-  const title = data.title || 'Nueva Notificación';
   const options = {
-    body: data.body || 'Tienes una nueva actualización.',
-    icon: data.icon || '/icon.svg',
-    badge: data.badge || '/icon.svg',
+    body: body,
+    icon: icon || '/icon.svg', // Default icon
+    badge: '/icon.svg', // Icon for the notification tray on Android
+    vibrate: [200, 100, 200], // Vibration pattern
+    tag: tag || 'default-tag', // A tag to group notifications
     data: {
-      url: data.url || '/dashboard'
-    }
+      url: url || '/', // URL to open on click
+    },
+    requireInteraction: false,
   };
 
   // Show the notification
-  const notificationPromise = self.registration.showNotification(title, options);
-  event.waitUntil(notificationPromise);
+  event.waitUntil(self.registration.showNotification(title, options));
 
-  // If there's a specific tag, broadcast a message to active clients
-  if (data.tag && data.tag === 'profile-update') {
-    event.waitUntil(
-      self.clients.matchAll({
-        type: "window",
-        includeUncontrolled: true
-      }).then(clientList => {
-        for (const client of clientList) {
-          console.log('Posting message to client:', client.id);
-          client.postMessage({ type: 'PROFILE_UPDATED' });
-        }
-      })
-    );
+  // Also send a message to any open clients to notify them of the update
+  if (tag === 'profile-update') {
+      event.waitUntil(
+          self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+              for (const client of clientList) {
+                  client.postMessage({ type: 'PROFILE_UPDATED' });
+              }
+          })
+      );
   }
 });
 
-self.addEventListener('notificationclick', event => {
-  console.log('[Service Worker] Notification click Received.');
+
+// Listener for notification click events
+self.addEventListener('notificationclick', (event) => {
+  console.log('Service Worker: Notification clicked.');
+  
+  // Close the notification
   event.notification.close();
 
-  const urlToOpen = event.notification.data.url || '/';
-  
+  const urlToOpen = event.notification.data.url;
+
+  // This looks for an existing window/tab and focuses it, otherwise opens a new one
   event.waitUntil(
     clients.matchAll({
-      type: 'window'
-    }).then(clientList => {
+      type: 'window',
+      includeUncontrolled: true
+    }).then((clientList) => {
+      // Check if there's a window open with the same URL
       for (const client of clientList) {
-        if (client.url === urlToOpen && 'focus' in client) {
+        const clientUrl = new URL(client.url);
+        const targetUrl = new URL(urlToOpen, self.location.origin);
+        if (clientUrl.pathname === targetUrl.pathname && 'focus' in client) {
           return client.focus();
         }
       }
+      // If no window is found, open a new one
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
