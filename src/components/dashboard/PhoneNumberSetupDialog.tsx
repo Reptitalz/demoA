@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaMobileAlt, FaKey, FaCheckCircle } from 'react-icons/fa';
+import { FaSpinner, FaMobileAlt, FaKey } from 'react-icons/fa';
 import { auth } from '@/lib/firebase';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
 
 interface PhoneNumberSetupDialogProps {
   isOpen: boolean;
@@ -42,10 +44,10 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
   }, [isOpen, assistantId, state.userProfile.assistants]);
 
   const handleRequestCode = () => {
-    if (!phoneNumber.trim() || !/^\+\d{10,15}$/.test(phoneNumber)) {
+    if (!phoneNumber.trim() || !isValidPhoneNumber(phoneNumber)) {
       toast({
         title: "Número de Teléfono Inválido",
-        description: "Por favor, ingresa un número válido en formato internacional (ej: +521234567890).",
+        description: "Por favor, ingresa un número de teléfono válido con su código de país.",
         variant: "destructive",
       });
       return;
@@ -151,15 +153,16 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
                         <Label htmlFor="phone-number" className="flex items-center gap-2">
                         <FaMobileAlt /> Número de Teléfono de WhatsApp
                         </Label>
-                        <Input
-                        id="phone-number"
-                        placeholder="+521234567890"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        disabled={isProcessing}
+                        <PhoneInput
+                          id="phone-number"
+                          placeholder="Ingresa tu número de teléfono"
+                          value={phoneNumber as E164Number | undefined}
+                          onChange={(value) => setPhoneNumber(value || '')}
+                          defaultCountry="MX"
+                          disabled={isProcessing}
                         />
                         <p className="text-xs text-muted-foreground">
-                        Debe ser un número válido en formato internacional que pueda recibir mensajes de WhatsApp.
+                        Debe ser un número válido que pueda recibir mensajes de WhatsApp.
                         </p>
                     </div>
                 </div>

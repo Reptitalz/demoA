@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
 import { FaWhatsapp } from "react-icons/fa";
+import { PhoneInput } from "@/components/ui/phone-input";
+import type { E164Number } from "react-phone-number-input";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
@@ -22,8 +24,8 @@ const Step1AssistantDetails = () => {
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
-  const handleOwnerPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: e.target.value });
+  const handleOwnerPhoneChange = (value: E164Number | undefined) => {
+    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: value || '' });
   };
 
   return (
@@ -51,14 +53,12 @@ const Step1AssistantDetails = () => {
             <Label htmlFor="ownerPhoneNumber" className="text-base flex items-center gap-2">
               <FaWhatsapp className="text-green-500" /> Tu WhatsApp para notificaciones
             </Label>
-            <Input
+            <PhoneInput
               id="ownerPhoneNumber"
-              type="tel"
-              placeholder="Ej: +521234567890"
-              value={ownerPhoneNumberForNotifications}
+              placeholder="Ingresa tu número de teléfono"
+              value={ownerPhoneNumberForNotifications as E164Number | undefined}
               onChange={handleOwnerPhoneChange}
-              className="text-base"
-              aria-required="true"
+              defaultCountry="MX"
             />
             <p className="text-xs text-muted-foreground">
               El asistente te notificará a este número cuando esté listo o requiera tu ayuda.

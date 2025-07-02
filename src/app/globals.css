@@ -1,4 +1,6 @@
 
+@import 'react-phone-number-input/style.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -123,4 +125,38 @@ body {
   .bg-brand-gradient {
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
   }
+}
+
+
+/* Custom Styles for react-phone-number-input to match ShadCN theme */
+.phone-input-root .PhoneInputInput {
+  @apply h-10 text-base md:text-sm rounded-l-none !border-l-0;
+}
+
+.phone-input-root .PhoneInputCountry {
+  @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0;
+}
+
+.phone-input-root .PhoneInputCountryIcon {
+  @apply shadow-md;
+}
+
+.PhoneInputCountrySelect {
+  @apply bg-popover text-popover-foreground border rounded-md shadow-lg;
+}
+
+.PhoneInputCountrySelect-option:hover {
+   @apply bg-accent;
+}
+
+.PhoneInputCountrySelect-option--focus {
+  @apply bg-accent;
+}
+
+.PhoneInputCountrySelect-option .PhoneInputCountrySelect-name {
+  @apply ml-2;
+}
+
+.PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
+  @apply text-muted-foreground;
 }
