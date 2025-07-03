@@ -120,8 +120,7 @@ export async function POST(request: NextRequest) {
       : (error.message_to_purchaser || error.message || 'Ocurrió un error inesperado al procesar el pago.');
       
     return NextResponse.json({ 
-      error: `No se pudo crear la orden de pago: ${errorMessage}`,
-      details: error.details || null
+      error: `No se pudo crear la orden de pago: ${errorMessage}`
     }, { status: 500 });
   }
 }

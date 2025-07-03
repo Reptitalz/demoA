@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('API Error (save-push-subscription):', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: 'Failed to save subscription.', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to save subscription.' }, { status: 500 });
   }
 }

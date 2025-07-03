@@ -51,8 +51,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error("API GET Error (Database Operation or Data Processing):", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: 'Failed to fetch user profile due to an internal error', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to fetch user profile due to an internal error' }, { status: 500 });
   }
 }
 
@@ -116,15 +115,13 @@ export async function POST(request: NextRequest) {
 
     } catch (dbError) {
       console.error("API POST (DB operation) Error:", dbError);
-      const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
-      return NextResponse.json({ message: 'Failed to save user profile to database', error: errorMessage }, { status: 500 });
+      return NextResponse.json({ message: 'Failed to save user profile to database' }, { status: 500 });
     }
   } catch (requestError) {
     console.error("API POST (Request Processing) Error:", requestError);
-    const errorMessage = requestError instanceof Error ? requestError.message : String(requestError);
     if (requestError instanceof SyntaxError) {
-        return NextResponse.json({ message: 'Invalid JSON in request body', error: errorMessage }, { status: 400 });
+        return NextResponse.json({ message: 'Invalid JSON in request body' }, { status: 400 });
     }
-    return NextResponse.json({ message: 'Failed to process request due to an internal error', error: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to process request due to an internal error' }, { status: 500 });
   }
 }

@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     } catch (dbError: any) {
       console.error('Database error while processing webhook:', dbError);
       // Return 500 to tell Conekta something went wrong on our side and it should retry.
-      return NextResponse.json({ error: 'Database error occurred.', details: dbError.message }, { status: 500 });
+      return NextResponse.json({ error: 'An internal database error occurred.' }, { status: 500 });
     }
   } else {
     console.log(`Received and acknowledged unhandled Conekta event type: ${event.type}`);
