@@ -1,91 +1,98 @@
 // public/sw.js
 
-// Listener for the install event
-self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  // Skip waiting so the new service worker becomes active immediately
-  event.waitUntil(self.skipWaiting());
+const CACHE_NAME = 'heymanito-cache-v1';
+// Lista de URLs a cachear. Se debe mantener mínima para la carga inicial.
+const urlsToCache = [
+  '/',
+  '/app',
+  '/manifest.json',
+  '/icon.svg'
+];
+
+// Instala el service worker y cachea los recursos iniciales.
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Service Worker: Cache abierto.');
+        return cache.addAll(urlsToCache);
+      })
+  );
 });
 
-// Listener for the activate event
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-  // Take control of all clients immediately
-  event.waitUntil(self.clients.claim());
-});
-
-// Listener for push events from the server
-self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push Received.');
-
-  let pushData;
-  try {
-    pushData = event.data.json();
-  } catch (e) {
-    console.error('Service Worker: Failed to parse push data.', e);
-    pushData = {
-      title: 'Nueva Notificación',
-      body: 'Has recibido una nueva actualización.',
-    };
+// Sirve las respuestas desde la caché si están disponibles.
+self.addEventListener('fetch', event => {
+  // Para las peticiones de API, siempre ve a la red.
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
   }
+  
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          // Devuelve la respuesta desde la caché.
+          return response;
+        }
+        // Si no está en caché, busca en la red.
+        return fetch(event.request);
+      })
+  );
+});
 
-  const { title, body, icon, url, tag } = pushData;
-
+// Escucha las notificaciones push del servidor.
+self.addEventListener('push', event => {
+  if (!event.data) {
+    console.log('Push event sin datos.');
+    return;
+  }
+  const data = event.data.json();
+  const title = data.title || 'Hey Manito!';
   const options = {
-    body: body,
-    icon: icon || '/icon.svg', // Default icon
-    badge: '/icon.svg', // Icon for the notification tray on Android
-    vibrate: [200, 100, 200], // Vibration pattern
-    tag: tag || 'default-tag', // A tag to group notifications
+    body: data.body,
+    icon: data.icon || '/android-chrome-192x192.png',
+    badge: '/icon.svg', // Icono para la barra de notificaciones de Android
+    tag: data.tag,
     data: {
-      url: url || '/', // URL to open on click
-    },
-    requireInteraction: false,
+        url: data.url || '/'
+    }
   };
 
-  // Show the notification
-  event.waitUntil(self.registration.showNotification(title, options));
-
-  // Also send a message to any open clients to notify them of the update
-  if (tag === 'profile-update') {
-      event.waitUntil(
-          self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-              for (const client of clientList) {
-                  client.postMessage({ type: 'PROFILE_UPDATED' });
-              }
-          })
-      );
+  if (data.tag === 'profile-update') {
+    self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then((clients) => {
+        if (clients && clients.length) {
+            clients.forEach((client) => {
+                client.postMessage({ type: 'PROFILE_UPDATED' });
+            });
+        }
+    });
   }
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
+// Maneja el clic en una notificación.
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    const urlToOpen = event.notification.data.url || '/';
 
-// Listener for notification click events
-self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked.');
-  
-  // Close the notification
-  event.notification.close();
-
-  const urlToOpen = event.notification.data.url;
-
-  // This looks for an existing window/tab and focuses it, otherwise opens a new one
-  event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then((clientList) => {
-      // Check if there's a window open with the same URL
-      for (const client of clientList) {
-        const clientUrl = new URL(client.url);
-        const targetUrl = new URL(urlToOpen, self.location.origin);
-        if (clientUrl.pathname === targetUrl.pathname && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // If no window is found, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
+    event.waitUntil(
+        clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        }).then(windowClients => {
+            // Revisa si una ventana con la URL de destino ya está abierta.
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                if (client.url === self.location.origin + urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Si no hay una ventana abierta, abre una nueva.
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
+    );
 });
