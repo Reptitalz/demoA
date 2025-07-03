@@ -16,8 +16,10 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { CreditCard, MessagesSquare, Coins, Wallet, Loader2, Copy, CheckCircle } from 'lucide-react';
-import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT } from '@/config/appConfig';
+import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { auth } from '@/lib/firebase';
 
 interface RechargeCreditsDialogProps {
@@ -41,11 +43,21 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const { toast } = useToast();
   const currentCredits = state.userProfile.credits || 0;
   
-  const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<DialogStep>('selection');
   const [speiDetails, setSpeiDetails] = useState<SpeiDetails | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  // State for purchase logic
+  const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
+  const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
+  const [customCredits, setCustomCredits] = useState<number>(1);
+  
+  const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
+  const price = activeTab === 'packages'
+    ? (CREDIT_PACKAGES.find(p => p.credits === selectedPackageCredits)?.price ?? 0)
+    : (customCredits * PRICE_PER_CREDIT);
+  const priceWithIva = price * IVA_RATE;
 
   // Set Conekta Public Key when the dialog is open
   useEffect(() => {
@@ -58,8 +70,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   }, [isOpen]);
 
   const handleRecharge = async () => {
-    if (selectedPackage === null) {
-      toast({ title: "Selección Requerida", description: "Por favor, selecciona un paquete de créditos para continuar.", variant: "destructive" });
+    if (!creditsToPurchase || creditsToPurchase <= 0) {
+      toast({ title: "Selección Requerida", description: "Por favor, selecciona o ingresa una cantidad de créditos válida.", variant: "destructive" });
       return;
     }
     
@@ -77,7 +89,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ packageCredits: selectedPackage }),
+            body: JSON.stringify({ credits: creditsToPurchase }),
         });
 
         const data = await response.json();
@@ -108,16 +120,12 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     onOpenChange(false);
     setTimeout(() => {
         setStep('selection');
-        setSelectedPackage(null);
         setIsProcessing(false);
         setSpeiDetails(null);
         setIsCopied(false);
     }, 300);
   };
   
-  const selectedPackageDetails = selectedPackage !== null ? CREDIT_PACKAGES.find(p => p.credits === selectedPackage) : null;
-  const priceWithIva = selectedPackageDetails ? selectedPackageDetails.price * IVA_RATE : 0;
-
   const renderContent = () => {
     switch (step) {
       case 'display_clabe':
@@ -195,37 +203,62 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 </div>
               </div>
               
-              <div>
-                <Label className="font-semibold text-base">Selecciona un Paquete de Créditos</Label>
-                <RadioGroup
-                    value={selectedPackage?.toString()}
-                    onValueChange={(value) => setSelectedPackage(Number(value))}
-                    className="mt-2 grid grid-cols-2 gap-3"
-                >
-                    {CREDIT_PACKAGES.map((pkg) => (
-                        <Label
-                            key={pkg.credits}
-                            htmlFor={`pkg-${pkg.credits}`}
-                            className={cn(
-                                "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input:checked]:ring-primary"
-                            )}
-                        >
-                            <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
-                            <p className="font-bold text-lg">{pkg.credits} Créditos</p>
-                            <p className="text-sm text-muted-foreground">
-                                ${(pkg.price * IVA_RATE).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
-                            </p>
-                        </Label>
-                    ))}
-                </RadioGroup>
-              </div>
+              <Tabs defaultValue="packages" className="w-full" onValueChange={(value) => setActiveTab(value as 'packages' | 'custom')}>
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="packages">Paquetes</TabsTrigger>
+                    <TabsTrigger value="custom">Personalizar</TabsTrigger>
+                </TabsList>
+                <TabsContent value="packages" className="pt-2">
+                     <RadioGroup
+                        value={selectedPackageCredits.toString()}
+                        onValueChange={(value) => setSelectedPackageCredits(Number(value))}
+                        className="mt-2 grid grid-cols-2 gap-3"
+                    >
+                        {CREDIT_PACKAGES.map((pkg) => (
+                            <Label
+                                key={pkg.credits}
+                                htmlFor={`pkg-${pkg.credits}`}
+                                className={cn(
+                                    "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input:checked]:ring-primary"
+                                )}
+                            >
+                                <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
+                                <p className="font-bold text-lg">{pkg.credits} Créditos</p>
+                                <p className="text-sm text-muted-foreground">
+                                    ${(pkg.price * IVA_RATE).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+                                </p>
+                            </Label>
+                        ))}
+                    </RadioGroup>
+                </TabsContent>
+                <TabsContent value="custom" className="pt-4 space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center font-semibold text-lg">
+                            <span className="flex items-center gap-2">Créditos</span>
+                            <span className="text-primary">{customCredits}</span>
+                        </div>
+                        <Slider
+                            value={[customCredits]}
+                            onValueChange={(value) => setCustomCredits(value[0])}
+                            min={1}
+                            max={MAX_CUSTOM_CREDITS}
+                            step={1}
+                            aria-label="Selector de créditos"
+                        />
+                         <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>1</span>
+                            <span>{MAX_CUSTOM_CREDITS}</span>
+                        </div>
+                    </div>
+                </TabsContent>
+              </Tabs>
             </div>
 
             <DialogFooter>
               <Button
                 className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
                 onClick={handleRecharge}
-                disabled={isProcessing || selectedPackage === null}
+                disabled={isProcessing}
               >
                 {isProcessing ? (
                   <>

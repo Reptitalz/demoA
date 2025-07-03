@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import axios from 'axios';
-import { CREDIT_PACKAGES } from '@/config/appConfig';
+import { PRICE_PER_CREDIT } from '@/config/appConfig';
 
 const CONEKTA_API_URL = 'https://api.conekta.io';
 const CONEKTA_API_VERSION = '2.0.0';
@@ -23,18 +23,14 @@ export async function POST(request: NextRequest) {
     const userEmail = decodedToken.email;
     const userName = decodedToken.name || userEmail || 'Usuario';
 
-    const { packageCredits } = await request.json();
-    if (!packageCredits) {
-      return NextResponse.json({ error: 'El paquete de créditos es requerido.' }, { status: 400 });
+    const { credits } = await request.json();
+    if (!credits || typeof credits !== 'number' || credits <= 0 || !Number.isInteger(credits)) {
+      return NextResponse.json({ error: 'La cantidad de créditos debe ser un número entero positivo.' }, { status: 400 });
     }
 
-    const creditPackage = CREDIT_PACKAGES.find(p => p.credits === packageCredits);
-    if (!creditPackage) {
-      return NextResponse.json({ error: 'Paquete de créditos inválido.' }, { status: 400 });
-    }
-
+    const price = credits * PRICE_PER_CREDIT;
     const IVA_RATE = 1.16;
-    const priceWithIvaCents = Math.round(creditPackage.price * IVA_RATE * 100);
+    const priceWithIvaCents = Math.round(price * IVA_RATE * 100);
     const expiresAt = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours
 
     const orderPayload = {
@@ -45,13 +41,13 @@ export async function POST(request: NextRequest) {
         phone: '+525555555555' // Placeholder required by Conekta
       },
       line_items: [{
-        name: `${creditPackage.credits} Créditos para ${process.env.NEXT_PUBLIC_APP_NAME || 'Hey Manito!'} (+IVA)`,
+        name: `${credits} Crédito(s) para ${process.env.NEXT_PUBLIC_APP_NAME || 'Hey Manito!'} (+IVA)`,
         unit_price: priceWithIvaCents,
         quantity: 1
       }],
       metadata: {
         firebaseUid: firebaseUid,
-        credits: String(creditPackage.credits),
+        credits: String(credits),
       },
       charges: [{
         payment_method: {

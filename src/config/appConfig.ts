@@ -37,6 +37,9 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "google", name: "Continuar con Google", icon: FaGoogle },
 ];
 
+export const PRICE_PER_CREDIT = 50;
+export const MAX_CUSTOM_CREDITS = 100;
+
 // Prices updated to be a flat rate of 50 MXN per credit, removing previous discounts.
 export const CREDIT_PACKAGES = [
   { credits: 1, price: 50, name: "Básico" },
