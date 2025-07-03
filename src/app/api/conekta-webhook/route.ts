@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import type { UserProfile } from '@/types';
+import type { UserProfile, Transaction } from '@/types';
 import axios from 'axios';
 
 const CONEKTA_API_URL = 'https://api.conekta.io';
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     // To ensure security, we fetch the event directly from Conekta's API
     // using the ID from the incoming webhook. This prevents payload tampering.
     console.log(`Verifying event ID ${incomingEvent.id} directly with Conekta API...`);
-    const response = await axios.get(`${CONEKTA_API_URL}/webhooks/${incomingEvent.id}`, {
+    const response = await axios.get(`${CONEKTA_API_URL}/events/${incomingEvent.id}`, {
       headers: {
           'Accept': `application/vnd.conekta-v${CONEKTA_API_VERSION}+json`,
           'Authorization': `Bearer ${CONEKTA_PRIVATE_KEY}`
@@ -62,17 +62,39 @@ export async function POST(request: NextRequest) {
     try {
       const { db } = await connectToDatabase();
       const userProfileCollection = db.collection<UserProfile>('userProfiles');
+      const transactionsCollection = db.collection<Transaction>('transactions');
 
-      const result = await userProfileCollection.findOneAndUpdate(
+      const userUpdateResult = await userProfileCollection.findOneAndUpdate(
         { firebaseUid: firebaseUid },
         { $inc: { credits: creditsToAdd } },
         { returnDocument: 'after' }
       );
 
-      if (result) {
-        console.log(`Successfully added ${creditsToAdd} credits to user ${firebaseUid}. New balance: ${result.credits}`);
+      if (userUpdateResult) {
+        console.log(`Successfully added ${creditsToAdd} credits to user ${firebaseUid}. New balance: ${userUpdateResult.credits}`);
+        
+        // Log the transaction
+        const newTransaction: Omit<Transaction, '_id'> = {
+          userId: firebaseUid,
+          orderId: order.id,
+          amount: order.amount / 100, // Conekta amount is in cents
+          currency: order.currency,
+          creditsPurchased: creditsToAdd,
+          paymentMethod: order.charges?.data?.[0]?.payment_method?.type || 'unknown',
+          status: order.payment_status, // This should be 'paid'
+          createdAt: new Date(order.created_at * 1000), // Conekta timestamp is in seconds
+          customerInfo: {
+            name: order.customer_info.name,
+            email: order.customer_info.email,
+            phone: order.customer_info.phone,
+          },
+        };
+
+        await transactionsCollection.insertOne(newTransaction as Transaction);
+        console.log(`Transaction for order ${order.id} logged successfully.`);
+
       } else {
-        console.error(`CRITICAL: User with firebaseUid ${firebaseUid} not found. Could not add credits for order ${order.id}.`);
+        console.error(`CRITICAL: User with firebaseUid ${firebaseUid} not found. Could not add credits or log transaction for order ${order.id}.`);
       }
     } catch (dbError: any) {
       console.error('Database error while processing webhook:', dbError);

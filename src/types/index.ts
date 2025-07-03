@@ -87,3 +87,20 @@ export interface AppState {
   isSetupComplete: boolean;
   isLoading: boolean;
 }
+
+export interface Transaction {
+  _id?: string;
+  userId: string; // Firebase UID
+  orderId: string; // Conekta Order ID
+  amount: number; // Amount in MXN (e.g., 58.00)
+  currency: string; // e.g., 'MXN'
+  creditsPurchased: number;
+  paymentMethod: string; // e.g., 'spei'
+  status: string; // e.g., 'paid'
+  createdAt: Date;
+  customerInfo: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}
