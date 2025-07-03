@@ -40,7 +40,6 @@
     "axios": "^1.7.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "conekta": "^4.1.2",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "firebase": "^11.3.0",

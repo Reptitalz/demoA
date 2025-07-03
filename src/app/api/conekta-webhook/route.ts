@@ -1,39 +1,54 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-// Conekta import is removed as it's not used in the current implementation.
-// To re-enable signature verification, you would need to use Conekta v5 SDK.
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
+import axios from 'axios';
+
+const CONEKTA_API_URL = 'https://api.conekta.io';
+const CONEKTA_API_VERSION = '2.0.0';
 
 export async function POST(request: NextRequest) {
-  console.log("API ROUTE: /api/conekta-webhook reached.");
-
-  const CONEKTA_WEBHOOK_SIGNING_SECRET = process.env.CONEKTA_WEBHOOK_SIGNING_SECRET;
-
-  if (!CONEKTA_WEBHOOK_SIGNING_SECRET) {
-    console.warn("WARNING: CONEKTA_WEBHOOK_SIGNING_SECRET is not set. Webhook signature verification is disabled. THIS IS A SECURITY RISK.");
+  console.log("API ROUTE: /api/conekta-webhook (axios) reached.");
+  
+  const CONEKTA_PRIVATE_KEY = process.env.CONEKTA_PRIVATE_KEY;
+  if (!CONEKTA_PRIVATE_KEY) {
+    console.error("CRITICAL ERROR: CONEKTA_PRIVATE_KEY is not set.");
+    return NextResponse.json({ error: 'Webhook processor not configured.' }, { status: 500 });
   }
 
-  const rawBody = await request.text();
-  const signature = headers().get('conekta-signature');
-  let event;
-
+  let incomingEvent;
   try {
-    // IMPORTANT: In a real production environment, signature verification is critical for security.
-    // The commented out code below is for Conekta v4. To implement verification,
-    // you would need to use the Conekta v5 SDK with its own verification logic.
-    // For now, we'll parse the body directly as signature verification is disabled.
-    event = JSON.parse(rawBody);
-    console.log("Conekta event received and parsed. Type:", event.type);
+    incomingEvent = await request.json();
+    if (!incomingEvent || !incomingEvent.id) {
+      throw new Error("Event data or event ID is missing.");
+    }
   } catch (error: any) {
-    console.error('Webhook Error: Could not parse event body.', error);
-    return NextResponse.json({ error: `Webhook error: ${error.message}` }, { status: 400 });
+    console.error('Webhook Error: Could not parse event body.', error.message);
+    return NextResponse.json({ error: `Webhook error: Invalid JSON payload.` }, { status: 400 });
+  }
+  
+  let verifiedEvent;
+  try {
+    // To ensure security, we fetch the event directly from Conekta's API
+    // using the ID from the incoming webhook. This prevents payload tampering.
+    console.log(`Verifying event ID ${incomingEvent.id} directly with Conekta API...`);
+    const response = await axios.get(`${CONEKTA_API_URL}/webhooks/${incomingEvent.id}`, {
+      headers: {
+          'Accept': `application/vnd.conekta-v${CONEKTA_API_VERSION}+json`,
+          'Authorization': `Bearer ${CONEKTA_PRIVATE_KEY}`
+      }
+    });
+    verifiedEvent = response.data;
+    console.log(`Conekta event ${verifiedEvent.id} verified successfully. Type: ${verifiedEvent.type}`);
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.details?.[0]?.message || error.message;
+    console.error(`Webhook event verification failed for ID ${incomingEvent.id}:`, errorMessage);
+    console.error('Full Error Object:', JSON.stringify(error.response?.data || error, null, 2));
+    return NextResponse.json({ error: `Webhook verification failed.` }, { status: 400 });
   }
 
-  // Handle the 'order.paid' event, which is triggered when an SPEI payment is confirmed.
-  if (event.type === 'order.paid') {
-    const order = event.data.object;
+  if (verifiedEvent.type === 'order.paid') {
+    const order = verifiedEvent.data.object;
     console.log(`Processing 'order.paid' event for order ID: ${order.id}`);
 
     const firebaseUid = order.metadata?.firebaseUid;
@@ -41,8 +56,6 @@ export async function POST(request: NextRequest) {
 
     if (!firebaseUid || !creditsToAdd) {
       console.error('Webhook for order.paid is missing metadata (firebaseUid or credits).', { orderId: order.id, metadata: order.metadata });
-      // Return 200 to acknowledge receipt and prevent Conekta from retrying.
-      // This is a configuration issue on our side, not Conekta's.
       return NextResponse.json({ received: true, message: 'Metadata missing, cannot process.' });
     }
 
@@ -58,22 +71,16 @@ export async function POST(request: NextRequest) {
 
       if (result) {
         console.log(`Successfully added ${creditsToAdd} credits to user ${firebaseUid}. New balance: ${result.credits}`);
-        // Here you could trigger another service, like sending a confirmation email.
       } else {
-        // This is a critical failure. The user paid, but we couldn't find their profile.
-        // This might require manual intervention.
         console.error(`CRITICAL: User with firebaseUid ${firebaseUid} not found. Could not add credits for order ${order.id}.`);
       }
-
     } catch (dbError: any) {
       console.error('Database error while processing webhook:', dbError);
-      // Return 500 to tell Conekta something went wrong on our side and it should retry.
       return NextResponse.json({ error: 'An internal database error occurred.' }, { status: 500 });
     }
   } else {
-    console.log(`Received and acknowledged unhandled Conekta event type: ${event.type}`);
+    console.log(`Received and acknowledged unhandled Conekta event type: ${verifiedEvent.type}`);
   }
 
-  // Acknowledge receipt of the event to Conekta.
   return NextResponse.json({ received: true });
 }
