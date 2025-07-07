@@ -20,7 +20,7 @@ const PayAsYouGoCalculator = () => {
   const MAX_MESSAGES = 50000;
   const IVA_RATE = 1.16; // 16% IVA
 
-  const [messages, setMessages] = useState(10000);
+  const [messages, setMessages] = useState(1000);
 
   const credits = Math.ceil(messages / MESSAGES_PER_CREDIT);
   const price = credits * PRICE_PER_CREDIT_MXN;
