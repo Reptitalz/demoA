@@ -1,14 +1,12 @@
-
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaCheckCircle } from "react-icons/fa";
 import { PhoneInput } from "@/components/ui/phone-input";
 import type { E164Number } from "react-phone-number-input";
 
@@ -84,22 +82,19 @@ const Step1AssistantDetails = () => {
                 key={purpose.id} 
                 className={`flex items-start space-x-3 p-3 border rounded-md transition-colors ${
                   isDisabled ? 'opacity-50 cursor-not-allowed bg-muted/20' : 'hover:bg-muted/50 cursor-pointer'
+                } ${
+                  isChecked ? 'border-primary bg-primary/5' : ''
                 }`}
                 onClick={() => !isDisabled && handlePurposeToggle(purpose.id)}
               >
-                <Checkbox
-                  id={`purpose-${purpose.id}`}
-                  checked={isChecked}
-                  onCheckedChange={() => !isDisabled && handlePurposeToggle(purpose.id)}
-                  aria-labelledby={`purpose-label-${purpose.id}`}
-                  className="mt-1"
-                  disabled={isDisabled}
-                />
+                {isChecked 
+                  ? <FaCheckCircle className="h-5 w-5 text-green-500 mt-1 shrink-0" />
+                  : <div className="h-5 w-5 border-2 border-muted rounded-full mt-1 shrink-0" />
+                }
+                
                 {Icon && <Icon className="h-5 w-5 text-primary mt-0.5" />}
                 <div className="flex-1">
                   <Label 
-                    htmlFor={`purpose-${purpose.id}`} 
-                    id={`purpose-label-${purpose.id}`} 
                     className={`font-medium text-sm ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {purpose.name}
