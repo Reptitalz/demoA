@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AUTH_METHODS } from "@/config/appConfig";
 import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
-import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import { auth, googleProvider, signInWithRedirect } from '@/lib/firebase';
 import { useToast } from "@/hooks/use-toast";
 import type { AuthProviderType } from "@/types";
 
@@ -36,21 +36,12 @@ const Step3Authentication = () => {
     }
     setIsProcessingAuth(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      if (result && result.user) {
-        // AppProvider's onAuthStateChanged will handle the rest
-        toast({
-          title: 'Inicio de Sesión Exitoso',
-          description: `Has iniciado sesión como ${result.user.email}. Continúa para finalizar.`,
-        });
-      }
+      // Redirect the user to the Google sign-in page. AppProvider will handle the result.
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        console.error("Error durante el inicio de sesión con Google:", error);
-        toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
-      }
-    } finally {
-      setIsProcessingAuth(false);
+      console.error("Error durante el inicio de sesión con Google:", error);
+      toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
+      setIsProcessingAuth(false); // Only set back to false on error.
     }
   };
   
@@ -72,7 +63,7 @@ const Step3Authentication = () => {
         {isProcessingAuth ? (
           <div className="flex items-center justify-center p-4 min-h-[76px]">
             <FaSpinner className="animate-spin h-8 w-8 text-primary" />
-            <p className="ml-2">Procesando...</p>
+            <p className="ml-2">Redirigiendo a Google...</p>
           </div>
         ) : (
           <>
@@ -107,3 +98,5 @@ const Step3Authentication = () => {
 };
 
 export default Step3Authentication;
+
+    

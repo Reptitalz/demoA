@@ -19,7 +19,7 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { auth, googleProvider, signInWithPopup, signOut } from '@/lib/firebase';
+import { auth, googleProvider, signInWithRedirect, signOut } from '@/lib/firebase';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const SetupPage = () => {
@@ -235,34 +235,11 @@ const SetupPage = () => {
       return;
     }
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const token = await user.getIdToken();
-
-      const response = await fetch(`/api/user-profile?userId=${user.uid}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.status === 404) {
-        await signOut(auth);
-        toast({
-          title: "Usuario No Encontrado",
-          description: "No encontramos una cuenta con este correo. Por favor, usa la opción 'Define tu Asistente' para crear una.",
-          variant: "destructive",
-          duration: 7000,
-        });
-      } else if (response.ok) {
-        // AppProvider will handle state update and AppRootPage will redirect
-        toast({ title: "Bienvenido/a de nuevo" });
-      } else {
-        await signOut(auth);
-        const errorData = await response.json();
-        toast({ title: "Error", description: `No se pudo verificar la cuenta: ${errorData.message || response.statusText}`, variant: "destructive" });
-      }
+      // The user will be redirected to Google's sign-in page.
+      // After signing in, they will be redirected back, and AppProvider will handle the auth state.
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
-      }
+      toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
     }
   };
 
@@ -374,3 +351,5 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
+
+    

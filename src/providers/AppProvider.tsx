@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
-import { auth } from '@/lib/firebase'; 
+import { auth, getRedirectResult } from '@/lib/firebase'; 
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { urlBase64ToUint8Array } from '@/lib/utils';
@@ -198,6 +198,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     }
     case 'LOGOUT_USER':
+      localStorage.removeItem('assistAIManagerWizardState');
       return {
         ...initialState,
         isLoading: false,
@@ -290,13 +291,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 404) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        } else if (response.status === 401 || response.status === 403) {
           dispatch({ type: 'LOGOUT_USER' });
         } else {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
       }
     } catch (error) {
+      console.error("Failed to fetch user profile:", error);
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [dispatch]);
@@ -327,7 +331,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [state.userProfile.firebaseUid, fetchProfileCallback]);
 
-
   useEffect(() => {
     // Register service worker on component mount
     if ('serviceWorker' in navigator) {
@@ -338,6 +341,52 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     
     dispatch({ type: 'SET_LOADING', payload: true });
+    
+    // First, process any redirect result. This is non-blocking and will complete in the background.
+    // It's important to call this on every page load to handle the redirect case.
+    getRedirectResult(auth).catch(error => {
+        // This catches errors from the redirect process itself, e.g., network issues.
+        console.error("Error from getRedirectResult:", error);
+        toast({
+            title: "Error de Autenticación",
+            description: "No se pudo completar el inicio de sesión. Por favor, inténtalo de nuevo.",
+            variant: "destructive"
+        });
+    });
+
+    // onAuthStateChanged is the single source of truth for the user's login state.
+    // It fires after getRedirectResult completes, or on page load if the user has a valid session.
+    const unsubscribe = auth.onAuthStateChanged(async user => {
+      if (user) {
+        // User is signed in.
+        // Check if it's a new login or just a session refresh.
+        if (!state.userProfile.isAuthenticated || state.userProfile.firebaseUid !== user.uid) {
+            dispatch({
+              type: 'UPDATE_USER_PROFILE',
+              payload: {
+                isAuthenticated: true,
+                authProvider: 'google',
+                email: user.email || undefined,
+                firebaseUid: user.uid,
+              }
+            });
+            // Fetch profile to see if they are a new or existing user.
+            await fetchProfileCallback(user.uid);
+        } else {
+            // User is the same, no need to re-fetch, just ensure loading is false.
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      } else {
+        // User is signed out.
+        if (state.userProfile.isAuthenticated) {
+          dispatch({ type: 'LOGOUT_USER' });
+        } else {
+          // Not logged in, and not previously authenticated in this session.
+          dispatch({type: 'SET_LOADING', payload: false });
+        }
+      }
+    });
+
     try {
       const persistedWizardStateJSON = localStorage.getItem('assistAIManagerWizardState');
       if (persistedWizardStateJSON) {
@@ -348,40 +397,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error loading wizard state from localStorage", error);
     }
 
-    const unsubscribe = auth.onAuthStateChanged(async user => {
-      if (user) {
-        dispatch({
-          type: 'UPDATE_USER_PROFILE',
-          payload: {
-            isAuthenticated: true,
-            authProvider: 'google',
-            email: user.email || undefined,
-            firebaseUid: user.uid,
-          }
-        });
-      } else {
-        if (state.userProfile.isAuthenticated) {
-          localStorage.removeItem('assistAIManagerWizardState');
-          dispatch({ type: 'LOGOUT_USER' });
-        } else {
-          dispatch({type: 'SET_LOADING', payload: false });
-        }
-      }
-    });
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (state.userProfile.isAuthenticated && state.userProfile.firebaseUid && !state.isSetupComplete) {
-      fetchProfileCallback(state.userProfile.firebaseUid);
-    } else if (!state.userProfile.isAuthenticated && !state.isLoading) {
-      // Already not loading, do nothing
-    } else if (!state.userProfile.isAuthenticated) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [state.userProfile.isAuthenticated, state.userProfile.firebaseUid, state.isSetupComplete, fetchProfileCallback]);
-
+  }, [fetchProfileCallback]);
 
   useEffect(() => {
     if (state.isLoading) {
@@ -458,3 +476,5 @@ export const useApp = () => {
   }
   return context;
 };
+
+    
