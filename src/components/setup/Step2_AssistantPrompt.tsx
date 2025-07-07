@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -6,17 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const EXAMPLE_PROMPT = `Eres un asistente de ventas amigable y eficiente para una tienda de pasteles llamada "Dulce Bocado".
+const EXAMPLE_PROMPT = `Eres un asistente de ventas para una pastelería.
 
-Tu objetivo principal es tomar pedidos de pasteles personalizados.
+Tu objetivo: Tomar pedidos de pasteles.
 
 Instrucciones:
-1.  Saluda al cliente amablemente.
-2.  Pregunta qué tipo de pastel le gustaría (sabor, tamaño, para cuántas personas).
-3.  Confirma los detalles del pedido.
-4.  Pregunta la fecha y hora de entrega.
-5.  Si el cliente tiene preguntas sobre ingredientes o alérgenos, responde usando la información de la base de datos vinculada. Si no encuentras la información, pide disculpas y di que un humano se pondrá en contacto.
-6.  Finaliza la conversación agradeciendo al cliente por su pedido.`;
+- Sé amable y eficiente.
+- Pregunta por sabor, tamaño y fecha de entrega.
+- Usa la base de datos que conectaste para responder sobre ingredientes.
+- Si no sabes algo, dile al cliente que un humano lo contactará.`;
 
 const Step2AssistantPrompt = () => {
   const { state, dispatch } = useApp();
