@@ -24,6 +24,7 @@ interface AssistantWebhookPayload {
       name: string;
       source: DatabaseSource;
       details?: string;
+      accessUrl?: string; // <-- Campo añadido
     } | null;
   };
 }
@@ -59,6 +60,7 @@ export async function sendAssistantCreatedWebhook(
             name: assistantDatabase.name,
             source: assistantDatabase.source,
             details: typeof assistantDatabase.details === 'string' ? assistantDatabase.details : undefined,
+            accessUrl: assistantDatabase.accessUrl, // <-- Campo añadido
           }
         : null,
     },
