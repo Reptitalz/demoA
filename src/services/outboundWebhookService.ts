@@ -17,14 +17,15 @@ interface AssistantWebhookPayload {
   assistant: {
     id: string;
     name: string;
-    purposes: string[]; // Convertido a array
-    imageUrl?: string; // Image URL for the assistant
+    prompt: string; // <-- Campo añadido
+    purposes: string[];
+    imageUrl?: string;
     database?: {
       id: string;
       name: string;
       source: DatabaseSource;
       details?: string;
-      accessUrl?: string; // <-- Campo añadido
+      accessUrl?: string;
     } | null;
   };
 }
@@ -52,15 +53,16 @@ export async function sendAssistantCreatedWebhook(
     assistant: {
       id: assistant.id,
       name: assistant.name,
-      purposes: Array.from(assistant.purposes || new Set()), // Asegurar que purposes sea un array
-      imageUrl: assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL, // Include imageUrl
+      prompt: assistant.prompt || '', // <-- Campo añadido
+      purposes: Array.from(assistant.purposes || new Set()),
+      imageUrl: assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
       database: assistantDatabase
         ? {
             id: assistantDatabase.id,
             name: assistantDatabase.name,
             source: assistantDatabase.source,
             details: typeof assistantDatabase.details === 'string' ? assistantDatabase.details : undefined,
-            accessUrl: assistantDatabase.accessUrl, // <-- Campo añadido
+            accessUrl: assistantDatabase.accessUrl,
           }
         : null,
     },
