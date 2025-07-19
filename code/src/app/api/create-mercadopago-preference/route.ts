@@ -41,22 +41,20 @@ export async function POST(request: NextRequest) {
     expirationDate.setDate(expirationDate.getDate() + 1);
 
     const paymentPayload = {
-      body: {
-        transaction_amount: totalAmount,
-        description: `${credits} Crédito(s) para ${APP_NAME}`,
-        payment_method_id: 'spei',
-        payer: {
-          email: userEmail,
-        },
-        external_reference: external_reference,
-        notification_url: `${BASE_URL}/api/mercadopago-webhook`,
-        date_of_expiration: expirationDate.toISOString(),
+      transaction_amount: totalAmount,
+      description: `${credits} Crédito(s) para ${APP_NAME}`,
+      payment_method_id: 'spei',
+      payer: {
+        email: userEmail,
       },
+      external_reference: external_reference,
+      notification_url: `${BASE_URL}/api/mercadopago-webhook`,
+      date_of_expiration: expirationDate.toISOString(),
     };
     
-    console.log("Creating Mercado Pago SPEI payment with payload:", JSON.stringify(paymentPayload, null, 2));
+    console.log("Creating Mercado Pago SPEI payment with payload:", JSON.stringify({ body: paymentPayload }, null, 2));
 
-    const result = await payment.create(paymentPayload);
+    const result = await payment.create({ body: paymentPayload });
     
     console.log("Successfully created Mercado Pago SPEI payment:", result.id);
     
@@ -71,13 +69,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
         paymentId: result.id,
         clabe: speiDetails.bank_transfer.clabe,
-        bankName: speiDetails.bank_info?.payer[0]?.account_name || 'STP', // Default to STP as it's common
+        bankName: speiDetails.bank_info?.payer?.[0]?.account_name || 'STP', // Default to STP as it's common
         amount: result.transaction_amount,
         concept: external_reference.substring(0, 10), // A short reference for the concept
     });
 
   } catch (error: any) {
     console.error('--- MERCADO PAGO API ERROR ---');
+    // MercadoPago SDK v2 nests the actual error message
     const errorMessage = error.cause?.message || error.message || 'Ocurrió un error inesperado.';
     console.error('Full Error Object:', JSON.stringify(error, null, 2));
     return NextResponse.json({ error: `No se pudo crear la orden de pago: ${errorMessage}` }, { status: 500 });
