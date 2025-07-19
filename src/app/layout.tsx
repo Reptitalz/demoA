@@ -24,7 +24,7 @@ if (!determinedBaseUrl || typeof determinedBaseUrl !== 'string' || determinedBas
 } else {
   try {
     determinedBaseUrl = determinedBaseUrl.trim();
-    if (!determinedBaseUrl.startsWith('http://') && !determinedBaseUrl.startsWith('https://')) {
+    if (!determinedBaseUrl.startsWith('http://') && !determinedBase-url.startsWith('https://')) {
       if (determinedBaseUrl.includes('.') && !determinedBaseUrl.startsWith('localhost')) {
         // Looks like a domain (e.g., example.com) but no scheme
         console.warn(`NEXT_PUBLIC_BASE_URL "${determinedBaseUrl}" seems to be missing a scheme. Assuming https.`);
@@ -125,7 +125,7 @@ export default function RootLayout({
 
         {/* El link del favicon ya está aquí, los metadatos manejan los demás */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <Script src="https://cdn.conekta.io/checkout/latest/conekta.js" strategy="beforeInteractive" />
+        <Script src="https://sdk.mercadopago.com/js/v2" strategy="beforeInteractive" />
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider

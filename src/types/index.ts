@@ -91,12 +91,12 @@ export interface AppState {
 export interface Transaction {
   _id?: string;
   userId: string; // Firebase UID
-  orderId: string; // Conekta Order ID
+  orderId: string; // Mercado Pago Payment ID
   amount: number; // Amount in MXN (e.g., 58.00)
   currency: string; // e.g., 'MXN'
   creditsPurchased: number;
-  paymentMethod: string; // e.g., 'spei'
-  status: string; // e.g., 'paid'
+  paymentMethod: string; // e.g., 'spei', 'oxxo', 'debit_card'
+  status: string; // e.g., 'approved'
   createdAt: Date;
   customerInfo: {
     name: string;
