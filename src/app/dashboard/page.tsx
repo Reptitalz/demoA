@@ -6,6 +6,7 @@ import DashboardPageContent from '@/components/dashboard/DashboardPageContent';
 
 const DashboardPage = () => {
   return (
+    // The Suspense boundary is a good practice for pages that might fetch data.
     <Suspense fallback={
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <LoadingSpinner size={36} />

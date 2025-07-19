@@ -22,8 +22,14 @@ const DashboardPageContent = () => {
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
 
-  // This useEffect was removed to prevent redirect loops.
-  // AppRootPage (/app/page.tsx) is now the single source of truth for initial routing.
+  useEffect(() => {
+    // This effect ensures that if a user somehow lands on the dashboard
+    // while not authenticated or still loading, they are shown a spinner
+    // while the main routing logic in AppProvider and AppRootPage takes over.
+    if (!isLoading && !state.userProfile.isAuthenticated) {
+        router.replace('/app'); // Redirect to the app root for routing decisions
+    }
+  }, [isLoading, state.userProfile.isAuthenticated, router]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -78,7 +84,7 @@ const DashboardPageContent = () => {
       await signOut(auth);
       // AppProvider listener will handle state reset
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      // Force a full page reload by navigating via window.location
+      // Force a full page reload by navigating via window.location to ensure clean state
       window.location.href = '/';
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
@@ -86,20 +92,10 @@ const DashboardPageContent = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !userProfile.isAuthenticated) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <LoadingSpinner size={28} /> 
-      </PageContainer>
-    );
-  }
-
-  // This check is now primarily a fallback. AppRootPage should prevent unauthenticated users from ever reaching here.
-  if (!userProfile.isAuthenticated) { 
-    return (
-      <PageContainer className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-150px)]">
-        <p className="text-xs mb-2">Redirigiendo...</p> 
-        <LoadingSpinner size={24} /> 
       </PageContainer>
     );
   }
@@ -180,5 +176,3 @@ const DashboardPageContent = () => {
     </PageContainer>
   );
 }
-
-export default DashboardPageContent;

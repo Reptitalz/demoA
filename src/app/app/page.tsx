@@ -13,14 +13,19 @@ export default function AppRootPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // This effect runs whenever the loading state or authentication state changes.
+    // It is the single source of truth for routing logic after the initial app load.
     if (!state.isLoading) {
-      // If user is authenticated and has completed setup, go to dashboard.
-      if (state.userProfile.isAuthenticated && state.isSetupComplete) {
-        router.replace('/dashboard');
+      if (state.userProfile.isAuthenticated) {
+        // If the user is authenticated, check if their setup is complete.
+        if (state.isSetupComplete) {
+          router.replace('/dashboard');
+        } else {
+          // If authenticated but setup is not complete, they need to go to the wizard.
+          router.replace('/app/setup');
+        }
       } else {
-        // Otherwise, send them to the setup page.
-        // The setup page will decide whether to show the welcome screen (for unauthenticated users)
-        // or the wizard (for authenticated users without a complete setup).
+        // If not authenticated, send them to the setup page, which will show the welcome/login screen.
         router.replace('/app/setup');
       }
     }
