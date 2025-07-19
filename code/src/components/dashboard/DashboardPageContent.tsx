@@ -175,4 +175,6 @@ const DashboardPageContent = () => {
       </div>
     </PageContainer>
   );
-}
+};
+
+export default DashboardPageContent;
