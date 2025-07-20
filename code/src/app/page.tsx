@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave } from 'react-icons/fa';
@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import React from 'react';
+import { Input } from '@/components/ui/input';
 
 const PayAsYouGoCalculator = () => {
   const MESSAGES_PER_CREDIT = 1000;
@@ -146,9 +147,9 @@ export default function MarketingPage() {
                 <div className="grid md:grid-cols-2 gap-8 items-center">
                     <div className="text-center md:text-left">
                         <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                            <AppIcon className="h-12 w-12 animate-[bounce_3s_ease-in-out_infinite]" />
+                            <AppIcon className="h-12 w-12 animate-float" />
                             <span className="text-4xl font-thin text-muted-foreground">+</span>
-                            <FaWhatsapp className="h-14 w-14 text-green-500 animate-[bounce_3s_ease-in-out_infinite_0.5s]" />
+                            <FaWhatsapp className="h-14 w-14 text-green-500 animate-float" style={{animationDelay: '0.5s'}} />
                         </div>
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
                             Crea tu Asistente IA para <span className="text-brand-gradient">WhatsApp</span>
@@ -265,4 +266,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
     </CardContent>
   </Card>
 );
-

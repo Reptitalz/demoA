@@ -30,8 +30,11 @@ if (admin.apps.length === 0) {
       }
     }
   } else {
-    firebaseAdminInitialized = true; 
+    // Only log a warning, don't set initialized to true
+    console.warn("Firebase Admin SDK: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. Token verification will not work.");
   }
+} else {
+    firebaseAdminInitialized = true;
 }
 
 export async function verifyFirebaseToken(request: Request): Promise<DecodedIdToken | null> {

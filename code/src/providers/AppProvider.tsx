@@ -341,10 +341,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     
     dispatch({ type: 'SET_LOADING', payload: true });
     
-    // First, process any redirect result. This is non-blocking and will complete in the background.
-    // It's important to call this on every page load to handle the redirect case.
     getRedirectResult(auth).catch(error => {
-        // This catches errors from the redirect process itself, e.g., network issues.
         console.error("Error from getRedirectResult:", error);
         toast({
             title: "Error de Autenticación",
@@ -353,12 +350,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
     });
 
-    // onAuthStateChanged is the single source of truth for the user's login state.
-    // It fires after getRedirectResult completes, or on page load if the user has a valid session.
     const unsubscribe = auth.onAuthStateChanged(async user => {
       if (user) {
-        // User is signed in.
-        // Check if it's a new login or just a session refresh.
         if (!state.userProfile.isAuthenticated || state.userProfile.firebaseUid !== user.uid) {
             dispatch({
               type: 'UPDATE_USER_PROFILE',
@@ -369,18 +362,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 firebaseUid: user.uid,
               }
             });
-            // Fetch profile to see if they are a new or existing user.
             await fetchProfileCallback(user.uid);
         } else {
-            // User is the same, no need to re-fetch, just ensure loading is false.
             dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
-        // User is signed out.
         if (state.userProfile.isAuthenticated) {
           dispatch({ type: 'LOGOUT_USER' });
         } else {
-          // Not logged in, and not previously authenticated in this session.
           dispatch({type: 'SET_LOADING', payload: false });
         }
       }
@@ -389,7 +378,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchProfileCallback]);
-
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
