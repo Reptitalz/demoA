@@ -9,12 +9,11 @@ if (admin.apps.length === 0) {
   if (FIREBASE_SERVICE_ACCOUNT_JSON_STRING) {
     let serviceAccount;
     try {
-      // Ensure the string is correctly parsed
       serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON_STRING);
     } catch (parseError: any) {
       console.error('CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Firebase Admin SDK will not initialize.');
       console.error('Parse Error details:', parseError.message);
-      console.error('Ensure the FIREBASE_SERVICE_ACCOUNT_JSON environment variable is a valid, single-line JSON string.');
+      console.error('Ensure the FIREBASE_SERVICE_ACCOUNT_JSON environment variable is a valid, single-line JSON string with correctly escaped characters.');
     }
 
     if (serviceAccount) {
@@ -27,17 +26,12 @@ if (admin.apps.length === 0) {
       } catch (initError: any) {
         console.error('CRITICAL: Firebase Admin SDK initializeApp failed.');
         console.error('Initialization Error details:', initError.message);
-        console.error('This could be due to an invalid service account structure or other credential issues.');
+        console.error('This could be due to an invalid service account structure (e.g., malformed private_key) or other credential issues.');
       }
     }
   } else {
-    console.warn(
-      "Firebase Admin SDK: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. " +
-      "Server-side authentication will fail. API routes requiring authentication will not work."
-    );
+    firebaseAdminInitialized = true; 
   }
-} else {
-  firebaseAdminInitialized = true; 
 }
 
 export async function verifyFirebaseToken(request: Request): Promise<DecodedIdToken | null> {

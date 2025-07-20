@@ -62,7 +62,7 @@ const SetupPage = () => {
     return dbNeeded ? 5 : 4;
   })();
 
-  const getValidationMessage = (): string | null => {
+  const getValidationMessage = (): string => {
     const validateStep1 = () => {
       if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
       if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
@@ -107,25 +107,24 @@ const SetupPage = () => {
       else if (currentStep === 5) message = dbNeeded ? validateTermsStep() : null;
     }
 
-    return message;
+    return message || "OK";
   };
   
   const isStepValid = (): boolean => {
     if (isFinalizingSetup) return false;
-    return getValidationMessage() === null;
+    return getValidationMessage() === "OK";
   };
 
 
   const handleNext = () => {
-    const validationMessage = getValidationMessage();
-    if (validationMessage === null) {
+    if (isStepValid()) {
       if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
       }
     } else {
       toast({
         title: "Error de Validación",
-        description: validationMessage,
+        description: getValidationMessage(),
         variant: "destructive",
       });
     }
@@ -138,9 +137,8 @@ const SetupPage = () => {
   };
 
   const handleCompleteSetup = async () => {
-    const validationMessage = getValidationMessage();
-    if (validationMessage !== null) {
-        toast({ title: "Error", description: validationMessage, variant: "destructive" });
+    if (!isStepValid()) {
+        toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
         return;
     }
 
@@ -329,7 +327,7 @@ const SetupPage = () => {
             </Button>
           </div>
           {currentStep < effectiveMaxSteps ? (
-            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
+            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
               Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
             </Button>
           ) : (
