@@ -12,7 +12,7 @@ if (!MERCADOPAGO_ACCESS_TOKEN) {
   console.error("CRITICAL ERROR: MERCADOPAGO_ACCESS_TOKEN is not set for the webhook.");
 }
 
-const client = new MercadoPagoConfig({ accessToken: MERCADOPAGO_ACCESS_TOKEN });
+const client = new MercadoPagoConfig({ accessToken: MERCADOPAGO_ACCESS_TOKEN! });
 const payment = new Payment(client);
 
 export async function POST(request: NextRequest) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         const userProfileCollection = db.collection<UserProfile>('userProfiles');
         const transactionsCollection = db.collection<Transaction>('transactions');
 
-        // Use a session for atomicity (optional but good practice)
+        // Use a session for atomicity
         const session = db.client.startSession();
         try {
           await session.withTransaction(async () => {
@@ -63,7 +63,9 @@ export async function POST(request: NextRequest) {
             const existingTransaction = await transactionsCollection.findOne({ orderId: String(paymentId) }, { session });
             if (existingTransaction) {
                 console.log(`Transaction for payment ID ${paymentId} already processed. Acknowledging webhook.`);
-                return; // Exit the transaction
+                // We don't need to do anything else, the transaction is already recorded.
+                // The transaction will commit and the function will proceed to the final success response.
+                return;
             }
 
             const userUpdateResult = await userProfileCollection.findOneAndUpdate(
