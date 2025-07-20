@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -68,7 +69,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
     <header className="bg-card shadow-md sticky top-0 z-50">
       <div className={cn(
         "container mx-auto px-4 py-3 flex items-center justify-between",
-        !fullWidth && "max-w-md"
+        !fullWidth && "max-w-7xl"
       )}>
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <AppIcon 

@@ -12,7 +12,7 @@ const PageContainer = ({ children, className, fullWidth = false }: PageContainer
   return (
     <main className={cn(
       "flex-grow container mx-auto px-4 py-6 sm:py-8 w-full",
-      !fullWidth && "max-w-md", // Aplicar max-w-md solo si fullWidth es false
+      !fullWidth && "max-w-7xl", // Apply max-w-7xl unless fullWidth is true
       className
     )}>
       {children}

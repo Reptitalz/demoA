@@ -13,55 +13,21 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
-let determinedBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-const defaultFallbackUrl = 'https://www.tu-dominio.com'; // CAMBIA ESTO a tu dominio real
-
-if (!determinedBaseUrl || typeof determinedBaseUrl !== 'string' || determinedBaseUrl.trim() === '') {
-  console.warn(
-    `NEXT_PUBLIC_BASE_URL is not set or is empty. Falling back to default: ${defaultFallbackUrl}`
-  );
-  determinedBaseUrl = defaultFallbackUrl;
-} else {
-  try {
-    determinedBaseUrl = determinedBaseUrl.trim();
-    if (!determinedBaseUrl.startsWith('http://') && !determinedBase-url.startsWith('https://')) {
-      if (determinedBaseUrl.includes('.') && !determinedBaseUrl.startsWith('localhost')) {
-        // Looks like a domain (e.g., example.com) but no scheme
-        console.warn(`NEXT_PUBLIC_BASE_URL "${determinedBaseUrl}" seems to be missing a scheme. Assuming https.`);
-        determinedBaseUrl = `https://${determinedBaseUrl}`;
-      } else if (determinedBaseUrl.startsWith('localhost')) {
-        // For localhost (e.g., localhost:3000, localhost:9002)
-        console.warn(`NEXT_PUBLIC_BASE_URL "${determinedBaseUrl}" is localhost and missing a scheme. Assuming http.`);
-        determinedBaseUrl = `http://${determinedBaseUrl}`;
-      } else {
-        // Not clearly a domain and not localhost (e.g., just a path or gibberish)
-        throw new Error('URL scheme is missing and cannot be reliably inferred.');
-      }
-    }
-    new URL(determinedBaseUrl); // Validate the (potentially prefixed) URL
-  } catch (e) {
-    console.error(
-      `Invalid NEXT_PUBLIC_BASE_URL: "${process.env.NEXT_PUBLIC_BASE_URL}". Error: ${(e as Error).message}. Falling back to default: ${defaultFallbackUrl}`
-    );
-    determinedBaseUrl = defaultFallbackUrl;
-  }
-}
-
-const BASE_URL = determinedBaseUrl;
+// Use a simple and robust way to determine the base URL.
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL), // Base para URLs relativas en metadatos
+  metadataBase: new URL(BASE_URL),
   title: {
     default: `${APP_NAME} | Asistentes Virtuales IA y Automatización WhatsApp`,
-    template: `%s | ${APP_NAME}`, // Permite títulos de página específicos
+    template: `%s | ${APP_NAME}`,
   },
   description: `Descubre ${APP_NAME}, la plataforma líder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicación por WhatsApp, integra bases de datos y optimiza procesos.`,
   keywords: ['asistente virtual', 'IA', 'chatbot', 'WhatsApp', 'automatización', 'CRM', 'inteligencia artificial', APP_NAME, 'gestión de clientes', 'Hey Manito'],
-  authors: [{ name: APP_NAME /* O el nombre de tu empresa */ }],
+  authors: [{ name: APP_NAME }],
   creator: APP_NAME,
   publisher: APP_NAME,
 
-  // Open Graph (para Facebook, LinkedIn, etc.)
   openGraph: {
     title: `${APP_NAME} | Asistentes IA Avanzados`,
     description: `Potencia tu negocio con ${APP_NAME}. Crea asistentes virtuales inteligentes para WhatsApp, gestiona datos y automatiza tareas.`,
@@ -69,44 +35,39 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     images: [
       {
-        url: '/opengraph-image.png', // DEBES CREAR ESTA IMAGEN: public/opengraph-image.png (1200x630px recomendado)
+        url: '/opengraph-image.png',
         width: 1200,
         height: 630,
         alt: `Plataforma ${APP_NAME} para asistentes virtuales con IA`,
       },
     ],
-    locale: 'es_MX', // Ajusta a tu localidad principal (ej. es_ES, es_AR)
+    locale: 'es_MX',
     type: 'website',
   },
 
-  // Twitter Card
   twitter: {
     card: 'summary_large_image',
     title: `${APP_NAME} - Transforma tu Comunicación con IA`,
     description: `Configura asistentes virtuales en minutos con ${APP_NAME}. Integración WhatsApp, bases de datos inteligentes y más.`,
-    // siteId: 'TuTwitterSiteID', // Opcional: ID numérico de tu sitio en Twitter
-    creator: '@TuUsuarioTwitter', // Opcional: Tu usuario de Twitter (ej. @HeyManitoApp)
-    // creatorId: 'TuTwitterCreatorID', // Opcional
-    images: [`${BASE_URL}/twitter-image.png`], // DEBES CREAR ESTA IMAGEN: public/twitter-image.png (1200x600px o similar)
+    creator: '@TuUsuarioTwitter',
+    images: [`${BASE_URL}/twitter-image.png`],
   },
 
-  // Íconos
   icons: {
-    icon: '/icon.svg', // Ya existente
+    icon: '/icon.svg',
     shortcut: '/icon.svg',
-    apple: '/apple-icon.png', // DEBES CREAR ESTA IMAGEN: public/apple-icon.png (ej. 180x180px)
+    apple: '/apple-icon.png',
   },
 
-  // Robots (complementa robots.txt para directivas específicas)
   robots: {
-    index: true, // Permitir indexación por defecto
-    follow: true, // Permitir seguir enlaces por defecto
-    googleBot: { // Directivas específicas para GoogleBot
+    index: true,
+    follow: true,
+    googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1, // Sin límite para vista previa de video
-      'max-image-preview': 'large', // Vista previa de imagen grande
-      'max-snippet': -1, // Sin límite para fragmentos
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   },
 };
@@ -119,11 +80,8 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        {/* PWA & Themeing */}
         <meta name="theme-color" content="#8a4fff" />
         <link rel="manifest" href="/manifest.json" />
-
-        {/* El link del favicon ya está aquí, los metadatos manejan los demás */}
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <Script src="https://sdk.mercadopago.com/js/v2" strategy="beforeInteractive" />
       </head>

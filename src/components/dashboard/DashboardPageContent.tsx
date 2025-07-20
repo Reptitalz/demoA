@@ -129,7 +129,7 @@ const DashboardPageContent = () => {
           </Button>
         </div>
         {userProfile.assistants.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-1"> 
+          <div className="grid gap-4 grid-cols-1"> 
             {userProfile.assistants.map((assistant, index) => (
               <AssistantCard 
                 key={assistant.id} 
@@ -158,7 +158,7 @@ const DashboardPageContent = () => {
           </h3>
         </div>
         {userProfile.databases.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-1">  
+          <div className="grid gap-4 grid-cols-1">  
             {userProfile.databases.map((db, index) => (
               <DatabaseInfoCard key={db.id} database={db} animationDelay={`${0.6 + (userProfile.assistants.length + index) * 0.1}s`} />
             ))}
@@ -175,4 +175,6 @@ const DashboardPageContent = () => {
       </div>
     </PageContainer>
   );
-}
+};
+
+export default DashboardPageContent;

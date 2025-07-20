@@ -65,7 +65,6 @@ type Action =
   | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
-  | { type: 'LOAD_WIZARD_STATE'; payload: Partial<WizardState> }
   | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
   | { type: 'UPDATE_USER_PROFILE'; payload: Partial<UserProfile> }
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
@@ -132,22 +131,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...state,
         wizard: initialWizardState
       };
-    case 'LOAD_WIZARD_STATE': {
-      const loadedWizardState = action.payload;
-      const wizardSelectedPurposesSet = Array.isArray(loadedWizardState?.selectedPurposes)
-        ? new Set(loadedWizardState.selectedPurposes as AssistantPurposeType[])
-        : new Set<AssistantPurposeType>();
-
-      return {
-        ...state,
-        wizard: {
-          ...initialWizardState,
-          ...loadedWizardState,
-          selectedPurposes: wizardSelectedPurposesSet,
-          acceptedTerms: !!loadedWizardState.acceptedTerms,
-        },
-      };
-    }
     case 'SYNC_PROFILE_FROM_API': {
         const apiProfile = action.payload;
         const assistantsWithSetPurposes = (apiProfile.assistants || []).map(assistant => ({
@@ -198,7 +181,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     }
     case 'LOGOUT_USER':
-      localStorage.removeItem('assistAIManagerWizardState');
       return {
         ...initialState,
         isLoading: false,
@@ -342,10 +324,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     
     dispatch({ type: 'SET_LOADING', payload: true });
     
-    // First, process any redirect result. This is non-blocking and will complete in the background.
-    // It's important to call this on every page load to handle the redirect case.
     getRedirectResult(auth).catch(error => {
-        // This catches errors from the redirect process itself, e.g., network issues.
         console.error("Error from getRedirectResult:", error);
         toast({
             title: "Error de Autenticación",
@@ -354,12 +333,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
     });
 
-    // onAuthStateChanged is the single source of truth for the user's login state.
-    // It fires after getRedirectResult completes, or on page load if the user has a valid session.
     const unsubscribe = auth.onAuthStateChanged(async user => {
       if (user) {
-        // User is signed in.
-        // Check if it's a new login or just a session refresh.
         if (!state.userProfile.isAuthenticated || state.userProfile.firebaseUid !== user.uid) {
             dispatch({
               type: 'UPDATE_USER_PROFILE',
@@ -370,52 +345,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                 firebaseUid: user.uid,
               }
             });
-            // Fetch profile to see if they are a new or existing user.
             await fetchProfileCallback(user.uid);
         } else {
-            // User is the same, no need to re-fetch, just ensure loading is false.
             dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
-        // User is signed out.
         if (state.userProfile.isAuthenticated) {
           dispatch({ type: 'LOGOUT_USER' });
         } else {
-          // Not logged in, and not previously authenticated in this session.
           dispatch({type: 'SET_LOADING', payload: false });
         }
       }
     });
 
-    try {
-      const persistedWizardStateJSON = localStorage.getItem('assistAIManagerWizardState');
-      if (persistedWizardStateJSON) {
-        const persistedWizardState = JSON.parse(persistedWizardStateJSON);
-        dispatch({ type: 'LOAD_WIZARD_STATE', payload: persistedWizardState });
-      }
-    } catch (error) {
-      console.error("Error loading wizard state from localStorage", error);
-    }
-
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchProfileCallback]);
-
-  useEffect(() => {
-    if (state.isLoading) {
-      return;
-    }
-    try {
-      const serializableWizardState = {
-        ...state.wizard,
-        selectedPurposes: Array.from(state.wizard.selectedPurposes),
-      };
-      localStorage.setItem('assistAIManagerWizardState', JSON.stringify(serializableWizardState));
-    } catch (error) {
-      console.error("Error saving wizard state to localStorage", error);
-    }
-  }, [state.wizard, state.isLoading]);
-
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
@@ -476,5 +421,3 @@ export const useApp = () => {
   }
   return context;
 };
-
-    

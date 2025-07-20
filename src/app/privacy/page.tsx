@@ -8,13 +8,13 @@ import Link from 'next/link';
 const PrivacyPolicyPage = () => {
   return (
     <PageContainer className="space-y-6" fullWidth={true}>
-      <div className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+      <div className="bg-card p-6 sm:p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-bold text-brand-gradient mb-6 text-center">
           Política de Privacidad de {APP_NAME}
         </h1>
 
         <p className="mb-4 text-muted-foreground">
-          Última actualización: 27 de Julio de 2024
+          Última actualización: 28 de Julio de 2024
         </p>
 
         <p className="mb-4">
@@ -128,5 +128,3 @@ const PrivacyPolicyPage = () => {
 };
 
 export default PrivacyPolicyPage;
-
-    

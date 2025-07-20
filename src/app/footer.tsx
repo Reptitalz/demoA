@@ -13,7 +13,7 @@ const Footer = ({ fullWidth = false }: FooterProps) => {
     <footer className="bg-card border-t border-border mt-auto">
       <div className={cn(
         "container mx-auto px-4 py-4 text-center text-muted-foreground text-xs sm:text-sm",
-        !fullWidth && "max-w-md" 
+        !fullWidth && "max-w-7xl" 
       )}>
         <p>&copy; {new Date().getFullYear()} {APP_NAME}. Todos los derechos reservados.</p>
         <div className="flex justify-center gap-4 mt-1">

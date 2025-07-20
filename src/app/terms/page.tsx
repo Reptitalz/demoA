@@ -14,7 +14,7 @@ const TermsOfServicePage = () => {
         </h1>
 
         <p className="mb-4 text-muted-foreground">
-          Última actualización: 1 de Julio de 2024
+          Última actualización: 28 de Julio de 2024
         </p>
         
         <p className="mb-4">

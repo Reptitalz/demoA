@@ -17,7 +17,7 @@ interface AssistantWebhookPayload {
   assistant: {
     id: string;
     name: string;
-    prompt: string; // <-- Campo añadido
+    prompt: string;
     purposes: string[];
     imageUrl?: string;
     database?: {
@@ -53,7 +53,7 @@ export async function sendAssistantCreatedWebhook(
     assistant: {
       id: assistant.id,
       name: assistant.name,
-      prompt: assistant.prompt || '', // <-- Campo añadido
+      prompt: assistant.prompt || '',
       purposes: Array.from(assistant.purposes || new Set()),
       imageUrl: assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
       database: assistantDatabase

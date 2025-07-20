@@ -21,7 +21,7 @@ import { Slider } from '@/components/ui/slider';
 import { MessagesSquare, Coins, Wallet, Loader2, Copy, Check, Banknote } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS, APP_NAME } from '@/config/appConfig';
 import { auth } from '@/lib/firebase';
-import { Card, CardContent } from '../ui/card';
+import { Card } from '../ui/card';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;

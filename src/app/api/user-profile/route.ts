@@ -1,5 +1,5 @@
 
-import type { UserProfile, AssistantConfig } from '@/types';
+import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { NextRequest, NextResponse } from 'next/server';
@@ -36,13 +36,14 @@ export async function GET(request: NextRequest) {
         isAuthenticated: true,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
-          purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || new Set()),
+          // Ensure purposes is always an array to prevent iteration errors
+          purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
-          businessInfo: asst.businessInfo || {}, // Ensure businessInfo is an object
+          businessInfo: asst.businessInfo || {},
         })),
         databases: profile.databases || [],
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
-        credits: profile.credits || 0, // Ensure credits field exists
+        credits: profile.credits || 0,
         pushSubscriptions: profile.pushSubscriptions || [],
       };
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     
     const { db } = await connectToDatabase();
 
-    // Prepare a clean, serializable profile for MongoDB, ensuring it matches the latest structure
+    // Prepare a clean, serializable profile for MongoDB
     const serializableProfile = {
       firebaseUid: decodedToken.uid,
       email: userProfile.email,
@@ -84,9 +85,10 @@ export async function POST(request: NextRequest) {
       credits: userProfile.credits || 0,
       assistants: (userProfile.assistants || []).map((asst: any) => ({
         ...asst,
-        purposes: Array.from(asst.purposes || []), // Ensure Set is converted to Array
+        // Ensure purposes is converted to Array for MongoDB
+        purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || []),
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
-        businessInfo: asst.businessInfo || {}, // Pass businessInfo through
+        businessInfo: asst.businessInfo || {},
       })),
       databases: userProfile.databases || [],
       pushSubscriptions: userProfile.pushSubscriptions || [],

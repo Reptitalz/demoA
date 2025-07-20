@@ -1,3 +1,4 @@
+
 // src/app/api/assistants/update-status/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';

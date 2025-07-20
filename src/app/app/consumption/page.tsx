@@ -2,10 +2,8 @@
 "use client";
 
 import PageContainer from '@/components/layout/PageContainer';
-import { Button } from '@/components/ui/button'; // Kept for potential future use
 import { BarChart2, MessageSquareText, Users, Zap } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card"; // Renamed CardTitle to SmallCardTitle to avoid conflict if Page title is also CardTitle
-// ScrollArea import is removed
+import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card";
 import { APP_NAME } from '@/config/appConfig';
 
 // Placeholder data - replace with actual data fetching and state

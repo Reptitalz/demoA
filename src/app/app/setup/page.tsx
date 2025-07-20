@@ -19,7 +19,7 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { auth, googleProvider, signInWithRedirect, signOut } from '@/lib/firebase';
+import { auth, googleProvider, signInWithRedirect } from '@/lib/firebase';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const SetupPage = () => {
@@ -32,20 +32,16 @@ const SetupPage = () => {
   const [showWizard, setShowWizard] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
+  // Effect to decide whether to show the welcome screen or the wizard
   useEffect(() => {
-    if (!state.isLoading && state.userProfile.isAuthenticated) {
-        // Redirect existing users away from setup unless they are reconfiguring or adding a new assistant
-        if (state.isSetupComplete && !isReconfiguring) {
-             const isAddingNew = new URLSearchParams(window.location.search).get('action') === 'add';
-             if (!isAddingNew) {
-                // If they land here by mistake, send them to dashboard.
-                // Reconfigure/Add flows will be handled by buttons in the dashboard.
-                // This logic is simplified as the primary navigation is handled by AppRootPage
-             }
-        }
-        setShowWizard(true); // Always show wizard if authenticated and not redirected
+    if (!state.isLoading) {
+      // If user is authenticated, always show the wizard. The AppRootPage will handle redirects.
+      if (state.userProfile.isAuthenticated) {
+          setShowWizard(true);
+      }
+      // If not authenticated, the default is to show the welcome screen (showWizard = false)
     }
-  }, [state.isLoading, state.userProfile.isAuthenticated, state.isSetupComplete, isReconfiguring, router]);
+  }, [state.isLoading, state.userProfile.isAuthenticated]);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -146,7 +142,6 @@ const SetupPage = () => {
         return;
     }
 
-    // For new users, an extra check for authentication
     if (!isAddingNewForExistingUser && !isReconfiguring && !state.userProfile.isAuthenticated) {
         toast({ title: "Autenticación Requerida", description: "Por favor, inicia sesión para completar la configuración.", variant: "destructive" });
         return;
@@ -229,14 +224,12 @@ const SetupPage = () => {
     router.push('/dashboard');
   };
 
-  const handleLoginOnly = async () => {
+  const handleLogin = async () => {
     if (!googleProvider) {
       toast({ title: "Configuración Incompleta", description: "La autenticación de Firebase no está configurada.", variant: "destructive" });
       return;
     }
     try {
-      // The user will be redirected to Google's sign-in page.
-      // After signing in, they will be redirected back, and AppProvider will handle the auth state.
       await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
       toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
@@ -289,7 +282,7 @@ const SetupPage = () => {
               variant="outline"
               size="lg"
               className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleLoginOnly}
+              onClick={handleLogin}
             >
               <LogIn className="mr-3 h-5 w-5 text-primary" />
               Iniciar sesión
@@ -313,7 +306,7 @@ const SetupPage = () => {
     <PageContainer>
       <div className="space-y-5">
         <SetupProgressBar />
-        <div className="min-h-[260px] sm:min-h-[280px] md:min-h-[320px] lg:min-h-[350px] relative">
+        <div className="min-h-[350px] relative">
          {isFinalizingSetup && (
             <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center z-10 rounded-md">
               <FaSpinner className="animate-spin h-10 w-10 text-primary" />
@@ -351,5 +344,3 @@ const SetupPage = () => {
 };
 
 export default SetupPage;
-
-    

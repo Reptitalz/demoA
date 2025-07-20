@@ -26,15 +26,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly', // Las políticas de privacidad no suelen cambiar tan a menudo
       priority: 0.3,
     },
-    // Puedes añadir aquí otras páginas públicas importantes si las tienes
-    // Ejemplo:
-    // {
-    //   url: `${BASE_URL}/contacto`,
-    //   lastModified: new Date(),
-    //   changeFrequency: 'yearly',
-    //   priority: 0.7,
-    // },
+    {
+      url: `${BASE_URL}/terms`, // Nueva página de términos y condiciones
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 }
-
-    
