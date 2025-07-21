@@ -1,13 +1,13 @@
 
 "use client"; 
 import type { ReactNode } from 'react';
-import Header from './Header';
+import Header from '@/components/layout/Header';
 import Footer from '@/app/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation'; 
 import { cn } from '@/lib/utils';
-import BottomNavigationBar from './BottomNavigationBar';
-import DynamicCanvasBackground from './DynamicCanvasBackground';
+import BottomNavigationBar from '@/components/layout/BottomNavigationBar';
+import DynamicCanvasBackground from '@/components/layout/DynamicCanvasBackground';
 
 interface AppLayoutProps {
   children: ReactNode;
