@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -271,17 +272,19 @@ const SetupPage = () => {
 
   if (!state.userProfile.isAuthenticated && !showWizard) {
     return (
-      <PageContainer>
-        <Card className="w-full max-w-md mx-auto shadow-xl animate-fadeIn mt-10 sm:mt-16">
-          <CardHeader>
-            <CardTitle className="text-center text-2xl">Bienvenido/a a {APP_NAME}!</CardTitle>
-            <CardDescription className="text-center pt-1">¿Cómo deseas comenzar?</CardDescription>
+      <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+        <Card className="w-full max-w-lg mx-auto shadow-xl animate-fadeIn p-4 sm:p-6">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl sm:text-3xl">Bienvenido/a a {APP_NAME}</CardTitle>
+            <CardDescription className="pt-2">
+              ¿Ya tienes una cuenta o quieres crear tu primer asistente?
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <Button
               variant="outline"
               size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={handleLogin}
             >
               <LogIn className="mr-3 h-5 w-5 text-primary" />
@@ -289,11 +292,11 @@ const SetupPage = () => {
             </Button>
             <Button
               size="lg"
-              className="w-full justify-start text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
+              className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
               onClick={handleStartSetup}
             >
               <UserPlus className="mr-3 h-5 w-5" />
-              Define tu Asistente
+              Crear Asistente
             </Button>
           </CardContent>
         </Card>
