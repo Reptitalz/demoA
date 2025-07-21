@@ -18,6 +18,7 @@ const DynamicCanvasBackground: React.FC = () => {
   const { resolvedTheme } = useTheme();
   const animationFrameId = useRef<number>();
   const particlesArray = useRef<Particle[]>([]);
+  const mousePosition = useRef({ x: 0, y: 0 });
 
   const getThemeColors = useCallback(() => {
     if (typeof window === 'undefined') {
@@ -67,17 +68,21 @@ const DynamicCanvasBackground: React.FC = () => {
     ctx.strokeStyle = themeColors.grid;
     ctx.lineWidth = 0.5;
 
-    for (let x = 0; x <= canvas.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
+    // Calculate grid offset based on mouse position for parallax effect
+    const offsetX = (mousePosition.current.x / canvas.width - 0.5) * gridSize * 0.5;
+    const offsetY = (mousePosition.current.y / canvas.height - 0.5) * gridSize * 0.5;
+
+    for (let x = -offsetX % gridSize; x <= canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
     }
-    for (let y = 0; y <= canvas.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
+    for (let y = -offsetY % gridSize; y <= canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
     }
   }, [getThemeColors]);
 
@@ -120,11 +125,17 @@ const DynamicCanvasBackground: React.FC = () => {
     const handleResize = () => {
       initCanvas(); // Re-initialize particles and canvas size
     };
+    
+    const handleMouseMove = (event: MouseEvent) => {
+      mousePosition.current = { x: event.clientX, y: event.clientY };
+    };
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
