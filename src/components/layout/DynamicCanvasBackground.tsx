@@ -23,16 +23,16 @@ const DynamicCanvasBackground: React.FC = () => {
   const getThemeColors = useCallback(() => {
     if (typeof window === 'undefined') {
       return {
-        primary: 'hsl(260 70% 60%)', // Default Purple
-        accent: 'hsl(30 100% 55%)',  // Default Orange
-        grid: resolvedTheme === 'dark' ? 'hsla(0, 0%, 100%, 0.05)' : 'hsla(0, 0%, 0%, 0.05)',
+        primary: 'hsl(260 70% 60%)',
+        accent: 'hsl(30 100% 55%)',
+        grid: resolvedTheme === 'dark' ? 'hsla(0, 0%, 100%, 0.12)' : 'hsla(0, 0%, 0%, 0.12)',
       };
     }
     const rootStyle = getComputedStyle(document.documentElement);
     return {
       primary: `hsl(${rootStyle.getPropertyValue('--primary').trim()})`,
       accent: `hsl(${rootStyle.getPropertyValue('--accent').trim()})`,
-      grid: resolvedTheme === 'dark' ? 'hsla(210, 30%, 95%, 0.07)' : 'hsla(220, 10%, 10%, 0.07)',
+      grid: resolvedTheme === 'dark' ? 'hsla(210, 30%, 95%, 0.12)' : 'hsla(220, 10%, 10%, 0.12)',
     };
   }, [resolvedTheme]);
 
@@ -66,7 +66,7 @@ const DynamicCanvasBackground: React.FC = () => {
     const gridSize = 40;
     const themeColors = getThemeColors();
     ctx.strokeStyle = themeColors.grid;
-    ctx.lineWidth = 0.5;
+    ctx.lineWidth = 0.6; // Increased from 0.5
 
     // Calculate grid offset based on mouse position for parallax effect
     const offsetX = (mousePosition.current.x / canvas.width - 0.5) * gridSize * 0.5;
