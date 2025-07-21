@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -97,8 +97,44 @@ const ChatBubble = ({ text, isUser, time }: { text: string; isUser: boolean; tim
 
 
 const PhoneChatMockup = () => {
+    const [rotate, setRotate] = useState({ x: 0, y: 0 });
+    const ref = useRef<HTMLDivElement>(null);
+
+    const onMouseMove = (e: MouseEvent) => {
+        if (!ref.current) return;
+        const { clientX, clientY } = e;
+        const { left, top, width, height } = ref.current.getBoundingClientRect();
+        
+        const x = (clientX - (left + width / 2)) / (width / 2);
+        const y = (clientY - (top + height / 2)) / (height / 2);
+
+        setRotate({ x: y * -10, y: x * 10 }); // -10 and 10 are rotation factors
+    };
+
+    const onMouseLeave = () => {
+        setRotate({ x: 0, y: 0 });
+    };
+
+    useEffect(() => {
+        const currentRef = ref.current;
+        currentRef?.addEventListener('mousemove', onMouseMove);
+        currentRef?.addEventListener('mouseleave', onMouseLeave);
+
+        return () => {
+            currentRef?.removeEventListener('mousemove', onMouseMove);
+            currentRef?.removeEventListener('mouseleave', onMouseLeave);
+        };
+    }, []);
+
     return (
-        <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2.5rem] h-[550px] w-[270px] shadow-xl">
+        <div 
+            ref={ref}
+            style={{
+                transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
+                transition: 'transform 0.1s ease-out'
+            }}
+            className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2.5rem] h-[550px] w-[270px] shadow-xl"
+        >
             <div className="w-[120px] h-[18px] bg-gray-800 top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute"></div>
             <div className="h-[40px] w-[3px] bg-gray-800 absolute -left-[11px] top-[60px] rounded-l-lg"></div>
             <div className="h-[40px] w-[3px] bg-gray-800 absolute -left-[11px] top-[120px] rounded-l-lg"></div>
