@@ -97,11 +97,36 @@ const ChatBubble = ({ text, isUser, time }: { text: string; isUser: boolean; tim
 
 const PhoneChatMockup = () => {
     const ref = useRef<HTMLDivElement>(null);
+    const [style, setStyle] = useState({});
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!ref.current) return;
+
+            const { clientX, clientY } = e;
+            const { innerWidth, innerHeight } = window;
+
+            const x = (clientX / innerWidth - 0.5) * 2; // -1 to 1
+            const y = (clientY / innerHeight - 0.5) * 2; // -1 to 1
+
+            const rotateY = x * 10; // Max rotation 10deg
+            const rotateX = -y * 10; // Max rotation 10deg
+
+            setStyle({
+                transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1, 1, 1)`,
+                transition: 'transform 0.1s ease-out'
+            });
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
 
     return (
         <div 
             ref={ref}
             className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2.5rem] h-[550px] w-[270px] shadow-xl"
+            style={style}
         >
             <div className="w-[120px] h-[18px] bg-gray-800 top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute"></div>
             <div className="h-[40px] w-[3px] bg-gray-800 absolute -left-[11px] top-[60px] rounded-l-lg"></div>
@@ -194,7 +219,7 @@ export default function MarketingPage() {
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
       <HeroSection />
 
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn" style={{animationDelay: '0.5s'}}>
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 animate-fadeIn" style={{animationDelay: '0.5s', perspective: '1000px'}}>
         <PhoneChatMockup />
       </div>
 
@@ -293,3 +318,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
+
+
+    
