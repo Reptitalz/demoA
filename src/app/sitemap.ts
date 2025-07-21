@@ -1,10 +1,7 @@
 
 import { type MetadataRoute } from 'next';
-import { APP_NAME } from '@/config/appConfig';
 
-// Asegúrate de que esta sea tu URL de producción.
-// Es MUY RECOMENDABLE configurar NEXT_PUBLIC_BASE_URL en tus variables de entorno.
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.tu-dominio.com'; // CAMBIA ESTO
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -18,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE_URL}/app`, // Punto de entrada a la aplicación (puede ser la página de login/setup)
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.5, // Prioridad más baja que la landing page
+      priority: 0.8,
     },
     {
       url: `${BASE_URL}/privacy`, // Nueva página de política de privacidad

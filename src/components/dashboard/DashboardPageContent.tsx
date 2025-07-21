@@ -56,7 +56,7 @@ const DashboardPageContent = () => {
         }
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
-        router.push('/app/setup'); 
+        router.push('/app'); 
         toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
@@ -66,7 +66,7 @@ const DashboardPageContent = () => {
   const handleAddNewAssistant = () => {
     dispatch({ type: 'RESET_WIZARD' });
     // Using a query param to differentiate from mistaken navigation to /setup
-    router.push('/app/setup?action=add'); 
+    router.push('/app?action=add'); 
   };
 
   const handleAddNewDatabase = () => {
@@ -76,7 +76,7 @@ const DashboardPageContent = () => {
       description: "Para añadir una base de datos, inicia el proceso de 'Añadir Asistente' y configúrala allí.",
       duration: 7000,
     });
-    router.push('/app/setup?action=add');
+    router.push('/app?action=add');
   };
 
   const handleLogout = async () => {
