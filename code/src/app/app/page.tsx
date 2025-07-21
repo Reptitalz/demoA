@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -22,7 +22,7 @@ import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import { auth, googleProvider, signInWithRedirect } from '@/lib/firebase';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
-const AppRootPage = () => {
+const AppRootPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -117,9 +117,9 @@ const AppRootPage = () => {
     } else { // New user
       if (currentStep === 1) message = validateStep1();
       else if (currentStep === 2) message = validateStep2();
-      else if (currentStep === 3) message = dbNeeded ? validateDbStep() : validateAuthStep();
-      else if (currentStep === 4) message = dbNeeded ? validateAuthStep() : validateTermsStep();
-      else if (currentStep === 5) message = dbNeeded ? validateTermsStep() : null;
+      else if (currentStep === 3) message = dbNeeded ? <Step2DatabaseConfig /> : <Step3Authentication />;
+      else if (currentStep === 4) message = dbNeeded ? <Step3Authentication /> : <Step5_TermsAndConditions />;
+      else if (currentStep === 5) message = dbNeeded ? <Step5_TermsAndConditions /> : null;
     }
 
     return message;
@@ -370,6 +370,16 @@ const AppRootPage = () => {
   );
 };
 
-export default AppRootPage;
+const AppRootPage = () => {
+  return (
+    <Suspense fallback={
+        <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+            <LoadingSpinner size={36} />
+        </PageContainer>
+    }>
+      <AppRootPageContent />
+    </Suspense>
+  );
+}
 
-    
+export default AppRootPage;
