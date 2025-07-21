@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -62,7 +61,7 @@ const SetupPage = () => {
     return dbNeeded ? 5 : 4;
   })();
 
-  const getValidationMessage = (): string => {
+  const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
       if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
       if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
@@ -107,12 +106,12 @@ const SetupPage = () => {
       else if (currentStep === 5) message = dbNeeded ? validateTermsStep() : null;
     }
 
-    return message || "OK";
+    return message;
   };
   
   const isStepValid = (): boolean => {
     if (isFinalizingSetup) return false;
-    return getValidationMessage() === "OK";
+    return getValidationMessage() === null;
   };
 
 
@@ -137,8 +136,9 @@ const SetupPage = () => {
   };
 
   const handleCompleteSetup = async () => {
-    if (!isStepValid()) {
-        toast({ title: "Error", description: getValidationMessage(), variant: "destructive" });
+    const validationError = getValidationMessage();
+    if (validationError) {
+        toast({ title: "Error", description: validationError, variant: "destructive" });
         return;
     }
 

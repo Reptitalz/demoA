@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from 'react';
@@ -285,7 +284,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to fetch user profile:", error);
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [dispatch]);
+  }, []);
   
   useEffect(() => {
     const handleServiceWorkerMessage = (event: MessageEvent) => {
@@ -335,6 +334,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     const unsubscribe = auth.onAuthStateChanged(async user => {
       if (user) {
+        // Only trigger the full profile sync if the user changes or wasn't authenticated before
         if (!state.userProfile.isAuthenticated || state.userProfile.firebaseUid !== user.uid) {
             dispatch({
               type: 'UPDATE_USER_PROFILE',
@@ -347,20 +347,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             });
             await fetchProfileCallback(user.uid);
         } else {
+            // If the user is already authenticated and it's the same user, just stop loading
             dispatch({ type: 'SET_LOADING', payload: false });
         }
       } else {
+        // If user is null, it means they are logged out or never logged in.
         if (state.userProfile.isAuthenticated) {
-          dispatch({ type: 'LOGOUT_USER' });
+          dispatch({ type: 'LOGOUT_USER' }); // Clear profile if they were logged in
         } else {
-          dispatch({type: 'SET_LOADING', payload: false });
+          dispatch({type: 'SET_LOADING', payload: false }); // Just stop loading
         }
       }
     });
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchProfileCallback]);
+  }, [fetchProfileCallback, state.userProfile.isAuthenticated, state.userProfile.firebaseUid]);
+
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
