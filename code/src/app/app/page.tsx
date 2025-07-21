@@ -53,7 +53,12 @@ const AppRootPageContent = () => {
         } 
         // If not authenticated, we can infer they need to see the welcome/login screen.
         else {
-            setShowWizard(false); 
+            const action = searchParams.get('action');
+            if (action === 'add') {
+                setShowWizard(true);
+            } else {
+                setShowWizard(false);
+            }
         }
     }
   }, [state.isLoading, userProfile.isAuthenticated, isSetupComplete, router, isReconfiguring, searchParams]);
@@ -253,7 +258,13 @@ const AppRootPageContent = () => {
   };
 
   const handleStartSetup = () => {
-    setShowWizard(true);
+    // We navigate to the same page but with a query param to indicate the user's intent.
+    router.push('/app?action=add');
+  };
+  
+  const handleGoToAppRoot = () => {
+    dispatch({ type: 'RESET_WIZARD' });
+    router.push('/app');
   };
 
   const renderStepContent = () => {
@@ -285,7 +296,7 @@ const AppRootPageContent = () => {
     );
   }
 
-  if (!userProfile.isAuthenticated && !showWizard) {
+  if (!showWizard) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <Card className="w-full max-w-lg mx-auto shadow-xl animate-fadeIn p-4 sm:p-6">
@@ -336,9 +347,13 @@ const AppRootPageContent = () => {
           </div>
           <div className="flex justify-between items-center pt-4 border-t">
             <div className="flex gap-1.5">
-              {state.isSetupComplete && (
+              {state.isSetupComplete ? (
                 <Button variant="outline" onClick={() => router.push('/dashboard')} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
                   <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={handleGoToAppRoot} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
+                  <FaHome className="mr-1 h-3 w-3" /> Volver al Inicio
                 </Button>
               )}
               <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
