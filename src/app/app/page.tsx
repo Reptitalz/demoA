@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
@@ -25,27 +25,38 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 const AppRootPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
-  const { isSetupComplete } = state;
+  const { userProfile, isSetupComplete } = state;
   
   const [showWizard, setShowWizard] = useState(false);
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   useEffect(() => {
     if (!state.isLoading) {
-      if (state.userProfile.isAuthenticated) {
-        if (state.isSetupComplete && !isReconfiguring) {
-          router.replace('/dashboard');
-        } else {
-          setShowWizard(true);
+        // If user is authenticated
+        if (userProfile.isAuthenticated) {
+            const action = searchParams.get('action');
+            // If they want to add a new assistant or are reconfiguring one, show wizard.
+            if (action === 'add' || isReconfiguring) {
+                setShowWizard(true);
+            } 
+            // If they have completed setup and are not trying to add/reconfigure, send to dashboard.
+            else if (isSetupComplete) {
+                router.replace('/dashboard');
+            } 
+            // Otherwise, they are a new user part-way through setup, so show wizard.
+            else {
+                setShowWizard(true);
+            }
+        } 
+        // If not authenticated, we can infer they need to see the welcome/login screen.
+        else {
+            setShowWizard(false); 
         }
-      } else {
-        // If not authenticated and not loading, we can infer they need to see the welcome/login screen
-        setShowWizard(false); 
-      }
     }
-  }, [state.isLoading, state.userProfile.isAuthenticated, state.isSetupComplete, router, isReconfiguring]);
+  }, [state.isLoading, userProfile.isAuthenticated, isSetupComplete, router, isReconfiguring, searchParams]);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -274,7 +285,7 @@ const AppRootPage = () => {
     );
   }
 
-  if (!state.userProfile.isAuthenticated && !showWizard) {
+  if (!userProfile.isAuthenticated && !showWizard) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <Card className="w-full max-w-lg mx-auto shadow-xl animate-fadeIn p-4 sm:p-6">
@@ -360,5 +371,3 @@ const AppRootPage = () => {
 };
 
 export default AppRootPage;
-
-    

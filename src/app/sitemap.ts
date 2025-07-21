@@ -12,19 +12,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/app`, // Punto de entrada a la aplicación (puede ser la página de login/setup)
+      url: `${BASE_URL}/app`, // Punto de entrada a la aplicación (login/setup/redirect)
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    {
-      url: `${BASE_URL}/privacy`, // Nueva página de política de privacidad
+     {
+      url: `${BASE_URL}/dashboard`, // El panel principal
       lastModified: new Date(),
-      changeFrequency: 'yearly', // Las políticas de privacidad no suelen cambiar tan a menudo
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/privacy`, // Política de privacidad
+      lastModified: new Date(),
+      changeFrequency: 'yearly', 
       priority: 0.3,
     },
     {
-      url: `${BASE_URL}/terms`, // Nueva página de términos y condiciones
+      url: `${BASE_URL}/terms`, // Términos y condiciones
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.3,

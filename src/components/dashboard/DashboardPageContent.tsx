@@ -56,7 +56,7 @@ const DashboardPageContent = () => {
         }
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
-        router.push('/app'); 
+        router.push('/app?action=add'); // Use action=add to trigger wizard
         toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
@@ -65,7 +65,6 @@ const DashboardPageContent = () => {
 
   const handleAddNewAssistant = () => {
     dispatch({ type: 'RESET_WIZARD' });
-    // Using a query param to differentiate from mistaken navigation to /setup
     router.push('/app?action=add'); 
   };
 
