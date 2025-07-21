@@ -13,8 +13,8 @@ import Step3Authentication from '@/components/setup/Step3_Authentication';
 import Step5_TermsAndConditions from '@/components/setup/Step5_TermsAndConditions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';
-import { LogIn, UserPlus } from 'lucide-react';
+import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner, FaGoogle } from 'react-icons/fa';
+import { UserPlus } from 'lucide-react';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
@@ -288,8 +288,8 @@ const AppRootPage = () => {
               className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={handleLogin}
             >
-              <LogIn className="mr-3 h-5 w-5 text-primary" />
-              Iniciar sesión
+              <FaGoogle className="mr-3 h-5 w-5 text-primary" />
+              Iniciar con Google
             </Button>
             <Button
               size="lg"
