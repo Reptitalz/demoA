@@ -1,14 +1,13 @@
+// src/lib/firebaseAdmin.ts
+import * as admin from 'firebase-admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { NextRequest } from 'next/server';
-import * as admin from 'firebase-admin';
+
+const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
 // This prevents multiple initializations in a serverless environment
 if (!admin.apps.length) {
-  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!serviceAccountString) {
-    console.error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set.');
-    // We don't throw here to allow the app to build, but dependent APIs will fail.
-  } else {
+  if (serviceAccountString) {
     try {
       // The key part: Replace escaped newlines with actual newlines before parsing.
       // This is crucial for environments that don't handle multiline env variables well.
@@ -19,9 +18,9 @@ if (!admin.apps.length) {
       console.log("Firebase Admin SDK initialized successfully.");
     } catch (e: any) {
       console.error('Firebase Admin SDK Initialization Error in firebaseAdmin.ts:', e.stack);
-      // Log the specific error but don't throw to allow the build to complete.
-      // Functions relying on this will fail gracefully.
     }
+  } else {
+    console.error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set.');
   }
 }
 
@@ -40,7 +39,6 @@ export async function verifyFirebaseToken(request: NextRequest): Promise<Decoded
     return null;
   }
 
-  // Ensure admin is initialized before trying to use it
   if (!admin.apps.length) {
     console.error("Firebase Admin SDK not initialized. Cannot verify token.");
     return null;
