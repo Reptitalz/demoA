@@ -1,7 +1,7 @@
 // src/lib/firebaseAdmin.ts
 import * as admin from 'firebase-admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import { NextRequest } from 'next/server';
+import type { NextApiRequest } from 'next';
 
 const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
@@ -26,11 +26,11 @@ if (!admin.apps.length) {
 
 /**
  * Verifies the Firebase ID token from the Authorization header of a request.
- * @param request The incoming NextRequest.
+ * @param request The incoming NextApiRequest.
  * @returns A promise that resolves to the decoded token, or null if invalid.
  */
-export async function verifyFirebaseToken(request: NextRequest): Promise<DecodedIdToken | null> {
-  const authHeader = request.headers.get('Authorization');
+export async function verifyFirebaseToken(req: NextApiRequest): Promise<DecodedIdToken | null> {
+  const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
