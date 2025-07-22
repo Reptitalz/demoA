@@ -1,34 +1,42 @@
 // src/lib/firebaseAdmin.ts
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import type { NextApiRequest } from 'next';
+import type { NextRequest } from 'next/server';
 
-const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+// This is the new, more robust way of initializing, which avoids JSON parsing errors.
+// It requires you to set separate environment variables.
+const serviceAccount = {
+  projectId: process.env.FB_PROJECT_ID,
+  privateKey: process.env.FB_PRIVATE_KEY, // Note: The value should include the `\n` characters for newlines
+  clientEmail: process.env.FB_CLIENT_EMAIL,
+};
+
+// Check if the essential environment variables are set.
+const areCredsAvailable = serviceAccount.projectId && serviceAccount.privateKey && serviceAccount.clientEmail;
+
+if (!areCredsAvailable) {
+  console.warn('CRITICAL: Firebase Admin SDK environment variables (FB_PROJECT_ID, FB_PRIVATE_KEY, FB_CLIENT_EMAIL) are not set. Firebase Admin features will not work.');
+}
 
 // This prevents multiple initializations in a serverless environment
-if (!admin.apps.length) {
-  if (serviceAccountString) {
-    try {
-      const serviceAccount = JSON.parse(serviceAccountString.replace(/\\n/g, '\n'));
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log("Firebase Admin SDK initialized successfully.");
-    } catch (e: any) {
-      console.error('Firebase Admin SDK Initialization Error in firebaseAdmin.ts:', e.stack);
-    }
-  } else {
-    console.warn('CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. Firebase Admin features will not work.');
+if (!admin.apps.length && areCredsAvailable) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log("Firebase Admin SDK initialized successfully.");
+  } catch (e: any) {
+    console.error('Firebase Admin SDK Initialization Error in firebaseAdmin.ts:', e.stack);
   }
 }
 
 /**
  * Verifies the Firebase ID token from the Authorization header of a request.
- * @param req The incoming NextApiRequest.
+ * @param req The incoming NextApiRequest or NextRequest.
  * @returns A promise that resolves to the decoded token, or null if invalid.
  */
-export async function verifyFirebaseToken(req: NextApiRequest): Promise<DecodedIdToken | null> {
-  const authHeader = req.headers.authorization;
+export async function verifyFirebaseToken(req: NextRequest): Promise<DecodedIdToken | null> {
+  const authHeader = req.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
