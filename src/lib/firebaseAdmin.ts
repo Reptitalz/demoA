@@ -1,36 +1,27 @@
-
 // src/lib/firebaseAdmin.ts
 import admin from 'firebase-admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import type { NextApiRequest } from 'next';
 import { NextRequest } from 'next/server';
 
-// This is a more robust way to initialize, directly from individual env vars.
-// It avoids JSON parsing errors.
-const serviceAccount = {
-  projectId: process.env.FB_PROJECT_ID,
-  // CRITICAL FIX: The private key from env vars can have extra quotes and escaped newlines.
-  // 1. .replace(/"/g, '') removes any surrounding quotes.
-  // 2. .replace(/\\n/g, '\n') ensures newlines are correctly formatted.
-  privateKey: process.env.FB_PRIVATE_KEY?.replace(/"/g, '').replace(/\\n/g, '\n'),
-  clientEmail: process.env.FB_CLIENT_EMAIL,
-};
-
-const areCredsAvailable = serviceAccount.projectId && serviceAccount.privateKey && serviceAccount.clientEmail;
+// This file is simplified to use the default credential provider,
+// which is the most robust way to initialize in most hosting environments.
+// It relies on the GOOGLE_APPLICATION_CREDENTIALS environment variable
+// or other default mechanisms provided by the hosting environment.
 
 if (!admin.apps.length) {
-  if (areCredsAvailable) {
-    try {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log('Firebase Admin SDK initialized successfully.');
-    } catch (e: any) {
-      console.error('Firebase Admin SDK Initialization Error:', e.stack);
+  try {
+    admin.initializeApp({
+      // This will automatically find the credentials from the environment.
+      credential: admin.credential.applicationDefault(),
+    });
+    console.log('Firebase Admin SDK initialized successfully using application default credentials.');
+  } catch (e: any) {
+    console.error('Firebase Admin SDK Initialization Error:', e.stack);
+    // This warning helps diagnose environment configuration issues.
+    if (process.env.NODE_ENV !== 'test') {
+        console.warn('HINT: Make sure your hosting environment has GOOGLE_APPLICATION_CREDENTIALS set up correctly.');
     }
-  } else if (process.env.NODE_ENV !== 'test') {
-    // Only show warning if not in a test environment
-    console.warn('CRITICAL: Firebase Admin SDK environment variables (FB_PROJECT_ID, FB_PRIVATE_KEY, FB_CLIENT_EMAIL) are not set. Firebase Admin features will not be available.');
   }
 }
 
