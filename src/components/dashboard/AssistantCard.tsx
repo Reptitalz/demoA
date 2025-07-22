@@ -119,6 +119,7 @@ const AssistantCard = ({
                   className="object-cover w-full h-full"
                   onError={() => setImageError(true)}
                   data-ai-hint={currentImageHint}
+                  unoptimized
                 />
               </div>
               <div className="flex-grow">

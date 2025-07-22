@@ -103,6 +103,7 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
                 width={80}
                 height={80}
                 className="rounded-md border object-cover"
+                unoptimized
               />
               <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                 Cambiar Imagen
