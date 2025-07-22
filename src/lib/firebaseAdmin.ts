@@ -18,7 +18,7 @@ if (!admin.apps.length) {
       });
       console.log("Firebase Admin SDK initialized successfully.");
     } catch (e: any) {
-      console.error('Firebase Admin SDK Initialization Error in firebaseAdmin.ts:', e.message);
+      console.error('Firebase Admin SDK Initialization Error in firebaseAdmin.ts:', e.stack);
       // Log the specific error but don't throw to allow the build to complete.
       // Functions relying on this will fail gracefully.
     }
