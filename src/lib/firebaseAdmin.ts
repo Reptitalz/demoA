@@ -1,4 +1,3 @@
-
 // src/lib/firebaseAdmin.ts
 import * as admin from 'firebase-admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
@@ -10,8 +9,6 @@ const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 if (!admin.apps.length) {
   if (serviceAccountString) {
     try {
-      // The key part: Replace escaped newlines with actual newlines before parsing.
-      // This is crucial for environments that don't handle multiline env variables well.
       const serviceAccount = JSON.parse(serviceAccountString.replace(/\\n/g, '\n'));
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
@@ -21,7 +18,7 @@ if (!admin.apps.length) {
       console.error('Firebase Admin SDK Initialization Error in firebaseAdmin.ts:', e.stack);
     }
   } else {
-    console.error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set.');
+    console.warn('CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. Firebase Admin features will not work.');
   }
 }
 
