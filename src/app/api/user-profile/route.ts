@@ -1,4 +1,3 @@
-
 import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';

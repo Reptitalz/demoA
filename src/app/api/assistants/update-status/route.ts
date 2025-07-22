@@ -1,4 +1,3 @@
-
 // src/app/api/assistants/update-status/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,10 +8,10 @@ import type { UserProfile, AppNotification } from '@/types';
 
 // This map simulates different outcomes of an asynchronous process.
 const SIMULATION_OUTCOMES = [
-  { status: true, message: "ha sido activado y está listo para usarse.", type: 'success' },
-  { status: false, message: "no pudo ser activado. El número no es válido para WhatsApp.", type: 'error' },
-  { status: true, message: "ha sido activado y está listo para usarse.", type: 'success' }, // Higher chance of success
-  { status: false, message: "fue rechazado. Por favor, reenvía el código de verificación.", type: 'warning' },
+  { status: true, message: "ha sido activado y está listo para usarse.", type: 'success' as const },
+  { status: false, message: "no pudo ser activado. El número no es válido para WhatsApp.", type: 'error' as const },
+  { status: true, message: "ha sido activado y está listo para usarse.", type: 'success' as const }, // Higher chance of success
+  { status: false, message: "fue rechazado. Por favor, reenvía el código de verificación.", type: 'warning' as const },
 ] as const;
 
 export async function POST(request: NextRequest) {

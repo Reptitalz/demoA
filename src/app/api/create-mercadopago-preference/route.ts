@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 import { MercadoPagoConfig, Payment } from 'mercadopago';

@@ -1,71 +1,47 @@
-
 import type { DecodedIdToken } from 'firebase-admin/auth';
+import { NextRequest } from 'next/server';
 import * as admin from 'firebase-admin';
 
-const FIREBASE_SERVICE_ACCOUNT_JSON_STRING = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-let firebaseAdminInitialized = false;
-
-if (admin.apps.length === 0) { 
-  if (FIREBASE_SERVICE_ACCOUNT_JSON_STRING) {
-    let serviceAccount;
-    try {
-      serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON_STRING);
-    } catch (parseError: any) {
-      console.error('CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Firebase Admin SDK will not initialize.');
-      console.error('Parse Error details:', parseError.message);
-      console.error('Ensure the FIREBASE_SERVICE_ACCOUNT_JSON environment variable is a valid, single-line JSON string with correctly escaped characters.');
-    }
-
-    if (serviceAccount) {
-      try {
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        });
-        firebaseAdminInitialized = true;
-        console.log("Firebase Admin SDK initialized successfully.");
-      } catch (initError: any) {
-        console.error('CRITICAL: Firebase Admin SDK initializeApp failed.');
-        console.error('Initialization Error details:', initError.message);
-        console.error('This could be due to an invalid service account structure (e.g., malformed private_key) or other credential issues.');
-      }
-    }
-  } else {
-    // Only log a warning, don't set initialized to true
-    console.warn("Firebase Admin SDK: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set. Token verification will not work.");
+// This prevents multiple initializations in a serverless environment
+if (!admin.apps.length) {
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!serviceAccountString) {
+    throw new Error('CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON environment variable is not set.');
   }
-} else {
-    firebaseAdminInitialized = true;
+  
+  try {
+    const serviceAccount = JSON.parse(serviceAccountString);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log("Firebase Admin SDK initialized successfully.");
+  } catch (e: any) {
+    console.error('Firebase Admin SDK Initialization Error:', e.stack);
+    throw new Error('Failed to initialize Firebase Admin SDK. Check service account credentials.');
+  }
 }
 
-export async function verifyFirebaseToken(request: Request): Promise<DecodedIdToken | null> {
-  if (!firebaseAdminInitialized) {
-    console.error("Attempted to verify token, but Firebase Admin SDK is not initialized. Check server startup logs.");
-    return null;
-  }
-
+/**
+ * Verifies the Firebase ID token from the Authorization header of a request.
+ * @param request The incoming NextRequest.
+ * @returns A promise that resolves to the decoded token, or null if invalid.
+ */
+export async function verifyFirebaseToken(request: NextRequest): Promise<DecodedIdToken | null> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
   const idToken = authHeader.split('Bearer ')[1];
-
   if (!idToken) {
     return null;
   }
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    return decodedToken;
-  } catch (error: any) {
-    console.error('Error verifying Firebase ID token:', error.code, error.message);
-    // Log specific, common errors for better debugging
-    if (error.code === 'auth/id-token-expired') {
-      console.log('Firebase ID token has expired. Client should refresh.');
-    } else if (error.code === 'auth/argument-error') {
-        console.log('Firebase ID token is malformed or has been revoked.');
-    }
+    return await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
     return null;
   }
 }
 
-export { admin as firebaseAdmin, firebaseAdminInitialized };
+export const firebaseAdmin = admin;
