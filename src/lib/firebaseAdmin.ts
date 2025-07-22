@@ -1,3 +1,4 @@
+
 // src/lib/firebaseAdmin.ts
 import * as admin from 'firebase-admin';
 import type { DecodedIdToken } from 'firebase-admin/auth';
@@ -26,7 +27,7 @@ if (!admin.apps.length) {
 
 /**
  * Verifies the Firebase ID token from the Authorization header of a request.
- * @param request The incoming NextApiRequest.
+ * @param req The incoming NextApiRequest.
  * @returns A promise that resolves to the decoded token, or null if invalid.
  */
 export async function verifyFirebaseToken(req: NextApiRequest): Promise<DecodedIdToken | null> {
@@ -39,6 +40,7 @@ export async function verifyFirebaseToken(req: NextApiRequest): Promise<DecodedI
     return null;
   }
 
+  // Ensure the app is initialized before trying to verify a token
   if (!admin.apps.length) {
     console.error("Firebase Admin SDK not initialized. Cannot verify token.");
     return null;
