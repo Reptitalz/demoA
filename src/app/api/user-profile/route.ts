@@ -1,3 +1,4 @@
+
 import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
