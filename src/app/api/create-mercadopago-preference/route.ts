@@ -1,29 +1,33 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { PRICE_PER_CREDIT, APP_NAME } from '@/config/appConfig';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
 if (!MERCADOPAGO_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: MERCADOPAGO_ACCESS_TOKEN is not set.");
 }
 
-const client = new MercadoPagoConfig({
-  accessToken: MERCADOPAGO_ACCESS_TOKEN!,
-  options: { timeout: 5000 },
-});
-
-const payment = new Payment(client);
-
 export async function POST(request: NextRequest) {
-  if (!MERCADOPAGO_ACCESS_TOKEN) {
+  // Moved initialization inside the handler to ensure env vars are loaded.
+  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+
+  if (!accessToken) {
+    console.error("❌ Mercado Pago access token is not configured on the server.");
     return NextResponse.json(
-      { error: 'La pasarela de pago no está configurada correctamente.' },
-      { status: 503 }
+      { error: 'La pasarela de pago no está configurada correctamente. Por favor, contacta al soporte.' },
+      { status: 503 } // 503 Service Unavailable
     );
   }
+
+  // Initialize client and payment objects here
+  const client = new MercadoPagoConfig({
+    accessToken: accessToken,
+    options: { timeout: 5000 },
+  });
+  const payment = new Payment(client);
 
   try {
     const decodedToken = await verifyFirebaseToken(request);
@@ -64,7 +68,7 @@ export async function POST(request: NextRequest) {
         email: userEmail,
       },
       external_reference,
-      notification_url: `${BASE_URL}/api/mercadopago-webhook`,
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago-webhook`,
       date_of_expiration: expirationDate.toISOString(),
     };
 
