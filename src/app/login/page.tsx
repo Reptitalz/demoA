@@ -22,7 +22,6 @@ const LoginPageContent = () => {
     const { state, dispatch } = useApp();
     const router = useRouter();
     const { toast } = useToast();
-    const cardRef = useRef<HTMLDivElement>(null);
     
     const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
     const [password, setPassword] = useState('');
@@ -34,21 +33,6 @@ const LoginPageContent = () => {
             router.replace('/dashboard');
         }
     }, [state.isLoading, state.userProfile.isAuthenticated, router]);
-
-    // Parallax effect for the card
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!cardRef.current) return;
-            const { clientX, clientY, currentTarget } = e;
-            const { left, top, width, height } = (currentTarget as HTMLElement).getBoundingClientRect();
-            const x = (clientX - left - width / 2) / 25;
-            const y = (clientY - top - height / 2) / 25;
-            cardRef.current.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
-        };
-        const container = document.getElementById('login-page-container');
-        container?.addEventListener('mousemove', handleMouseMove);
-        return () => container?.removeEventListener('mousemove', handleMouseMove);
-    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,7 +55,6 @@ const LoginPageContent = () => {
                 throw new Error(data.message || 'Error al iniciar sesión');
             }
             
-            // On successful login, AppProvider should take over
             dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
             toast({ title: "¡Bienvenido/a de nuevo!", description: "Has iniciado sesión correctamente." });
             router.replace('/dashboard');
@@ -100,74 +83,75 @@ const LoginPageContent = () => {
         <PageContainer 
             id="login-page-container"
             className="flex items-center justify-center min-h-[calc(100vh-200px)]"
-            style={{ perspective: '1000px' }}
         >
-            <div ref={cardRef} className="transition-transform duration-200 ease-out">
-                <Card className="w-full max-w-md mx-auto shadow-2xl animate-fadeIn p-4 sm:p-6 border-primary/20 bg-card/80 backdrop-blur-sm">
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-2xl sm:text-3xl font-bold text-brand-gradient">
-                            Bienvenido/a a {APP_NAME}
-                        </CardTitle>
-                        <CardDescription className="pt-2 text-sm">
-                            Inicia sesión para acceder a tu panel o crea tu primer asistente inteligente.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="phone-number" className="flex items-center gap-2"><Phone /> Número de Teléfono</Label>
-                                <PhoneInput
-                                  id="phone-number"
-                                  placeholder="Tu número de teléfono"
-                                  value={phoneNumber}
-                                  onChange={(value) => setPhoneNumber(value)}
-                                  defaultCountry="MX"
-                                  disabled={isProcessing}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password"><Key /> Contraseña</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="Tu contraseña segura"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    disabled={isProcessing}
-                                />
-                            </div>
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+            <Card className="w-full max-w-sm mx-auto shadow-xl animate-fadeIn p-4 sm:p-6 border-border/20">
+                <CardHeader className="text-center">
+                    <CardTitle className="text-2xl sm:text-3xl font-bold text-brand-gradient">
+                        Bienvenido/a a {APP_NAME}
+                    </CardTitle>
+                    <CardDescription className="pt-2 text-sm">
+                        Inicia sesión para acceder a tu panel o crea tu primer asistente inteligente.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="phone-number" className="flex items-center gap-1.5 text-sm">
+                                <Phone className="h-4 w-4 text-muted-foreground" /> Número de Teléfono
+                            </Label>
+                            <PhoneInput
+                              id="phone-number"
+                              placeholder="Tu número de teléfono"
+                              value={phoneNumber}
+                              onChange={(value) => setPhoneNumber(value)}
+                              defaultCountry="MX"
+                              disabled={isProcessing}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                             <Label htmlFor="password" className="flex items-center gap-1.5 text-sm">
+                                <Key className="h-4 w-4 text-muted-foreground" /> Contraseña
+                            </Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="Tu contraseña segura"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 disabled={isProcessing}
-                            >
-                                {isProcessing ? <LoadingSpinner size={20} /> : <LogIn className="mr-3 h-5 w-5" />}
-                                Iniciar Sesión
-                            </Button>
-                        </form>
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">
-                                O si eres nuevo
-                                </span>
-                            </div>
+                            />
                         </div>
                         <Button
-                            variant="outline"
+                            type="submit"
                             size="lg"
-                            className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
-                            onClick={handleStartSetup}
+                            className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+                            disabled={isProcessing}
                         >
-                            <UserPlus className="mr-3 h-5 w-5" />
-                            Crear Asistente
+                            {isProcessing ? <LoadingSpinner size={20} /> : <LogIn className="mr-2 h-4 w-4" />}
+                            Iniciar Sesión
                         </Button>
-                    </CardContent>
-                </Card>
-            </div>
+                    </form>
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">
+                            O si eres nuevo
+                            </span>
+                        </div>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+                        onClick={handleStartSetup}
+                    >
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Crear Asistente
+                    </Button>
+                </CardContent>
+            </Card>
         </PageContainer>
     );
 };
