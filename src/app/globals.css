@@ -146,13 +146,17 @@ body {
 
 .phone-input-root .PhoneInputCountry {
   @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0 flex items-center;
-  /* Adjust padding to make the country selector button smaller */
-  padding-left: 0.75rem;
-  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.25rem;
 }
 
 .phone-input-root .PhoneInputCountryIcon {
-  @apply shadow-md w-6; /* Control icon size */
+  @apply shadow-md w-6;
+}
+
+/* This hides the dropdown arrow */
+.phone-input-root .PhoneInputCountrySelectArrow {
+    display: none;
 }
 
 .PhoneInputCountrySelect {
@@ -184,4 +188,3 @@ body {
 .PhoneInputCountrySelect-option--focus .PhoneInputCountrySelect-callingCode {
   @apply text-accent-foreground/70;
 }
-
