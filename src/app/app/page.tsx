@@ -178,7 +178,7 @@ const AppSetupPageContent = () => {
         name: state.wizard.databaseOption.name!,
         source: state.wizard.databaseOption.type!,
         details: state.wizard.databaseOption.name,
-        accessUrl: state.wizard.databaseOption.type === 'google_sheets' ? state.wizard.databaseOption.accessUrl : undefined,
+        accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
     } : undefined;
 
     let updatedAssistantsArray: AssistantConfig[];
