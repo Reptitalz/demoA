@@ -148,21 +148,10 @@ body {
   @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0 flex items-center;
   padding-left: 0.5rem;
   padding-right: 0.25rem;
-  pointer-events: none; /* Disables clicks on the country select */
 }
 
 .phone-input-root .PhoneInputCountryIcon {
   @apply shadow-md w-6;
-}
-
-/* This hides the dropdown arrow */
-.phone-input-root .PhoneInputCountrySelectArrow {
-    display: none;
-}
-
-/* This hides the calling code next to the flag */
-.phone-input-root .PhoneInputCountrySelect-callingCode {
-  display: none;
 }
 
 .PhoneInputCountrySelect {
@@ -183,9 +172,5 @@ body {
 
 /* Hide the country name in the dropdown */
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-name {
-  display: none;
-}
-
-.PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
   display: none;
 }
