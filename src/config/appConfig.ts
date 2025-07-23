@@ -1,9 +1,9 @@
+
 import type { AssistantPurpose, AuthProviderType } from '@/types';
 import { FaGoogle, FaUserCog, FaUsers, FaBrain, FaKey, FaPhone } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
-export const MAX_WIZARD_STEPS = 5; // Details, Prompt, DB(opt), Auth, Terms
 export const DEFAULT_ASSISTANT_IMAGE_URL = "https://placehold.co/100x100.png";
 export const DEFAULT_ASSISTANT_IMAGE_HINT = "assistant avatar";
 
@@ -31,6 +31,8 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   4: "Credenciales de Cuenta",
   5: "Términos y Condiciones",
 };
+
+export const MAX_WIZARD_STEPS = 5;
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },

@@ -27,12 +27,12 @@ const Step1AssistantDetails = () => {
   };
 
   return (
-    <Card className="w-full shadow-lg animate-fadeIn">
-      <CardHeader>
+    <Card className="w-full shadow-none border-none animate-fadeIn">
+      <CardHeader className="p-0 mb-6">
         <CardTitle>Define tu Asistente</CardTitle>
         <CardDescription>Dale un nombre a tu asistente y selecciona qué debería hacer.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-0">
         <div className="space-y-2">
           <Label htmlFor="assistantName" className="text-base">Nombre del Asistente</Label>
           <Input

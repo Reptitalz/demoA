@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useApp } from "@/providers/AppProvider";
@@ -61,7 +60,6 @@ const Step2DatabaseConfig = () => {
     }
     setAvailableOptions(currentAvailableOptions);
 
-    // Auto-select the first available option if not already selected or if current selection is invalid
     if (currentAvailableOptions.length > 0) {
       const currentSelectionIsValid = databaseOption.type && currentAvailableOptions.some(opt => opt.id === databaseOption.type);
       if (!currentSelectionIsValid) {
@@ -70,7 +68,7 @@ const Step2DatabaseConfig = () => {
           payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '' }
         });
       }
-    } else if (databaseOption.type) { // If no options available but a type was selected, reset it
+    } else if (databaseOption.type) { 
         dispatch({
           type: 'SET_DATABASE_OPTION',
           payload: { type: null, name: '', accessUrl: '' }
@@ -92,7 +90,7 @@ const Step2DatabaseConfig = () => {
       payload: {
         type: valueAsDbSource,
         name: '', 
-        accessUrl: valueAsDbSource === 'google_sheets' ? '' : undefined, // Clear accessUrl if not GSheet
+        accessUrl: valueAsDbSource === 'google_sheets' ? '' : undefined,
       }
     });
   };
@@ -100,29 +98,29 @@ const Step2DatabaseConfig = () => {
   const handleDbNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setDbNameValue(newName);
-    dispatch({ type: 'SET_DATABASE_OPTION', payload: { name: newName } });
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, name: newName } });
   };
 
   const handleAccessUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
-    dispatch({ type: 'SET_DATABASE_OPTION', payload: { accessUrl: newUrl } });
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
   };
 
   const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
 
   return (
-    <Card className="w-full shadow-lg animate-fadeIn">
-      <CardHeader>
+    <Card className="w-full shadow-none border-none animate-fadeIn">
+      <CardHeader className="p-0 mb-6">
         <CardTitle>Configura tu Base de Datos</CardTitle>
         <CardDescription>
           {selectedPurposes.has("import_spreadsheet") || selectedPurposes.has("create_smart_db") 
             ? "Elige una opción y completa los detalles para la base de datos de tu asistente."
-            : "Selecciona un propósito en el Paso 1 que requiera una base de datos (Vincular Hoja de Google o Crear Base de Datos Inteligente) para ver las opciones."
+            : "Selecciona un propósito en el Paso 1 que requiera una base de datos para ver las opciones."
           }
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-0">
         {availableOptions.length > 0 ? (
           <RadioGroup
             value={databaseOption.type || ""}
@@ -147,14 +145,12 @@ const Step2DatabaseConfig = () => {
           </RadioGroup>
         ) : (
           <div className="text-center text-muted-foreground py-4">
-            <p>No hay opciones de base de datos disponibles para los propósitos seleccionados.</p>
-            <p>Por favor, vuelve al Paso 1 y selecciona "Vincular Hoja de Google Existente" o "Crear Base de Datos Inteligente".</p>
+            <p>Por favor, vuelve al Paso 1 y selecciona una opción que requiera base de datos.</p>
           </div>
         )}
 
         {selectedDbConfig && (selectedDbConfig.inputNameLabel || selectedDbConfig.requiresAccessUrlInput) && (
           <div className="space-y-4 pt-4 border-t mt-4">
-
             {selectedDbConfig.inputNameLabel && (
               <div className="space-y-2">
                 <Label htmlFor="dbNameInput" className="text-base">
@@ -171,7 +167,6 @@ const Step2DatabaseConfig = () => {
                 />
               </div>
             )}
-
             {selectedDbConfig.requiresAccessUrlInput && (
               <div className="space-y-2">
                 <Label htmlFor="accessUrlInput" className="text-base">

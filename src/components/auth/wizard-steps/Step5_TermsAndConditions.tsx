@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -7,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import Link from 'next/link';
 
-const Step5_TermsAndConditions = () => {
+const Step5TermsAndConditions = () => {
   const { state, dispatch } = useApp();
   const { acceptedTerms } = state.wizard;
 
@@ -16,14 +15,14 @@ const Step5_TermsAndConditions = () => {
   };
 
   return (
-    <Card className="w-full shadow-lg animate-fadeIn">
-      <CardHeader>
+    <Card className="w-full shadow-none border-none animate-fadeIn">
+      <CardHeader className="p-0 mb-6">
         <CardTitle>Términos y Condiciones</CardTitle>
         <CardDescription>
           Por favor, lee y acepta nuestros términos y condiciones para finalizar.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <div className="flex items-start space-x-3 rounded-md border p-4">
           <Checkbox 
             id="terms" 
@@ -62,4 +61,4 @@ const Step5_TermsAndConditions = () => {
   );
 };
 
-export default Step5_TermsAndConditions;
+export default Step5TermsAndConditions;

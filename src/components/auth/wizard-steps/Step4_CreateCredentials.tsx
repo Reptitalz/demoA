@@ -9,7 +9,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import type { E164Number } from 'react-phone-number-input';
 import { Key, Phone } from 'lucide-react';
 
-const Step3Authentication = () => {
+const Step4CreateCredentials = () => {
   const { state, dispatch } = useApp();
   const { phoneNumber, password } = state.wizard;
 
@@ -22,14 +22,14 @@ const Step3Authentication = () => {
   };
 
   return (
-    <Card className="w-full shadow-lg animate-fadeIn">
-      <CardHeader>
+    <Card className="w-full shadow-none border-none animate-fadeIn">
+      <CardHeader className="p-0 mb-6">
         <CardTitle>Crea tus Credenciales</CardTitle>
         <CardDescription>
           Establece tu número de teléfono y contraseña. Los usarás para iniciar sesión más tarde.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-0">
         <div className="space-y-2">
           <Label htmlFor="phone-number" className="text-base flex items-center gap-2">
             <Phone /> Tu Número de Teléfono
@@ -69,4 +69,4 @@ const Step3Authentication = () => {
   );
 };
 
-export default Step3Authentication;
+export default Step4CreateCredentials;
