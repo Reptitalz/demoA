@@ -187,36 +187,38 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-      <DialogContent className="sm:max-w-xl" onInteractOutside={(e) => { if (isFinalizingSetup) e.preventDefault(); }}>
+      <DialogContent className="sm:max-w-2xl bg-background/95 backdrop-blur-sm" onInteractOutside={(e) => { if (isFinalizingSetup) e.preventDefault(); }}>
         <DialogHeader>
-          <DialogTitle>Crear un Nuevo Asistente</DialogTitle>
-          <DialogDescription>Sigue los pasos para configurar tu primer asistente inteligente.</DialogDescription>
+          <DialogTitle className="text-2xl font-bold text-center text-brand-gradient">Crear un Nuevo Asistente</DialogTitle>
+          <DialogDescription className="text-center">Sigue los pasos para configurar tu primer asistente inteligente.</DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-5">
+        <div className="py-4 space-y-6">
             <SetupProgressBar />
-            <div className="min-h-[350px] relative">
+            <div className="min-h-[400px] relative">
             {isFinalizingSetup && (
-                <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center z-10 rounded-md">
+                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 rounded-md">
                 <FaSpinner className="animate-spin h-10 w-10 text-primary" />
-                <p className="mt-2 text-sm text-muted-foreground">Finalizando configuración...</p>
+                <p className="mt-4 text-sm text-muted-foreground">Finalizando configuración...</p>
                 </div>
             )}
-            {renderStepContent()}
+            <div className="p-1">
+              {renderStepContent()}
             </div>
-            <div className="flex justify-between items-center pt-4 border-t">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-                <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
+            </div>
+            <div className="flex justify-between items-center pt-5 border-t">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105">
+                <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
             </Button>
 
             {currentStep < effectiveMaxSteps ? (
-                <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
-                Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
+                <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
+                Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             ) : (
-                <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
-                {isFinalizingSetup && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+                <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
+                {isFinalizingSetup && <FaSpinner className="animate-spin mr-2 h-4 w-4" />}
                 Completar Configuración
-                <FaArrowRight className="ml-1 h-3 w-3" />
+                <FaArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
             </div>
@@ -227,5 +229,3 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
-
-    

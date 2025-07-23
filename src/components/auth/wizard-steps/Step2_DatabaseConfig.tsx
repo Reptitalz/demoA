@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useApp } from "@/providers/AppProvider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FaGoogle, FaBrain, FaExclamationTriangle } from "react-icons/fa";
+import { FaGoogle, FaBrain, FaExclamationTriangle, FaCheckCircle, FaRegCircle } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
+import { cn } from '@/lib/utils';
 
 interface DatabaseOptionConfig {
   id: DatabaseSource;
@@ -23,23 +24,23 @@ interface DatabaseOptionConfig {
 const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
   {
     id: "google_sheets" as DatabaseSource,
-    name: "Vincular Hoja de Google existente",
+    name: "Vincular Hoja de Google",
     icon: FaGoogle,
     inputNameLabel: "Nombre Descriptivo de la Hoja",
     inputNamePlaceholder: "Ej: CRM Clientes Activos",
     requiresAccessUrlInput: true,
     accessUrlLabel: "URL de la Hoja de Google",
     accessUrlPlaceholder: "https://docs.google.com/spreadsheets/d/...",
-    description: "Asegúrate de que esta Hoja de Google sea pública y editable por cualquiera con el enlace para que tu asistente pueda acceder y (si es necesario) modificar los datos."
+    description: "Asegúrate de que la Hoja sea pública y editable para que tu asistente pueda acceder a los datos."
   },
   {
     id: "smart_db" as DatabaseSource,
     name: "Crear Base de Datos Inteligente",
     icon: FaBrain,
-    inputNameLabel: "Nombre para la Base de Datos Inteligente",
+    inputNameLabel: "Nombre para la Base de Datos",
     inputNamePlaceholder: "Ej: Conocimiento de Productos",
     requiresAccessUrlInput: false,
-    description: "La IA gestionará esta base de datos. Puedes darle un nombre descriptivo."
+    description: "La IA gestionará esta base de datos. Solo necesitas darle un nombre descriptivo."
   }
 ];
 
@@ -110,47 +111,61 @@ const Step2DatabaseConfig = () => {
   const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
 
   return (
-    <Card className="w-full shadow-none border-none animate-fadeIn">
-      <CardHeader className="p-0 mb-6">
-        <CardTitle>Configura tu Base de Datos</CardTitle>
-        <CardDescription>
-          {selectedPurposes.has("import_spreadsheet") || selectedPurposes.has("create_smart_db") 
-            ? "Elige una opción y completa los detalles para la base de datos de tu asistente."
-            : "Selecciona un propósito en el Paso 1 que requiera una base de datos para ver las opciones."
+    <div className="w-full animate-fadeIn space-y-6">
+      <div className="text-center">
+        <h3 className="text-xl font-semibold">Configura tu Base de Datos</h3>
+        <p className="text-sm text-muted-foreground">
+          {availableOptions.length > 0 
+            ? "Elige cómo tu asistente almacenará y accederá a la información."
+            : "Vuelve al paso 1 y elige un propósito que requiera una base de datos."
           }
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6 p-0">
+        </p>
+      </div>
+
+      <div className="space-y-6">
         {availableOptions.length > 0 ? (
           <RadioGroup
             value={databaseOption.type || ""}
             onValueChange={handleOptionChange}
-            className="space-y-3"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
             aria-label="Opciones de Base de Datos"
           >
             {availableOptions.map((option) => {
               const Icon = option.icon;
+              const isChecked = databaseOption.type === option.id;
               return (
                 <Label
                   key={option.id}
                   htmlFor={`db-option-${option.id}`}
-                  className="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input:checked]:ring-primary"
+                  className={cn(
+                    "flex items-start space-x-4 p-4 border rounded-lg transition-all duration-200 relative",
+                    "hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-primary/50",
+                     isChecked ? 'border-primary bg-primary/10 shadow-lg' : 'bg-card'
+                  )}
                 >
-                  <RadioGroupItem value={option.id} id={`db-option-${option.id}`} />
-                  <Icon className="h-5 w-5 text-primary" />
-                  <span>{option.name}</span>
+                  <input type="radio" value={option.id} id={`db-option-${option.id}`} name="db-option" className="sr-only" />
+                   {isChecked 
+                    ? <FaCheckCircle className="absolute top-3 right-3 h-5 w-5 text-green-500 shrink-0" />
+                    : <FaRegCircle className="absolute top-3 right-3 h-5 w-5 text-muted-foreground/50 shrink-0" />
+                  }
+                  <Icon className="h-8 w-8 text-primary mt-1" />
+                  <div className="flex-1 pr-4">
+                    <span className="font-semibold text-sm">{option.name}</span>
+                    <p className="text-xs text-muted-foreground">{option.description}</p>
+                  </div>
                 </Label>
               );
             })}
           </RadioGroup>
         ) : (
-          <div className="text-center text-muted-foreground py-4">
-            <p>Por favor, vuelve al Paso 1 y selecciona una opción que requiera base de datos.</p>
+          <div className="text-center text-muted-foreground py-8">
+            <p>Selecciona un propósito en el Paso 1 para ver las opciones aquí.</p>
           </div>
         )}
 
         {selectedDbConfig && (selectedDbConfig.inputNameLabel || selectedDbConfig.requiresAccessUrlInput) && (
-          <div className="space-y-4 pt-4 border-t mt-4">
+          <div className="space-y-4 pt-4 border-t mt-4 animate-fadeIn">
+            <h4 className="font-medium">Detalles de la Conexión</h4>
             {selectedDbConfig.inputNameLabel && (
               <div className="space-y-2">
                 <Label htmlFor="dbNameInput" className="text-base">
@@ -162,7 +177,7 @@ const Step2DatabaseConfig = () => {
                   placeholder={selectedDbConfig.inputNamePlaceholder}
                   value={dbNameValue}
                   onChange={handleDbNameChange}
-                  className="text-base"
+                  className="text-base py-6"
                   aria-required={!!selectedDbConfig.inputNameLabel}
                 />
               </div>
@@ -178,21 +193,21 @@ const Step2DatabaseConfig = () => {
                   placeholder={selectedDbConfig.accessUrlPlaceholder}
                   value={accessUrlValue}
                   onChange={handleAccessUrlChange}
-                  className="text-base"
+                  className="text-base py-6"
                   aria-required={selectedDbConfig.requiresAccessUrlInput}
                 />
+                 {selectedDbConfig.description && (
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
+                    <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />
+                    <span>{selectedDbConfig.description}</span>
+                  </p>
+                 )}
               </div>
-            )}
-            {selectedDbConfig.description && (
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
-                 {selectedDbConfig.id === 'google_sheets' ? <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" /> : <FaBrain className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />}
-                {selectedDbConfig.description}
-              </p>
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

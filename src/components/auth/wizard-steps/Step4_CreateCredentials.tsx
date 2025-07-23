@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useApp } from "@/providers/AppProvider";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -22,16 +21,17 @@ const Step4CreateCredentials = () => {
   };
 
   return (
-    <Card className="w-full shadow-none border-none animate-fadeIn">
-      <CardHeader className="p-0 mb-6">
-        <CardTitle>Crea tus Credenciales</CardTitle>
-        <CardDescription>
-          Establece tu número de teléfono y contraseña. Los usarás para iniciar sesión más tarde.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6 p-0">
+    <div className="w-full animate-fadeIn space-y-6">
+       <div className="text-center">
+        <h3 className="text-xl font-semibold">Crea tus Credenciales de Acceso</h3>
+        <p className="text-sm text-muted-foreground">
+          Establece tu número de teléfono y contraseña para iniciar sesión más tarde.
+        </p>
+      </div>
+
+      <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="phone-number" className="text-base flex items-center gap-2">
+          <Label htmlFor="phone-number" className="text-base font-medium flex items-center gap-2">
             <Phone /> Tu Número de Teléfono
           </Label>
           <PhoneInput
@@ -41,15 +41,16 @@ const Step4CreateCredentials = () => {
             onChange={handlePhoneChange}
             defaultCountry="MX"
             aria-required="true"
+            className="py-2"
           />
-          <p className="text-xs text-muted-foreground">
-            Este será tu nombre de usuario.
+          <p className="text-xs text-muted-foreground pt-1">
+            Este será tu nombre de usuario para acceder a la plataforma.
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-base flex items-center gap-2">
-            <Key /> Crea una Contraseña
+          <Label htmlFor="password" className="text-base font-medium flex items-center gap-2">
+            <Key /> Crea una Contraseña Segura
           </Label>
           <Input
             id="password"
@@ -57,15 +58,15 @@ const Step4CreateCredentials = () => {
             placeholder="Mínimo 6 caracteres"
             value={password}
             onChange={handlePasswordChange}
-            className="text-base"
+            className="text-base py-6"
             aria-required="true"
           />
-           <p className="text-xs text-muted-foreground">
+           <p className="text-xs text-muted-foreground pt-1">
               Asegúrate de que sea segura y fácil de recordar.
             </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

@@ -1,10 +1,10 @@
-
 "use client";
 
 import { Progress } from "@/components/ui/progress";
 import { useApp } from "@/providers/AppProvider";
 import { WIZARD_STEP_TITLES } from "@/config/appConfig";
 import { useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 const SetupProgressBar = () => {
   const { state } = useApp();
@@ -41,14 +41,14 @@ const SetupProgressBar = () => {
   const progressPercentage = (currentStep / effectiveMaxSteps) * 100;
 
   return (
-    <div className="mb-8">
-      <div className="flex justify-between items-center mb-2">
+    <div className="mb-8 space-y-3">
+      <div className="flex justify-between items-center">
         <p className="text-sm font-medium text-foreground">
-          Paso {currentStep} de {effectiveMaxSteps}: {stepTitle}
+          Paso {currentStep} <span className="text-muted-foreground">de {effectiveMaxSteps}</span>
         </p>
-        <p className="text-sm text-muted-foreground">{Math.round(progressPercentage)}%</p>
+        <p className="text-sm font-semibold text-primary">{stepTitle}</p>
       </div>
-      <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentStep} de ${effectiveMaxSteps} pasos completados`} className="h-2 [&>div]:bg-primary" />
+       <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentStep} de ${effectiveMaxSteps} pasos completados`} className="h-2 [&>div]:bg-brand-gradient" />
     </div>
   );
 };
