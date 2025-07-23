@@ -1,4 +1,6 @@
-import type {NextConfig} from 'next';
+
+import type { NextConfig } from 'next';
+import type { Configuration as WebpackConfiguration } from 'webpack';
 
 const securityHeaders = [
   // Prevents browsers from incorrectly guessing content types.
@@ -31,9 +33,7 @@ const securityHeaders = [
   },
 ];
 
-
 const nextConfig: NextConfig = {
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -56,6 +56,15 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  assetPrefix: '/static',
+  async rewrites() {
+    return [
+      {
+        source: '/static/:path*',
+        destination: '/_next/static/:path*',
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -64,6 +73,36 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
     ];
+  },
+  webpack: (
+    config: WebpackConfiguration,
+    { isServer }
+  ): WebpackConfiguration => {
+    if (!isServer) {
+      // Initialize resolve and fallback if they don't exist to prevent errors
+      if (!config.resolve) {
+        config.resolve = {};
+      }
+      if (!config.resolve.fallback) {
+        config.resolve.fallback = {}; // Ensure fallback is an object
+      }
+
+      // Add fallbacks for Node.js core modules.
+      // This prevents "Module not found" errors for these modules on the client-side,
+      // as database operations are handled by Server Actions.
+      config.resolve.fallback = {
+        ...config.resolve.fallback, // Preserve existing fallbacks if any
+        "child_process": false,
+        "fs": false,
+        "net": false,
+        "tls": false,
+        "dns": false,
+        // The 'mongodb-client-encryption' module is problematic for client bundles
+        // as it depends on 'child_process'. Marking it as false prevents bundling.
+        "mongodb-client-encryption": false,
+      };
+    }
+    return config;
   },
 };
 
