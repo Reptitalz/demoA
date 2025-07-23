@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -108,7 +107,7 @@ const LoginPageContent = () => {
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
+            className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
           >
             {isProcessing ? <LoadingSpinner size={20} /> : <LogIn className="h-4 w-4" />}
             Iniciar Sesión
