@@ -32,7 +32,7 @@ const Step4CreateCredentials = () => {
       <div className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="phone-number" className="text-base font-medium flex items-center gap-2">
-            <Phone /> Tu Número de Teléfono
+            <Phone className="h-4 w-4" /> Tu Número de Teléfono
           </Label>
           <PhoneInput
             id="phone-number"
@@ -41,7 +41,6 @@ const Step4CreateCredentials = () => {
             onChange={handlePhoneChange}
             defaultCountry="MX"
             aria-required="true"
-            className="py-2"
           />
           <p className="text-xs text-muted-foreground pt-1">
             Este será tu nombre de usuario para acceder a la plataforma.
@@ -50,7 +49,7 @@ const Step4CreateCredentials = () => {
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-base font-medium flex items-center gap-2">
-            <Key /> Crea una Contraseña Segura
+            <Key className="h-4 w-4" /> Crea una Contraseña Segura
           </Label>
           <Input
             id="password"
