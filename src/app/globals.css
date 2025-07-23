@@ -148,6 +148,7 @@ body {
   @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0 flex items-center;
   padding-left: 0.5rem;
   padding-right: 0.25rem;
+  pointer-events: none; /* Disables clicks on the country select */
 }
 
 .phone-input-root .PhoneInputCountryIcon {
@@ -188,4 +189,3 @@ body {
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
   display: none;
 }
-
