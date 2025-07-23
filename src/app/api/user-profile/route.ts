@@ -1,42 +1,33 @@
-
 import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 const PROFILES_COLLECTION = 'userProfiles';
 
+// GET now uses phone number instead of firebaseUid
 export async function GET(request: NextRequest) {
-  const decodedToken = await verifyFirebaseToken(request);
-  if (!decodedToken) {
-    return NextResponse.json({ message: 'Unauthorized: Invalid or missing token' }, { status: 401 });
-  }
-
   const { searchParams } = new URL(request.url);
-  const queryUserId = searchParams.get('userId');
+  const phoneNumber = searchParams.get('phoneNumber');
 
-  if (!queryUserId) {
-    return NextResponse.json({ message: 'User ID is required in query parameters' }, { status: 400 });
-  }
-
-  if (decodedToken.uid !== queryUserId) {
-    return NextResponse.json({ message: 'Forbidden: Token UID does not match requested User ID' }, { status: 403 });
+  if (!phoneNumber) {
+    return NextResponse.json({ message: 'Phone number is required' }, { status: 400 });
   }
 
   try {
     const { db } = await connectToDatabase();
-    const profile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ firebaseUid: queryUserId });
+    const profile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ phoneNumber: phoneNumber });
 
     if (profile) {
       // Ensure the returned profile conforms to the latest UserProfile structure
       const profileSafe: UserProfile = {
-        firebaseUid: profile.firebaseUid,
+        firebaseUid: profile.firebaseUid, // Keep for potential future use or legacy data
         email: profile.email,
+        phoneNumber: profile.phoneNumber,
+        password: profile.password,
         isAuthenticated: true,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
-          // Ensure purposes is always an array to prevent iteration errors
           purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
           businessInfo: asst.businessInfo || {},
@@ -46,6 +37,8 @@ export async function GET(request: NextRequest) {
         credits: profile.credits || 0,
         pushSubscriptions: profile.pushSubscriptions || [],
       };
+      // Important: Do NOT send the password back to the client
+      delete (profileSafe as Partial<UserProfile>).password;
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
     } else {
       return NextResponse.json({ userProfile: null, message: "User profile not found" }, { status: 404 });
@@ -57,35 +50,27 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const decodedToken = await verifyFirebaseToken(request);
-  if (!decodedToken) {
-    return NextResponse.json({ message: 'Unauthorized: Invalid or missing token' }, { status: 401 });
-  }
-
   try {
-    const body = await request.json();
-    const { userId: bodyUserId, userProfile } = body;
+    const { userProfile } = await request.json();
 
-    if (!bodyUserId || !userProfile) {
-      return NextResponse.json({ message: 'User ID and userProfile are required in the body' }, { status: 400 });
-    }
-
-    if (decodedToken.uid !== bodyUserId) {
-      return NextResponse.json({ message: 'Forbidden: Token UID does not match User ID in request body' }, { status: 403 });
+    if (!userProfile || !userProfile.phoneNumber || !userProfile.password) {
+      return NextResponse.json({ message: 'UserProfile with phoneNumber and password is required' }, { status: 400 });
     }
     
     const { db } = await connectToDatabase();
 
     // Prepare a clean, serializable profile for MongoDB
+    // Note: In a real-world scenario, you MUST hash the password before saving.
+    // For this exercise, we'll store it as plain text.
     const serializableProfile = {
-      firebaseUid: decodedToken.uid,
       email: userProfile.email,
+      phoneNumber: userProfile.phoneNumber,
+      password: userProfile.password, // WARNING: Storing plain text passwords is a security risk.
       isAuthenticated: userProfile.isAuthenticated,
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
       credits: userProfile.credits || 0,
       assistants: (userProfile.assistants || []).map((asst: any) => ({
         ...asst,
-        // Ensure purposes is converted to Array for MongoDB
         purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || []),
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         businessInfo: asst.businessInfo || {},
@@ -95,15 +80,19 @@ export async function POST(request: NextRequest) {
     };
     
     try {
+      // Find user by phone number to update or insert
       const result = await db.collection<UserProfile>(PROFILES_COLLECTION).updateOne(
-        { firebaseUid: decodedToken.uid },
+        { phoneNumber: userProfile.phoneNumber },
         { $set: serializableProfile },
         { upsert: true }
       );
 
       let responseMessage = "";
+      let userId = userProfile.phoneNumber;
+
       if (result.upsertedId) {
         responseMessage = "User profile created successfully.";
+        userId = result.upsertedId.toString();
       } else if (result.modifiedCount > 0) {
         responseMessage = "User profile updated successfully.";
       } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
@@ -113,7 +102,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "Failed to save user profile: No document matched or upserted" }, { status: 500 });
       }
 
-      return NextResponse.json({ message: responseMessage, userId: decodedToken.uid, ...(result.upsertedId && {upsertedId: result.upsertedId}) });
+      return NextResponse.json({ message: responseMessage, userId: userId, ...(result.upsertedId && {upsertedId: result.upsertedId}) });
 
     } catch (dbError) {
       console.error("API POST (DB operation) Error:", dbError);

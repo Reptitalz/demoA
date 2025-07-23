@@ -1,24 +1,31 @@
-
 "use client";
 
-import React, { useEffect, useState, useRef, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaGoogle } from 'react-icons/fa';
-import { UserPlus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { UserPlus, LogIn, Phone, Key } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
-import { auth, googleProvider, signInWithRedirect } from '@/lib/firebase';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { PhoneInput } from '@/components/ui/phone-input';
+import type { E164Number } from 'react-phone-number-input';
+import { isValidPhoneNumber } from 'react-phone-number-input';
+
 
 const LoginPageContent = () => {
     const { state, dispatch } = useApp();
     const router = useRouter();
     const { toast } = useToast();
     const cardRef = useRef<HTMLDivElement>(null);
+    
+    const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
+    const [password, setPassword] = useState('');
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Redirect authenticated users to the dashboard
     useEffect(() => {
@@ -42,15 +49,36 @@ const LoginPageContent = () => {
         return () => container?.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    const handleLogin = async () => {
-        if (!googleProvider) {
-            toast({ title: "Configuración Incompleta", description: "La autenticación de Firebase no está configurada.", variant: "destructive" });
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!phoneNumber || !isValidPhoneNumber(phoneNumber) || !password) {
+            toast({ title: "Datos incompletos", description: "Por favor, ingresa un número de teléfono y contraseña válidos.", variant: "destructive" });
             return;
         }
+
+        setIsProcessing(true);
         try {
-            await signInWithRedirect(auth, googleProvider);
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al iniciar sesión');
+            }
+            
+            // On successful login, AppProvider should take over
+            dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+            toast({ title: "¡Bienvenido/a de nuevo!", description: "Has iniciado sesión correctamente." });
+            router.replace('/dashboard');
+
         } catch (error: any) {
-            toast({ title: "Error de Autenticación", description: error.message || "No se pudo iniciar sesión con Google.", variant: "destructive" });
+            toast({ title: "Error de Autenticación", description: error.message, variant: "destructive" });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -83,17 +111,52 @@ const LoginPageContent = () => {
                             Inicia sesión para acceder a tu panel o crea tu primer asistente inteligente.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 gap-4 pt-4">
+                    <CardContent className="space-y-6">
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="phone-number" className="flex items-center gap-2"><Phone /> Número de Teléfono</Label>
+                                <PhoneInput
+                                  id="phone-number"
+                                  placeholder="Tu número de teléfono"
+                                  value={phoneNumber}
+                                  onChange={(value) => setPhoneNumber(value)}
+                                  defaultCountry="MX"
+                                  disabled={isProcessing}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password"><Key /> Contraseña</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="Tu contraseña segura"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={isProcessing}
+                                />
+                            </div>
+                            <Button
+                                type="submit"
+                                size="lg"
+                                className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? <LoadingSpinner size={20} /> : <LogIn className="mr-3 h-5 w-5" />}
+                                Iniciar Sesión
+                            </Button>
+                        </form>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground">
+                                O si eres nuevo
+                                </span>
+                            </div>
+                        </div>
                         <Button
                             variant="outline"
-                            size="lg"
-                            className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105"
-                            onClick={handleLogin}
-                        >
-                            <FaGoogle className="mr-3 h-5 w-5 text-primary" />
-                            Iniciar con Google
-                        </Button>
-                        <Button
                             size="lg"
                             className="w-full justify-center text-base py-6 transition-all duration-300 ease-in-out transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90"
                             onClick={handleStartSetup}
@@ -122,5 +185,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-    

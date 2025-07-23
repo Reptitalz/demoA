@@ -1,4 +1,3 @@
-
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
@@ -39,7 +38,7 @@ export interface AssistantConfig {
   businessInfo?: AssistantBusinessInfo;
 }
 
-export type AuthProviderType = "google";
+export type AuthProviderType = "google" | "phone"; // Added "phone"
 
 export interface AppNotification {
   _id?: string;
@@ -55,9 +54,11 @@ export interface UserProfile {
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
   email?: string;
+  phoneNumber?: string; // Main identifier now
+  password?: string; // For auth, will not be sent to client
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  firebaseUid?: string;
+  firebaseUid?: string; // Kept for legacy or other potential uses
   ownerPhoneNumberForNotifications?: string;
   credits: number;
   pushSubscriptions?: PushSubscriptionJSON[];
@@ -74,7 +75,9 @@ export interface WizardState {
     name?: string;
     accessUrl?: string;
   };
-  authMethod: AuthProviderType | null;
+  authMethod: AuthProviderType | null; // For wizard flow logic
+  phoneNumber?: string; // For registration
+  password?: string; // For registration
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
@@ -90,7 +93,7 @@ export interface AppState {
 
 export interface Transaction {
   _id?: string;
-  userId: string; // Firebase UID
+  userId: string; // Firebase UID or Phone Number
   orderId: string; // Mercado Pago Payment ID
   amount: number; // Amount in MXN (e.g., 58.00)
   currency: string; // e.g., 'MXN'

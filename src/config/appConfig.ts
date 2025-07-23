@@ -1,6 +1,5 @@
-
 import type { AssistantPurpose, AuthProviderType } from '@/types';
-import { FaGoogle, FaUserCog, FaUsers, FaBrain } from 'react-icons/fa';
+import { FaGoogle, FaUserCog, FaUsers, FaBrain, FaKey, FaPhone } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
@@ -29,12 +28,12 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   1: "Detalles del Asistente",
   2: "Personalidad (Prompt)",
   3: "Base de Datos",
-  4: "Autenticación",
+  4: "Credenciales de Cuenta",
   5: "Términos y Condiciones",
 };
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
-  { id: "google", name: "Continuar con Google", icon: FaGoogle },
+  { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },
 ];
 
 export const PRICE_PER_CREDIT = 50;

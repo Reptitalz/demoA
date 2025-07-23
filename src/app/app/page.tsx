@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -18,23 +17,25 @@ import { useToast } from "@/hooks/use-toast";
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { isValidPhoneNumber } from 'react-phone-number-input';
 
 const AppSetupPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, authMethod, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password } = state.wizard;
   const { userProfile, isSetupComplete } = state;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
   // This effect ensures that unauthenticated users are redirected to the login page.
   useEffect(() => {
-    if (!state.isLoading && !userProfile.isAuthenticated) {
+    // If not loading and not authenticated, user must log in before accessing setup.
+    if (!state.isLoading && !state.userProfile.isAuthenticated && !isReconfiguring) {
       router.replace('/login');
     }
-  }, [state.isLoading, userProfile.isAuthenticated, router]);
+  }, [state.isLoading, state.userProfile.isAuthenticated, router, isReconfiguring]);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -74,8 +75,9 @@ const AppSetupPageContent = () => {
       return null;
     }
     const validateAuthStep = () => {
-      if (!authMethod) return "Por favor, elige un método de autenticación.";
-      return null;
+       if (!isValidPhoneNumber(phoneNumber || '')) return "Por favor, proporciona un número de teléfono válido.";
+       if (!password || password.length < 6) return "La contraseña debe tener al menos 6 caracteres.";
+       return null;
     }
     const validateTermsStep = () => {
       if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
@@ -91,7 +93,7 @@ const AppSetupPageContent = () => {
     } else if (isAddingNewForExistingUser) {
       if (currentStep === 1) message = validateStep1();
       else if (currentStep === 2) message = dbNeeded ? validateStep2() : null;
-      else if (currentStep === 3) message = dbNeeded ? validateDbStep() : null; // Added validation for step 3 if db is needed
+      else if (currentStep === 3) message = dbNeeded ? validateDbStep() : null;
     } else { // New user
       if (currentStep === 1) message = validateStep1();
       else if (currentStep === 2) message = validateStep2();
@@ -135,12 +137,6 @@ const AppSetupPageContent = () => {
         toast({ title: "Error", description: validationError, variant: "destructive" });
         return;
     }
-
-    if (!state.userProfile.isAuthenticated) {
-        toast({ title: "Autenticación Requerida", description: "Por favor, inicia sesión para completar la configuración.", variant: "destructive" });
-        router.push('/login'); // Redirect to login if not authenticated
-        return;
-    }
     
     setIsFinalizingSetup(true);
 
@@ -158,6 +154,8 @@ const AppSetupPageContent = () => {
 
     let updatedAssistantsArray: AssistantConfig[];
     let finalAssistantConfig: AssistantConfig;
+
+    const baseProfile = state.userProfile.isAuthenticated ? state.userProfile : {};
 
     if (editingAssistantId) {
         const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
@@ -178,10 +176,10 @@ const AppSetupPageContent = () => {
             databaseId: newAssistantDbIdToLink,
             imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
         };
-        updatedAssistantsArray = [...state.userProfile.assistants, finalAssistantConfig];
+        updatedAssistantsArray = [...(state.userProfile.assistants || []), finalAssistantConfig];
     }
     
-    let updatedDatabasesArray = [...state.userProfile.databases];
+    let updatedDatabasesArray = [...(state.userProfile.databases || [])];
     if (newDbEntry) {
         updatedDatabasesArray.push(newDbEntry);
     }
@@ -197,7 +195,10 @@ const AppSetupPageContent = () => {
     }
 
     const finalUserProfile: UserProfile = {
-        ...state.userProfile,
+        ...baseProfile,
+        isAuthenticated: true, // User becomes authenticated upon completing setup
+        phoneNumber: phoneNumber || baseProfile.phoneNumber,
+        password: password || baseProfile.password,
         assistants: updatedAssistantsArray,
         databases: updatedDatabasesArray,
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
@@ -239,7 +240,7 @@ const AppSetupPageContent = () => {
     return null;
   };
 
-  if (state.isLoading || !state.userProfile.isAuthenticated) {
+  if (state.isLoading) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <LoadingSpinner size={36} />
@@ -247,7 +248,7 @@ const AppSetupPageContent = () => {
     );
   }
 
-  // Render the wizard for authenticated users
+  // Render the wizard
   return (
     <PageContainer>
       <div className="space-y-5">
@@ -300,5 +301,3 @@ const AppSetupPage = () => {
 }
 
 export default AppSetupPage;
-
-    
