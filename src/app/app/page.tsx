@@ -35,31 +35,30 @@ const AppSetupPageContent = () => {
 
   useEffect(() => {
     if (!state.isLoading) {
-        // If user is authenticated
-        if (userProfile.isAuthenticated) {
-            const action = searchParams.get('action');
-            // If they want to add a new assistant or are reconfiguring one, show wizard.
-            if (action === 'add' || isReconfiguring) {
-                setShowWizard(true);
-            } 
-            // If they have completed setup and are not trying to add/reconfigure, send to dashboard.
-            else if (isSetupComplete) {
-                router.replace('/dashboard');
-            } 
-            // Otherwise, they are a new user part-way through setup, so show wizard.
-            else {
-                setShowWizard(true);
-            }
-        } 
-        // If not authenticated, we can infer they need to see the welcome/login screen.
-        else {
-            const action = searchParams.get('action');
-            if (action === 'add') {
-                setShowWizard(true);
-            } else {
-                setShowWizard(false);
-            }
+      const action = searchParams.get('action');
+
+      if (userProfile.isAuthenticated) {
+        if (isSetupComplete) {
+          // Si la configuración está completa, la prioridad es ir al dashboard,
+          // a menos que el usuario explícitamente quiera añadir o reconfigurar algo.
+          if (action === 'add' || isReconfiguring) {
+            setShowWizard(true);
+          } else {
+            router.replace('/dashboard');
+          }
+        } else {
+          // Si la configuración no está completa, siempre se muestra el wizard.
+          setShowWizard(true);
         }
+      } else {
+        // Si el usuario no está autenticado, se muestra la pantalla de bienvenida/login.
+        // La acción 'add' puede iniciar el wizard incluso sin autenticación previa.
+        if (action === 'add') {
+          setShowWizard(true);
+        } else {
+          setShowWizard(false);
+        }
+      }
     }
   }, [state.isLoading, userProfile.isAuthenticated, isSetupComplete, router, isReconfiguring, searchParams]);
 
