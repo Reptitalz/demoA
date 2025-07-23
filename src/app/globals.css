@@ -186,11 +186,6 @@ body {
 }
 
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
-  @apply text-foreground;
+  display: none;
 }
-.PhoneInputCountrySelect-option:hover .PhoneInputCountrySelect-callingCode {
-  @apply text-accent-foreground;
-}
-.PhoneInputCountrySelect-option--focus .PhoneInputCountrySelect-callingCode {
-  @apply text-accent-foreground;
-}
+
