@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import PhoneInputLib, { type Country, type E164Number } from 'react-phone-number-input';
+import PhoneInputLib, { type Country, type E164Number } from 'react-phone-number-input/input';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ interface PhoneInputProps {
   placeholder?: string;
   id?: string;
   ['aria-required']?: boolean;
+  withCountryCallingCode?: boolean;
 }
 
 // Usar React.forwardRef para pasar la ref al componente subyacente

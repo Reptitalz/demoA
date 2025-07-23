@@ -31,7 +31,7 @@ const Step4CreateCredentials = () => {
   }
 
   return (
-    <div className="w-full animate-fadeIn space-y-6">
+    <div className="w-full animate-fadeIn space-y-4">
        <div className="text-center">
         <h3 className="text-xl font-semibold">Crea tus Credenciales de Acceso</h3>
         <p className="text-sm text-muted-foreground">
@@ -51,6 +51,7 @@ const Step4CreateCredentials = () => {
             onChange={handlePhoneChange}
             defaultCountry="MX"
             aria-required="true"
+            withCountryCallingCode={true}
           />
           <p className="text-xs text-muted-foreground pt-1">
             Este será tu nombre de usuario para acceder a la plataforma.
