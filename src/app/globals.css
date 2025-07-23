@@ -156,21 +156,32 @@ body {
 }
 
 .PhoneInputCountrySelect {
-  @apply bg-popover text-popover-foreground border rounded-md shadow-lg;
+  @apply bg-popover text-popover-foreground border rounded-md shadow-lg p-1;
+}
+
+.PhoneInputCountrySelect-option {
+  @apply flex items-center gap-2 p-2 rounded-sm cursor-pointer;
 }
 
 .PhoneInputCountrySelect-option:hover {
-   @apply bg-accent;
+   @apply bg-accent text-accent-foreground;
 }
 
 .PhoneInputCountrySelect-option--focus {
-  @apply bg-accent;
+  @apply bg-accent text-accent-foreground;
 }
 
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-name {
-  @apply ml-2;
+  @apply flex-grow;
 }
 
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
   @apply text-muted-foreground;
 }
+.PhoneInputCountrySelect-option:hover .PhoneInputCountrySelect-callingCode {
+  @apply text-accent-foreground/70;
+}
+.PhoneInputCountrySelect-option--focus .PhoneInputCountrySelect-callingCode {
+  @apply text-accent-foreground/70;
+}
+
