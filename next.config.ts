@@ -41,8 +41,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  assetPrefix: '/static',
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -57,6 +57,14 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/static/:path*',
+        destination: '/.next/static/:path*',
+      },
+    ];
   },
   async headers() {
     return [
