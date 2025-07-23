@@ -39,9 +39,9 @@ const Step4CreateCredentials = () => {
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="phone-number" className="text-base font-medium flex items-center gap-2">
+          <Label htmlFor="phone-number" className="text-sm font-medium flex items-center gap-2">
             <Phone className="h-4 w-4" /> Tu Número de Teléfono
           </Label>
           <PhoneInput
@@ -58,7 +58,7 @@ const Step4CreateCredentials = () => {
         </div>
 
         <div className="space-y-2 relative">
-          <Label htmlFor="password" className="text-base font-medium flex items-center gap-2">
+          <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
             <Key className="h-4 w-4" /> Crea una Contraseña Segura
           </Label>
           <Input
@@ -67,14 +67,14 @@ const Step4CreateCredentials = () => {
             placeholder="Mínimo 6 caracteres"
             value={password}
             onChange={handlePasswordChange}
-            className="text-base py-6 pr-10" // Add padding for the icon
+            className="pr-10" // Add padding for the icon
             aria-required="true"
           />
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-[calc(1.5rem+8px)] h-7 w-7 text-muted-foreground"
+            className="absolute right-1 top-[27px] h-7 w-7 text-muted-foreground"
             onClick={togglePasswordVisibility}
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
@@ -83,7 +83,7 @@ const Step4CreateCredentials = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirm-password" className="text-base font-medium flex items-center gap-2">
+          <Label htmlFor="confirm-password" className="text-sm font-medium flex items-center gap-2">
             <Key className="h-4 w-4" /> Confirma tu Contraseña
           </Label>
           <Input
@@ -92,7 +92,6 @@ const Step4CreateCredentials = () => {
             placeholder="Repite la contraseña"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}
-            className="text-base py-6"
             aria-required="true"
           />
            <p className="text-xs text-muted-foreground pt-1">
