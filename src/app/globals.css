@@ -159,6 +159,11 @@ body {
     display: none;
 }
 
+/* This hides the calling code next to the flag */
+.phone-input-root .PhoneInputCountrySelect-callingCode {
+  display: none;
+}
+
 .PhoneInputCountrySelect {
   @apply bg-popover text-popover-foreground border rounded-md shadow-lg p-1;
 }
@@ -175,7 +180,7 @@ body {
   @apply bg-accent text-accent-foreground;
 }
 
-/* Hide the country name */
+/* Hide the country name in the dropdown */
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-name {
   display: none;
 }
