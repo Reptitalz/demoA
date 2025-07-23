@@ -20,6 +20,7 @@ const initialWizardState: WizardState = {
   authMethod: null,
   phoneNumber: '',
   password: '',
+  confirmPassword: '',
   ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
   editingAssistantId: null,
@@ -67,6 +68,7 @@ type Action =
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'SET_WIZARD_PHONE_NUMBER'; payload: string }
   | { type: 'SET_WIZARD_PASSWORD'; payload: string }
+  | { type: 'SET_WIZARD_CONFIRM_PASSWORD'; payload: string }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
@@ -125,6 +127,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, phoneNumber: action.payload } };
     case 'SET_WIZARD_PASSWORD':
       return { ...state, wizard: { ...state.wizard, password: action.payload } };
+    case 'SET_WIZARD_CONFIRM_PASSWORD':
+      return { ...state, wizard: { ...state.wizard, confirmPassword: action.payload } };
     case 'UPDATE_OWNER_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, ownerPhoneNumberForNotifications: action.payload } };
     case 'SET_TERMS_ACCEPTED':

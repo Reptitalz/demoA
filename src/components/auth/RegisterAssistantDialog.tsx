@@ -27,7 +27,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
@@ -59,6 +59,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     const validateAuthStep = () => {
       if (!isValidPhoneNumber(phoneNumber || '')) return "Por favor, proporciona un número de teléfono válido.";
       if (!password || password.length < 6) return "La contraseña debe tener al menos 6 caracteres.";
+      if (password !== confirmPassword) return "Las contraseñas no coinciden.";
       return null;
     };
     const validateTermsStep = () => {

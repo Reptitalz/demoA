@@ -1,16 +1,18 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneInput } from '@/components/ui/phone-input';
 import type { E164Number } from 'react-phone-number-input';
-import { Key, Phone } from 'lucide-react';
+import { Key, Phone, Eye, EyeOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Step4CreateCredentials = () => {
   const { state, dispatch } = useApp();
-  const { phoneNumber, password } = state.wizard;
+  const { phoneNumber, password, confirmPassword } = state.wizard;
+  const [showPassword, setShowPassword] = useState(false);
 
   const handlePhoneChange = (value: E164Number | undefined) => {
     dispatch({ type: 'SET_WIZARD_PHONE_NUMBER', payload: value || '' });
@@ -19,6 +21,14 @@ const Step4CreateCredentials = () => {
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_WIZARD_PASSWORD', payload: e.target.value });
   };
+  
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: 'SET_WIZARD_CONFIRM_PASSWORD', payload: e.target.value });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev);
+  }
 
   return (
     <div className="w-full animate-fadeIn space-y-6">
@@ -47,21 +57,46 @@ const Step4CreateCredentials = () => {
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <Label htmlFor="password" className="text-base font-medium flex items-center gap-2">
             <Key className="h-4 w-4" /> Crea una Contraseña Segura
           </Label>
           <Input
             id="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Mínimo 6 caracteres"
             value={password}
             onChange={handlePasswordChange}
+            className="text-base py-6 pr-10" // Add padding for the icon
+            aria-required="true"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-[calc(1.5rem+8px)] h-7 w-7 text-muted-foreground"
+            onClick={togglePasswordVisibility}
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password" className="text-base font-medium flex items-center gap-2">
+            <Key className="h-4 w-4" /> Confirma tu Contraseña
+          </Label>
+          <Input
+            id="confirm-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Repite la contraseña"
+            value={confirmPassword}
+            onChange={handleConfirmPasswordChange}
             className="text-base py-6"
             aria-required="true"
           />
            <p className="text-xs text-muted-foreground pt-1">
-              Asegúrate de que sea segura y fácil de recordar.
+              Asegúrate de que ambas contraseñas coincidan.
             </p>
         </div>
       </div>

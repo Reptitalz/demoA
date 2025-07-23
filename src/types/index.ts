@@ -78,6 +78,7 @@ export interface WizardState {
   authMethod: AuthProviderType | null; // For wizard flow logic
   phoneNumber?: string; // For registration
   password?: string; // For registration
+  confirmPassword?: string; // For registration
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
