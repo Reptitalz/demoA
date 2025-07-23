@@ -145,7 +145,7 @@ body {
 }
 
 .phone-input-root .PhoneInputCountry {
-  @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0 flex items-center;
+  @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0 flex items-center justify-center;
   padding-left: 0.5rem;
   padding-right: 0.25rem;
 }
