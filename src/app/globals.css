@@ -175,8 +175,9 @@ body {
   @apply bg-accent text-accent-foreground;
 }
 
+/* Hide the country name */
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-name {
-  @apply flex-grow;
+  display: none;
 }
 
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
