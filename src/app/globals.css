@@ -181,11 +181,11 @@ body {
 }
 
 .PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
-  @apply text-muted-foreground;
+  @apply text-foreground;
 }
 .PhoneInputCountrySelect-option:hover .PhoneInputCountrySelect-callingCode {
-  @apply text-accent-foreground/70;
+  @apply text-accent-foreground;
 }
 .PhoneInputCountrySelect-option--focus .PhoneInputCountrySelect-callingCode {
-  @apply text-accent-foreground/70;
+  @apply text-accent-foreground;
 }
