@@ -159,7 +159,7 @@ body {
 }
 
 .PhoneInputCountrySelect-option {
-  @apply flex items-center gap-2 p-2 rounded-sm cursor-pointer;
+  @apply flex items-center p-2 rounded-sm cursor-pointer;
 }
 
 .PhoneInputCountrySelect-option:hover {
@@ -170,7 +170,8 @@ body {
   @apply bg-accent text-accent-foreground;
 }
 
-/* Hide the country name in the dropdown */
-.PhoneInputCountrySelect-option .PhoneInputCountrySelect-name {
+/* Hide the country name and calling code in the dropdown */
+.PhoneInputCountrySelect-option .PhoneInputCountrySelect-name,
+.PhoneInputCountrySelect-option .PhoneInputCountrySelect-callingCode {
   display: none;
 }
