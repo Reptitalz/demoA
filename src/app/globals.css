@@ -141,15 +141,18 @@ body {
 
 /* Custom Styles for react-phone-number-input to match ShadCN theme */
 .phone-input-root .PhoneInputInput {
-  @apply h-10 text-base md:text-sm rounded-l-none !border-l-0;
+  @apply h-10 text-base md:text-sm rounded-l-none !border-l-0 pl-2;
 }
 
 .phone-input-root .PhoneInputCountry {
-  @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0;
+  @apply h-10 border border-input bg-background rounded-md rounded-r-none border-r-0 flex items-center;
+  /* Adjust padding to make the country selector button smaller */
+  padding-left: 0.75rem;
+  padding-right: 0.5rem;
 }
 
 .phone-input-root .PhoneInputCountryIcon {
-  @apply shadow-md;
+  @apply shadow-md w-6; /* Control icon size */
 }
 
 .PhoneInputCountrySelect {
