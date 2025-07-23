@@ -1,5 +1,4 @@
 
-import type { NextConfig } from 'next';
 import type { Configuration as WebpackConfiguration } from 'webpack';
 
 const securityHeaders = [
@@ -31,9 +30,26 @@ const securityHeaders = [
     key: 'Expires',
     value: '0',
   },
+  // CORS Headers
+  {
+    key: 'Access-Control-Allow-Credentials',
+    value: 'true',
+  },
+  {
+    key: 'Access-Control-Allow-Origin',
+    value: '*', // Replace with your actual domain in production for better security
+  },
+  {
+    key: 'Access-Control-Allow-Methods',
+    value: 'GET,DELETE,PATCH,POST,PUT',
+  },
+  {
+    key: 'Access-Control-Allow-Headers',
+    value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
+  },
 ];
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -74,36 +90,38 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  webpack: (
-    config: WebpackConfiguration,
-    { isServer }
-  ): WebpackConfiguration => {
-    if (!isServer) {
-      // Initialize resolve and fallback if they don't exist to prevent errors
-      if (!config.resolve) {
-        config.resolve = {};
-      }
-      if (!config.resolve.fallback) {
-        config.resolve.fallback = {}; // Ensure fallback is an object
-      }
+  experimental: {
+    webpack: (
+      config: WebpackConfiguration,
+      { isServer }
+    ): WebpackConfiguration => {
+      if (!isServer) {
+        // Initialize resolve and fallback if they don't exist to prevent errors
+        if (!config.resolve) {
+          config.resolve = {};
+        }
+        if (!config.resolve.fallback) {
+          config.resolve.fallback = {}; // Ensure fallback is an object
+        }
 
-      // Add fallbacks for Node.js core modules.
-      // This prevents "Module not found" errors for these modules on the client-side,
-      // as database operations are handled by Server Actions.
-      config.resolve.fallback = {
-        ...config.resolve.fallback, // Preserve existing fallbacks if any
-        "child_process": false,
-        "fs": false,
-        "net": false,
-        "tls": false,
-        "dns": false,
-        // The 'mongodb-client-encryption' module is problematic for client bundles
-        // as it depends on 'child_process'. Marking it as false prevents bundling.
-        "mongodb-client-encryption": false,
-      };
-    }
-    return config;
-  },
+        // Add fallbacks for Node.js core modules.
+        // This prevents "Module not found" errors for these modules on the client-side,
+        // as database operations are handled by Server Actions.
+        config.resolve.fallback = {
+          ...config.resolve.fallback, // Preserve existing fallbacks if any
+          "child_process": false,
+          "fs": false,
+          "net": false,
+          "tls": false,
+          "dns": false,
+          // The 'mongodb-client-encryption' module is problematic for client bundles
+          // as it depends on 'child_process'. Marking it as false prevents bundling.
+          "mongodb-client-encryption": false,
+        };
+      }
+      return config;
+    },
+  }
 };
 
 export default nextConfig;
