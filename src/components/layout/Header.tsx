@@ -92,7 +92,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </Button>
             ) : (
                <Button asChild size="sm" className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
-                 <Link href="/app">
+                 <Link href="/login">
                   <Download className="mr-1.5 h-4 w-4" />
                   Obtener App
                 </Link>
@@ -107,3 +107,5 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
 };
 
 export default Header;
+
+    

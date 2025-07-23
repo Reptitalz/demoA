@@ -55,7 +55,7 @@ const BottomNavigationBar = () => {
 
   const isAppArea = pathname.startsWith('/dashboard');
 
-  if (pathname === '/app/setup' || !isAppArea) {
+  if (pathname === '/app' || pathname === '/login' || !isAppArea) {
     return null;
   }
 
@@ -105,7 +105,7 @@ const BottomNavigationBar = () => {
                   "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-muted-foreground"
                 )}
               >
-                <Link href="/app" className="flex flex-col items-center">
+                <Link href="/login" className="flex flex-col items-center">
                   <Download className="h-5 w-5 mb-0.5" />
                   Obtener App
                 </Link>
@@ -119,3 +119,5 @@ const BottomNavigationBar = () => {
 };
 
 export default BottomNavigationBar;
+
+    
