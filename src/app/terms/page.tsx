@@ -4,13 +4,18 @@
 import PageContainer from '@/components/layout/PageContainer';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: `Términos y Condiciones de Servicio`,
+};
 
 const TermsOfServicePage = () => {
   return (
     <PageContainer className="space-y-6" fullWidth={true}>
       <div className="bg-card p-6 sm:p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-bold text-brand-gradient mb-6 text-center">
-          Términos y Condiciones de Servicio de {APP_NAME}
+          Térmenos y Condiciones de Servicio de {APP_NAME}
         </h1>
 
         <p className="mb-4 text-muted-foreground">

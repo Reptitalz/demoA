@@ -3,7 +3,7 @@
 
 import PageContainer from '@/components/layout/PageContainer';
 import { BarChart2, MessageSquareText, Users, Zap } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle as SmallCardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_NAME } from '@/config/appConfig';
 
 // Placeholder data - replace with actual data fetching and state
@@ -81,7 +81,7 @@ const ConsumptionPage = () => {
       <div className="space-y-6 animate-fadeIn" style={{animationDelay: "0.2s"}}>
         <Card>
           <CardHeader>
-            <SmallCardTitle className="text-lg">Resumen Total del Plan</SmallCardTitle>
+            <CardTitle className="text-lg">Resumen Total del Plan</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
@@ -107,7 +107,7 @@ const ConsumptionPage = () => {
             {consumptionData.assistants.map((asst) => (
               <Card key={asst.id} className="shadow-sm">
                 <CardHeader className="pb-3">
-                  <SmallCardTitle className="text-md">{asst.name}</SmallCardTitle>
+                  <CardTitle className="text-md">{asst.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-xs">
                   <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md">
