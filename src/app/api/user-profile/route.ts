@@ -2,8 +2,10 @@ import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import bcrypt from 'bcrypt';
 
 const PROFILES_COLLECTION = 'userProfiles';
+const SALT_ROUNDS = 10;
 
 // GET now uses phone number instead of firebaseUid
 export async function GET(request: NextRequest) {
@@ -59,13 +61,14 @@ export async function POST(request: NextRequest) {
     
     const { db } = await connectToDatabase();
 
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(userProfile.password, SALT_ROUNDS);
+
     // Prepare a clean, serializable profile for MongoDB
-    // Note: In a real-world scenario, you MUST hash the password before saving.
-    // For this exercise, we'll store it as plain text.
     const serializableProfile = {
       email: userProfile.email,
       phoneNumber: userProfile.phoneNumber,
-      password: userProfile.password, // WARNING: Storing plain text passwords is a security risk.
+      password: hashedPassword, // Store the hashed password
       isAuthenticated: userProfile.isAuthenticated,
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
       credits: userProfile.credits || 0,

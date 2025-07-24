@@ -129,14 +129,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
     };
     
-    const finalUserProfile: UserProfile = {
+    // We only send the necessary info to the backend.
+    // The backend will hash the password.
+    const userProfileForApi = {
         isAuthenticated: true,
         phoneNumber: phoneNumber,
-        password: password,
+        password: password, // The backend will hash this.
         assistants: [finalAssistantConfig],
         databases: newDbEntry ? [newDbEntry] : [],
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
-        credits: 0, // New users start with 0 credits
+        credits: 0,
     };
     
     // Save profile to API, which handles upsert
@@ -144,16 +146,23 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         const response = await fetch('/api/user-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userProfile: finalUserProfile }),
+            body: JSON.stringify({ userProfile: userProfileForApi }),
         });
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || "Failed to create profile.");
         }
         
-        // Update global state and redirect
-        dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfile });
-        sendAssistantCreatedWebhook(finalUserProfile, finalAssistantConfig, newDbEntry || null)
+        // After successful API call, update the global state with the full profile
+        // but without the password for security.
+        const finalUserProfileForState: UserProfile = {
+            ...userProfileForApi,
+            password: '', // Do not store plain text password in state
+        }
+        
+        dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfileForState });
+        
+        sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
             .catch(err => console.error("Error sending assistant created webhook:", err));
 
         toast({
