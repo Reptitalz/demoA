@@ -8,11 +8,29 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import type { E164Number } from 'react-phone-number-input';
 import { Key, Phone, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+const getPasswordStrength = (password: string): { level: 'none' | 'weak' | 'moderate' | 'strong'; text: string } => {
+  if (!password) return { level: 'none', text: '' };
+  
+  const hasNumber = /\d/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  
+  if (password.length < 6) return { level: 'weak', text: 'Débil' };
+  if (password.length >= 8 && hasNumber && (hasUpper || hasLower)) return { level: 'strong', text: 'Fuerte' };
+  if (password.length >= 6 && (hasNumber || hasUpper)) return { level: 'moderate', text: 'Moderada' };
+  
+  return { level: 'weak', text: 'Débil' };
+};
+
 
 const Step4CreateCredentials = () => {
   const { state, dispatch } = useApp();
   const { phoneNumber, password, confirmPassword } = state.wizard;
   const [showPassword, setShowPassword] = useState(false);
+  
+  const passwordStrength = getPasswordStrength(password || '');
 
   const handlePhoneChange = (value: E164Number | undefined) => {
     dispatch({ type: 'SET_WIZARD_PHONE_NUMBER', payload: value || '' });
@@ -58,30 +76,54 @@ const Step4CreateCredentials = () => {
           </p>
         </div>
 
-        <div className="space-y-2 relative">
+        <div className="space-y-2">
           <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
             <Key className="h-4 w-4" /> Crea una Contraseña Segura
           </Label>
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Mínimo 6 caracteres"
-            value={password}
-            onChange={handlePasswordChange}
-            className="pr-10" // Add padding for the icon
-            aria-required="true"
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-1 top-[27px] h-7 w-7 text-muted-foreground"
-            onClick={togglePasswordVisibility}
-            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
+          <div className="relative">
+             <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={handlePasswordChange}
+                className="pr-10" // Add padding for the icon
+                aria-required="true"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+          </div>
         </div>
+
+        {passwordStrength.level !== 'none' && (
+          <div className="space-y-1.5 animate-fadeIn">
+            <div className="flex justify-between items-center">
+                <p className="text-xs font-medium">Seguridad de la contraseña:</p>
+                <p className={cn(
+                    "text-xs font-semibold",
+                    passwordStrength.level === 'weak' && "text-red-500",
+                    passwordStrength.level === 'moderate' && "text-yellow-500",
+                    passwordStrength.level === 'strong' && "text-green-500",
+                )}>{passwordStrength.text}</p>
+            </div>
+            <div className="flex gap-1.5">
+                <div className={cn("h-1.5 flex-1 rounded-full", passwordStrength.level === 'weak' ? "bg-red-500" : "bg-muted")} />
+                <div className={cn("h-1.5 flex-1 rounded-full", passwordStrength.level === 'moderate' ? "bg-yellow-500" : (passwordStrength.level === 'strong' ? "bg-green-500" : "bg-muted"))} />
+                <div className={cn("h-1.5 flex-1 rounded-full", passwordStrength.level === 'strong' ? "bg-green-500" : "bg-muted")} />
+            </div>
+             <p className="text-xs text-muted-foreground pt-1">
+              Este medidor es solo una guía. No es obligatorio crear una contraseña "fuerte".
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="confirm-password" className="text-sm font-medium flex items-center gap-2">
@@ -94,6 +136,7 @@ const Step4CreateCredentials = () => {
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}
             aria-required="true"
+            disabled={!password}
           />
            <p className="text-xs text-muted-foreground pt-1">
               Asegúrate de que ambas contraseñas coincidan.
