@@ -2,41 +2,38 @@
 "use client";
 
 import React from 'react';
-import PhoneInputLib, { type Country, type E164Number } from 'react-phone-number-input/input';
+import PhoneInputLib, { type Country, type E164Number } from 'react-phone-number-input';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import 'react-phone-number-input/style.css'; // Import base styles
 
-// Definir la interfaz para las propiedades del componente
-interface PhoneInputProps {
+// Define the interface for the properties of the component
+interface PhoneInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   value: E164Number | undefined;
   onChange: (value: E164Number | undefined) => void;
   defaultCountry?: Country;
   className?: string;
   disabled?: boolean;
-  placeholder?: string;
-  id?: string;
-  ['aria-required']?: boolean;
-  withCountryCallingCode?: boolean;
 }
 
-// Usar React.forwardRef para pasar la ref al componente subyacente
+// Use React.forwardRef to pass the ref to the underlying component
 const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   ({ className, ...props }, ref) => {
     return (
       <PhoneInputLib
         ref={ref}
-        // Clases para el contenedor principal
-        className={cn('phone-input-root', className)}
-        // Usar el componente Input de shadcn como campo de entrada
-        inputComponent={Input as React.ElementType}
-        // Pasar el resto de las propiedades
+        // Classes for the container
+        className={cn('phone-input-root flex items-center', className)}
+        // Use the Input component from shadcn as the input field
+        inputComponent={Input}
+        // Pass the rest of the properties
         {...props}
       />
     );
   }
 );
 
-// Asignar un nombre de visualización para una mejor depuración
+// Assign a display name for better debugging
 PhoneInput.displayName = 'PhoneInput';
 
 export { PhoneInput };
