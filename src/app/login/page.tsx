@@ -3,12 +3,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
 import { LogIn, UserPlus, Phone, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 const APP_NAME = "Hey Manito";
 
@@ -21,7 +22,7 @@ const LoginPageContent = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
 
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
   const [password, setPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
@@ -107,14 +108,14 @@ const LoginPageContent = () => {
             <label htmlFor="phone-number" className="block text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
               <Phone className="h-4 w-4" /> Número de Teléfono
             </label>
-            <Input
+            <PhoneInput
               id="phone-number"
-              type="tel"
               placeholder="+52 123 456 7890"
               value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              onChange={(value) => setPhoneNumber(value)}
               disabled={isProcessing}
               className="w-full"
+              defaultCountry="MX"
             />
           </div>
 
@@ -180,5 +181,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-    
