@@ -188,12 +188,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-      <DialogContent className="sm:max-w-2xl bg-background/95 backdrop-blur-sm" onInteractOutside={(e) => { if (isFinalizingSetup) e.preventDefault(); }}>
-        <DialogHeader>
+      <DialogContent 
+        className="w-full h-full max-w-none sm:max-w-2xl sm:h-auto sm:max-h-[90vh] bg-background/95 backdrop-blur-sm flex flex-col p-0"
+        onInteractOutside={(e) => { if (isFinalizingSetup) e.preventDefault(); }}>
+        
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl font-bold text-center text-brand-gradient">Crear un Nuevo Asistente</DialogTitle>
           <DialogDescription className="text-center">Sigue los pasos para configurar tu primer asistente inteligente.</DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-6">
+
+        <div className="flex-grow overflow-y-auto px-6 space-y-4">
             <SetupProgressBar />
             <div className="min-h-[400px] relative">
             {isFinalizingSetup && (
@@ -206,23 +210,24 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               {renderStepContent()}
             </div>
             </div>
-            <div className="flex justify-between items-center pt-5 border-t">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105">
-                <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
-            </Button>
+        </div>
+        
+        <div className="flex justify-between items-center p-6 border-t mt-auto bg-background/80 backdrop-blur-sm">
+          <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105">
+              <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
+          </Button>
 
-            {currentStep < effectiveMaxSteps ? (
-                <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
-                Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            ) : (
-                <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
-                {isFinalizingSetup && <FaSpinner className="animate-spin mr-2 h-4 w-4" />}
-                Completar Configuración
-                <FaArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            )}
-            </div>
+          {currentStep < effectiveMaxSteps ? (
+              <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
+              Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+          ) : (
+              <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
+              {isFinalizingSetup && <FaSpinner className="animate-spin mr-2 h-4 w-4" />}
+              Completar Configuración
+              <FaArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
