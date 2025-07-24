@@ -90,38 +90,36 @@ const nextConfig = {
       },
     ];
   },
-  experimental: {
-    webpack: (
-      config: WebpackConfiguration,
-      { isServer }
-    ): WebpackConfiguration => {
-      if (!isServer) {
-        // Initialize resolve and fallback if they don't exist to prevent errors
-        if (!config.resolve) {
-          config.resolve = {};
-        }
-        if (!config.resolve.fallback) {
-          config.resolve.fallback = {}; // Ensure fallback is an object
-        }
-
-        // Add fallbacks for Node.js core modules.
-        // This prevents "Module not found" errors for these modules on the client-side,
-        // as database operations are handled by Server Actions.
-        config.resolve.fallback = {
-          ...config.resolve.fallback, // Preserve existing fallbacks if any
-          "child_process": false,
-          "fs": false,
-          "net": false,
-          "tls": false,
-          "dns": false,
-          // The 'mongodb-client-encryption' module is problematic for client bundles
-          // as it depends on 'child_process'. Marking it as false prevents bundling.
-          "mongodb-client-encryption": false,
-        };
+  webpack: (
+    config: WebpackConfiguration,
+    { isServer }: { isServer: boolean }
+  ): WebpackConfiguration => {
+    if (!isServer) {
+      // Initialize resolve and fallback if they don't exist to prevent errors
+      if (!config.resolve) {
+        config.resolve = {};
       }
-      return config;
-    },
-  }
+      if (!config.resolve.fallback) {
+        config.resolve.fallback = {}; // Ensure fallback is an object
+      }
+
+      // Add fallbacks for Node.js core modules.
+      // This prevents "Module not found" errors for these modules on the client-side,
+      // as database operations are handled by Server Actions.
+      config.resolve.fallback = {
+        ...config.resolve.fallback, // Preserve existing fallbacks if any
+        "child_process": false,
+        "fs": false,
+        "net": false,
+        "tls": false,
+        "dns": false,
+        // The 'mongodb-client-encryption' module is problematic for client bundles
+        // as it depends on 'child_process'. Marking it as false prevents bundling.
+        "mongodb-client-encryption": false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

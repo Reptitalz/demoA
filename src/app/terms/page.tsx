@@ -4,11 +4,6 @@
 import PageContainer from '@/components/layout/PageContainer';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: `Términos y Condiciones de Servicio`,
-};
 
 const TermsOfServicePage = () => {
   return (
