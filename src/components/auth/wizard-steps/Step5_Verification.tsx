@@ -63,7 +63,7 @@ const Step5Verification = ({ verificationKey }: Step5VerificationProps) => {
             maxLength={6}
           />
           <p className="text-xs text-muted-foreground pt-1">
-            Este código confirma que tienes acceso al número de teléfono.
+            Este código confirma que tienes acceso al número de teléfono. El código es: {verificationKey}
           </p>
         </div>
 

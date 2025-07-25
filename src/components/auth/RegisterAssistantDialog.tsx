@@ -68,6 +68,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     };
     const validateVerificationStep = () => {
       if (!verificationCode?.trim()) return "Por favor, ingresa el código de verificación.";
+      if (verificationCode !== verificationKey) return "El código de verificación es incorrecto.";
       return null;
     }
     const validateTermsStep = () => {
@@ -195,11 +196,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         
         sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
             .catch(err => console.error("Error sending assistant created webhook:", err));
-
-        if (phoneNumber && verificationCode) {
-            sendVerificationCodeWebhook(phoneNumber, verificationCode)
-                .catch(err => console.error("Error sending verification code webhook:", err));
-        }
 
         toast({
             title: "¡Configuración Completa!",
