@@ -79,6 +79,7 @@ export interface WizardState {
   phoneNumber?: string; // For registration
   password?: string; // For registration
   confirmPassword?: string; // For registration
+  verificationCode?: string; // For registration
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
@@ -101,7 +102,6 @@ export interface Transaction {
   creditsPurchased: number;
   paymentMethod: string; // e.g., 'spei', 'oxxo', 'debit_card'
   status: string; // e.g., 'approved'
-  createdAt: Date;
   customerInfo: {
     name: string;
     email: string;

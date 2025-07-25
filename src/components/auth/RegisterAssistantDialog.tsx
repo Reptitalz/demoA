@@ -16,6 +16,7 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
+import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
 interface RegisterAssistantDialogProps {
@@ -27,7 +28,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword, verificationCode } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
@@ -58,6 +59,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     };
     const validateAuthStep = () => {
       if (!isValidPhoneNumber(phoneNumber || '')) return "Por favor, proporciona un número de teléfono válido.";
+      if (!verificationCode?.trim()) return "Por favor, ingresa el código de verificación.";
       if (!password || password.length < 6) return "La contraseña debe tener al menos 6 caracteres.";
       if (password !== confirmPassword) return "Las contraseñas no coinciden.";
       return null;
@@ -164,6 +166,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         
         sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
             .catch(err => console.error("Error sending assistant created webhook:", err));
+
+        if (phoneNumber && verificationCode) {
+            sendVerificationCodeWebhook(phoneNumber, verificationCode)
+                .catch(err => console.error("Error sending verification code webhook:", err));
+        }
 
         toast({
             title: "¡Configuración Completa!",
