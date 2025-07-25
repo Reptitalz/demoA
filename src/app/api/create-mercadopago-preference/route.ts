@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { PRICE_PER_CREDIT, APP_NAME } from '@/config/appConfig';
