@@ -81,7 +81,6 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     );
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants } });
     
-    // Close the dialog and show a toast
     handleClose();
     toast({
         title: "Procesando Activación...",
@@ -106,15 +105,12 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
              const errorData = await response.json().catch(() => ({ message: "Ocurrió un error al iniciar la activación." }));
             throw new Error(errorData.message || "No se pudo iniciar el proceso de activación.");
         }
-        // The backend process is now running. It will send a push notification upon completion.
-
+        
     } catch (error: any) {
         toast({ title: "Error de Activación", description: error.message, variant: "destructive" });
         
-        // Revert the optimistic UI update on failure
         const originalAssistant = state.userProfile.assistants.find(a => a.id === assistantId);
         if (originalAssistant) {
-            // Restore the assistant to its state before the optimistic update
              dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...originalAssistant, numberReady: undefined, verificationCode: undefined } });
         }
     } finally {

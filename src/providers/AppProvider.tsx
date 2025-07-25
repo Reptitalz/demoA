@@ -7,8 +7,8 @@ import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { urlBase64ToUint8Array } from '@/lib/utils';
-// Firebase auth is no longer the primary method
-// import { auth, getRedirectResult } from '@/lib/firebase'; 
+import { auth, signOut } from '@/lib/firebase'; 
+import { onAuthStateChanged } from 'firebase/auth';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -216,14 +216,54 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSubscribingToPush, setIsSubscribingToPush] = useState(false);
 
-  // Re-enable push notifications with local auth if needed
   const enablePushNotifications = useCallback(async (): Promise<boolean> => {
-    // This function can be adapted to use the new phone number based user ID
-    // For now, it requires a firebaseUid which is no longer standard.
-    // It is left here for future adaptation.
-    console.warn("Push notifications may need adaptation for phone-based auth.");
-    return false;
-  }, []);
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast({ title: 'Push no soportado', description: 'Tu navegador no soporta notificaciones push.', variant: 'destructive' });
+      return false;
+    }
+    
+    if (!state.userProfile.firebaseUid) {
+      toast({ title: 'Error', description: 'El ID de usuario no está disponible para suscribirse a notificaciones.', variant: 'destructive' });
+      return false;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (!subscription) {
+        const permission = await window.Notification.requestPermission();
+        if (permission !== 'granted') {
+          toast({ title: 'Permiso denegado', description: 'No has permitido las notificaciones.' });
+          return false;
+        }
+
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) {
+            toast({ title: 'Error de Configuración', description: 'La clave VAPID para notificaciones no está configurada.', variant: 'destructive' });
+            return false;
+        }
+
+        setIsSubscribingToPush(true);
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        });
+      }
+
+      const subJSON = subscription.toJSON();
+      dispatch({ type: 'ADD_PUSH_SUBSCRIPTION', payload: subJSON });
+      toast({ title: '¡Suscripción Exitosa!', description: 'Recibirás notificaciones importantes.' });
+      return true;
+
+    } catch (error) {
+      console.error('Error al suscribirse a las notificaciones push:', error);
+      toast({ title: 'Error de Suscripción', description: 'No se pudieron activar las notificaciones.', variant: 'destructive' });
+      return false;
+    } finally {
+      setIsSubscribingToPush(false);
+    }
+  }, [state.userProfile.firebaseUid]);
 
   const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
     try {
@@ -247,7 +287,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     // On app load, check session storage for a logged-in user.
-    // This is a simple session management approach without tokens.
     const loggedInUserPhone = sessionStorage.getItem('loggedInUser');
     if (loggedInUserPhone) {
       fetchProfileCallback(loggedInUserPhone);
@@ -302,6 +341,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isLoading]);
+  
+  // Cleaned up effect - no longer needed as we don't rely on firebase client auth state
+  useEffect(() => {}, []);
 
   return (
     <QueryClientProvider client={queryClient}>

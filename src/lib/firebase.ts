@@ -1,8 +1,6 @@
-// This file is no longer the primary auth method but is kept in case
-// any other Firebase services (like Firestore, Storage) are used directly on the client.
-// For now, its auth capabilities are being replaced.
-
-import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
+// This file initializes the Firebase client app and exports auth-related utilities.
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,13 +11,14 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp | null;
+let app: FirebaseApp;
 
 if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
     console.warn("**********************************************************************************");
     console.warn("WARNING: Firebase client configuration is missing or incomplete.");
     console.warn("**********************************************************************************");
-    app = null;
+    // Create a dummy app object to avoid crashing the app if firebase is not configured
+    app = {} as FirebaseApp;
 } else {
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
@@ -28,5 +27,6 @@ if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
     }
 }
 
-// Exporting the app instance in case other Firebase services need it.
-export { app };
+const auth = getAuth(app);
+
+export { app, auth, signOut };

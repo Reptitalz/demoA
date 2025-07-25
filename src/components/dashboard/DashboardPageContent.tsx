@@ -27,7 +27,7 @@ const DashboardPageContent = () => {
     // while not authenticated or still loading, they are shown a spinner
     // while the main routing logic in AppProvider and AppRootPage takes over.
     if (!isLoading && !state.userProfile.isAuthenticated) {
-        router.replace('/app'); // Redirect to the app root for routing decisions
+        router.replace('/login');
     }
   }, [isLoading, state.userProfile.isAuthenticated, router]);
 
@@ -56,7 +56,7 @@ const DashboardPageContent = () => {
         }
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
-        router.push('/app?action=add'); // Use action=add to trigger wizard
+        router.push('/app'); // The wizard is now on the /app route
         toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
@@ -81,10 +81,9 @@ const DashboardPageContent = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // AppProvider listener will handle state reset
+      dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      // Force a full page reload by navigating via window.location to ensure clean state
-      window.location.href = '/';
+      window.location.href = '/login';
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
@@ -103,7 +102,7 @@ const DashboardPageContent = () => {
     <PageContainer className="space-y-5"> 
       <div className="animate-fadeIn">
         <div className="flex justify-between items-center mb-0.5"> 
-          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.email || "Usuario/a"}!</h2> 
+          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.phoneNumber || "Usuario/a"}!</h2> 
           {userProfile.isAuthenticated && (
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
               <FaSignOutAlt size={12} className="mr-1" /> 
@@ -128,7 +127,7 @@ const DashboardPageContent = () => {
           </Button>
         </div>
         {userProfile.assistants.length > 0 ? (
-          <div className="grid gap-4 grid-cols-1"> 
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"> 
             {userProfile.assistants.map((assistant, index) => (
               <AssistantCard 
                 key={assistant.id} 
@@ -157,7 +156,7 @@ const DashboardPageContent = () => {
           </h3>
         </div>
         {userProfile.databases.length > 0 ? (
-          <div className="grid gap-4 grid-cols-1">  
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">  
             {userProfile.databases.map((db, index) => (
               <DatabaseInfoCard key={db.id} database={db} animationDelay={`${0.6 + (userProfile.assistants.length + index) * 0.1}s`} />
             ))}

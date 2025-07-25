@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import CountdownDialog from '@/components/home/CountdownDialog';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: `Términos y Condiciones de Servicio`,
+};
 
 const PayAsYouGoCalculator = () => {
   const MESSAGES_PER_CREDIT = 1000;
@@ -441,5 +446,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
-
-    

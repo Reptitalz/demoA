@@ -89,7 +89,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [isProcessing, setIsProcessing] = useState(false);
   const [speiDetails, setSpeiDetails] = useState<SpeiDetails | null>(null);
 
-  // State for purchase logic
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
   const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
   const [customCredits, setCustomCredits] = useState<number>(1);
@@ -102,7 +101,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state when dialog is opened
       setSpeiDetails(null);
       setIsProcessing(false);
       setActiveTab('packages');

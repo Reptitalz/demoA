@@ -1,23 +1,54 @@
 // src/lib/firebaseAdmin.ts
-// This file is kept for potential future use with services like Push Notifications,
-// but it's no longer used for token verification in the authentication flow.
+import 'dotenv/config'; // Make sure environment variables are loaded
 import admin from 'firebase-admin';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import type { NextRequest } from 'next/server';
 
 if (!admin.apps.length) {
   try {
-    // This will automatically find the credentials from the environment.
-    // Recommended for most hosting environments like Vercel or Google Cloud.
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-    console.log('Firebase Admin SDK initialized successfully using application default credentials.');
+    const serviceAccount: admin.ServiceAccount = {
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    };
+    
+    if (!serviceAccount.privateKey || !serviceAccount.clientEmail) {
+         console.error('Firebase Admin SDK Initialization Error: Missing FIREBASE_PRIVATE_KEY or FIREBASE_CLIENT_EMAIL from environment variables.');
+    } else {
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+        });
+        console.log('Firebase Admin SDK initialized successfully.');
+    }
+
   } catch (e: any) {
     console.error('Firebase Admin SDK Initialization Error:', e.stack);
-    // This warning helps diagnose environment configuration issues.
-    if (process.env.NODE_ENV !== 'test') {
-        console.warn('HINT: Make sure your hosting environment has GOOGLE_APPLICATION_CREDENTIALS set up correctly or the necessary Firebase config env vars.');
-    }
   }
 }
 
-export const firebaseAdmin = admin;
+/**
+ * Verifies the Firebase ID token from the Authorization header of a NextRequest.
+ * @param request The NextRequest object.
+ * @returns A promise that resolves to the decoded token if valid, or null otherwise.
+ */
+export async function verifyFirebaseToken(request: NextRequest): Promise<DecodedIdToken | null> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('No Firebase ID token was passed as a Bearer token in the Authorization header.');
+    return null;
+  }
+  
+  const idToken = authHeader.split('Bearer ')[1];
+  if (!idToken) {
+    console.log('ID token is missing after "Bearer " prefix.');
+    return null;
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    return decodedToken;
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
+    return null;
+  }
+}

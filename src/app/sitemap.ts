@@ -1,4 +1,3 @@
-
 import { type MetadataRoute } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
@@ -12,13 +11,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/login`, // La nueva página de login
+      url: `${BASE_URL}/login`, // La página de login
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
-      url: `${BASE_URL}/app`, // Punto de entrada al wizard de configuración
+      url: `${BASE_URL}/app`, // Punto de entrada a la aplicación (wizard, reconfig)
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
@@ -43,5 +42,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 }
-
-    
