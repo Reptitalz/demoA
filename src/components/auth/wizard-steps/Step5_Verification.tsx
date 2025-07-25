@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
 
 interface Step5VerificationProps {
   verificationKey: string;
@@ -23,12 +24,13 @@ const Step5Verification = ({ verificationKey }: Step5VerificationProps) => {
   };
   
   const handleResendCode = async () => {
+    if (!phoneNumber || !verificationKey) {
+        toast({ title: "Error", description: "Falta información para reenviar el código.", variant: "destructive" });
+        return;
+    }
     setIsResending(true);
-    // Here you would call your webhook service again
-    // For now, we'll just simulate it and show a toast
     try {
-        // await sendVerificationCodeWebhook(phoneNumber!, verificationKey); // This would be the actual call
-        await new Promise(res => setTimeout(res, 1500));
+        await sendVerificationCodeWebhook(phoneNumber, verificationKey);
         toast({ title: "Código Reenviado", description: "Se ha enviado un nuevo código de verificación." });
     } catch (error) {
         toast({ title: "Error", description: "No se pudo reenviar el código.", variant: "destructive" });
