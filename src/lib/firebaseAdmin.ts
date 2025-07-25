@@ -12,8 +12,8 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     };
     
-    if (!serviceAccount.privateKey || !serviceAccount.clientEmail) {
-         console.error('Firebase Admin SDK Initialization Error: Missing FIREBASE_PRIVATE_KEY or FIREBASE_CLIENT_EMAIL from environment variables.');
+    if (!serviceAccount.privateKey || !serviceAccount.clientEmail || !serviceAccount.projectId) {
+         console.error('Firebase Admin SDK Initialization Error: Missing required environment variables (FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL, NEXT_PUBLIC_FIREBASE_PROJECT_ID).');
     } else {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
