@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -14,7 +13,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
-import { auth, signOut } from '@/lib/firebase';
+import { getAuth, signOut } from '@/lib/firebase';
 
 const DashboardPageContent = () => {
   const { state, dispatch } = useApp();
@@ -79,6 +78,7 @@ const DashboardPageContent = () => {
   };
 
   const handleLogout = async () => {
+    const auth = getAuth();
     try {
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });

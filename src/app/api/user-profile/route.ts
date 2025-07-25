@@ -1,3 +1,4 @@
+
 import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
         credits: profile.credits || 0,
         pushSubscriptions: profile.pushSubscriptions || [],
+        firebaseUid: profile.firebaseUid,
       };
       
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });

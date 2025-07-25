@@ -7,7 +7,7 @@ import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { urlBase64ToUint8Array } from '@/lib/utils';
-import { getAuth, signOut } from 'firebase/auth'; 
+import { getAuth, signOut } from '@/lib/firebase'; 
 
 const initialWizardState: WizardState = {
   currentStep: 1,

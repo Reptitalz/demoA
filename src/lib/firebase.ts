@@ -13,20 +13,21 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 
-if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
-    console.warn("**********************************************************************************");
-    console.warn("WARNING: Firebase client configuration is missing or incomplete.");
-    console.warn("**********************************************************************************");
-    // Create a dummy app object to avoid crashing the app if firebase is not configured
-    app = {} as FirebaseApp;
+// Only initialize the app if the config is fully provided.
+// This prevents errors during server-side rendering or build steps where env vars might not be available.
+if (firebaseConfig.apiKey && firebaseConfig.authDomain) {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
+  }
 } else {
-    if (!getApps().length) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApps()[0];
-    }
+   console.warn("**********************************************************************************");
+   console.warn("WARNING: Firebase client configuration is missing or incomplete. Firebase client features will be disabled.");
+   console.warn("**********************************************************************************");
+   // Create a dummy app object to avoid crashing the app if firebase is not configured
+   app = {} as FirebaseApp;
 }
 
-const auth = getAuth(app);
-
-export { app, auth, signOut };
+// Export auth utilities separately, auth instance will be created in the provider.
+export { app, getAuth, signOut };

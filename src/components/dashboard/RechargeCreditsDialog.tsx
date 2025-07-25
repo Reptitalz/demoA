@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -20,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { MessagesSquare, Coins, Wallet, Loader2, Copy, Check, Banknote } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS, APP_NAME } from '@/config/appConfig';
-import { auth } from '@/lib/firebase';
+import { getAuth } from '@/lib/firebase';
 import { Card } from '../ui/card';
 
 interface RechargeCreditsDialogProps {
@@ -116,6 +115,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     }
     
     setIsProcessing(true);
+    const auth = getAuth();
 
     try {
         const token = await auth.currentUser?.getIdToken();

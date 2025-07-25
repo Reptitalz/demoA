@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaMobileAlt, FaKey } from 'react-icons/fa';
-import { auth } from '@/lib/firebase';
+import { getAuth } from '@/lib/firebase';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
 
@@ -74,6 +73,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         return;
     }
     setIsProcessing(true);
+    const auth = getAuth();
 
     // Optimistically update the UI, now including the verification code.
     const updatedAssistants = state.userProfile.assistants.map(asst => 
