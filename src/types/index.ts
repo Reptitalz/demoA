@@ -38,7 +38,7 @@ export interface AssistantConfig {
   businessInfo?: AssistantBusinessInfo;
 }
 
-export type AuthProviderType = "google" | "phone"; // Added "phone"
+export type AuthProviderType = "google" | "phone";
 
 export interface AppNotification {
   _id?: string;
@@ -54,11 +54,11 @@ export interface UserProfile {
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
   email?: string;
-  phoneNumber?: string; // Main identifier now
-  password?: string; // For auth, will not be sent to client
+  phoneNumber?: string; 
+  password?: string;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  firebaseUid?: string; // Kept for legacy or other potential uses
+  firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
   credits: number;
   pushSubscriptions?: PushSubscriptionJSON[];
@@ -75,11 +75,11 @@ export interface WizardState {
     name?: string;
     accessUrl?: string;
   };
-  authMethod: AuthProviderType | null; // For wizard flow logic
-  phoneNumber?: string; // For registration
-  password?: string; // For registration
-  confirmPassword?: string; // For registration
-  verificationCode?: string; // For registration
+  authMethod: AuthProviderType | null;
+  phoneNumber?: string;
+  password?: string;
+  confirmPassword?: string;
+  verificationCode?: string;
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
@@ -95,13 +95,13 @@ export interface AppState {
 
 export interface Transaction {
   _id?: string;
-  userId: string; // Firebase UID or Phone Number
-  orderId: string; // Mercado Pago Payment ID
-  amount: number; // Amount in MXN (e.g., 58.00)
-  currency: string; // e.g., 'MXN'
+  userId: string;
+  orderId: string;
+  amount: number;
+  currency: string;
   creditsPurchased: number;
-  paymentMethod: string; // e.g., 'spei', 'oxxo', 'debit_card'
-  status: string; // e.g., 'approved'
+  paymentMethod: string;
+  status: string;
   customerInfo: {
     name: string;
     email: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
@@ -14,30 +14,39 @@ import { Button } from '@/components/ui/button';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { isValidPhoneNumber } from 'react-phone-number-input';
-
-// This page is now primarily for RECONFIGURING an existing assistant.
-// The initial creation flow is handled in a dialog on the /login page.
+import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 const AppSetupPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, isReconfiguring, editingAssistantId, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
-  const { userProfile, isSetupComplete } = state;
+  const { assistantName, selectedPurposes, assistantPrompt, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
+  const [isAddAssistantDialogOpen, setIsAddAssistantDialogOpen] = useState(false);
+
+  // Determine the action from URL, default to reconfiguring if nothing is specified.
+  const action = searchParams.get('action');
 
   useEffect(() => {
-    // If not authenticated and not explicitly reconfiguring, redirect to login.
-    // This protects the reconfiguration route.
+    // If the user wants to add a new assistant, open the dialog.
+    if (action === 'add') {
+      dispatch({ type: 'RESET_WIZARD' });
+      setIsAddAssistantDialogOpen(true);
+    }
+  }, [action, dispatch]);
+  
+  // This page is now a gateway. If no reconfiguring assistant is in state and action is not 'add', redirect.
+  useEffect(() => {
     if (!state.isLoading && !state.userProfile.isAuthenticated) {
       router.replace('/login');
+    } else if (!state.wizard.isReconfiguring && action !== 'add') {
+      router.replace('/dashboard');
     }
-  }, [state.isLoading, state.userProfile.isAuthenticated, router]);
+  }, [state.isLoading, state.userProfile.isAuthenticated, state.wizard.isReconfiguring, action, router]);
+
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -45,11 +54,12 @@ const AppSetupPageContent = () => {
 
   const dbNeeded = needsDatabaseConfiguration();
   
-  // This page is only for reconfiguring, so the steps are fixed.
+  // Reconfiguring steps are fixed.
   const effectiveMaxSteps = dbNeeded ? 4 : 3;
+  const currentStep = state.wizard.currentStep;
 
   const getValidationMessage = (): string | null => {
-    if (!isReconfiguring) return "Esta página es solo para reconfigurar asistentes.";
+    if (!state.wizard.isReconfiguring) return "Esta página es solo para reconfigurar asistentes.";
 
     const validateStep1 = () => {
       if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
@@ -115,7 +125,7 @@ const AppSetupPageContent = () => {
         return;
     }
     
-    if (!editingAssistantId || !isReconfiguring) {
+    if (!state.wizard.editingAssistantId || !state.wizard.isReconfiguring) {
       toast({ title: "Error", description: "No se está reconfigurando ningún asistente.", variant: "destructive" });
       return;
     }
@@ -134,7 +144,7 @@ const AppSetupPageContent = () => {
         accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
     } : undefined;
 
-    const assistantToUpdate = state.userProfile.assistants.find(a => a.id === editingAssistantId)!;
+    const assistantToUpdate = state.userProfile.assistants.find(a => a.id === state.wizard.editingAssistantId)!;
     const finalAssistantConfig: AssistantConfig = {
         ...assistantToUpdate,
         name: assistantName,
@@ -143,17 +153,16 @@ const AppSetupPageContent = () => {
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
     };
     
-    let updatedAssistantsArray = state.userProfile.assistants.map(a => a.id === editingAssistantId ? finalAssistantConfig : a);
+    let updatedAssistantsArray = state.userProfile.assistants.map(a => a.id === state.wizard.editingAssistantId ? finalAssistantConfig : a);
     let updatedDatabasesArray = [...(state.userProfile.databases || [])];
     if (newDbEntry) {
         updatedDatabasesArray.push(newDbEntry);
     }
 
-    // Garbage-collect old database if no longer used
     if (newAssistantDbIdToLink || !dbNeeded) {
         const oldDbId = assistantToUpdate.databaseId;
         if (oldDbId && (!dbNeeded || (newAssistantDbIdToLink && oldDbId !== newAssistantDbIdToLink))) {
-            const isOldDbUsedByOthers = updatedAssistantsArray.some(a => a.id !== editingAssistantId && a.databaseId === oldDbId);
+            const isOldDbUsedByOthers = updatedAssistantsArray.some(a => a.id !== state.wizard.editingAssistantId && a.databaseId === oldDbId);
             if (!isOldDbUsedByOthers) {
                 updatedDatabasesArray = updatedDatabasesArray.filter(db => db.id !== oldDbId);
             }
@@ -178,7 +187,7 @@ const AppSetupPageContent = () => {
   };
 
   const renderStepContent = () => {
-    if (!isReconfiguring) return null; // Should not be rendered if not reconfiguring
+    if (!state.wizard.isReconfiguring) return null; // Should not be rendered if not reconfiguring
     if (currentStep === 1) return <Step1AssistantDetails />;
     if (currentStep === 2) return <Step2AssistantPrompt />;
     if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />;
@@ -186,11 +195,33 @@ const AppSetupPageContent = () => {
     return null;
   };
 
-  if (state.isLoading || !isReconfiguring) {
+  if (state.isLoading || (!state.wizard.isReconfiguring && action !== 'add')) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <LoadingSpinner size={36} />
       </PageContainer>
+    );
+  }
+  
+  // If adding assistant, render dialog. The dialog will handle its own visibility.
+  if (action === 'add') {
+    return (
+        <>
+            <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+                <LoadingSpinner size={36} />
+                <p className="ml-4">Cargando creador de asistentes...</p>
+            </PageContainer>
+            <RegisterAssistantDialog 
+                isOpen={isAddAssistantDialogOpen} 
+                onOpenChange={(open) => {
+                    setIsAddAssistantDialogOpen(open);
+                    // If dialog is closed, go back to dashboard.
+                    if (!open) {
+                        router.push('/dashboard');
+                    }
+                }} 
+            />
+        </>
     );
   }
 
@@ -247,5 +278,3 @@ const AppSetupPage = () => {
 }
 
 export default AppSetupPage;
-
-    

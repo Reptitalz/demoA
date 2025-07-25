@@ -3,8 +3,7 @@
 import { Progress } from "@/components/ui/progress";
 import { useApp } from "@/providers/AppProvider";
 import { WIZARD_STEP_TITLES } from "@/config/appConfig";
-import { useCallback } from "react";
-import { cn } from "@/lib/utils";
+import { useCallback, useMemo } from "react";
 
 const SetupProgressBar = () => {
   const { state } = useApp();
@@ -16,27 +15,30 @@ const SetupProgressBar = () => {
 
   const dbNeeded = needsDatabaseConfiguration();
   
-  const effectiveMaxSteps = isReconfiguring 
-    ? (dbNeeded ? 4 : 3)
-    : (dbNeeded ? 5 : 4);
-  
-  let stepTitleKey: number;
-  // This logic maps the current sequential step number to its conceptual title
-  if (isReconfiguring) {
-    if (currentStep === 1) stepTitleKey = 1; // Details
-    else if (currentStep === 2) stepTitleKey = 2; // Prompt
-    else if (currentStep === 3) stepTitleKey = dbNeeded ? 3 : 5; // DB or Terms
-    else if (currentStep === 4) stepTitleKey = 5; // Terms
-    else stepTitleKey = currentStep;
-  } else {
-    if (currentStep === 1) stepTitleKey = 1; // Details
-    else if (currentStep === 2) stepTitleKey = 2; // Prompt
-    else if (currentStep === 3) stepTitleKey = dbNeeded ? 3 : 4; // DB or Auth
-    else if (currentStep === 4) stepTitleKey = dbNeeded ? 4 : 5; // Auth or Terms
-    else if (currentStep === 5) stepTitleKey = 5; // Terms
-    else stepTitleKey = currentStep;
-  }
-  
+  const { effectiveMaxSteps, stepTitleKey } = useMemo(() => {
+    if (isReconfiguring) {
+      const maxSteps = dbNeeded ? 4 : 3;
+      let titleKey: number;
+      if (currentStep === 1) titleKey = 1; // Details
+      else if (currentStep === 2) titleKey = 2; // Prompt
+      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 6; // DB or Terms
+      else if (currentStep === 4) titleKey = 6; // Terms
+      else titleKey = currentStep;
+      return { effectiveMaxSteps: maxSteps, stepTitleKey: titleKey };
+    } else {
+      const maxSteps = dbNeeded ? 6 : 5;
+      let titleKey: number;
+      if (currentStep === 1) titleKey = 1; // Details
+      else if (currentStep === 2) titleKey = 2; // Prompt
+      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 4; // DB or Auth
+      else if (currentStep === 4) titleKey = dbNeeded ? 4 : 5; // Auth or Verification
+      else if (currentStep === 5) titleKey = dbNeeded ? 5 : 6; // Verification or Terms
+      else if (currentStep === 6) titleKey = 6; // Terms
+      else titleKey = currentStep;
+      return { effectiveMaxSteps: maxSteps, stepTitleKey: titleKey };
+    }
+  }, [isReconfiguring, dbNeeded, currentStep]);
+
   const stepTitle = WIZARD_STEP_TITLES[stepTitleKey] || "Progreso";
   const progressPercentage = (currentStep / effectiveMaxSteps) * 100;
 

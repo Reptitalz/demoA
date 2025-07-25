@@ -22,12 +22,10 @@ export async function GET(request: NextRequest) {
 
     if (profile) {
       // Ensure the returned profile conforms to the latest UserProfile structure
-      const profileSafe: UserProfile = {
-        firebaseUid: profile.firebaseUid, // Keep for potential future use or legacy data
+      const profileSafe: Omit<UserProfile, 'password'> & { isAuthenticated: boolean } = {
+        isAuthenticated: true,
         email: profile.email,
         phoneNumber: profile.phoneNumber,
-        password: profile.password,
-        isAuthenticated: true,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
           purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
@@ -39,8 +37,7 @@ export async function GET(request: NextRequest) {
         credits: profile.credits || 0,
         pushSubscriptions: profile.pushSubscriptions || [],
       };
-      // Important: Do NOT send the password back to the client
-      delete (profileSafe as Partial<UserProfile>).password;
+      
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
     } else {
       return NextResponse.json({ userProfile: null, message: "User profile not found" }, { status: 404 });

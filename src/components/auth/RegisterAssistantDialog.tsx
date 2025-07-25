@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -9,6 +9,7 @@ import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_Assistan
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
 import Step4CreateCredentials from '@/components/auth/wizard-steps/Step4_CreateCredentials';
+import Step5Verification from '@/components/auth/wizard-steps/Step5_Verification';
 import Step5TermsAndConditions from '@/components/auth/wizard-steps/Step5_TermsAndConditions';
 import { Button } from '@/components/ui/button';
 import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa';
@@ -31,13 +32,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword, verificationCode } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
+  const [webhookSent, setWebhookSent] = useState(false);
+  const [verificationKey, setVerificationKey] = useState("");
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = dbNeeded ? 5 : 4;
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 6 : 5), [dbNeeded]);
 
   const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
@@ -59,24 +62,34 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     };
     const validateAuthStep = () => {
       if (!isValidPhoneNumber(phoneNumber || '')) return "Por favor, proporciona un número de teléfono válido.";
-      if (!verificationCode?.trim()) return "Por favor, ingresa el código de verificación.";
       if (!password || password.length < 6) return "La contraseña debe tener al menos 6 caracteres.";
       if (password !== confirmPassword) return "Las contraseñas no coinciden.";
       return null;
     };
+    const validateVerificationStep = () => {
+      if (!verificationCode?.trim()) return "Por favor, ingresa el código de verificación.";
+      return null;
+    }
     const validateTermsStep = () => {
       if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
       return null;
     };
     
-    let message: string | null = null;
-    if (currentStep === 1) message = validateStep1();
-    else if (currentStep === 2) message = validateStep2();
-    else if (currentStep === 3) message = dbNeeded ? validateDbStep() : validateAuthStep();
-    else if (currentStep === 4) message = dbNeeded ? validateAuthStep() : validateTermsStep();
-    else if (currentStep === 5) message = dbNeeded ? validateTermsStep() : null;
-
-    return message;
+    // Determine which conceptual step we are on to call the right validator
+    if (currentStep === 1) return validateStep1();
+    if (currentStep === 2) return validateStep2();
+    if (dbNeeded) { // 6-step flow
+        if (currentStep === 3) return validateDbStep();
+        if (currentStep === 4) return validateAuthStep();
+        if (currentStep === 5) return validateVerificationStep();
+        if (currentStep === 6) return validateTermsStep();
+    } else { // 5-step flow
+        if (currentStep === 3) return validateAuthStep();
+        if (currentStep === 4) return validateVerificationStep();
+        if (currentStep === 5) return validateTermsStep();
+    }
+    
+    return null;
   };
   
   const isStepValid = (): boolean => {
@@ -84,19 +97,40 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     return getValidationMessage() === null;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const validationError = getValidationMessage();
     if (validationError) {
       toast({ title: "Error de Validación", description: validationError, variant: "destructive" });
       return;
     }
-    if (currentStep < effectiveMaxSteps) {
-      dispatch({ type: 'NEXT_WIZARD_STEP' });
+
+    // This is the step right before verification
+    const verificationTriggerStep = dbNeeded ? 4 : 3;
+
+    if (currentStep === verificationTriggerStep && !webhookSent) {
+        setIsFinalizingSetup(true); // Show spinner while sending webhook
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setVerificationKey(code);
+        try {
+            await sendVerificationCodeWebhook(phoneNumber!, code);
+            toast({ title: "Código Enviado", description: "Hemos enviado el código de verificación a tu webhook." });
+            setWebhookSent(true);
+            dispatch({ type: 'NEXT_WIZARD_STEP' });
+        } catch (error) {
+            toast({ title: "Error de Webhook", description: "No se pudo enviar el código de verificación.", variant: "destructive" });
+        } finally {
+            setIsFinalizingSetup(false);
+        }
+    } else if (currentStep < effectiveMaxSteps) {
+        dispatch({ type: 'NEXT_WIZARD_STEP' });
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
+      if (webhookSent) {
+        setWebhookSent(false); // Allow resending if user goes back
+      }
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
   };
@@ -131,19 +165,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
     };
     
-    // We only send the necessary info to the backend.
-    // The backend will hash the password.
-    const userProfileForApi = {
+    const userProfileForApi: Omit<UserProfile, 'password'> & { password?: string } = {
         isAuthenticated: true,
         phoneNumber: phoneNumber,
-        password: password, // The backend will hash this.
+        password: password,
         assistants: [finalAssistantConfig],
         databases: newDbEntry ? [newDbEntry] : [],
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
         credits: 0,
     };
     
-    // Save profile to API, which handles upsert
     try {
         const response = await fetch('/api/user-profile', {
             method: 'POST',
@@ -155,11 +186,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             throw new Error(data.message || "Failed to create profile.");
         }
         
-        // After successful API call, update the global state with the full profile
-        // but without the password for security.
         const finalUserProfileForState: UserProfile = {
             ...userProfileForApi,
-            password: '', // Do not store plain text password in state
+            password: '', 
         }
         
         dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfileForState });
@@ -177,8 +206,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             description: `${finalAssistantConfig.name} está listo.`,
         });
 
-        onOpenChange(false); // Close dialog
-        router.push('/dashboard'); // Redirect
+        onOpenChange(false);
+        router.push('/dashboard');
     
     } catch (error: any) {
         toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
@@ -190,12 +219,19 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const renderStepContent = () => {
     if (currentStep === 1) return <Step1AssistantDetails />;
     if (currentStep === 2) return <Step2AssistantPrompt />;
-    if (currentStep === 3) return dbNeeded ? <Step2DatabaseConfig /> : <Step4CreateCredentials />;
-    if (currentStep === 4) return dbNeeded ? <Step4CreateCredentials /> : <Step5TermsAndConditions />;
-    if (currentStep === 5) return dbNeeded ? <Step5TermsAndConditions /> : null;
+    if (dbNeeded) { // 6-step flow
+        if (currentStep === 3) return <Step2DatabaseConfig />;
+        if (currentStep === 4) return <Step4CreateCredentials />;
+        if (currentStep === 5) return <Step5Verification verificationKey={verificationKey} />;
+        if (currentStep === 6) return <Step5TermsAndConditions />;
+    } else { // 5-step flow
+        if (currentStep === 3) return <Step4CreateCredentials />;
+        if (currentStep === 4) return <Step5Verification verificationKey={verificationKey} />;
+        if (currentStep === 5) return <Step5TermsAndConditions />;
+    }
     return null;
   };
-
+  
   const handleDialogClose = (open: boolean) => {
     if (!isFinalizingSetup) {
         onOpenChange(open);
@@ -219,7 +255,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             {isFinalizingSetup && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 rounded-md">
                 <FaSpinner className="animate-spin h-10 w-10 text-primary" />
-                <p className="mt-4 text-sm text-muted-foreground">Finalizando configuración...</p>
+                <p className="mt-4 text-sm text-muted-foreground">Enviando información...</p>
                 </div>
             )}
             <div className="p-1">
@@ -235,7 +271,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
           {currentStep < effectiveMaxSteps ? (
               <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
-              Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
+                {isFinalizingSetup ? <FaSpinner className="animate-spin mr-2 h-4 w-4" /> : null}
+                Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
               </Button>
           ) : (
               <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>

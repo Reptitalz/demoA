@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneInput } from '@/components/ui/phone-input';
 import type { E164Number } from 'react-phone-number-input';
-import { Key, Phone, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Key, Phone, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +27,7 @@ const getPasswordStrength = (password: string): { level: 'none' | 'weak' | 'mode
 
 const Step4CreateCredentials = () => {
   const { state, dispatch } = useApp();
-  const { phoneNumber, password, confirmPassword, verificationCode } = state.wizard;
+  const { phoneNumber, password, confirmPassword } = state.wizard;
   const [showPassword, setShowPassword] = useState(false);
   
   const passwordStrength = getPasswordStrength(password || '');
@@ -42,10 +42,6 @@ const Step4CreateCredentials = () => {
   
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'SET_WIZARD_CONFIRM_PASSWORD', payload: e.target.value });
-  };
-  
-  const handleVerificationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: 'SET_WIZARD_VERIFICATION_CODE', payload: e.target.value });
   };
 
   const togglePasswordVisibility = () => {
@@ -79,23 +75,6 @@ const Step4CreateCredentials = () => {
             Este será tu nombre de usuario para acceder a la plataforma.
           </p>
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="verificationCode" className="text-sm font-medium flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" /> Código de Verificación
-          </Label>
-          <Input
-            id="verificationCode"
-            type="text"
-            placeholder="Revisa tu WhatsApp"
-            value={verificationCode}
-            onChange={handleVerificationCodeChange}
-            aria-required="true"
-          />
-          <p className="text-xs text-muted-foreground pt-1">
-            Recibirás un código en el número de WhatsApp que proporcionaste para continuar.
-          </p>
-        </div>
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
@@ -108,7 +87,7 @@ const Step4CreateCredentials = () => {
                 placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={handlePasswordChange}
-                className="pr-10" // Add padding for the icon
+                className="pr-10"
                 aria-required="true"
               />
               <Button

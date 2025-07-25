@@ -7,8 +7,7 @@ import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { urlBase64ToUint8Array } from '@/lib/utils';
-import { auth, signOut } from '@/lib/firebase'; 
-import { onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth'; 
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -159,7 +158,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
         
         const freshUserProfile: UserProfile = {
             ...initialUserProfileState,
-            ...apiProfile, // Spread the profile from API
+            ...apiProfile,
             isAuthenticated: true,
             assistants: assistantsWithSetPurposes,
             credits: apiProfile.credits || 0,
@@ -215,6 +214,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSubscribingToPush, setIsSubscribingToPush] = useState(false);
+  
+  const auth = getAuth();
 
   const enablePushNotifications = useCallback(async (): Promise<boolean> => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -286,7 +287,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    // On app load, check session storage for a logged-in user.
     const loggedInUserPhone = sessionStorage.getItem('loggedInUser');
     if (loggedInUserPhone) {
       fetchProfileCallback(loggedInUserPhone);
@@ -296,7 +296,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchProfileCallback]);
 
   useEffect(() => {
-    // Persist user session to session storage on login/logout
     if (state.userProfile.isAuthenticated && state.userProfile.phoneNumber) {
       sessionStorage.setItem('loggedInUser', state.userProfile.phoneNumber);
     } else {
@@ -341,9 +340,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isLoading]);
-  
-  // Cleaned up effect - no longer needed as we don't rely on firebase client auth state
-  useEffect(() => {}, []);
 
   return (
     <QueryClientProvider client={queryClient}>
