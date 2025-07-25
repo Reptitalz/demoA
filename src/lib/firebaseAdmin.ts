@@ -1,3 +1,4 @@
+
 // src/lib/firebaseAdmin.ts
 import 'dotenv/config'; // Make sure environment variables are loaded
 import admin from 'firebase-admin';
@@ -7,13 +8,13 @@ import type { NextRequest } from 'next/server';
 if (!admin.apps.length) {
   try {
     const serviceAccount: admin.ServiceAccount = {
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      projectId: process.env.NEXT_PUBLIC_FB_PROJECT_ID, // Use NEXT_PUBLIC_ for server-side availability
+      privateKey: (process.env.FB_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      clientEmail: process.env.FB_CLIENT_EMAIL,
     };
     
     if (!serviceAccount.privateKey || !serviceAccount.clientEmail || !serviceAccount.projectId) {
-         console.error('Firebase Admin SDK Initialization Error: Missing required environment variables (FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL, NEXT_PUBLIC_FIREBASE_PROJECT_ID).');
+         console.error('Firebase Admin SDK Initialization Error: Missing required environment variables (FB_PRIVATE_KEY, FB_CLIENT_EMAIL, NEXT_PUBLIC_FB_PROJECT_ID).');
     } else {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
@@ -34,7 +35,8 @@ if (!admin.apps.length) {
 export async function verifyFirebaseToken(request: NextRequest): Promise<DecodedIdToken | null> {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.log('No Firebase ID token was passed as a Bearer token in the Authorization header.');
+    // This is not an error, just a request without a token.
+    // The API route will decide if this is a protected resource.
     return null;
   }
   
