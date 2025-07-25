@@ -174,6 +174,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         databases: newDbEntry ? [newDbEntry] : [],
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
         credits: 0,
+        pushSubscriptions: [],
     };
     
     try {

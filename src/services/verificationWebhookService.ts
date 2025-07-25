@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 
-const VERIFICATION_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook-test/3c0e3d8f-a4e3-441f-9164-14491310bdba';
+const VERIFICATION_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/3c0e3d8f-a4e3-441f-9164-14491310bdba';
 
 interface VerificationPayload {
   phoneNumber: string;

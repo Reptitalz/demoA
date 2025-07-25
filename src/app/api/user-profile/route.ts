@@ -64,11 +64,10 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(userProfile.password, SALT_ROUNDS);
 
     // Prepare a clean, serializable profile for MongoDB
-    const serializableProfile = {
+    const serializableProfile: Omit<UserProfile, 'isAuthenticated'> = {
       email: userProfile.email,
       phoneNumber: userProfile.phoneNumber,
       password: hashedPassword, // Store the hashed password
-      isAuthenticated: userProfile.isAuthenticated,
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
       credits: userProfile.credits || 0,
       assistants: (userProfile.assistants || []).map((asst: any) => ({
@@ -83,7 +82,7 @@ export async function POST(request: NextRequest) {
     
     try {
       // Find user by phone number to update or insert
-      const result = await db.collection<UserProfile>(PROFILES_COLLECTION).updateOne(
+      const result = await db.collection<Omit<UserProfile, 'isAuthenticated'>>(PROFILES_COLLECTION).updateOne(
         { phoneNumber: userProfile.phoneNumber },
         { $set: serializableProfile },
         { upsert: true }
