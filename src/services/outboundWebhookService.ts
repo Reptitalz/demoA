@@ -52,7 +52,7 @@ export async function sendAssistantCreatedWebhook(
     event: 'assistant_created',
     userProfile: {
       firebaseUid: userProfile.firebaseUid,
-      email: userProfile.email,
+      email: userProfile.email || userProfile.phoneNumber, // Fallback to phone number if email is not provided
       ownerPhoneNumberForNotifications: formattedOwnerPhone,
     },
     assistant: {
@@ -74,7 +74,7 @@ export async function sendAssistantCreatedWebhook(
   };
 
   try {
-    console.log(`Enviando webhook 'assistant_created' a ${USER_ASSISTANT_WEBHOOK_URL} para el asistente ${assistant.id} del usuario ${userProfile.firebaseUid || userProfile.email}`);
+    console.log(`Enviando webhook 'assistant_created' a ${USER_ASSISTANT_WEBHOOK_URL} para el asistente ${assistant.id} del usuario ${userProfile.firebaseUid || userProfile.email || userProfile.phoneNumber}`);
     const response = await axios.post(USER_ASSISTANT_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 10000, // Timeout de 10 segundos

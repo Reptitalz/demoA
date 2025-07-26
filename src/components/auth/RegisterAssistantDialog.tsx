@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback, useMemo } from 'react';
@@ -168,6 +169,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     const userProfileForApi: Omit<UserProfile, 'password'> & { password?: string } = {
         isAuthenticated: true,
+        email: undefined, // Email is not collected in this flow.
         phoneNumber: phoneNumber,
         password: password,
         assistants: [finalAssistantConfig],
