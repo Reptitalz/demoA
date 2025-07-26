@@ -5,6 +5,7 @@
 import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } from '@/types';
 import axios from 'axios';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { formatMexicanPhoneNumberForWebhook } from '@/lib/utils';
 
 interface AssistantWebhookPayload {
   timestamp: string;
@@ -41,6 +42,10 @@ export async function sendAssistantCreatedWebhook(
     console.log('USER_ASSISTANT_WEBHOOK_URL no está configurado en las variables de entorno. Omitiendo envío de webhook.');
     return;
   }
+  
+  const formattedOwnerPhone = userProfile.ownerPhoneNumberForNotifications 
+    ? formatMexicanPhoneNumberForWebhook(userProfile.ownerPhoneNumberForNotifications)
+    : undefined;
 
   const payload: AssistantWebhookPayload = {
     timestamp: new Date().toISOString(),
@@ -48,7 +53,7 @@ export async function sendAssistantCreatedWebhook(
     userProfile: {
       firebaseUid: userProfile.firebaseUid,
       email: userProfile.email,
-      ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
+      ownerPhoneNumberForNotifications: formattedOwnerPhone,
     },
     assistant: {
       id: assistant.id,

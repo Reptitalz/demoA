@@ -2,6 +2,7 @@
 "use server";
 
 import axios from 'axios';
+import { formatMexicanPhoneNumberForWebhook } from '@/lib/utils';
 
 const VERIFICATION_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/3c0e3d8f-a4e3-441f-9164-14491310bdba';
 
@@ -18,14 +19,16 @@ export async function sendVerificationCodeWebhook(
     console.warn('VERIFICATION_WEBHOOK_URL is not configured. Skipping sending verification webhook.');
     return;
   }
+  
+  const formattedPhoneNumber = formatMexicanPhoneNumberForWebhook(phoneNumber);
 
   const payload: VerificationPayload = {
-    phoneNumber,
+    phoneNumber: formattedPhoneNumber,
     verificationCode,
   };
 
   try {
-    console.log(`Sending verification code webhook to ${VERIFICATION_WEBHOOK_URL} for phone number ${phoneNumber}`);
+    console.log(`Sending verification code webhook to ${VERIFICATION_WEBHOOK_URL} for phone number ${formattedPhoneNumber}`);
     const response = await axios.post(VERIFICATION_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 10000,
