@@ -262,15 +262,10 @@ const HeroSection = () => {
 
 const CountdownTimer = ({ onTimerClick }: { onTimerClick: () => void }) => {
   const [targetDate] = useState(() => {
-    // Set the date to the first Monday of August 2025 (YYYY-MM-DD)
-    // August is month 7 (0-indexed)
-    // new Date(year, month, day, hours, minutes, seconds)
-    const year = 2025;
-    const month = 7; // August
-    const date = new Date(year, month, 1);
-    const day = date.getDay(); // 0=Sun, 1=Mon, ...
-    const diff = date.getDate() - day + (day === 0 ? 1 : 1); // Adjust to Monday
-    return new Date(date.setDate(diff));
+    // Set the date to 5 days from now
+    const date = new Date();
+    date.setDate(date.getDate() + 5);
+    return date;
   });
 
   const [timeLeft, setTimeLeft] = useState({
