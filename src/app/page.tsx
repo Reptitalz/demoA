@@ -262,13 +262,15 @@ const HeroSection = () => {
 
 const CountdownTimer = ({ onTimerClick }: { onTimerClick: () => void }) => {
   const [targetDate] = useState(() => {
-    const date = new Date();
-    const currentDay = date.getDay(); // 0 (Sun) - 6 (Sat)
-    const dayOfMonth = date.getDate();
-    const daysUntilMonday = currentDay === 0 ? 1 : 8 - currentDay;
-    const nextMondayDate = new Date(date.setDate(dayOfMonth + daysUntilMonday));
-    nextMondayDate.setHours(0, 0, 0, 0); // Set to the beginning of the day
-    return nextMondayDate;
+    // Set the date to the first Monday of August 2025 (YYYY-MM-DD)
+    // August is month 7 (0-indexed)
+    // new Date(year, month, day, hours, minutes, seconds)
+    const year = 2025;
+    const month = 7; // August
+    const date = new Date(year, month, 1);
+    const day = date.getDay(); // 0=Sun, 1=Mon, ...
+    const diff = date.getDate() - day + (day === 0 ? 1 : 1); // Adjust to Monday
+    return new Date(date.setDate(diff));
   });
 
   const [timeLeft, setTimeLeft] = useState({
@@ -441,3 +443,5 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
+
+    
