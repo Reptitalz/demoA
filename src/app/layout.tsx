@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
+import { FirebaseAnalyticsProvider } from '@/lib/firebaseAnalytics'; // Import the provider
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -93,9 +94,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AppProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
+            <FirebaseAnalyticsProvider>
+              <AppLayout>
+                {children}
+              </AppLayout>
+            </FirebaseAnalyticsProvider>
           </AppProvider>
         </ThemeProvider>
       </body>
