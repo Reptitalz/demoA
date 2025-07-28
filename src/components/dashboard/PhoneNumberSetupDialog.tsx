@@ -158,7 +158,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
                           disabled={isProcessing}
                         />
                         <p className="text-xs text-muted-foreground">
-                        Debe ser un número válido que pueda recibir mensajes de WhatsApp.
+                        Usa un chip nuevo, o uno que NO tenga una cuenta de WhatsApp (normal o Business) vinculada.
                         </p>
                     </div>
                 </div>
