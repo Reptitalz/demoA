@@ -52,7 +52,7 @@ export function FirebaseAnalyticsProvider({ children }: { children: React.ReactN
     // Only render the AnalyticsReporter on the client side
     return (
         <>
-            {isClient && <AnalyticsReporter />}
+            {isClient && <AnalyticsReporter></AnalyticsReporter>}
             {children}
         </>
     );
