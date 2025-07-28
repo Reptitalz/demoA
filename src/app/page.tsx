@@ -406,7 +406,7 @@ export default function MarketingHomePage() {
                  size="lg" 
                  className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-green-500 hover:bg-green-600 text-white shadow-lg")}
                >
-                 <Link href="https://wa.me/5213350474005" target="_blank" rel="noopener noreferrer">
+                 <Link href="https://wa.me/5213344090167" target="_blank" rel="noopener noreferrer">
                    <FaWhatsapp className="mr-2 h-5 w-5" />
                    Contactar por WhatsApp
                  </Link>
@@ -438,5 +438,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
+
+    
 
     
