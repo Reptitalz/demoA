@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
@@ -170,13 +170,7 @@ const LoginPageContent = () => {
 
 const LoginPage = () => {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <LoadingSpinner size={36} />
-      </div>
-    }>
-      <LoginPageContent />
-    </Suspense>
+    <LoginPageContent />
   );
 };
 
