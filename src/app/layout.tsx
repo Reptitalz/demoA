@@ -7,8 +7,8 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
-import { Suspense } from 'react';
 import { FirebaseAnalyticsProvider } from '@/lib/firebaseAnalytics';
+import { Suspense } from 'react';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -95,11 +95,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AppProvider>
-            <FirebaseAnalyticsProvider>
-                <AppLayout>
-                  {children}
-                </AppLayout>
-            </FirebaseAnalyticsProvider>
+            <AppLayout>
+              <Suspense fallback={null}>
+                <FirebaseAnalyticsProvider />
+              </Suspense>
+              {children}
+            </AppLayout>
           </AppProvider>
         </ThemeProvider>
       </body>
