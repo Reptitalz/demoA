@@ -193,9 +193,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         const finalUserProfileForState: UserProfile = {
             ...userProfileForApi,
             password: '', 
+            firebaseUid: data.userId, // The API now returns the user ID (mongo _id)
         }
         
-        dispatch({ type: 'COMPLETE_SETUP', payload: finalUserProfileForState });
+        // This will trigger the login flow
+        dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: finalUserProfileForState });
         
         sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
             .catch(err => console.error("Error sending assistant created webhook:", err));
@@ -211,7 +213,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         });
 
         onOpenChange(false);
-        router.push('/dashboard');
+        router.push('/login'); // Redirect to login to complete the session
     
     } catch (error: any) {
         toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
@@ -292,5 +294,3 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
-
-    

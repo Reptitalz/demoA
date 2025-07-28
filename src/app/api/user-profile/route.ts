@@ -59,6 +59,13 @@ export async function POST(request: NextRequest) {
     }
     
     const { db } = await connectToDatabase();
+    const userCollection = db.collection<UserProfile>(PROFILES_COLLECTION);
+
+    // Check if a user with this phone number already exists
+    const existingUser = await userCollection.findOne({ phoneNumber: userProfile.phoneNumber });
+    if (existingUser) {
+        return NextResponse.json({ message: "El número de teléfono ya está registrado." }, { status: 409 }); // 409 Conflict
+    }
 
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(userProfile.password, SALT_ROUNDS);
@@ -81,29 +88,14 @@ export async function POST(request: NextRequest) {
     };
     
     try {
-      // Find user by phone number to update or insert
-      const result = await db.collection<Omit<UserProfile, 'isAuthenticated'>>(PROFILES_COLLECTION).updateOne(
-        { phoneNumber: userProfile.phoneNumber },
-        { $set: serializableProfile },
-        { upsert: true }
-      );
+      // Insert the new user profile
+      const result = await userCollection.insertOne(serializableProfile as UserProfile);
 
-      let responseMessage = "";
-      let userId = userProfile.phoneNumber;
-
-      if (result.upsertedId) {
-        responseMessage = "User profile created successfully.";
-        userId = result.upsertedId.toString();
-      } else if (result.modifiedCount > 0) {
-        responseMessage = "User profile updated successfully.";
-      } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
-         responseMessage = "User profile already up to date.";
-      } else {
-        console.error("API POST: No document matched, and no document was upserted despite upsert:true.", result);
-        return NextResponse.json({ message: "Failed to save user profile: No document matched or upserted" }, { status: 500 });
-      }
-
-      return NextResponse.json({ message: responseMessage, userId: userId, ...(result.upsertedId && {upsertedId: result.upsertedId}) });
+      return NextResponse.json({ 
+          message: "User profile created successfully.", 
+          userId: result.insertedId.toString(),
+          insertedId: result.insertedId 
+      });
 
     } catch (dbError) {
       console.error("API POST (DB operation) Error:", dbError);
