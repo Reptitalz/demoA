@@ -8,7 +8,7 @@ import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { urlBase64ToUint8Array } from '@/lib/utils';
-import { getAuth, signOut, type Auth } from '@/lib/firebase';
+import { getAuth, signOut, type Auth } from 'firebase/auth';
 import { getFirebaseApp } from '@/lib/firebase';
 
 const initialWizardState: WizardState = {
@@ -218,13 +218,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isSubscribingToPush, setIsSubscribingToPush] = useState(false);
   
   const enablePushNotifications = useCallback(async (): Promise<boolean> => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
       toast({ title: 'Push no soportado', description: 'Tu navegador no soporta notificaciones push.', variant: 'destructive' });
       return false;
     }
+
+    const app = getFirebaseApp();
+    if (!app) {
+        toast({ title: 'Error', description: 'Firebase no está inicializado.', variant: 'destructive' });
+        return false;
+    }
+    const auth = getAuth(app);
     
-    if (!state.userProfile.firebaseUid) {
-      toast({ title: 'Error', description: 'El ID de usuario no está disponible para suscribirse a notificaciones.', variant: 'destructive' });
+    if (!auth.currentUser) {
+      toast({ title: 'Error', description: 'Debes iniciar sesión para suscribirte a notificaciones.', variant: 'destructive' });
       return false;
     }
 
@@ -253,6 +260,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const subJSON = subscription.toJSON();
+      const token = await auth.currentUser.getIdToken();
+
+      await fetch('/api/save-push-subscription', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(subJSON),
+      });
+
       dispatch({ type: 'ADD_PUSH_SUBSCRIPTION', payload: subJSON });
       toast({ title: '¡Suscripción Exitosa!', description: 'Recibirás notificaciones importantes.' });
       return true;
@@ -266,16 +284,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [state.userProfile.firebaseUid]);
 
-  const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
+  const fetchProfileCallback = useCallback(async (phoneNumber: string, authInstance: Auth) => {
     try {
-      const response = await fetch(`/api/user-profile?phoneNumber=${encodeURIComponent(phoneNumber)}`);
+      const token = await authInstance.currentUser?.getIdToken();
+      if (!token) {
+        dispatch({ type: 'LOGOUT_USER' });
+        return;
+      }
+
+      const response = await fetch(`/api/user-profile?phoneNumber=${encodeURIComponent(phoneNumber)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
 
       if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
         } else {
-          dispatch({ type: 'SET_LOADING', payload: false });
+           dispatch({ type: 'LOGOUT_USER' });
         }
       } else {
         dispatch({ type: 'LOGOUT_USER' });
@@ -287,31 +313,37 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    const loggedInUserPhone = sessionStorage.getItem('loggedInUser');
-    if (loggedInUserPhone) {
-      fetchProfileCallback(loggedInUserPhone);
-    } else {
-      dispatch({ type: 'SET_LOADING', payload: false });
+    const app = getFirebaseApp();
+    if (!app) {
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return;
     }
-  }, [fetchProfileCallback]);
+    const auth = getAuth(app);
+    const unsubscribe = auth.onAuthStateChanged(async user => {
+      if (user && user.phoneNumber) {
+        // User is signed in.
+        await fetchProfileCallback(user.phoneNumber, auth);
+      } else {
+        // User is signed out.
+        dispatch({ type: 'LOGOUT_USER' });
+      }
+    });
 
-  useEffect(() => {
-    if (state.userProfile.isAuthenticated && state.userProfile.phoneNumber) {
-      sessionStorage.setItem('loggedInUser', state.userProfile.phoneNumber);
-    } else {
-      sessionStorage.removeItem('loggedInUser');
-    }
-  }, [state.userProfile.isAuthenticated, state.userProfile.phoneNumber]);
+    return () => unsubscribe();
+  }, [fetchProfileCallback]);
 
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
-    if (state.isLoading || !state.userProfile.isAuthenticated || !state.userProfile.phoneNumber) {
+    const app = getFirebaseApp();
+    if (!app || state.isLoading || !state.userProfile.isAuthenticated || !state.userProfile.phoneNumber) {
       return;
     }
 
     const saveProfileToApi = async () => {
       setIsSavingProfile(true);
+      const auth = getAuth(app);
+
       try {
         const serializableProfile = {
           ...state.userProfile,
@@ -321,16 +353,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           })),
         };
         
-        const app = getFirebaseApp();
-        if (!app) {
-          console.error("Firebase app not initialized. Cannot save profile.");
-          return;
-        }
-        const auth = getAuth(app);
-        
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
             console.error("Cannot save profile, user not authenticated.");
+            setIsSavingProfile(false);
             return;
         }
 

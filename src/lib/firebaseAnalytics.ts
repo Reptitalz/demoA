@@ -1,35 +1,50 @@
-
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
-import { getAnalytics, logEvent, isSupported, type Analytics } from "firebase/analytics";
-import { getFirebaseApp } from "./firebase"; // Use the new function to get the app
+import { useEffect, useState, type ReactNode, Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { getAnalytics, isSupported, logEvent, type Analytics } from 'firebase/analytics';
+import { getFirebaseApp } from '@/lib/firebase';
 
-export function FirebaseAnalyticsProvider({ children }: { children: ReactNode }) {
+function AnalyticsReporter() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
     useEffect(() => {
-        const initializeAnalytics = async () => {
-            const app = getFirebaseApp();
-            if (app && (await isSupported())) {
-                setAnalytics(getAnalytics(app));
-            }
+        const app = getFirebaseApp();
+        if (!app) {
+            console.log("Firebase app not available for Analytics.");
+            return;
         };
-        initializeAnalytics();
+
+        isSupported().then(supported => {
+            if (supported) {
+                const analytics = getAnalytics(app);
+                const url = pathname + searchParams.toString();
+                logEvent(analytics, 'page_view', { page_path: url });
+                 console.log(`Analytics event logged: page_view for ${url}`);
+            }
+        });
+    }, [pathname, searchParams]);
+
+    return null;
+}
+
+
+export function FirebaseAnalyticsProvider({ children }: { children: ReactNode }) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
     }, []);
 
-    useEffect(() => {
-        if (analytics) {
-            const url = pathname + searchParams.toString();
-            logEvent(analytics, "screen_view", {
-                firebase_screen: url,
-                firebase_screen_class: "Next.js",
-            });
-        }
-    }, [analytics, pathname, searchParams]);
-
-    return children;
+    return (
+        <>
+            {isClient && (
+                <Suspense fallback={null}>
+                    <AnalyticsReporter />
+                </Suspense>
+            )}
+            {children}
+        </>
+    );
 }
