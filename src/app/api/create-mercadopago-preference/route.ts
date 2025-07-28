@@ -2,7 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { PRICE_PER_CREDIT, APP_NAME } from '@/config/appConfig';
-import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
+import { connectToDatabase } from '@/lib/mongodb';
+import { UserProfile } from '@/types';
 
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
@@ -11,18 +12,16 @@ if (!MERCADOPAGO_ACCESS_TOKEN) {
 }
 
 export async function POST(request: NextRequest) {
-  // Moved initialization inside the handler to ensure env vars are loaded.
   const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
   if (!accessToken) {
     console.error("❌ Mercado Pago access token is not configured on the server.");
     return NextResponse.json(
       { error: 'La pasarela de pago no está configurada correctamente. Por favor, contacta al soporte.' },
-      { status: 503 } // 503 Service Unavailable
+      { status: 503 }
     );
   }
 
-  // Initialize client and payment objects here
   const client = new MercadoPagoConfig({
     accessToken: accessToken,
     options: { timeout: 5000 },
@@ -30,15 +29,20 @@ export async function POST(request: NextRequest) {
   const payment = new Payment(client);
 
   try {
-    const decodedToken = await verifyFirebaseToken(request);
-    if (!decodedToken) {
-      return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
+    const { credits, firebaseUid } = await request.json();
+
+    if (!firebaseUid) {
+      return NextResponse.json({ error: 'No autorizado. ID de usuario no proporcionado.' }, { status: 401 });
     }
+    
+    const { db } = await connectToDatabase();
+    const user = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid });
 
-    const firebaseUid = decodedToken.uid;
-    const userEmail = decodedToken.email;
-
-    const { credits } = await request.json();
+    if (!user) {
+        return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
+    }
+    
+    const userEmail = user.email || `${user.phoneNumber}@placeholder.com`;
 
     if (
       !credits ||

@@ -20,9 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { MessagesSquare, Coins, Wallet, Loader2, Copy, Check, Banknote } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS, APP_NAME } from '@/config/appConfig';
-import { getAuth } from '@/lib/firebase';
 import { Card } from '../ui/card';
-import { getFirebaseApp } from '@/lib/firebase';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -85,7 +83,8 @@ const SpeiDisplay = ({ details, onDone }: { details: SpeiDetails, onDone: () => 
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
   const { state } = useApp();
   const { toast } = useToast();
-  const currentCredits = state.userProfile.credits || 0;
+  const { userProfile } = state;
+  const currentCredits = userProfile.credits || 0;
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [speiDetails, setSpeiDetails] = useState<SpeiDetails | null>(null);
@@ -119,11 +118,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     setIsProcessing(true);
 
     try {
-        const app = getFirebaseApp();
-        if (!app) throw new Error("Firebase no inicializado.");
-        const auth = getAuth(app);
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
+        if (!userProfile.firebaseUid) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
         }
 
@@ -131,9 +126,11 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ credits: creditsToPurchase }),
+            body: JSON.stringify({ 
+              credits: creditsToPurchase,
+              firebaseUid: userProfile.firebaseUid 
+            }),
         });
 
         const data = await response.json();
