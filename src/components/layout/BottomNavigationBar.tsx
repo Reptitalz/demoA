@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { useApp } from '@/providers/AppProvider';
 
 
 const BottomNavigationBar = () => {
@@ -16,7 +15,6 @@ const BottomNavigationBar = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
   const [isStandalone, setIsStandalone] = useState(false);
-  const { enablePushNotifications } = useApp();
 
   useEffect(() => {
     // Check if the app is running in standalone mode (already installed)
@@ -39,11 +37,7 @@ const BottomNavigationBar = () => {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        toast({ title: "¡Aplicación Instalada!", description: "A continuación, activa las notificaciones para una mejor experiencia." });
-        // Wait a bit for the toast to show, then prompt for notifications
-        setTimeout(async () => {
-          await enablePushNotifications();
-        }, 2500);
+        toast({ title: "¡Aplicación Instalada!", description: "La aplicación se ha instalado correctamente." });
       }
       setDeferredPrompt(null);
     }
@@ -119,5 +113,3 @@ const BottomNavigationBar = () => {
 };
 
 export default BottomNavigationBar;
-
-    

@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
         databases: profile.databases || [],
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
         credits: profile.credits || 0,
-        pushSubscriptions: profile.pushSubscriptions || [],
         firebaseUid: profile.firebaseUid,
       };
       
@@ -84,7 +83,6 @@ export async function POST(request: NextRequest) {
         businessInfo: asst.businessInfo || {},
       })),
       databases: userProfile.databases || [],
-      pushSubscriptions: userProfile.pushSubscriptions || [],
     };
     
     try {

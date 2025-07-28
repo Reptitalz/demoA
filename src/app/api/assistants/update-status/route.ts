@@ -1,8 +1,8 @@
+
 // src/app/api/assistants/update-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { sendPushNotification } from '@/services/pushService';
-import type { UserProfile, AppNotification } from '@/types';
+import type { UserProfile } from '@/types';
 import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 // This map simulates different outcomes of an asynchronous process.
@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
   try {
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
-    const notificationsCollection = db.collection<AppNotification>('notifications');
     
     // Pick a random outcome for the simulation
     const outcome = SIMULATION_OUTCOMES[Math.floor(Math.random() * SIMULATION_OUTCOMES.length)];
@@ -49,34 +48,6 @@ export async function POST(request: NextRequest) {
       console.log(`Assistant ${assistantId} not found for user ${decodedToken.uid}`);
       return NextResponse.json({ message: 'Assistant not found' }, { status: 404 });
     }
-
-    const userProfile = await userProfileCollection.findOne({ firebaseUid: decodedToken.uid });
-    const assistant = userProfile?.assistants.find(a => a.id === assistantId);
-
-    if (!assistant) {
-         return NextResponse.json({ message: 'Assistant not found after update' }, { status: 404 });
-    }
-
-    const notificationMessage = `Tu asistente "${assistant.name}" ${outcome.message}`;
-
-    // Create a notification document in the database
-    const newNotification: Omit<AppNotification, '_id'> = {
-      userId: decodedToken.uid,
-      message: notificationMessage,
-      type: outcome.type,
-      read: false,
-      link: '/dashboard',
-      createdAt: new Date(),
-    };
-    await notificationsCollection.insertOne(newNotification as AppNotification);
-
-    // Send a push notification to the user
-    await sendPushNotification(decodedToken.uid, {
-      title: 'Actualización de Asistente',
-      body: notificationMessage,
-      url: '/dashboard',
-      tag: 'profile-update', // This tag will trigger a profile refresh on the client
-    });
 
     return NextResponse.json({ success: true, message: 'Assistant status updated and notification sent.' });
 

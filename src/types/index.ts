@@ -1,3 +1,4 @@
+
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
@@ -40,16 +41,6 @@ export interface AssistantConfig {
 
 export type AuthProviderType = "google" | "phone";
 
-export interface AppNotification {
-  _id?: string;
-  userId: string;
-  message: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  read: boolean;
-  link?: string;
-  createdAt: Date;
-}
-
 export interface UserProfile {
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
@@ -61,7 +52,6 @@ export interface UserProfile {
   firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
   credits: number;
-  pushSubscriptions?: PushSubscriptionJSON[];
 }
 
 export interface WizardState {

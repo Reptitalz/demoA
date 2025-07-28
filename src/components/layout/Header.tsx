@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import NotificationsBell from '../notifications/NotificationsBell';
 import { useApp } from '@/providers/AppProvider';
 
 interface HeaderProps {
@@ -17,7 +16,7 @@ interface HeaderProps {
 }
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
-  const { state, enablePushNotifications } = useApp();
+  const { state } = useApp();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
   const [isStandalone, setIsStandalone] = useState(false);
@@ -50,11 +49,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
       // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        toast({ title: "¡Aplicación Instalada!", description: "A continuación, activa las notificaciones para una mejor experiencia." });
-        // Wait a bit for the toast to show, then prompt for notifications
-        setTimeout(async () => {
-            await enablePushNotifications();
-        }, 2500);
+        toast({ title: "¡Aplicación Instalada!", description: "La aplicación se ha instalado en tu dispositivo." });
       } else {
         console.log('User dismissed the A2HS prompt');
       }
@@ -79,7 +74,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <div className="flex items-center gap-2">
-          {state.userProfile.isAuthenticated && <NotificationsBell />}
           {!isStandalone && (
             showInstallButton ? (
               <Button 
@@ -107,5 +101,3 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
 };
 
 export default Header;
-
-    

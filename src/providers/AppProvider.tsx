@@ -7,7 +7,6 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { urlBase64ToUint8Array } from '@/lib/utils';
 import { getAuth, signOut, type Auth } from 'firebase/auth';
 import { getFirebaseApp } from '@/lib/firebase';
 
@@ -40,7 +39,6 @@ const initialUserProfileState: UserProfile = {
   firebaseUid: undefined,
   ownerPhoneNumberForNotifications: undefined,
   credits: 0,
-  pushSubscriptions: [],
 };
 
 const initialState: AppState = {
@@ -54,8 +52,6 @@ const AppContext = createContext<{
   state: AppState; 
   dispatch: React.Dispatch<Action>; 
   isSavingProfile: boolean;
-  enablePushNotifications: () => Promise<boolean>;
-  isSubscribingToPush: boolean;
 } | undefined>(undefined);
 
 type Action =
@@ -84,7 +80,6 @@ type Action =
   | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
-  | { type: 'ADD_PUSH_SUBSCRIPTION', payload: PushSubscriptionJSON }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
 
 
@@ -183,19 +178,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.filter(a => a.id !== action.payload) }};
     case 'ADD_DATABASE':
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
-    case 'ADD_PUSH_SUBSCRIPTION': {
-      const existingSubs = state.userProfile.pushSubscriptions || [];
-      if (existingSubs.some(sub => sub.endpoint === action.payload.endpoint)) {
-        return state;
-      }
-      return {
-        ...state,
-        userProfile: {
-          ...state.userProfile,
-          pushSubscriptions: [...existingSubs, action.payload],
-        },
-      };
-    }
     case 'LOGOUT_USER':
       return {
         ...initialState,
@@ -215,75 +197,7 @@ const queryClient = new QueryClient();
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [isSubscribingToPush, setIsSubscribingToPush] = useState(false);
   
-  const enablePushNotifications = useCallback(async (): Promise<boolean> => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast({ title: 'Push no soportado', description: 'Tu navegador no soporta notificaciones push.', variant: 'destructive' });
-      return false;
-    }
-
-    const app = getFirebaseApp();
-    if (!app) {
-        toast({ title: 'Error', description: 'Firebase no está inicializado.', variant: 'destructive' });
-        return false;
-    }
-    const auth = getAuth(app);
-    
-    if (!auth.currentUser) {
-      toast({ title: 'Error', description: 'Debes iniciar sesión para suscribirte a notificaciones.', variant: 'destructive' });
-      return false;
-    }
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      let subscription = await registration.pushManager.getSubscription();
-      
-      if (!subscription) {
-        const permission = await window.Notification.requestPermission();
-        if (permission !== 'granted') {
-          toast({ title: 'Permiso denegado', description: 'No has permitido las notificaciones.' });
-          return false;
-        }
-
-        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) {
-            toast({ title: 'Error de Configuración', description: 'La clave VAPID para notificaciones no está configurada.', variant: 'destructive' });
-            return false;
-        }
-
-        setIsSubscribingToPush(true);
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        });
-      }
-
-      const subJSON = subscription.toJSON();
-      const token = await auth.currentUser.getIdToken();
-
-      await fetch('/api/save-push-subscription', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(subJSON),
-      });
-
-      dispatch({ type: 'ADD_PUSH_SUBSCRIPTION', payload: subJSON });
-      toast({ title: '¡Suscripción Exitosa!', description: 'Recibirás notificaciones importantes.' });
-      return true;
-
-    } catch (error) {
-      console.error('Error al suscribirse a las notificaciones push:', error);
-      toast({ title: 'Error de Suscripción', description: 'No se pudieron activar las notificaciones.', variant: 'destructive' });
-      return false;
-    } finally {
-      setIsSubscribingToPush(false);
-    }
-  }, [state.userProfile.firebaseUid]);
-
   const fetchProfileCallback = useCallback(async (phoneNumber: string, authInstance: Auth) => {
     try {
       const token = await authInstance.currentUser?.getIdToken();
@@ -383,7 +297,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch, isSavingProfile, enablePushNotifications, isSubscribingToPush }}>
+        <AppContext.Provider value={{ state, dispatch, isSavingProfile }}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>
