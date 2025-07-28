@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { getAuth, signOut } from '@/lib/firebase';
+import { getFirebaseApp } from '@/lib/firebase';
 
 const DashboardPageContent = () => {
   const { state, dispatch } = useApp();
@@ -79,8 +80,13 @@ const DashboardPageContent = () => {
   };
 
   const handleLogout = async () => {
+    const app = getFirebaseApp();
+    if (!app) {
+      toast({ title: "Error", description: "Firebase no está configurado.", variant: "destructive" });
+      return;
+    }
     try {
-      const auth = getAuth();
+      const auth = getAuth(app);
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
@@ -177,5 +183,3 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
-
-    

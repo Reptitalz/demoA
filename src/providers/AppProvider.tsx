@@ -8,7 +8,8 @@ import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { urlBase64ToUint8Array } from '@/lib/utils';
-import { getAuth, signOut } from '@/lib/firebase'; 
+import { getAuth, signOut, type Auth } from '@/lib/firebase';
+import { getFirebaseApp } from '@/lib/firebase';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -319,8 +320,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             purposes: Array.from(assistant.purposes),
           })),
         };
-
-        const auth = getAuth();
+        
+        const app = getFirebaseApp();
+        if (!app) {
+          console.error("Firebase app not initialized. Cannot save profile.");
+          return;
+        }
+        const auth = getAuth(app);
+        
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
             console.error("Cannot save profile, user not authenticated.");
@@ -364,5 +371,3 @@ export const useApp = () => {
   }
   return context;
 };
-
-    

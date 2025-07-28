@@ -4,7 +4,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { getAnalytics, logEvent, isSupported, type Analytics } from "firebase/analytics";
-import { app } from "./firebase"; // Use the initialized app
+import { getFirebaseApp } from "./firebase"; // Use the new function to get the app
 
 export function FirebaseAnalyticsProvider({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -13,7 +13,8 @@ export function FirebaseAnalyticsProvider({ children }: { children: ReactNode })
 
     useEffect(() => {
         const initializeAnalytics = async () => {
-            if (app.options.apiKey && (await isSupported())) {
+            const app = getFirebaseApp();
+            if (app && (await isSupported())) {
                 setAnalytics(getAnalytics(app));
             }
         };

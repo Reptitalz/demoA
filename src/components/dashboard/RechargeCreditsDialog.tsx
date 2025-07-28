@@ -22,6 +22,7 @@ import { MessagesSquare, Coins, Wallet, Loader2, Copy, Check, Banknote } from 'l
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS, APP_NAME } from '@/config/appConfig';
 import { getAuth } from '@/lib/firebase';
 import { Card } from '../ui/card';
+import { getFirebaseApp } from '@/lib/firebase';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -118,7 +119,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     setIsProcessing(true);
 
     try {
-        const auth = getAuth();
+        const app = getFirebaseApp();
+        if (!app) throw new Error("Firebase no inicializado.");
+        const auth = getAuth(app);
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
@@ -200,7 +203,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                                       key={pkg.credits}
                                       htmlFor={`pkg-${pkg.credits}`}
                                       className={cn(
-                                          "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input:checked]:ring-primary"
+                                          "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input-checked]:ring-primary"
                                       )}
                                   >
                                       <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
@@ -254,5 +257,3 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 };
 
 export default RechargeCreditsDialog;
-
-    

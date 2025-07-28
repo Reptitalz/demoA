@@ -12,6 +12,7 @@ import { FaSpinner, FaMobileAlt, FaKey } from 'react-icons/fa';
 import { getAuth } from '@/lib/firebase';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
+import { getFirebaseApp } from '@/lib/firebase';
 
 interface PhoneNumberSetupDialogProps {
   isOpen: boolean;
@@ -89,7 +90,9 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     });
 
     try {
-        const auth = getAuth();
+        const app = getFirebaseApp();
+        if (!app) throw new Error("Firebase no inicializado.");
+        const auth = getAuth(app);
         const token = await auth.currentUser?.getIdToken();
         if (!token) throw new Error("No autenticado.");
 
@@ -207,5 +210,3 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
 };
 
 export default PhoneNumberSetupDialog;
-
-    
