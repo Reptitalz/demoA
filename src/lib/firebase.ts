@@ -1,6 +1,6 @@
+
 // This file initializes the Firebase client app and exports auth-related utilities.
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -47,6 +47,3 @@ export function getFirebaseApp(): FirebaseApp | null {
     return null;
   }
 }
-
-// Export auth utilities separately for convenience
-export { getAuth, signOut, firebaseConfig };

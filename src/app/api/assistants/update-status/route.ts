@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
-import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 // This map simulates different outcomes of an asynchronous process.
 const SIMULATION_OUTCOMES = [
@@ -14,14 +13,9 @@ const SIMULATION_OUTCOMES = [
 ] as const;
 
 export async function POST(request: NextRequest) {
-  const decodedToken = await verifyFirebaseToken(request);
-  if (!decodedToken) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
-  const { assistantId, phoneNumber, verificationCode } = await request.json();
-  if (!assistantId || !phoneNumber || !verificationCode) {
-    return NextResponse.json({ message: 'assistantId, phoneNumber, and verificationCode are required' }, { status: 400 });
+  const { assistantId, phoneNumber, verificationCode, firebaseUid } = await request.json();
+  if (!assistantId || !phoneNumber || !verificationCode || !firebaseUid) {
+    return NextResponse.json({ message: 'assistantId, phoneNumber, verificationCode, and firebaseUid are required' }, { status: 400 });
   }
 
   // Simulate a delay for the backend process (e.g., 5-10 seconds)
@@ -36,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     // Update the assistant's status in the user's profile
     const userProfileUpdateResult = await userProfileCollection.updateOne(
-      { firebaseUid: decodedToken.uid, "assistants.id": assistantId },
+      { firebaseUid: firebaseUid, "assistants.id": assistantId },
       { 
         $set: { "assistants.$.numberReady": outcome.status },
         // If the activation fails, clear the verification code to allow retries
@@ -45,7 +39,7 @@ export async function POST(request: NextRequest) {
     );
     
     if (userProfileUpdateResult.matchedCount === 0) {
-      console.log(`Assistant ${assistantId} not found for user ${decodedToken.uid}`);
+      console.log(`Assistant ${assistantId} not found for user ${firebaseUid}`);
       return NextResponse.json({ message: 'Assistant not found' }, { status: 404 });
     }
 

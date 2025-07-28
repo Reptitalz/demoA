@@ -118,7 +118,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     setIsProcessing(true);
 
     try {
-        if (!userProfile.firebaseUid) {
+        if (!userProfile.phoneNumber) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
         }
 
@@ -129,7 +129,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             },
             body: JSON.stringify({ 
               credits: creditsToPurchase,
-              firebaseUid: userProfile.firebaseUid 
+              userPhoneNumber: userProfile.phoneNumber
             }),
         });
 

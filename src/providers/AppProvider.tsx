@@ -7,8 +7,6 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getAuth, signOut, type Auth } from 'firebase/auth';
-import { getFirebaseApp } from '@/lib/firebase';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -179,6 +177,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'ADD_DATABASE':
       return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
     case 'LOGOUT_USER':
+      // Clear session storage on logout
+      try {
+        sessionStorage.removeItem('loggedInUser');
+      } catch (error) {
+        console.error("Could not clear session storage:", error);
+      }
       return {
         ...initialState,
         isLoading: false,
@@ -198,17 +202,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   
-  const fetchProfileCallback = useCallback(async (phoneNumber: string, authInstance: Auth) => {
+  const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const token = await authInstance.currentUser?.getIdToken();
-      if (!token) {
-        dispatch({ type: 'LOGOUT_USER' });
-        return;
-      }
-
-      const response = await fetch(`/api/user-profile?phoneNumber=${encodeURIComponent(phoneNumber)}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await fetch(`/api/user-profile?phoneNumber=${encodeURIComponent(phoneNumber)}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -222,42 +219,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
-      dispatch({ type: 'SET_LOADING', payload: false });
+      dispatch({ type: 'LOGOUT_USER' });
+    } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, []);
   
   useEffect(() => {
-    const app = getFirebaseApp();
-    if (!app) {
-        dispatch({ type: 'SET_LOADING', payload: false });
-        return;
-    }
-    const auth = getAuth(app);
-    const unsubscribe = auth.onAuthStateChanged(async user => {
-      if (user && user.phoneNumber) {
-        // User is signed in.
-        await fetchProfileCallback(user.phoneNumber, auth);
+    try {
+      const loggedInUser = sessionStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        fetchProfileCallback(loggedInUser);
       } else {
-        // User is signed out.
-        dispatch({ type: 'LOGOUT_USER' });
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
-    });
-
-    return () => unsubscribe();
+    } catch (error) {
+      console.error("Cannot access sessionStorage, session persistence will be disabled.", error);
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
   }, [fetchProfileCallback]);
 
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout;
-    const app = getFirebaseApp();
-    if (!app || state.isLoading || !state.userProfile.isAuthenticated || !state.userProfile.phoneNumber) {
+    if (state.isLoading || !state.userProfile.isAuthenticated) {
       return;
     }
 
     const saveProfileToApi = async () => {
       setIsSavingProfile(true);
-      const auth = getAuth(app);
-
       try {
         const serializableProfile = {
           ...state.userProfile,
@@ -266,19 +256,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             purposes: Array.from(assistant.purposes),
           })),
         };
-        
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-            console.error("Cannot save profile, user not authenticated.");
-            setIsSavingProfile(false);
-            return;
-        }
 
+        // Note: The API for updating profile should be secured,
+        // but it will be based on the user's phone number or session, not a Firebase token.
+        // For now, we assume the API handles authorization.
         await fetch('/api/user-profile', {
-          method: 'POST',
+          method: 'POST', // This should probably be a PUT/PATCH, but based on existing code.
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({ userProfile: serializableProfile }),
         });

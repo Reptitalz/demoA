@@ -29,17 +29,22 @@ export async function POST(request: NextRequest) {
   const payment = new Payment(client);
 
   try {
-    const { credits, firebaseUid } = await request.json();
+    const { credits, userPhoneNumber } = await request.json();
 
-    if (!firebaseUid) {
-      return NextResponse.json({ error: 'No autorizado. ID de usuario no proporcionado.' }, { status: 401 });
+    if (!userPhoneNumber) {
+      return NextResponse.json({ error: 'No autorizado. Número de teléfono no proporcionado.' }, { status: 401 });
     }
     
     const { db } = await connectToDatabase();
-    const user = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid });
+    const user = await db.collection<UserProfile>('userProfiles').findOne({ phoneNumber: userPhoneNumber });
 
     if (!user) {
         return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
+    }
+    
+    // Ensure user has a firebaseUid which is used as the external reference base.
+    if (!user.firebaseUid) {
+        return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
     
     const userEmail = user.email || `${user.phoneNumber}@placeholder.com`;
@@ -59,7 +64,7 @@ export async function POST(request: NextRequest) {
     const price = credits * PRICE_PER_CREDIT;
     const IVA_RATE = 1.16;
     const totalAmount = parseFloat((price * IVA_RATE).toFixed(2));
-    const external_reference = `${firebaseUid}__${credits}__${Date.now()}`;
+    const external_reference = `${user.firebaseUid}__${credits}__${Date.now()}`;
 
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 1);

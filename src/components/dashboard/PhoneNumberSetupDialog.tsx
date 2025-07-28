@@ -9,10 +9,8 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaMobileAlt, FaKey } from 'react-icons/fa';
-import { getAuth } from '@/lib/firebase';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
-import { getFirebaseApp } from '@/lib/firebase';
 
 interface PhoneNumberSetupDialogProps {
   isOpen: boolean;
@@ -74,6 +72,11 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         toast({ title: "Código Inválido", description: "Por favor, ingresa el código de 6 dígitos.", variant: "destructive" });
         return;
     }
+    if (!state.userProfile.firebaseUid) {
+        toast({ title: "Error de autenticación", description: "No se pudo identificar al usuario.", variant: "destructive" });
+        return;
+    }
+
     setIsProcessing(true);
     
     // Optimistically update the UI, now including the verification code.
@@ -90,19 +93,17 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     });
 
     try {
-        const app = getFirebaseApp();
-        if (!app) throw new Error("Firebase no inicializado.");
-        const auth = getAuth(app);
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) throw new Error("No autenticado.");
-
         const response = await fetch('/api/assistants/update-status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ assistantId, phoneNumber, verificationCode })
+            body: JSON.stringify({ 
+                assistantId, 
+                phoneNumber, 
+                verificationCode,
+                firebaseUid: state.userProfile.firebaseUid,
+            })
         });
         
         if (!response.ok) {
