@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -78,8 +79,8 @@ const DashboardPageContent = () => {
   };
 
   const handleLogout = async () => {
-    const auth = getAuth();
     try {
+      const auth = getAuth();
       await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
@@ -176,3 +177,5 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
+
+    

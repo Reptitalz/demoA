@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -115,9 +116,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     }
     
     setIsProcessing(true);
-    const auth = getAuth();
 
     try {
+        const auth = getAuth();
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
@@ -253,3 +254,5 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 };
 
 export default RechargeCreditsDialog;
+
+    

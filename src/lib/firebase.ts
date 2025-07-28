@@ -14,9 +14,20 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 
+// Comprehensive check for all required Firebase config keys.
+const allConfigKeysPresent = 
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.storageBucket &&
+  firebaseConfig.messagingSenderId &&
+  firebaseConfig.appId &&
+  firebaseConfig.measurementId;
+
+
 // Only initialize the app if the config is fully provided.
 // This prevents errors during server-side rendering or build steps where env vars might not be available.
-if (firebaseConfig.apiKey && firebaseConfig.authDomain) {
+if (allConfigKeysPresent) {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
   } else {
@@ -24,7 +35,7 @@ if (firebaseConfig.apiKey && firebaseConfig.authDomain) {
   }
 } else {
    console.warn("**********************************************************************************");
-   console.warn("WARNING: Firebase client configuration is missing or incomplete. Firebase client features will be disabled.");
+   console.warn("WARNING: Firebase client configuration is missing or incomplete. At least one of the required NEXT_PUBLIC_FIREBASE_... environment variables is not set. Firebase client features will be disabled.");
    console.warn("**********************************************************************************");
    // Create a dummy app object to avoid crashing the app if firebase is not configured
    app = {} as FirebaseApp;

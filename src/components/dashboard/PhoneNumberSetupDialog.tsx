@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -73,8 +74,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         return;
     }
     setIsProcessing(true);
-    const auth = getAuth();
-
+    
     // Optimistically update the UI, now including the verification code.
     const updatedAssistants = state.userProfile.assistants.map(asst => 
         asst.id === assistantId ? { ...asst, phoneLinked: phoneNumber, verificationCode: verificationCode, numberReady: false } : asst
@@ -89,6 +89,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     });
 
     try {
+        const auth = getAuth();
         const token = await auth.currentUser?.getIdToken();
         if (!token) throw new Error("No autenticado.");
 
@@ -206,3 +207,5 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
 };
 
 export default PhoneNumberSetupDialog;
+
+    

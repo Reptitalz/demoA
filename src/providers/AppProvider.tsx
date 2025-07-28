@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -215,8 +216,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSubscribingToPush, setIsSubscribingToPush] = useState(false);
   
-  const auth = getAuth();
-
   const enablePushNotifications = useCallback(async (): Promise<boolean> => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       toast({ title: 'Push no soportado', description: 'Tu navegador no soporta notificaciones push.', variant: 'destructive' });
@@ -321,10 +320,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           })),
         };
 
+        const auth = getAuth();
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+            console.error("Cannot save profile, user not authenticated.");
+            return;
+        }
+
         await fetch('/api/user-profile', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({ userProfile: serializableProfile }),
         });
@@ -357,3 +364,5 @@ export const useApp = () => {
   }
   return context;
 };
+
+    
