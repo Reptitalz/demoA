@@ -17,7 +17,7 @@ import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
+import { sendAssistantCreatedWebhook, sendUserRegisteredWebhook } from '@/services/outboundWebhookService';
 import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
@@ -200,6 +200,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
             .catch(err => console.error("Error sending assistant created webhook:", err));
 
+        if (userProfileForApi.phoneNumber) {
+            sendUserRegisteredWebhook(userProfileForApi.phoneNumber)
+                .catch(err => console.error("Error sending user registered webhook:", err));
+        }
+
         toast({
             title: "¡Configuración Completa!",
             description: `${finalAssistantConfig.name} está listo.`,
@@ -287,3 +292,5 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
+
+    

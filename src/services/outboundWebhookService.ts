@@ -32,6 +32,8 @@ interface AssistantWebhookPayload {
 }
 
 const USER_ASSISTANT_WEBHOOK_URL = process.env.USER_ASSISTANT_WEBHOOK_URL;
+const USER_COMPLETION_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/completing';
+
 
 export async function sendAssistantCreatedWebhook(
   userProfile: UserProfile,
@@ -86,3 +88,32 @@ export async function sendAssistantCreatedWebhook(
     // En un entorno de producción, considera estrategias de reintento o un sistema de colas para errores.
   }
 }
+
+export async function sendUserRegisteredWebhook(
+  phoneNumber: string
+): Promise<void> {
+  if (!USER_COMPLETION_WEBHOOK_URL) {
+    console.log('USER_COMPLETION_WEBHOOK_URL is not configured. Omitting webhook.');
+    return;
+  }
+
+  const formattedPhoneNumber = formatMexicanPhoneNumberForWebhook(phoneNumber);
+
+  const payload = {
+    phoneNumber: formattedPhoneNumber,
+  };
+
+  try {
+    console.log(`Sending 'user_registered' webhook to ${USER_COMPLETION_WEBHOOK_URL}`);
+    await axios.post(USER_COMPLETION_WEBHOOK_URL, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 10000,
+    });
+    console.log(`'user_registered' webhook sent successfully.`);
+  } catch (error) {
+    const axiosError = error as import('axios').AxiosError;
+    console.error(`Error sending 'user_registered' webhook to ${USER_COMPLETION_WEBHOOK_URL}:`, axiosError.isAxiosError ? (axiosError.response?.data || axiosError.message) : String(error));
+  }
+}
+
+    
