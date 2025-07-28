@@ -1,32 +1,24 @@
 
-// src/lib/firebaseAnalytics.ts
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getAnalytics, logEvent, isSupported, Analytics } from "firebase/analytics";
+import { useEffect, useState, type ReactNode } from "react";
+import { getAnalytics, logEvent, isSupported, type Analytics } from "firebase/analytics";
 import { app } from "./firebase"; // Use the initialized app
 
-function useAnalytics() {
+export function FirebaseAnalyticsProvider({ children }: { children: ReactNode }) {
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
     useEffect(() => {
         const initializeAnalytics = async () => {
-            const isAnalyticsSupported = await isSupported();
-            if (isAnalyticsSupported) {
+            if (app.options.apiKey && (await isSupported())) {
                 setAnalytics(getAnalytics(app));
             }
         };
         initializeAnalytics();
     }, []);
-
-    return analytics;
-}
-
-function AnalyticsReporter() {
-    const analytics = useAnalytics();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
 
     useEffect(() => {
         if (analytics) {
@@ -38,22 +30,5 @@ function AnalyticsReporter() {
         }
     }, [analytics, pathname, searchParams]);
 
-    return null; // This component doesn't render anything
-}
-
-
-export function FirebaseAnalyticsProvider({ children }: { children: React.ReactNode }) {
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-    
-    // Only render the AnalyticsReporter on the client side
-    return (
-        <>
-            {isClient && <AnalyticsReporter></AnalyticsReporter>}
-            {children}
-        </>
-    );
+    return children;
 }
