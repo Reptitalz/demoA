@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -23,9 +22,14 @@ import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CRED
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import MercadoPagoIcon from '../shared/MercadoPagoIcon';
 
-const MERCADOPAGO_PUBLIC_KEY = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || "APP_USR-203f023b-81ba-4c31-b352-6de7d0fdec38";
+const MERCADOPAGO_PUBLIC_KEY = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY;
 
-initMercadoPago(MERCADOPAGO_PUBLIC_KEY, { locale: 'es-MX' });
+if (MERCADOPAGO_PUBLIC_KEY) {
+  initMercadoPago(MERCADOPAGO_PUBLIC_KEY, { locale: 'es-MX' });
+} else {
+  console.error("Mercado Pago public key is not configured. Payments will not work.");
+}
+
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -133,7 +137,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 <Wallet initialization={{ preferenceId: preferenceId }} customization={{ texts: { valueProp: 'smart_option'}}} />
                 <Button variant="ghost" size="sm" onClick={handleBackToSelection} className="mt-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Volver
+                    Volver a la selección
                 </Button>
             </div>
         ) : (
@@ -232,5 +236,4 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 };
 
 export default RechargeCreditsDialog;
-
     
