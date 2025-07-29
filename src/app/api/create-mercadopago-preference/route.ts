@@ -5,14 +5,14 @@ import { PRICE_PER_CREDIT, APP_NAME } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
 
-const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
+const MERCADOPAGO_ACCESS_TOKEN = "TEST-5778475401797182-071902-c7bf3fe911512a93a32422643348f123-255854133";
 
 if (!MERCADOPAGO_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: MERCADOPAGO_ACCESS_TOKEN is not set.");
 }
 
 export async function POST(request: NextRequest) {
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const accessToken = MERCADOPAGO_ACCESS_TOKEN;
 
   if (!accessToken) {
     console.error("❌ Mercado Pago access token is not configured on the server.");
