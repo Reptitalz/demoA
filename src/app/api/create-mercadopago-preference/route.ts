@@ -51,7 +51,17 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Paquete de créditos no válido.' }, { status: 400 });
     }
 
-    const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
+    let external_reference;
+    // For diagnostic purposes, use a static external_reference for the test plan
+    if (selectedPackage.name === 'Prueba') {
+        external_reference = '120300687158';
+        console.log(`DIAGNOSTIC MODE: Using static external_reference: ${external_reference} for Test Plan.`);
+    } else {
+        external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
+    }
+
+    const IVA_RATE = 0.16; // 16%
+    const taxAmount = selectedPackage.price * IVA_RATE;
     
     const preferencePayload = {
         items: [
@@ -61,16 +71,22 @@ export async function POST(request: NextRequest) {
                 description: `Paquete de ${selectedPackage.name} para recargar ${credits} créditos en la plataforma ${APP_NAME}.`,
                 category_id: "virtual_credits",
                 quantity: 1,
-                unit_price: selectedPackage.price, // Price without tax
+                unit_price: selectedPackage.price,
                 currency_id: 'MXN',
             },
+        ],
+        taxes: [
+            {
+                type: 'IVA',
+                value: taxAmount,
+            }
         ],
         payer: {
             name: user.firstName,
             surname: user.lastName,
             email: user.email,
             phone: {
-                area_code: user.phoneNumber?.substring(1, 3), // Assuming +52 format
+                area_code: user.phoneNumber?.substring(1, 3),
                 number: user.phoneNumber?.substring(3)
             },
             address: user.address ? {
