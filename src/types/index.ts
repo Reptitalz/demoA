@@ -86,6 +86,16 @@ export interface AppState {
   isLoading: boolean;
 }
 
+export interface AppNotification {
+  _id?: string | ObjectId;
+  userId: string;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  read: boolean;
+  createdAt: string; // ISO 8601 string
+  link?: string;
+}
+
 export interface Transaction {
   _id?: string;
   userId: string;

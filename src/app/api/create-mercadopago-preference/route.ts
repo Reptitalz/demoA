@@ -5,21 +5,20 @@ import { APP_NAME, CREDIT_PACKAGES } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
 
-const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || "APP_USR-5778475401797182-071902-31fdf8e4886bf971d7d09ab6ec722b48-2558541332";
+const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
 if (!MERCADOPAGO_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: MERCADOPAGO_ACCESS_TOKEN is not set.");
 }
 
 const client = new MercadoPagoConfig({
-    accessToken: MERCADOPAGO_ACCESS_TOKEN,
+    accessToken: MERCADOPAGO_ACCESS_TOKEN!,
     options: { timeout: 5000 },
 });
 const preference = new Preference(client);
-const IVA_RATE = 0.16; // 16% IVA
 
 export async function POST(request: NextRequest) {
-
+  console.log('--- In-App Purchase endpoint hit ---');
   try {
     const { credits, userPhoneNumber } = await request.json();
 
@@ -51,9 +50,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Paquete de créditos no válido.' }, { status: 400 });
     }
 
-    const unit_price = selectedPackage.price;
+    // external_reference is critical for linking the payment to the user in the webhook.
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
-    const buyerEmail = `test_user_${Date.now()}@testuser.com`;
+    const buyerEmail = user.email || `user_${user._id.toString()}@heymanito.com`; // Use user email or a fallback
 
     const preferencePayload = {
         items: [
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
                 id: `credits-${credits}`,
                 title: `${credits} Crédito(s) para ${APP_NAME}`,
                 quantity: 1,
-                unit_price: unit_price,
+                unit_price: selectedPackage.price,
                 currency_id: 'MXN',
             },
         ],
@@ -78,22 +77,18 @@ export async function POST(request: NextRequest) {
         notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/api/mercadopago-webhook`,
     };
 
-    console.log(
-      '🟡 Creating Mercado Pago preference with payload:',
-      JSON.stringify({ body: preferencePayload }, null, 2)
-    );
+    console.log('🟡 Creating Mercado Pago preference with payload:', JSON.stringify(preferencePayload, null, 2));
 
     const result = await preference.create({ body: preferencePayload });
 
-    console.log('✅ Preference created successfully:', result.id);
+    console.log('✅ Preference created successfully with ID:', result.id);
 
     return NextResponse.json({
       preferenceId: result.id,
     });
 
   } catch (error: any) {
-    const errorMessage =
-      error.cause?.message || error.message || 'Ocurrió un error inesperado.';
+    const errorMessage = error.cause?.message || error.message || 'Ocurrió un error inesperado.';
     console.error('❌ --- MERCADO PAGO API ERROR ---');
     console.error('Error message:', errorMessage);
     console.error('Full Error:', error);
