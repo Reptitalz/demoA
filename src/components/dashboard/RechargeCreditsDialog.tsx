@@ -21,6 +21,7 @@ import { Slider } from '@/components/ui/slider';
 import { MessagesSquare, Coins, Wallet, Loader2, Banknote } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { initMercadoPago, Wallet as MercadoPagoWallet } from '@mercadopago/sdk-react';
+import MercadoPagoIcon from '../shared/MercadoPagoIcon';
 
 const MERCADOPAGO_PUBLIC_KEY = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || "TEST-c89b7878-13f8-45a8-9467-f53e340a631f";
 
@@ -195,9 +196,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 <MercadoPagoWallet initialization={{ preferenceId: preferenceId }} customization={{ texts:{ valueProp: 'smart_option'}}} />
             </div>
           ) : (
-            <>
-              <p className="text-xs text-muted-foreground text-center">
-                  Aceptamos tarjetas de crédito/débito, SPEI y otros métodos de pago disponibles a través de Mercado Pago.
+            <div className="w-full text-center space-y-3">
+              <div className="flex items-center justify-center gap-2">
+                  <p className="text-xs text-muted-foreground">Pagos seguros con</p>
+                  <MercadoPagoIcon className="h-5"/>
+              </div>
+              <p className="text-xs text-muted-foreground text-center px-4">
+                  Aceptamos tarjetas, transferencias y otros métodos de pago disponibles a través de Mercado Pago.
               </p>
               <Button
                   className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
@@ -205,9 +210,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                   disabled={isProcessing}
               >
                   {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Banknote className="mr-2 h-4 w-4" />}
-                  Continuar al Pago
+                  Pagar con Mercado Pago
               </Button>
-            </>
+            </div>
           )}
         </DialogFooter>
       </DialogContent>
