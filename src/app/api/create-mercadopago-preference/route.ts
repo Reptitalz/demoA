@@ -1,32 +1,24 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { MercadoPagoConfig, Payment } from 'mercadopago';
+import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { PRICE_PER_CREDIT, APP_NAME } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
+import { ObjectId } from 'mongodb';
 
-const MERCADOPAGO_ACCESS_TOKEN = "TEST-5778475401797182-071902-c7bf3fe911512a93a32422643348f123-255854133";
+const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || "TEST-5778475401797182-071902-c7bf3fe911512a93a32422643348f123-255854133";
 
 if (!MERCADOPAGO_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: MERCADOPAGO_ACCESS_TOKEN is not set.");
 }
 
-export async function POST(request: NextRequest) {
-  const accessToken = MERCADOPAGO_ACCESS_TOKEN;
-
-  if (!accessToken) {
-    console.error("❌ Mercado Pago access token is not configured on the server.");
-    return NextResponse.json(
-      { error: 'La pasarela de pago no está configurada correctamente. Por favor, contacta al soporte.' },
-      { status: 503 }
-    );
-  }
-
-  const client = new MercadoPagoConfig({
-    accessToken: accessToken,
+const client = new MercadoPagoConfig({
+    accessToken: MERCADOPAGO_ACCESS_TOKEN,
     options: { timeout: 5000 },
-  });
-  const payment = new Payment(client);
+});
+const preference = new Preference(client);
+
+export async function POST(request: NextRequest) {
 
   try {
     const { credits, userPhoneNumber } = await request.json();
@@ -68,49 +60,45 @@ export async function POST(request: NextRequest) {
     // Use the reliable Mongo _id for the reference
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
-    const expirationDate = new Date();
-    expirationDate.setDate(expirationDate.getDate() + 1);
-
-    const paymentPayload = {
-      transaction_amount: totalAmount,
-      description: `${credits} Crédito(s) para ${APP_NAME}`,
-      payment_method_id: 'spei',
-      payer: {
-        email: userEmail,
-      },
-      external_reference,
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago-webhook`,
-      date_of_expiration: expirationDate.toISOString(),
+    const preferencePayload = {
+        items: [
+            {
+                id: `credits-${credits}`,
+                title: `${credits} Crédito(s) para ${APP_NAME}`,
+                quantity: 1,
+                unit_price: totalAmount,
+                currency_id: 'MXN',
+            },
+        ],
+        payer: {
+            email: userEmail,
+            phone: {
+                area_code: userPhoneNumber.substring(1, 3),
+                number: userPhoneNumber.substring(3),
+            },
+        },
+        back_urls: {
+            success: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+            failure: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+            pending: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+        },
+        auto_return: 'approved',
+        external_reference,
+        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago-webhook`,
     };
 
     console.log(
-      '🟡 Creating Mercado Pago SPEI payment with payload:',
-      JSON.stringify({ body: paymentPayload }, null, 2)
+      '🟡 Creating Mercado Pago preference with payload:',
+      JSON.stringify({ body: preferencePayload }, null, 2)
     );
 
-    const result = await payment.create({ body: paymentPayload });
+    const result = await preference.create({ body: preferencePayload });
 
-    console.log('✅ SPEI Payment created successfully:', result.id);
-
-    const speiDetails = result.point_of_interaction?.transaction_data;
-
-    if (!speiDetails || !speiDetails.bank_transfer?.clabe) {
-      console.error(
-        '❌ SPEI details (CLABE) not found in Mercado Pago response:',
-        result.id
-      );
-      return NextResponse.json(
-        { error: 'No se pudieron obtener los detalles para la transferencia SPEI.' },
-        { status: 500 }
-      );
-    }
+    console.log('✅ Preference created successfully:', result.id);
 
     return NextResponse.json({
-      paymentId: result.id,
-      clabe: speiDetails.bank_transfer.clabe,
-      bankName: speiDetails.bank_info?.payer?.[0]?.account_name || 'STP',
-      amount: result.transaction_amount,
-      concept: external_reference.substring(0, 10),
+      preferenceId: result.id,
+      init_point: result.init_point,
     });
 
   } catch (error: any) {
