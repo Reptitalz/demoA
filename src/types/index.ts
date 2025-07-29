@@ -43,16 +43,27 @@ export interface AssistantConfig {
 
 export type AuthProviderType = "google" | "phone";
 
+export interface UserAddress {
+  street_name?: string;
+  street_number?: string;
+  zip_code?: string;
+  city?: string;
+  state?: string;
+}
+
 export interface UserProfile {
-  _id?: ObjectId; // Added to align with MongoDB's default ID field
+  _id?: ObjectId;
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
   email?: string;
+  firstName?: string;
+  lastName?: string;
+  address?: UserAddress;
   phoneNumber?: string; 
   password?: string;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  firebaseUid?: string; // This can now store the MongoDB _id as a string
+  firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
   credits: number;
 }
@@ -69,6 +80,12 @@ export interface WizardState {
     accessUrl?: string;
   };
   authMethod: AuthProviderType | null;
+  // User details
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: UserAddress;
+  // Credentials
   phoneNumber?: string;
   password?: string;
   confirmPassword?: string;

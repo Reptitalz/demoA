@@ -26,6 +26,9 @@ export async function GET(request: NextRequest) {
       const profileSafe: Omit<UserProfile, 'password'> & { isAuthenticated: boolean } = {
         isAuthenticated: true,
         email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        address: profile.address,
         phoneNumber: profile.phoneNumber,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
@@ -72,6 +75,9 @@ export async function POST(request: NextRequest) {
     // Prepare a clean, serializable profile for MongoDB
     const serializableProfile: Omit<UserProfile, 'isAuthenticated'> = {
       email: userProfile.email,
+      firstName: userProfile.firstName,
+      lastName: userProfile.lastName,
+      address: userProfile.address,
       phoneNumber: userProfile.phoneNumber,
       password: hashedPassword, // Store the hashed password
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,

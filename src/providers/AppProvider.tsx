@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,6 +16,10 @@ const initialWizardState: WizardState = {
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '' },
   authMethod: null,
+  firstName: '',
+  lastName: '',
+  email: '',
+  address: {},
   phoneNumber: '',
   password: '',
   confirmPassword: '',
@@ -30,6 +34,9 @@ const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
   authProvider: undefined,
   email: undefined,
+  firstName: undefined,
+  lastName: undefined,
+  address: undefined,
   phoneNumber: undefined,
   password: undefined,
   assistants: [],
@@ -68,6 +75,7 @@ type Action =
   | { type: 'SET_WIZARD_VERIFICATION_CODE'; payload: string }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
+  | { type: 'UPDATE_WIZARD_USER_DETAILS'; payload: { field: keyof UserProfile; value: string | UserAddress } }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
   | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
@@ -119,6 +127,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, databaseOption: { ...state.wizard.databaseOption, ...action.payload } } };
     case 'SET_AUTH_METHOD':
       return { ...state, wizard: { ...state.wizard, authMethod: action.payload } };
+    case 'UPDATE_WIZARD_USER_DETAILS': {
+      const { field, value } = action.payload;
+      if (field === 'address') {
+        return { ...state, wizard: { ...state.wizard, address: { ...state.wizard.address, ...(value as UserAddress) }}};
+      }
+      return { ...state, wizard: { ...state.wizard, [field]: value }};
+    }
     case 'SET_WIZARD_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, phoneNumber: action.payload } };
     case 'SET_WIZARD_PASSWORD':

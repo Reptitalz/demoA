@@ -52,28 +52,32 @@ export async function POST(request: NextRequest) {
     }
 
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
-    const buyerEmail = user.email || `user_${user._id.toString()}@heymanito.com`; // Fallback email
     
-    // Using phone number for last_name as a stable identifier when real name is not available
-    const buyerFirstName = "Usuario";
-    const buyerLastName = user.phoneNumber;
-
     const preferencePayload = {
         items: [
             {
                 id: `credits-${credits}`,
-                title: `${credits} Crédito(s) para ${APP_NAME}`,
+                title: `${selectedPackage.name} - ${credits} Crédito(s) para ${APP_NAME}`,
                 description: `Paquete de ${selectedPackage.name} con ${credits * 1000} mensajes.`,
-                category_id: "virtual_credits", // Recommended: Item category
+                category_id: "virtual_credits",
                 quantity: 1,
                 unit_price: selectedPackage.price, // Price without tax
                 currency_id: 'MXN',
             },
         ],
         payer: {
-            first_name: buyerFirstName, // Recommended: Buyer's first name
-            last_name: buyerLastName,   // Recommended: Buyer's last name
-            email: buyerEmail,
+            name: user.firstName,
+            surname: user.lastName,
+            email: user.email,
+            phone: {
+                area_code: user.phoneNumber?.substring(1, 3), // Assuming +52 format
+                number: user.phoneNumber?.substring(3)
+            },
+            address: user.address ? {
+                street_name: user.address.street_name,
+                street_number: user.address.street_number ? parseInt(user.address.street_number, 10) : undefined,
+                zip_code: user.address.zip_code
+            } : undefined
         },
         back_urls: {
             success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=success`,

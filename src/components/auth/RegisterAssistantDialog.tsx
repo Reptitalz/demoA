@@ -9,6 +9,7 @@ import SetupProgressBar from '@/components/setup/SetupProgressBar';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
+import Step3UserDetails from '@/components/auth/wizard-steps/Step3_UserDetails';
 import Step4CreateCredentials from '@/components/auth/wizard-steps/Step4_CreateCredentials';
 import Step5Verification from '@/components/auth/wizard-steps/Step5_Verification';
 import Step5TermsAndConditions from '@/components/auth/wizard-steps/Step5_TermsAndConditions';
@@ -30,7 +31,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword, verificationCode } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword, verificationCode, firstName, lastName, email, address } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
   const [webhookSent, setWebhookSent] = useState(false);
@@ -41,13 +42,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 6 : 5), [dbNeeded]);
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 7 : 6), [dbNeeded]);
 
   const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
       if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
       if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
-      if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu número de WhatsApp para recibir notificaciones.";
+      if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu WhatsApp para notificaciones.";
       return null;
     };
     const validateStep2 = () => {
@@ -58,7 +59,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       if (!dbNeeded) return null;
       if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
       if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-      if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
+      if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Proporciona una URL válida de Hoja de Google.";
+      return null;
+    };
+     const validateUserDetailsStep = () => {
+      if (!firstName.trim()) return "Por favor, ingresa tu nombre.";
+      if (!lastName.trim()) return "Por favor, ingresa tu apellido.";
+      if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) return "Por favor, ingresa un correo electrónico válido.";
       return null;
     };
     const validateAuthStep = () => {
@@ -77,21 +84,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       return null;
     };
     
-    // Determine which conceptual step we are on to call the right validator
-    if (currentStep === 1) return validateStep1();
-    if (currentStep === 2) return validateStep2();
-    if (dbNeeded) { // 6-step flow
-        if (currentStep === 3) return validateDbStep();
-        if (currentStep === 4) return validateAuthStep();
-        if (currentStep === 5) return validateVerificationStep();
-        if (currentStep === 6) return validateTermsStep();
-    } else { // 5-step flow
-        if (currentStep === 3) return validateAuthStep();
-        if (currentStep === 4) return validateVerificationStep();
-        if (currentStep === 5) return validateTermsStep();
+    let stepValidators;
+    if (dbNeeded) { // 7-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
+    } else { // 6-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
     }
     
-    return null;
+    return currentStep < stepValidators.length ? stepValidators[currentStep]!() : null;
   };
   
   const isStepValid = (): boolean => {
@@ -106,11 +106,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       return;
     }
 
-    // This is the step right before verification
-    const verificationTriggerStep = dbNeeded ? 4 : 3;
+    const verificationTriggerStep = dbNeeded ? 5 : 4;
 
     if (currentStep === verificationTriggerStep && !webhookSent) {
-        setIsFinalizingSetup(true); // Show spinner while sending webhook
+        setIsFinalizingSetup(true);
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         setVerificationKey(code);
         try {
@@ -119,7 +118,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             setWebhookSent(true);
             dispatch({ type: 'NEXT_WIZARD_STEP' });
         } catch (error) {
-            toast({ title: "Error de Webhook", description: "No se pudo enviar el código de verificación.", variant: "destructive" });
+            toast({ title: "Error de Webhook", description: "No se pudo enviar el código.", variant: "destructive" });
         } finally {
             setIsFinalizingSetup(false);
         }
@@ -146,15 +145,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     setIsFinalizingSetup(true);
 
-    const newAssistantDbIdToLink = (dbNeeded && state.wizard.databaseOption.type) 
-        ? `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` 
-        : undefined;
-
-    const newDbEntry: DatabaseConfig | undefined = newAssistantDbIdToLink ? {
-        id: newAssistantDbIdToLink,
-        name: state.wizard.databaseOption.name!,
-        source: state.wizard.databaseOption.type!,
-        details: state.wizard.databaseOption.name,
+    const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
+        id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        name: databaseOption.name!,
+        source: databaseOption.type!,
+        details: databaseOption.name,
         accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
     } : undefined;
 
@@ -163,20 +158,21 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         name: assistantName,
         prompt: assistantPrompt,
         purposes: selectedPurposes,
-        databaseId: newAssistantDbIdToLink,
+        databaseId: newDbEntry?.id,
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
     };
     
-    const userProfileForApi: Omit<UserProfile, 'password'> & { password?: string } = {
-        isAuthenticated: true,
-        email: undefined, // Email is not collected in this flow.
+    const userProfileForApi: Omit<UserProfile, 'isAuthenticated'> = {
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        address: address,
         phoneNumber: phoneNumber,
         password: password,
         assistants: [finalAssistantConfig],
         databases: newDbEntry ? [newDbEntry] : [],
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
         credits: 0,
-        pushSubscriptions: [],
     };
     
     try {
@@ -192,11 +188,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         
         const finalUserProfileForState: UserProfile = {
             ...userProfileForApi,
-            password: '', 
-            firebaseUid: data.userId, // The API now returns the user ID (mongo _id)
+            isAuthenticated: true,
+            firebaseUid: data.userId,
         }
         
-        // This will trigger the login flow
         dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: finalUserProfileForState });
         
         sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
@@ -213,7 +208,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         });
 
         onOpenChange(false);
-        router.push('/login'); // Redirect to login to complete the session
+        router.push('/login');
     
     } catch (error: any) {
         toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
@@ -223,19 +218,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   };
 
   const renderStepContent = () => {
-    if (currentStep === 1) return <Step1AssistantDetails />;
-    if (currentStep === 2) return <Step2AssistantPrompt />;
-    if (dbNeeded) { // 6-step flow
-        if (currentStep === 3) return <Step2DatabaseConfig />;
-        if (currentStep === 4) return <Step4CreateCredentials />;
-        if (currentStep === 5) return <Step5Verification verificationKey={verificationKey} />;
-        if (currentStep === 6) return <Step5TermsAndConditions />;
-    } else { // 5-step flow
-        if (currentStep === 3) return <Step4CreateCredentials />;
-        if (currentStep === 4) return <Step5Verification verificationKey={verificationKey} />;
-        if (currentStep === 5) return <Step5TermsAndConditions />;
+    let steps;
+    if (dbNeeded) { // 7-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
+    } else { // 6-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
     }
-    return null;
+    return currentStep < steps.length ? steps[currentStep] : null;
   };
   
   const handleDialogClose = (open: boolean) => {

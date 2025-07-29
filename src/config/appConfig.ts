@@ -28,12 +28,13 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   1: "Detalles del Asistente",
   2: "Personalidad (Prompt)",
   3: "Base de Datos",
-  4: "Credenciales de Cuenta",
-  5: "Verificación",
-  6: "Términos y Condiciones",
+  4: "Detalles del Usuario",
+  5: "Credenciales de Cuenta",
+  6: "Verificación",
+  7: "Términos y Condiciones",
 };
 
-export const MAX_WIZARD_STEPS = 6;
+export const MAX_WIZARD_STEPS = 7;
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },
@@ -43,15 +44,13 @@ export const PRICE_PER_CREDIT = 50;
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
 
-// Calculated credits for the 5 MXN test plan. 5 MXN / 50 MXN per credit = 0.1 credits
+// 5 MXN / 50 MXN per credit = 0.1 credits. 0.1 credits * 1000 messages/credit = 100 messages.
 export const CREDITS_FOR_TEST_PLAN = 0.1;
 
 export const CREDIT_PACKAGES = [
-  { credits: CREDITS_FOR_TEST_PLAN, price: 5.00, name: "Prueba" },
+  { credits: CREDITS_FOR_TEST_PLAN, price: 5.00, name: "Prueba" }, // 100 mensajes
   { credits: 1, price: 50.00, name: "Básico" },
   { credits: 5, price: 250.00, name: "Estándar" },
   { credits: 10, price: 500.00, name: "Pro" },
   { credits: 25, price: 1250.00, name: "Premium" },
 ];
-
-    

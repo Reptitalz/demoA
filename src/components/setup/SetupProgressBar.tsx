@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Progress } from "@/components/ui/progress";
@@ -17,24 +18,29 @@ const SetupProgressBar = () => {
   
   const { effectiveMaxSteps, stepTitleKey } = useMemo(() => {
     if (isReconfiguring) {
+      // Reconfiguring flow is simpler and does not include user details or auth steps.
       const maxSteps = dbNeeded ? 4 : 3;
       let titleKey: number;
       if (currentStep === 1) titleKey = 1; // Details
       else if (currentStep === 2) titleKey = 2; // Prompt
-      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 6; // DB or Terms
-      else if (currentStep === 4) titleKey = 6; // Terms
+      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 7; // DB or Terms (use key 7 for terms)
+      else if (currentStep === 4) titleKey = 7; // Terms
       else titleKey = currentStep;
       return { effectiveMaxSteps: maxSteps, stepTitleKey: titleKey };
     } else {
-      const maxSteps = dbNeeded ? 6 : 5;
+      // New user registration flow
+      const maxSteps = dbNeeded ? 7 : 6;
       let titleKey: number;
-      if (currentStep === 1) titleKey = 1; // Details
-      else if (currentStep === 2) titleKey = 2; // Prompt
-      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 4; // DB or Auth
-      else if (currentStep === 4) titleKey = dbNeeded ? 4 : 5; // Auth or Verification
-      else if (currentStep === 5) titleKey = dbNeeded ? 5 : 6; // Verification or Terms
-      else if (currentStep === 6) titleKey = 6; // Terms
-      else titleKey = currentStep;
+      if (currentStep <= 2) titleKey = currentStep;
+      else if (dbNeeded) {
+        // 7 steps: Details, Prompt, DB, UserDetails, Auth, Verify, Terms
+        const keyMap = [0, 1, 2, 3, 4, 5, 6, 7];
+        titleKey = keyMap[currentStep];
+      } else {
+        // 6 steps: Details, Prompt, UserDetails, Auth, Verify, Terms
+        const keyMap = [0, 1, 2, 4, 5, 6, 7]; // Skip DB config (step 3)
+        titleKey = keyMap[currentStep];
+      }
       return { effectiveMaxSteps: maxSteps, stepTitleKey: titleKey };
     }
   }, [isReconfiguring, dbNeeded, currentStep]);
