@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { Payment } from '@mercadopago/sdk-react';
-import { Loader2 } from 'lucide-react';
 
 interface MercadoPagoPaymentFormProps {
   preferenceId: string;
@@ -28,31 +27,14 @@ const MercadoPagoPaymentForm = ({ preferenceId, onPaymentSuccess, onPaymentError
     },
   };
 
+  // The onSubmit function is not needed for this flow.
+  // Mercado Pago handles the payment processing, and confirmation is received via webhook.
   const onSubmit = async (param: any) => {
-    // This is where you would normally process the payment on your backend
-    // For this example, we will just log it and call the success callback.
-    console.log('Payment submitted:', param);
-    return new Promise<void>((resolve, reject) => {
-      // Simulate backend processing
-       fetch("/api/process-payment", { // This endpoint doesn't exist, it's an example
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json",
-         },
-         body: JSON.stringify(param),
-       })
-       .then(response => response.json())
-       .then(data => {
-         onPaymentSuccess(data);
-         resolve();
-       })
-       .catch(error => {
-         onPaymentError(error);
-         reject();
-       })
-    });
+    console.log('Payment submitted (client-side):', param);
+    // No backend call from client-side needed here. Webhook handles confirmation.
+    onPaymentSuccess(param);
   };
-
+  
   const onError = async (error: any) => {
     console.error("MercadoPago Error:", error);
     onPaymentError(error);
@@ -76,5 +58,3 @@ const MercadoPagoPaymentForm = ({ preferenceId, onPaymentSuccess, onPaymentError
 };
 
 export default MercadoPagoPaymentForm;
-
-    
