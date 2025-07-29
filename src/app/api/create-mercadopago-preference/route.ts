@@ -53,9 +53,6 @@ export async function POST(request: NextRequest) {
     const basePrice = credits * PRICE_PER_CREDIT;
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
-    // For test environment, MercadoPago requires a test user email.
-    const testUserEmail = `test_user_${Math.floor(Math.random() * 100000000)}@testuser.com`;
-
     const preferencePayload = {
         items: [
             {
@@ -66,9 +63,6 @@ export async function POST(request: NextRequest) {
                 currency_id: 'MXN',
             },
         ],
-        payer: {
-          email: testUserEmail,
-        },
         taxes: [
           {
             type: 'IVA',
@@ -76,9 +70,9 @@ export async function POST(request: NextRequest) {
           }
         ],
         back_urls: {
-            success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
-            failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
-            pending: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
+            success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=success`,
+            failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=failure`,
+            pending: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=pending`,
         },
         auto_return: 'approved',
         external_reference,
@@ -96,7 +90,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       preferenceId: result.id,
-      init_point: result.init_point,
     });
 
   } catch (error: any) {
@@ -112,3 +105,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+    
