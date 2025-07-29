@@ -36,14 +36,15 @@ export async function POST(request: NextRequest) {
     }
     
     const { db } = await connectToDatabase();
+    // Find the user by their phone number now
     const user = await db.collection<UserProfile>('userProfiles').findOne({ phoneNumber: userPhoneNumber });
 
     if (!user) {
         return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
     }
     
-    // Ensure user has a firebaseUid which is used as the external reference base.
-    if (!user.firebaseUid) {
+    // Ensure user has a firebaseUid (which is now the Mongo _id) which is used as the external reference base.
+    if (!user._id) {
         return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
     
@@ -64,7 +65,8 @@ export async function POST(request: NextRequest) {
     const price = credits * PRICE_PER_CREDIT;
     const IVA_RATE = 1.16;
     const totalAmount = parseFloat((price * IVA_RATE).toFixed(2));
-    const external_reference = `${user.firebaseUid}__${credits}__${Date.now()}`;
+    // Use the reliable Mongo _id for the reference
+    const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 1);

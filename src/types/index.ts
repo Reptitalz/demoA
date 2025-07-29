@@ -1,4 +1,6 @@
 
+import { ObjectId } from 'mongodb';
+
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
 export interface AssistantPurpose {
@@ -42,6 +44,7 @@ export interface AssistantConfig {
 export type AuthProviderType = "google" | "phone";
 
 export interface UserProfile {
+  _id?: ObjectId;
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
   email?: string;
@@ -49,7 +52,7 @@ export interface UserProfile {
   password?: string;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  firebaseUid?: string;
+  firebaseUid?: string; // This can now store the MongoDB _id as a string
   ownerPhoneNumberForNotifications?: string;
   credits: number;
 }
