@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -89,7 +88,7 @@ const LoginPageContent = () => {
 
   if (state.isLoading || state.userProfile.isAuthenticated) {
     return (
-      <div className="flex items-center justify-center h-full bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingSpinner size={36} />
       </div>
     );
@@ -97,7 +96,7 @@ const LoginPageContent = () => {
 
   return (
     <>
-    <div className="flex items-center justify-center h-full bg-background px-4">
+    <div className="flex items-center justify-center min-h-screen bg-background px-4">
       <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn animate-float">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
