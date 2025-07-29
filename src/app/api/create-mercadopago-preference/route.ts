@@ -37,10 +37,6 @@ export async function POST(request: NextRequest) {
     if (!user._id) {
         return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
-    
-    // For testing purposes, Mercado Pago requires a specific test user email format.
-    // In production, you would use the actual user's email: user.email.
-    const userEmail = `test_user_${Math.floor(Math.random() * 100000000)}@testuser.com`;
 
     if (
       !credits ||
@@ -69,9 +65,6 @@ export async function POST(request: NextRequest) {
                 currency_id: 'MXN',
             },
         ],
-        payer: {
-            email: userEmail,
-        },
         back_urls: {
             success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
             failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
