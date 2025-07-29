@@ -189,7 +189,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               disabled={isProcessing}
           >
               {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Banknote className="mr-2 h-4 w-4" />}
-              Pagar ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+              Pagar con Mercado Pago
           </Button>
         </DialogFooter>
       </DialogContent>
