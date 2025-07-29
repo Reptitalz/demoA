@@ -44,9 +44,10 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
   const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
   const [customCredits, setCustomCredits] = useState<number>(1);
-  
+  const IVA_RATE = 1.16;
+
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
-  const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT;
+  const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT * IVA_RATE;
 
   useEffect(() => {
     // Reset state when dialog opens
@@ -165,7 +166,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         className="mt-2 grid grid-cols-2 gap-3"
                     >
                         {CREDIT_PACKAGES.map((pkg) => {
-                            const priceWithIva = pkg.price;
+                            const priceWithIva = pkg.price * IVA_RATE;
                             return (
                             <Label
                                 key={pkg.credits}

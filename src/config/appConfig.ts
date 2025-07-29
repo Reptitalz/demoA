@@ -48,10 +48,10 @@ export const CREDITS_FOR_TEST_PLAN = 0.1;
 
 export const CREDIT_PACKAGES = [
   { credits: CREDITS_FOR_TEST_PLAN, price: 5.00, name: "Prueba" },
-  { credits: 1, price: 50, name: "Básico" },
-  { credits: 5, price: 250, name: "Estándar" },
-  { credits: 10, price: 500, name: "Pro" },
-  { credits: 25, price: 1250, name: "Premium" },
+  { credits: 1, price: 50.00, name: "Básico" },
+  { credits: 5, price: 250.00, name: "Estándar" },
+  { credits: 10, price: 500.00, name: "Pro" },
+  { credits: 25, price: 1250.00, name: "Premium" },
 ];
 
     

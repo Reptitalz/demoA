@@ -16,6 +16,7 @@ const client = new MercadoPagoConfig({
     options: { timeout: 5000 },
 });
 const preference = new Preference(client);
+const IVA_RATE = 0.16; // 16% IVA
 
 export async function POST(request: NextRequest) {
 
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const unit_price = selectedPackage.price;
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
+    const buyerEmail = `test_user_${Date.now()}@testuser.com`;
 
     const preferencePayload = {
         items: [
@@ -63,6 +65,9 @@ export async function POST(request: NextRequest) {
                 currency_id: 'MXN',
             },
         ],
+        payer: {
+            email: buyerEmail,
+        },
         back_urls: {
             success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=success`,
             failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=failure`,
@@ -99,5 +104,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-    
