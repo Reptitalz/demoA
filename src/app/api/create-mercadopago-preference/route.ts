@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     }
     
     const { db } = await connectToDatabase();
+    // Find the user by their phone number to get their MongoDB _id
     const user = await db.collection<UserProfile>('userProfiles').findOne({ phoneNumber: userPhoneNumber });
 
     if (!user) {

@@ -44,7 +44,7 @@ export interface AssistantConfig {
 export type AuthProviderType = "google" | "phone";
 
 export interface UserProfile {
-  _id?: ObjectId;
+  _id?: ObjectId; // Added to align with MongoDB's default ID field
   isAuthenticated: boolean;
   authProvider?: AuthProviderType;
   email?: string;
