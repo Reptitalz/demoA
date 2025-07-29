@@ -73,18 +73,18 @@ export async function POST(request: NextRequest) {
         payer: {
             email: userEmail,
             phone: {
-                area_code: userPhoneNumber.substring(1, 3),
+                area_code: userPhoneNumber.substring(1, 3), // +52 -> 52
                 number: userPhoneNumber.substring(3),
             },
         },
         back_urls: {
-            success: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
-            failure: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
-            pending: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`,
+            success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
+            failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
+            pending: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
         },
         auto_return: 'approved',
         external_reference,
-        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago-webhook`,
+        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/api/mercadopago-webhook`,
     };
 
     console.log(
