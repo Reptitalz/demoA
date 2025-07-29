@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -16,12 +16,16 @@ import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { getAuth, signOut } from '@/lib/firebase';
 import { getFirebaseApp } from '@/lib/firebase';
+import CountdownTimer from '@/components/home/CountdownTimer';
+import CountdownDialog from '@/components/home/CountdownDialog';
 
 const DashboardPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
+  const [isCountdownDialogOpen, setIsCountdownDialogOpen] = useState(false);
+
 
   useEffect(() => {
     // This effect ensures that if a user somehow lands on the dashboard
@@ -80,14 +84,7 @@ const DashboardPageContent = () => {
   };
 
   const handleLogout = async () => {
-    const app = getFirebaseApp();
-    if (!app) {
-      toast({ title: "Error", description: "Firebase no está configurado.", variant: "destructive" });
-      return;
-    }
     try {
-      const auth = getAuth(app);
-      await signOut(auth);
       dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
       window.location.href = '/login';
@@ -106,6 +103,7 @@ const DashboardPageContent = () => {
   }
   
   return (
+    <>
     <PageContainer className="space-y-5"> 
       <div className="animate-fadeIn">
         <div className="flex justify-between items-center mb-0.5"> 
@@ -121,6 +119,10 @@ const DashboardPageContent = () => {
       </div>
       
       <DashboardSummary />
+
+      <div className="py-4 animate-fadeIn" style={{animationDelay: "0.3s"}}>
+        <CountdownTimer onTimerClick={() => setIsCountdownDialogOpen(true)} />
+      </div>
 
       <div className="space-y-4"> 
         <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
@@ -179,6 +181,8 @@ const DashboardPageContent = () => {
         )}
       </div>
     </PageContainer>
+    <CountdownDialog isOpen={isCountdownDialogOpen} onOpenChange={setIsCountdownDialogOpen} />
+    </>
   );
 };
 
