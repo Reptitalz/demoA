@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
     const basePrice = credits * PRICE_PER_CREDIT;
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
+    // For test environment, MercadoPago requires a test user email.
+    const testUserEmail = `test_user_${Math.floor(Math.random() * 100000000)}@testuser.com`;
+
     const preferencePayload = {
         items: [
             {
@@ -63,6 +66,9 @@ export async function POST(request: NextRequest) {
                 currency_id: 'MXN',
             },
         ],
+        payer: {
+          email: testUserEmail,
+        },
         taxes: [
           {
             type: 'IVA',
