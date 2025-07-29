@@ -4,6 +4,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { APP_NAME, CREDIT_PACKAGES } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
+import { ObjectId } from 'mongodb';
 
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
@@ -27,7 +28,6 @@ export async function POST(request: NextRequest) {
     }
     
     const { db } = await connectToDatabase();
-    // Find the user by their phone number to get their MongoDB _id
     const user = await db.collection<UserProfile>('userProfiles').findOne({ phoneNumber: userPhoneNumber });
 
     if (!user) {
@@ -51,21 +51,28 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Paquete de créditos no válido.' }, { status: 400 });
     }
 
-    // external_reference is critical for linking the payment to the user in the webhook.
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
-    const buyerEmail = user.email || `user_${user._id.toString()}@heymanito.com`; // Use user email or a fallback
+    const buyerEmail = user.email || `user_${user._id.toString()}@heymanito.com`; // Fallback email
+    
+    // Using phone number for last_name as a stable identifier when real name is not available
+    const buyerFirstName = "Usuario";
+    const buyerLastName = user.phoneNumber;
 
     const preferencePayload = {
         items: [
             {
                 id: `credits-${credits}`,
                 title: `${credits} Crédito(s) para ${APP_NAME}`,
+                description: `Paquete de ${selectedPackage.name} con ${credits * 1000} mensajes.`,
+                category_id: "virtual_credits", // Recommended: Item category
                 quantity: 1,
-                unit_price: selectedPackage.price,
+                unit_price: selectedPackage.price, // Price without tax
                 currency_id: 'MXN',
             },
         ],
         payer: {
+            first_name: buyerFirstName, // Recommended: Buyer's first name
+            last_name: buyerLastName,   // Recommended: Buyer's last name
             email: buyerEmail,
         },
         back_urls: {
