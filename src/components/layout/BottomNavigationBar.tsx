@@ -3,17 +3,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Download, BarChart2 } from 'lucide-react';
+import { Home, Download, BarChart2, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import RechargeCreditsDialog from '@/components/dashboard/RechargeCreditsDialog';
 
 const BottomNavigationBar = () => {
   const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isRechargeOpen, setIsRechargeOpen] = useState(false);
 
   useEffect(() => {
     // Check if the app is running in standalone mode (already installed)
@@ -46,6 +48,21 @@ const BottomNavigationBar = () => {
     { href: '/dashboard', label: 'Inicio', icon: Home },
     { href: '/app/consumption', label: 'Consumo', icon: BarChart2 },
   ];
+  
+  const actionItems = [
+    {
+        label: 'Recargar',
+        icon: Wallet,
+        onClick: () => setIsRechargeOpen(true),
+        id: 'recharge',
+    },
+    ...(!isStandalone && deferredPrompt ? [{
+        label: 'Instalar',
+        icon: Download,
+        onClick: handleInstallClick,
+        id: 'install',
+    }] : [])
+  ];
 
   const isAppArea = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
 
@@ -56,8 +73,6 @@ const BottomNavigationBar = () => {
   if (pathname === '/app' && !pathname.includes('consumption')) {
     return null;
   }
-
-  const showInstallButton = !!deferredPrompt;
 
   return (
     <>
@@ -83,35 +98,25 @@ const BottomNavigationBar = () => {
             );
           })}
 
-          {!isStandalone && (
-            showInstallButton ? (
-               <Button
-                  variant="ghost"
-                  onClick={handleInstallClick}
-                  className={cn(
-                    "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-primary font-semibold" 
-                  )}
-                >
-                  <Download className="h-5 w-5 mb-0.5 text-primary" />
-                  Instalar
-                </Button>
-            ) : (
+          {actionItems.map((item) => {
+            const Icon = item.icon;
+            return (
               <Button
+                key={item.id}
                 variant="ghost"
-                asChild
+                onClick={item.onClick}
                 className={cn(
                   "flex flex-col items-center justify-center h-full w-full rounded-none text-xs p-1 text-muted-foreground"
                 )}
               >
-                <Link href="/login" className="flex flex-col items-center">
-                  <Download className="h-5 w-5 mb-0.5" />
-                  Obtener App
-                </Link>
+                <Icon className="h-5 w-5 mb-0.5" />
+                {item.label}
               </Button>
-            )
-          )}
+            );
+          })}
         </div>
       </nav>
+      <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
     </>
   );
 };
