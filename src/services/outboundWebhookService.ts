@@ -104,7 +104,6 @@ export async function sendUserRegisteredWebhook(
   };
 
   try {
-    console.log("Enviando 'user_registered' webhook con el siguiente payload:", JSON.stringify(payload, null, 2));
     await axios.post(USER_COMPLETION_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 10000,
