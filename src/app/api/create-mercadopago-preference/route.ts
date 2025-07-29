@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
         items: [
             {
                 id: `credits-${credits}`,
-                title: `${selectedPackage.name} - ${credits} Crédito(s) para ${APP_NAME}`,
-                description: `Paquete de ${selectedPackage.name} con ${credits * 1000} mensajes.`,
+                title: `${selectedPackage.name} - ${credits * 1000} mensajes para ${APP_NAME}`,
+                description: `Paquete de ${selectedPackage.name} para recargar ${credits} créditos en la plataforma ${APP_NAME}.`,
                 category_id: "virtual_credits",
                 quantity: 1,
                 unit_price: selectedPackage.price, // Price without tax
@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
         auto_return: 'approved',
         external_reference,
         notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/api/mercadopago-webhook`,
+        statement_descriptor: "HE MANITO",
+        binary_mode: true,
     };
 
     console.log('🟡 Creating Mercado Pago preference with payload:', JSON.stringify(preferencePayload, null, 2));
