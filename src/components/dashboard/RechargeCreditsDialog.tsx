@@ -182,7 +182,10 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               </TabsContent>
           </Tabs>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-3">
+          <p className="text-xs text-muted-foreground text-center">
+            Serás redirigido a Mercado Pago para completar la transacción. Aceptamos tarjetas de crédito/débito, SPEI y otros métodos de pago.
+          </p>
           <Button
               className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
               onClick={createPaymentPreference}
@@ -198,3 +201,5 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 };
 
 export default RechargeCreditsDialog;
+
+    

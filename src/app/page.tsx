@@ -75,8 +75,9 @@ const PayAsYouGoCalculator = () => {
                 <p className="text-xs text-muted-foreground mt-1">(50 MXN por crédito + IVA)</p>
             </div>
         </div>
-        <div className="flex items-center justify-center gap-2 pt-4 border-t border-border/20">
-          <p className="text-xs text-muted-foreground">Pagos seguros impulsados por</p>
+        <div className="pt-4 border-t border-border/20 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <p className="text-xs text-muted-foreground">Pagos seguros impulsados por</p>
             <svg
                 width="80"
                 height="20"
@@ -119,6 +120,10 @@ const PayAsYouGoCalculator = () => {
                   fill="#009ee3"
                 />
               </svg>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Aceptamos tarjetas de crédito, débito y todos los métodos de pago disponibles a través de Mercado Pago.
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -371,6 +376,8 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
+
+    
 
     
 
