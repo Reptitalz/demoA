@@ -18,13 +18,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { MessagesSquare, Coins, Wallet, Loader2, Banknote, ArrowLeft } from 'lucide-react';
-import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS, APP_NAME } from '@/config/appConfig';
-import { initMercadoPago } from '@mercadopago/sdk-react';
+import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote, ArrowLeft } from 'lucide-react';
+import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import MercadoPagoIcon from '../shared/MercadoPagoIcon';
-import MercadoPagoPaymentForm from './MercadoPagoPaymentForm';
 
-const MERCADOPAGO_PUBLIC_KEY = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || "TEST-c89b7878-13f8-45a8-9467-f53e340a631f";
+const MERCADOPAGO_PUBLIC_KEY = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || "APP_USR-203f023b-81ba-4c31-b352-6de7d0fdec38";
 
 initMercadoPago(MERCADOPAGO_PUBLIC_KEY, { locale: 'es-MX' });
 
@@ -47,8 +46,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [customCredits, setCustomCredits] = useState<number>(1);
   
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
-  const IVA_RATE = 1.16;
-  const purchaseAmount = (creditsToPurchase * PRICE_PER_CREDIT) * IVA_RATE;
+  const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT;
 
   useEffect(() => {
     // Reset state when dialog opens
@@ -119,7 +117,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Wallet className="h-6 w-6 text-primary" /> Recargar Saldo
+            <WalletIcon className="h-6 w-6 text-primary" /> Recargar Saldo
           </DialogTitle>
           {!preferenceId && (
             <DialogDescription>
@@ -129,29 +127,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
         </DialogHeader>
 
         {preferenceId ? (
-            <div className="w-full">
-                <Button variant="ghost" size="sm" onClick={handleBackToSelection} className="mb-2">
+            <div className="w-full flex flex-col items-center justify-center py-4">
+                <p className="text-sm text-muted-foreground mb-4">Serás redirigido a Mercado Pago para completar tu compra de forma segura.</p>
+                <Wallet initialization={{ preferenceId: preferenceId }} customization={{ texts: { valueProp: 'smart_option'}}} />
+                <Button variant="ghost" size="sm" onClick={handleBackToSelection} className="mt-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Volver a la selección
+                    Volver
                 </Button>
-                <MercadoPagoPaymentForm 
-                  preferenceId={preferenceId} 
-                  onPaymentSuccess={() => {
-                    toast({
-                      title: "¡Pago Exitoso!",
-                      description: "Tus créditos se actualizarán en breve."
-                    });
-                    onOpenChange(false);
-                  }}
-                  onPaymentError={(error) => {
-                     toast({
-                      title: "Error en el Pago",
-                      description: error.message || "No se pudo procesar el pago. Intenta de nuevo.",
-                      variant: "destructive"
-                    });
-                    onOpenChange(false);
-                  }}
-                />
             </div>
         ) : (
           <div className="my-2 space-y-4">
@@ -183,7 +165,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         className="mt-2 grid grid-cols-2 gap-3"
                     >
                         {CREDIT_PACKAGES.map((pkg) => {
-                            const priceWithIva = (pkg.price) * IVA_RATE;
+                            const priceWithIva = pkg.price;
                             return (
                             <Label
                                 key={pkg.credits}
@@ -193,7 +175,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                                 )}
                             >
                                 <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
-                                <p className="font-bold text-lg">{pkg.credits} Créditos</p>
+                                <p className="font-bold text-lg">{pkg.name}</p>
                                 <p className="text-sm text-muted-foreground">
                                     ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
                                 </p>
@@ -221,7 +203,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                             <span>{MAX_CUSTOM_CREDITS}</span>
                         </div>
                          <div className="p-3 bg-muted/50 rounded-lg text-center mt-2">
-                            <p className="text-sm text-muted-foreground mb-1">Costo Total (IVA incluido)</p>
+                            <p className="text-sm text-muted-foreground mb-1">Costo Total</p>
                             <p className="text-xl font-bold">${purchaseAmount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</p>
                         </div>
                     </div>

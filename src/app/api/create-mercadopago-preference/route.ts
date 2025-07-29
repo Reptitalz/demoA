@@ -1,12 +1,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { PRICE_PER_CREDIT, APP_NAME } from '@/config/appConfig';
+import { APP_NAME, CREDIT_PACKAGES } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
-import { ObjectId } from 'mongodb';
 
-const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || "TEST-5778475401797182-071902-c7bf3fe911512a93a32422643348f123-255854133";
+const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN || "APP_USR-5778475401797182-071902-31fdf8e4886bf971d7d09ab6ec722b48-2558541332";
 
 if (!MERCADOPAGO_ACCESS_TOKEN) {
   console.error("❌ CRITICAL ERROR: MERCADOPAGO_ACCESS_TOKEN is not set.");
@@ -38,19 +37,20 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
 
-    if (
-      !credits ||
-      typeof credits !== 'number' ||
-      credits <= 0 ||
-      !Number.isInteger(credits)
-    ) {
+    if (!credits || typeof credits !== 'number' || credits <= 0) {
       return NextResponse.json(
-        { error: 'La cantidad de créditos debe ser un número entero positivo.' },
+        { error: 'La cantidad de créditos debe ser un número entero o flotante positivo.' },
         { status: 400 }
       );
     }
+    
+    const selectedPackage = CREDIT_PACKAGES.find(p => p.credits === credits);
+    
+    if (!selectedPackage) {
+        return NextResponse.json({ error: 'Paquete de créditos no válido.' }, { status: 400 });
+    }
 
-    const basePrice = credits * PRICE_PER_CREDIT;
+    const unit_price = selectedPackage.price;
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
     const preferencePayload = {
@@ -59,15 +59,9 @@ export async function POST(request: NextRequest) {
                 id: `credits-${credits}`,
                 title: `${credits} Crédito(s) para ${APP_NAME}`,
                 quantity: 1,
-                unit_price: basePrice,
+                unit_price: unit_price,
                 currency_id: 'MXN',
             },
-        ],
-        taxes: [
-          {
-            type: 'IVA',
-            value: parseFloat((basePrice * 0.16).toFixed(2)),
-          }
         ],
         back_urls: {
             success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=success`,
