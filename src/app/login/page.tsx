@@ -98,7 +98,7 @@ const LoginPageContent = () => {
   return (
     <>
     <div className="flex items-center justify-center h-full bg-background px-4">
-      <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn">
+      <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn animate-float">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>
