@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
     }
     
-    // Ensure user has a firebaseUid (which is now the Mongo _id) which is used as the external reference base.
+    // Ensure user has a mongo _id which is used as the external reference base.
     if (!user._id) {
         return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
