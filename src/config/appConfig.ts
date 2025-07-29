@@ -39,10 +39,10 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },
 ];
 
-export const PRICE_PER_CREDIT = 50;
+export const PRICE_PER_CREDIT = 50; // Base price is 50 MXN
 export const MAX_CUSTOM_CREDITS = 100;
 
-// Prices updated to be a flat rate of 50 MXN per credit, removing previous discounts.
+// Prices updated to be the base price (50 MXN per credit), IVA will be added in the UI/API.
 export const CREDIT_PACKAGES = [
   { credits: 1, price: 50, name: "Básico" },
   { credits: 5, price: 250, name: "Estándar" },

@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { APP_NAME } from '@/config/appConfig';
+import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave } from 'react-icons/fa';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight } from 'lucide-react';
@@ -18,15 +18,11 @@ import CountdownTimer from '@/components/home/CountdownTimer';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 
 const PayAsYouGoCalculator = () => {
-  const MESSAGES_PER_CREDIT = 1000;
-  const PRICE_PER_CREDIT_MXN = 50;
-  const MAX_MESSAGES = 50000;
+  const [messages, setMessages] = useState(MESSAGES_PER_CREDIT);
   const IVA_RATE = 1.16; // 16% IVA
 
-  const [messages, setMessages] = useState(1000);
-
   const credits = Math.ceil(messages / MESSAGES_PER_CREDIT);
-  const price = credits * PRICE_PER_CREDIT_MXN;
+  const price = credits * PRICE_PER_CREDIT;
   const priceWithIva = price * IVA_RATE;
 
   const handleSliderChange = (value: number[]) => {
@@ -50,14 +46,14 @@ const PayAsYouGoCalculator = () => {
           <Slider
             value={[messages]}
             onValueChange={handleSliderChange}
-            min={1000}
-            max={MAX_MESSAGES}
-            step={1000}
+            min={MESSAGES_PER_CREDIT}
+            max={MAX_CUSTOM_CREDITS * MESSAGES_PER_CREDIT}
+            step={MESSAGES_PER_CREDIT}
             aria-label="Calculadora de mensajes"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>1,000</span>
-            <span>{MAX_MESSAGES.toLocaleString()}</span>
+            <span>{MESSAGES_PER_CREDIT.toLocaleString()}</span>
+            <span>{(MAX_CUSTOM_CREDITS * MESSAGES_PER_CREDIT).toLocaleString()}</span>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
@@ -66,14 +62,14 @@ const PayAsYouGoCalculator = () => {
                 <p className="text-2xl font-bold flex items-center justify-center gap-2">
                     <Coins className="text-accent"/> {credits.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">(1 crédito = 1,000 mensajes)</p>
+                <p className="text-xs text-muted-foreground mt-1">({MESSAGES_PER_CREDIT.toLocaleString()} mensajes por crédito)</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Costo Estimado (MXN)</p>
                  <p className="text-2xl font-bold flex items-center justify-center gap-2">
                     <CircleDollarSign className="text-green-500"/> ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">(50 MXN por crédito + IVA)</p>
+                <p className="text-xs text-muted-foreground mt-1">(${PRICE_PER_CREDIT} MXN por crédito + IVA)</p>
             </div>
         </div>
         <div className="pt-4 border-t border-border/20 text-center">
@@ -336,9 +332,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
-
-    
-
-    
-
-    
