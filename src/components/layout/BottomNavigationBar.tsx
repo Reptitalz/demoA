@@ -3,12 +3,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Download } from 'lucide-react';
+import { Home, Download, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-
 
 const BottomNavigationBar = () => {
   const pathname = usePathname();
@@ -45,11 +44,16 @@ const BottomNavigationBar = () => {
 
   const navItems = [
     { href: '/dashboard', label: 'Inicio', icon: Home },
+    { href: '/app/consumption', label: 'Consumo', icon: BarChart2 },
   ];
 
-  const isAppArea = pathname.startsWith('/dashboard');
+  const isAppArea = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
 
-  if (pathname === '/app' || pathname === '/login' || !isAppArea) {
+  if (pathname === '/login' || !isAppArea) {
+    return null;
+  }
+  
+  if (pathname === '/app' && !pathname.includes('consumption')) {
     return null;
   }
 

@@ -30,6 +30,8 @@ export const metadata: Metadata = {
   creator: APP_NAME,
   publisher: APP_NAME,
 
+  manifest: '/manifest.json',
+
   openGraph: {
     title: `${APP_NAME} | Asistentes IA Avanzados`,
     description: `Potencia tu negocio con ${APP_NAME}. Crea asistentes virtuales inteligentes para WhatsApp, gestiona datos y automatiza tareas.`,
@@ -58,7 +60,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.png',
   },
 
   robots: {
@@ -83,7 +85,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#8a4fff" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <Script src="https://sdk.mercadopago.com/js/v2" strategy="beforeInteractive" />
       </head>

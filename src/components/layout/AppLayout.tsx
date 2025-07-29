@@ -15,16 +15,19 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
   const isMarketingPage = pathname === '/'; 
-  const isDashboardPage = pathname.startsWith('/dashboard');
+  const isAppArea = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
   const layoutShouldBeFullWidth = isMarketingPage;
+  
+  // Conditionally render BottomNavigationBar
+  const showBottomNav = isAppArea && !(pathname === '/app' && !pathname.includes('consumption'));
 
   return (
     <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
       <Header fullWidth={layoutShouldBeFullWidth} />
-      <div className={cn("flex-grow w-full", isDashboardPage && "pb-16 md:pb-0")}>
+      <div className={cn("flex-grow w-full", showBottomNav && "pb-16 md:pb-0")}>
         {children}
       </div>
-      {isDashboardPage && <BottomNavigationBar />}
+      {showBottomNav && <BottomNavigationBar />}
       <Footer fullWidth={layoutShouldBeFullWidth} />
       <Toaster />
     </div>
