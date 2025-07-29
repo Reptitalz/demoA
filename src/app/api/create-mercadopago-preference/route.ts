@@ -28,19 +28,19 @@ export async function POST(request: NextRequest) {
     }
     
     const { db } = await connectToDatabase();
-    // Find the user by their phone number now
     const user = await db.collection<UserProfile>('userProfiles').findOne({ phoneNumber: userPhoneNumber });
 
     if (!user) {
         return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
     }
     
-    // Ensure user has a mongo _id which is used as the external reference base.
     if (!user._id) {
         return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
     
-    const userEmail = user.email || `${user.phoneNumber}@placeholder.com`;
+    // For testing purposes, Mercado Pago requires a specific test user email format.
+    // In production, you would use the actual user's email: user.email.
+    const userEmail = `test_user_${Math.floor(Math.random() * 100000000)}@testuser.com`;
 
     if (
       !credits ||
@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
     const price = credits * PRICE_PER_CREDIT;
     const IVA_RATE = 1.16;
     const totalAmount = parseFloat((price * IVA_RATE).toFixed(2));
-    // Use the reliable Mongo _id for the reference
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
     const preferencePayload = {
@@ -72,10 +71,6 @@ export async function POST(request: NextRequest) {
         ],
         payer: {
             email: userEmail,
-            phone: {
-                area_code: userPhoneNumber.substring(1, 3), // +52 -> 52
-                number: userPhoneNumber.substring(3),
-            },
         },
         back_urls: {
             success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
