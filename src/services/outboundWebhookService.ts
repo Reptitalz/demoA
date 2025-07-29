@@ -104,16 +104,14 @@ export async function sendUserRegisteredWebhook(
   };
 
   try {
-    console.log(`Sending 'user_registered' webhook to ${USER_COMPLETION_WEBHOOK_URL}`);
+    console.log("Enviando 'user_registered' webhook con el siguiente payload:", JSON.stringify(payload, null, 2));
     await axios.post(USER_COMPLETION_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 10000,
     });
-    console.log(`'user_registered' webhook sent successfully.`);
+    console.log(`'user_registered' webhook enviado exitosamente.`);
   } catch (error) {
     const axiosError = error as import('axios').AxiosError;
     console.error(`Error sending 'user_registered' webhook to ${USER_COMPLETION_WEBHOOK_URL}:`, axiosError.isAxiosError ? (axiosError.response?.data || axiosError.message) : String(error));
   }
 }
-
-    
