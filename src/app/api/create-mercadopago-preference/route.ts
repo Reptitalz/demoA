@@ -50,9 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const price = credits * PRICE_PER_CREDIT;
-    const IVA_RATE = 1.16;
-    const totalAmount = parseFloat((price * IVA_RATE).toFixed(2));
+    const basePrice = credits * PRICE_PER_CREDIT;
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
 
     const preferencePayload = {
@@ -61,9 +59,15 @@ export async function POST(request: NextRequest) {
                 id: `credits-${credits}`,
                 title: `${credits} Crédito(s) para ${APP_NAME}`,
                 quantity: 1,
-                unit_price: totalAmount,
+                unit_price: basePrice, // Send price without tax
                 currency_id: 'MXN',
             },
+        ],
+        taxes: [
+          {
+            type: 'IVA',
+            value: parseFloat((basePrice * 0.16).toFixed(2)),
+          }
         ],
         back_urls: {
             success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard`,
@@ -86,6 +90,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       preferenceId: result.id,
+      init_point: result.init_point,
     });
 
   } catch (error: any) {
