@@ -86,7 +86,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       preferenceId: result.id,
-      init_point: result.init_point,
     });
 
   } catch (error: any) {

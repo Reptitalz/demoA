@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
 const CountdownTimer = ({ onTimerClick }: { onTimerClick: () => void }) => {
   const [targetDate] = useState(() => {
     // Set a fixed target date for consistency across clients and re-renders.
-    // For example, August 5, 2024 at 00:00:00 local time.
-    const target = new Date('2024-08-05T00:00:00');
+    // For example, August 9, 2024 at 00:00:00 local time.
+    const target = new Date('2024-08-09T00:00:00');
     return target;
   });
 
