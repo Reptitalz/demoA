@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
                 id: `credits-${credits}`,
                 title: `${credits} Crédito(s) para ${APP_NAME}`,
                 quantity: 1,
-                unit_price: basePrice, // Send price without tax
+                unit_price: basePrice,
                 currency_id: 'MXN',
             },
         ],
