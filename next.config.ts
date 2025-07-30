@@ -36,7 +36,7 @@ const securityHeaders = [
     value: 'true',
   },
   {
-    key: 'Access-Control-Allow-Origin',
+    key: 'Access-control-allow-origin',
     value: '*', // Replace with your actual domain in production for better security
   },
   {
