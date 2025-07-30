@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote, ArrowLe
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import MercadoPagoPaymentForm from './MercadoPagoPaymentForm';
 import { Button } from '../ui/button';
+import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
