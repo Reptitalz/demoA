@@ -112,9 +112,10 @@ export async function POST(request: NextRequest) {
     const result = await preference.create({ body: preferencePayload });
 
     console.log('✅ Preference created successfully with ID:', result.id);
+    console.log('✅ Init Point URL:', result.init_point);
 
     return NextResponse.json({
-      preferenceId: result.id,
+      initPointUrl: result.init_point,
     });
 
   } catch (error: any) {
