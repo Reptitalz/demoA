@@ -59,9 +59,6 @@ export async function POST(request: NextRequest) {
     } else {
         external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
     }
-
-    const IVA_RATE = 0.16; // 16%
-    const taxAmount = selectedPackage.price * IVA_RATE;
     
     const preferencePayload = {
         items: [
@@ -74,17 +71,6 @@ export async function POST(request: NextRequest) {
                 unit_price: selectedPackage.price,
                 currency_id: 'MXN',
             },
-        ],
-        payment_methods: {
-            excluded_payment_methods: [],
-            excluded_payment_types: [],
-            installments: 1,
-        },
-        taxes: [
-            {
-                type: 'IVA',
-                value: taxAmount,
-            }
         ],
         payer: {
             name: user.firstName,
@@ -116,10 +102,8 @@ export async function POST(request: NextRequest) {
     const result = await preference.create({ body: preferencePayload });
 
     console.log('✅ Preference created successfully with ID:', result.id);
-    console.log('✅ Init Point URL:', result.init_point);
 
     return NextResponse.json({
-      initPointUrl: result.init_point,
       preferenceId: result.id
     });
 
