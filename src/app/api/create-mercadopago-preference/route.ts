@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     let external_reference;
     // For diagnostic purposes, use a static external_reference for the test plan
     if (selectedPackage.name === 'Prueba') {
-        external_reference = '120300687158';
+        external_reference = '119792215961';
         console.log(`DIAGNOSTIC MODE: Using static external_reference: ${external_reference} for Test Plan.`);
     } else {
         external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
