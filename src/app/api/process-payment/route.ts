@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Faltan datos para procesar el pago.' }, { status: 400 });
     }
 
-    const paymentData = {
+    const paymentData: any = {
       transaction_amount: Number(transaction_amount),
       token: token,
       description: 'Recarga de Créditos Hey Manito!',
@@ -34,12 +34,16 @@ export async function POST(request: NextRequest) {
         email: payer.email,
         first_name: payer.first_name,
         last_name: payer.last_name,
-        identification: {
-            type: payer.identification.type,
-            number: payer.identification.number
-        }
       },
     };
+    
+    // Safely add identification if it exists
+    if (payer.identification && payer.identification.type && payer.identification.number) {
+        paymentData.payer.identification = {
+            type: payer.identification.type,
+            number: payer.identification.number
+        };
+    }
 
     console.log("🟡 Processing payment with data:", JSON.stringify(paymentData, null, 2));
     
