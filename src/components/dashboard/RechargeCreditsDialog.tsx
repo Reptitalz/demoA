@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -16,9 +15,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote, ArrowLeft } from 'lucide-react';
+import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
-import MercadoPagoPaymentForm from './MercadoPagoPaymentForm';
 import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 
@@ -37,8 +35,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
   const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
   const [customCredits, setCustomCredits] = useState<number>(1);
-  const [preferenceId, setPreferenceId] = useState<string | null>(null);
-
+  
   const IVA_RATE = 1.16;
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
   const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT * IVA_RATE;
@@ -49,7 +46,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       setActiveTab('packages');
       setSelectedPackageCredits(CREDIT_PACKAGES[0].credits);
       setCustomCredits(1);
-      setPreferenceId(null);
     }
   }, [isOpen]);
 
@@ -83,14 +79,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             throw new Error(data.error || 'No se pudo crear la orden de pago.');
         }
         
-        if (data.preferenceId) {
-            setPreferenceId(data.preferenceId);
+        if (data.initPointUrl) {
+            window.location.href = data.initPointUrl;
         } else {
-            throw new Error('No se recibió el ID de preferencia. Por favor, intenta de nuevo.');
+            throw new Error('No se recibió la URL de pago. Por favor, intenta de nuevo.');
         }
     } catch (error: any) {
         toast({ title: "Error al generar orden", description: error.message, variant: "destructive" });
-    } finally {
         setIsProcessing(false);
     }
   };
@@ -99,10 +94,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     if (isProcessing) return;
     onOpenChange(false);
   };
-  
-  const handleBackToSelection = () => {
-      setPreferenceId(null);
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -116,21 +107,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
           </DialogDescription>
         </DialogHeader>
 
-        {preferenceId ? (
-            <div className="animate-fadeIn">
-                <Button variant="ghost" onClick={handleBackToSelection} className="mb-2 text-sm">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la selección
-                </Button>
-                <MercadoPagoPaymentForm 
-                    preferenceId={preferenceId} 
-                    amount={purchaseAmount}
-                    onPaymentSuccess={() => {
-                        toast({ title: "Pago Exitoso", description: "Tus créditos han sido añadidos."});
-                        onOpenChange(false);
-                    }}
-                />
-            </div>
-        ) : (
         <div className="my-2 space-y-4">
           <div className="p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground mb-1">Saldo Actual</p>
@@ -219,11 +195,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               </div>
             </div>
         </div>
-        )}
       </DialogContent>
     </Dialog>
   );
 };
 
 export default RechargeCreditsDialog;
-    
