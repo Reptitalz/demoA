@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
@@ -14,14 +14,13 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
-import { getAuth, signOut } from '@/lib/firebase';
-import { getFirebaseApp } from '@/lib/firebase';
 import CountdownTimer from '@/components/home/CountdownTimer';
 import CountdownDialog from '@/components/home/CountdownDialog';
 
 const DashboardPageContent = () => {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, fetchProfileCallback } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
   const [isCountdownDialogOpen, setIsCountdownDialogOpen] = useState(false);
@@ -35,6 +34,24 @@ const DashboardPageContent = () => {
         router.replace('/login');
     }
   }, [isLoading, state.userProfile.isAuthenticated, router]);
+  
+  useEffect(() => {
+    // Check for payment status from Mercado Pago redirection
+    const paymentStatus = searchParams.get('payment_status');
+    if (paymentStatus === 'success' && userProfile.phoneNumber) {
+      toast({
+        title: "¡Pago Exitoso!",
+        description: "Tu compra ha sido procesada. Actualizando tu saldo...",
+        variant: "default", // Use a non-destructive variant
+      });
+      // Refetch user profile to get the latest credits
+      fetchProfileCallback(userProfile.phoneNumber);
+
+      // Clean the URL to avoid showing the toast on every refresh
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [searchParams, userProfile.phoneNumber, fetchProfileCallback, toast]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);

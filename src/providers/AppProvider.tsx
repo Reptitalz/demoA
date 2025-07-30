@@ -57,6 +57,7 @@ const AppContext = createContext<{
   state: AppState; 
   dispatch: React.Dispatch<Action>; 
   isSavingProfile: boolean;
+  fetchProfileCallback: (phoneNumber: string) => Promise<void>;
 } | undefined>(undefined);
 
 type Action =
@@ -297,7 +298,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch, isSavingProfile }}>
+        <AppContext.Provider value={{ state, dispatch, isSavingProfile, fetchProfileCallback }}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>
