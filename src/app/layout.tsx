@@ -88,7 +88,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
-        <Script src="https://sdk.mercadopago.com/js/v2" strategy="beforeInteractive" />
+        <script src="https://sdk.mercadopago.com/js/v2"></script>
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider
