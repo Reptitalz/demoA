@@ -75,6 +75,11 @@ export async function POST(request: NextRequest) {
                 currency_id: 'MXN',
             },
         ],
+        payment_methods: {
+            excluded_payment_methods: [],
+            excluded_payment_types: [],
+            installments: 1,
+        },
         taxes: [
             {
                 type: 'IVA',
@@ -104,7 +109,6 @@ export async function POST(request: NextRequest) {
         external_reference,
         notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/api/mercadopago-webhook`,
         statement_descriptor: "HE MANITO",
-        binary_mode: true,
     };
 
     console.log('🟡 Creating Mercado Pago preference with payload:', JSON.stringify(preferencePayload, null, 2));
@@ -116,6 +120,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       initPointUrl: result.init_point,
+      preferenceId: result.id
     });
 
   } catch (error: any) {
