@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 
 const CountdownTimer = ({ onTimerClick }: { onTimerClick: () => void }) => {
   const [targetDate] = useState(() => {
-    // Set the target date to be 4 days from the moment the component mounts.
-    const target = new Date();
-    target.setDate(target.getDate() + 4);
+    // Set a fixed target date. Example: August 1, 2024, at midnight Central Time.
+    // This ensures the countdown is the same for all users and doesn't reset.
+    // You can change this to your desired launch date.
+    const target = new Date('2024-08-01T00:00:00-06:00'); // CST (Central Standard Time)
     return target;
   });
 
