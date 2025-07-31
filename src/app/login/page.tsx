@@ -13,7 +13,7 @@ import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { PhoneInput } from '@/components/ui/phone-input';
 import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
 import { getFirebaseApp } from '@/lib/firebase';
-import { getAuth, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, PhoneAuthProvider, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { getAuth, signInWithCustomToken } from 'firebase/auth';
 
 const APP_NAME = "Hey Manito";
 
@@ -67,22 +67,10 @@ const LoginPageContent = () => {
       if (!app) throw new Error("Firebase no está configurado.");
       const auth = getAuth(app);
       
-      // Temporarily create an email for auth purposes. This is a workaround for Firebase Phone Auth limitations on web.
-      const tempEmail = `${phoneNumber.replace('+', '')}@heymanito.app`;
-      
-      try {
-        await signInWithEmailAndPassword(auth, tempEmail, password);
-      } catch(error: any) {
-        if (error.code === 'auth/user-not-found') {
-          await auth.createUserWithEmailAndPassword(tempEmail, password);
-        } else if (error.code !== 'auth/wrong-password') {
-            throw error;
-        }
-        // now sign in again
-        await signInWithEmailAndPassword(auth, tempEmail, password);
-      }
+      // Sign in with the custom token provided by the backend
+      await signInWithCustomToken(auth, data.customToken);
 
-
+      // Now that the user is signed in with Firebase, fetch their profile
       await fetchProfileCallback(phoneNumber);
       
       toast({

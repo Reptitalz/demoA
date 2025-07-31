@@ -68,6 +68,7 @@ export interface UserProfile {
   credits: number;
   recoveryToken?: string;
   recoveryTokenExpiry?: Date;
+  pushSubscriptions?: any[]; // For web push notifications
 }
 
 export interface WizardState {
