@@ -19,12 +19,10 @@ import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 
 const PayAsYouGoCalculator = () => {
   const [messages, setMessages] = useState(MESSAGES_PER_CREDIT);
-  const IVA_RATE = 1.16; // 16% IVA
-
+  
   const credits = Math.ceil(messages / MESSAGES_PER_CREDIT);
   const price = credits * PRICE_PER_CREDIT;
-  const priceWithIva = price * IVA_RATE;
-
+  
   const handleSliderChange = (value: number[]) => {
     setMessages(value[0]);
   };
@@ -67,9 +65,9 @@ const PayAsYouGoCalculator = () => {
             <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Costo Estimado (MXN)</p>
                  <p className="text-2xl font-bold flex items-center justify-center gap-2">
-                    <CircleDollarSign className="text-green-500"/> ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <CircleDollarSign className="text-green-500"/> ${price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">(${PRICE_PER_CREDIT} MXN por crédito + IVA)</p>
+                <p className="text-xs text-muted-foreground mt-1">(${PRICE_PER_CREDIT} MXN por crédito)</p>
             </div>
         </div>
         <div className="pt-4 border-t border-border/20 text-center">

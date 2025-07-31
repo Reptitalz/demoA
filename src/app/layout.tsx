@@ -39,9 +39,9 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     images: [
       {
-        url: '/opengraph-image.png',
-        width: 1200,
-        height: 630,
+        url: '/icon-512x512.png',
+        width: 512,
+        height: 512,
         alt: `Plataforma ${APP_NAME} para asistentes virtuales con IA`,
       },
     ],
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     title: `${APP_NAME} - Transforma tu Comunicación con IA`,
     description: `Configura asistentes virtuales en minutos con ${APP_NAME}. Integración WhatsApp, bases de datos inteligentes y más.`,
     creator: '@TuUsuarioTwitter',
-    images: [`${BASE_URL}/twitter-image.png`],
+    images: [`${BASE_URL}/icon-512x512.png`],
   },
 
   icons: {

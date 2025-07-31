@@ -58,7 +58,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
     }
   };
 
-  const showInstallButton = !!deferredPrompt;
+  const showInstallButton = !!deferredPrompt && !isStandalone;
 
   return (
     <header className="bg-card shadow-md sticky top-0 z-50">
@@ -74,24 +74,15 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <div className="flex items-center gap-2">
-          {!isStandalone && (
-            showInstallButton ? (
-              <Button 
-                size="sm" 
-                className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
-                onClick={handleInstallClick}
-              >
-                <Download className="mr-1.5 h-4 w-4" />
-                Instalar App
-              </Button>
-            ) : (
-               <Button asChild size="sm" className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105">
-                 <Link href="/login">
-                  <Download className="mr-1.5 h-4 w-4" />
-                  Obtener App
-                </Link>
-              </Button>
-            )
+          {showInstallButton && (
+            <Button 
+              size="sm" 
+              className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+              onClick={handleInstallClick}
+            >
+              <Download className="mr-1.5 h-4 w-4" />
+              Instalar App
+            </Button>
           )}
           <ThemeToggle />
         </div>

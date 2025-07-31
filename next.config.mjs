@@ -1,5 +1,5 @@
 
-
+import withPWAInit from "@ducanh2912/next-pwa";
 import type { Configuration as WebpackConfiguration } from 'webpack';
 
 const securityHeaders = [
@@ -24,7 +24,7 @@ const securityHeaders = [
     value: 'true',
   },
   {
-    key: 'Access-control-allow-origin',
+    key: 'Access-Control-Allow-Origin',
     value: '*', // Replace with your actual domain in production for better security
   },
   {
@@ -38,9 +38,6 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  env: {
-    NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -62,15 +59,6 @@ const nextConfig = {
         pathname: '/**',
       }
     ],
-  },
-  assetPrefix: '/static',
-  async rewrites() {
-    return [
-      {
-        source: '/static/:path*',
-        destination: '/_next/static/:path*',
-      },
-    ];
   },
   async headers() {
     return [
@@ -113,4 +101,12 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+});
+
+export default withPWA(nextConfig);
