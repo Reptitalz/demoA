@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT } from '@/config/appConfig';
+import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
