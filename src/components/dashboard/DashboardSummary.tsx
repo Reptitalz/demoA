@@ -19,8 +19,8 @@ const DashboardSummary = () => {
 
   return (
     <>
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" style={{animationDelay: "0.1s"}}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn" style={{animationDelay: "0.1s"}}>
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Asistentes</CardTitle>
             <FaRobot className="h-5 w-5 text-primary" />
@@ -36,8 +36,7 @@ const DashboardSummary = () => {
         </Card>
 
         <Card 
-          className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn cursor-pointer" 
-          style={{animationDelay: "0.2s"}}
+          className="shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" 
           onClick={() => setIsRechargeOpen(true)}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -53,13 +52,14 @@ const DashboardSummary = () => {
             </p>
           </CardContent>
         </Card>
-        
-        <Card 
-          className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn" 
-          style={{animationDelay: "0.3s"}}
+      </div>
+
+      <div className="mt-4 animate-fadeIn" style={{animationDelay: "0.2s"}}>
+         <Card 
+          className="shadow-lg hover:shadow-xl transition-shadow duration-300 col-span-2 lg:col-span-1"
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mensajes</CardTitle>
+            <CardTitle className="text-sm font-medium">Mensajes Disponibles</CardTitle>
             <MessagesSquare className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
@@ -71,8 +71,8 @@ const DashboardSummary = () => {
             </p>
           </CardContent>
         </Card>
-
       </div>
+      
       <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
     </>
   );
