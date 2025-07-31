@@ -78,6 +78,10 @@ const nextConfig = {
       },
     ];
   },
+  experimental: {
+    // This is necessary to prevent bundling issues with native modules used by server-side packages.
+    serverComponentsExternalPackages: ['bcrypt', 'firebase-admin'],
+  },
 };
 
 module.exports = nextConfig;
