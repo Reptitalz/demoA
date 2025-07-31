@@ -1,10 +1,8 @@
-
 "use client";
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaWhatsapp, FaEnvelope, FaKey } from 'react-icons/fa';
@@ -33,17 +31,35 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
 
     setIsProcessing(true);
 
-    // Simulate API call to request password reset
-    // In a real app, you would call your backend here.
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch('/api/auth/request-recovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, method }),
+      });
 
-    toast({
-      title: "Solicitud Enviada",
-      description: `Hemos enviado un enlace para restablecer tu contraseña por ${method === 'whatsapp' ? 'WhatsApp' : 'correo electrónico'}. Revisa tus mensajes.`,
-    });
+      const data = await response.json();
 
-    setIsProcessing(false);
-    onOpenChange(false);
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al solicitar la recuperación.');
+      }
+      
+      toast({
+        title: "Solicitud Enviada",
+        description: `Hemos enviado un enlace para restablecer tu contraseña por ${method === 'whatsapp' ? 'WhatsApp' : 'correo electrónico'}. Revisa tus mensajes.`,
+      });
+
+      onOpenChange(false);
+
+    } catch (error: any) {
+        toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+        });
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   return (
