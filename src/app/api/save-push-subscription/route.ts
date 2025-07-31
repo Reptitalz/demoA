@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
-import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 const PROFILES_COLLECTION = 'userProfiles';
 
 export async function POST(request: NextRequest) {
-  const decodedToken = await verifyFirebaseToken(request);
-  if (!decodedToken) {
+  const { subscription, firebaseUid } = await request.json();
+
+  if (!firebaseUid) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
-
-  const subscription = await request.json();
+  
   if (!subscription || !subscription.endpoint) {
     return NextResponse.json({ message: 'Invalid subscription object' }, { status: 400 });
   }
@@ -22,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Use $addToSet to avoid duplicate subscriptions for the same endpoint
     const result = await userProfileCollection.updateOne(
-      { firebaseUid: decodedToken.uid },
+      { firebaseUid: firebaseUid },
       { $addToSet: { pushSubscriptions: subscription } }
     );
 
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Subscription saved successfully.' });
     } else {
       // This case means the user profile was not found, which is an issue.
-      console.error(`Failed to save push subscription: User profile not found for firebaseUid ${decodedToken.uid}`);
+      console.error(`Failed to save push subscription: User profile not found for firebaseUid ${firebaseUid}`);
       return NextResponse.json({ message: 'User profile not found.' }, { status: 404 });
     }
   } catch (error) {

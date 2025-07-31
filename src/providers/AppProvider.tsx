@@ -56,7 +56,6 @@ const initialState: AppState = {
 const AppContext = createContext<{ 
   state: AppState; 
   dispatch: React.Dispatch<Action>; 
-  isSavingProfile: boolean;
   fetchProfileCallback: (phoneNumber: string) => Promise<void>;
 } | undefined>(undefined);
 
@@ -197,7 +196,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       try {
         sessionStorage.removeItem('loggedInUser');
       } catch (error) {
-        console.error("Could not clear session storage or sign out:", error);
+        console.error("Could not clear session storage:", error);
       }
       return {
         ...initialState,
@@ -216,7 +215,6 @@ const queryClient = new QueryClient();
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
   
   const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -251,26 +249,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [fetchProfileCallback]);
 
-
-  useEffect(() => {
-    let debounceTimer: NodeJS.Timeout;
-    if (state.isLoading || !state.userProfile.isAuthenticated) {
-      return;
-    }
-
-    const saveProfileToApi = async () => {
-      // This function can be used for auto-saving if needed in the future
-    };
-
-    // clearTimeout(debounceTimer);
-    // debounceTimer = setTimeout(saveProfileToApi, 1000);
-
-    return () => clearTimeout(debounceTimer);
-  }, [state.userProfile, state.isLoading]);
-
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch, isSavingProfile, fetchProfileCallback }}>
+        <AppContext.Provider value={{ state, dispatch, fetchProfileCallback }}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>

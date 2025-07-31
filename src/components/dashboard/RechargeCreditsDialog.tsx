@@ -20,8 +20,6 @@ import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote } from '
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
-import { getAuth } from 'firebase/auth';
-import { getFirebaseApp } from '@/lib/firebase';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -55,27 +53,23 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       return;
     }
     
+    if (!userProfile.firebaseUid) {
+      toast({ title: "Error de Autenticación", description: "No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.", variant: "destructive" });
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-        const app = getFirebaseApp();
-        if (!app) throw new Error("Firebase no está configurado.");
-        const auth = getAuth(app);
-        const user = auth.currentUser;
-
-        if (!user) {
-            throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
-        }
-        
-        const idToken = await user.getIdToken(true);
-
         const response = await fetch('/api/create-mercadopago-preference', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
             },
-            body: JSON.stringify({ credits: creditsToPurchase }),
+            body: JSON.stringify({ 
+              credits: creditsToPurchase,
+              userFirebaseUid: userProfile.firebaseUid,
+            }),
         });
 
         const data = await response.json();
@@ -151,7 +145,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                                 key={pkg.credits}
                                 htmlFor={`pkg-${pkg.credits}`}
                                 className={cn(
-                                    "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input-checked]:ring-primary"
+                                    "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input:checked]:ring-primary"
                                 )}
                             >
                                 <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />

@@ -16,8 +16,6 @@ import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import CountdownTimer from '@/components/home/CountdownTimer';
 import CountdownDialog from '@/components/home/CountdownDialog';
-import { getFirebaseApp } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -31,7 +29,7 @@ const DashboardPageContent = () => {
   useEffect(() => {
     // This effect ensures that if a user somehow lands on the dashboard
     // while not authenticated or still loading, they are shown a spinner
-    // while the main routing logic in AppProvider takes over.
+    // while the main routing logic in AppProvider and AppRootPage takes over.
     if (!isLoading && !state.userProfile.isAuthenticated) {
         router.replace('/login');
     }
@@ -40,22 +38,19 @@ const DashboardPageContent = () => {
   useEffect(() => {
     // Check for payment status from Mercado Pago redirection
     const paymentStatus = searchParams.get('payment_status');
-    const app = getFirebaseApp();
-    if (!app) return;
-    const auth = getAuth(app);
-    const currentUser = auth.currentUser;
+    const phoneNumber = state.userProfile.phoneNumber;
 
-    if (paymentStatus === 'success' && currentUser?.phoneNumber) {
+    if (paymentStatus === 'success' && phoneNumber) {
       toast({
         title: "¡Pago Exitoso!",
         description: "Tu compra ha sido procesada. Actualizando tu saldo...",
         variant: "default",
       });
-      fetchProfileCallback(currentUser.phoneNumber);
+      fetchProfileCallback(phoneNumber);
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
-  }, [searchParams, fetchProfileCallback, toast]);
+  }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);

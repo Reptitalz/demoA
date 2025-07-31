@@ -4,7 +4,6 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
-import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
@@ -20,16 +19,16 @@ const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
   console.log('--- Create Preference endpoint hit (Checkout Pro) ---');
-  const decodedToken = await verifyFirebaseToken(request);
-    if (!decodedToken) {
-        return NextResponse.json({ error: 'No autorizado. Token de Firebase no válido.' }, { status: 401 });
+  
+  try {
+    const { credits, userFirebaseUid } = await request.json();
+    
+    if (!userFirebaseUid) {
+        return NextResponse.json({ error: 'No autorizado. Se requiere identificación de usuario.' }, { status: 401 });
     }
 
-  try {
-    const { credits } = await request.json();
-
     const { db } = await connectToDatabase();
-    const user = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid: decodedToken.uid });
+    const user = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid: userFirebaseUid });
 
     if (!user) {
         return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });

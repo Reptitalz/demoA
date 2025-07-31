@@ -28,11 +28,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Usuario no encontrado o credenciales incorrectas.' }, { status: 401 });
     }
     
-    if (!user.firebaseUid) {
-        console.error(`User ${user.phoneNumber} is missing firebaseUid.`);
-        return NextResponse.json({ message: 'Error de configuración de la cuenta. Falta el identificador de usuario.' }, { status: 500 });
-    }
-    
     // Omit password from the response
     const { password: _, ...userProfileWithoutPassword } = user;
 

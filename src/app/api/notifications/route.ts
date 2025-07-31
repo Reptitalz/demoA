@@ -3,13 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { AppNotification } from '@/types';
 import { ObjectId } from 'mongodb';
-import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 const NOTIFICATIONS_COLLECTION = 'notifications';
 
 export async function GET(request: NextRequest) {
-  const decodedToken = await verifyFirebaseToken(request);
-  if (!decodedToken) {
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
+
+  if (!userId) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
@@ -17,13 +18,13 @@ export async function GET(request: NextRequest) {
     const { db } = await connectToDatabase();
     const notifications = await db
       .collection<AppNotification>(NOTIFICATIONS_COLLECTION)
-      .find({ userId: decodedToken.uid })
+      .find({ userId: userId })
       .sort({ createdAt: -1 }) // Most recent first
       .limit(20) // Limit to last 20 notifications
       .toArray();
       
     const unreadCount = await db.collection<AppNotification>(NOTIFICATIONS_COLLECTION).countDocuments({
-        userId: decodedToken.uid,
+        userId: userId,
         read: false
     });
 
@@ -35,13 +36,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const decodedToken = await verifyFirebaseToken(request);
-  if (!decodedToken) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
   
   try {
-    const { notificationIds } = await request.json();
+    const { notificationIds, userId } = await request.json();
+
+    if (!userId) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
 
     if (!Array.isArray(notificationIds)) {
         return NextResponse.json({ message: 'Invalid request body, expected notificationIds array' }, { status: 400 });
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     const filter = {
-        userId: decodedToken.uid,
+        userId: userId,
         _id: { $in: notificationIds.map(id => new ObjectId(id)) }
     };
     

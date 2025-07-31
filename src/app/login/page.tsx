@@ -21,7 +21,7 @@ const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state, dispatch } = useApp();
   const { toast } = useToast();
 
   const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();

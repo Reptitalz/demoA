@@ -11,20 +11,21 @@ import NotificationItem from './NotificationItem';
 import { ScrollArea } from '../ui/scroll-area';
 import { useApp } from '@/providers/AppProvider';
 
-async function fetchNotifications(): Promise<{ notifications: AppNotification[], unreadCount: number }> {
-    const res = await fetch('/api/notifications');
+async function fetchNotifications(userId: string | undefined): Promise<{ notifications: AppNotification[], unreadCount: number }> {
+    if (!userId) return { notifications: [], unreadCount: 0 };
+    const res = await fetch(`/api/notifications?userId=${userId}`);
     if (!res.ok) {
         throw new Error('Failed to fetch notifications');
     }
     return res.json();
 }
 
-async function markNotificationsAsRead(notificationIds: string[]) {
-    if (notificationIds.length === 0) return;
+async function markNotificationsAsRead(notificationIds: string[], userId: string | undefined) {
+    if (notificationIds.length === 0 || !userId) return;
     await fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationIds }),
+        body: JSON.stringify({ notificationIds, userId }),
     });
 }
 
@@ -32,20 +33,21 @@ const NotificationsBell = () => {
   const { state } = useApp();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
+  const userId = state.userProfile.firebaseUid;
 
   const { data, isLoading, error } = useQuery<{ notifications: AppNotification[], unreadCount: number }>({
-    queryKey: ['notifications'],
-    queryFn: fetchNotifications,
-    enabled: state.userProfile.isAuthenticated,
+    queryKey: ['notifications', userId],
+    queryFn: () => fetchNotifications(userId),
+    enabled: state.userProfile.isAuthenticated && !!userId,
     refetchInterval: 60000, // Refetch every 60 seconds
     refetchOnWindowFocus: true,
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: markNotificationsAsRead,
+    mutationFn: (notificationIds: string[]) => markNotificationsAsRead(notificationIds, userId),
     onSuccess: () => {
       // Invalidate to refetch fresh data from the server
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
     },
   });
 
@@ -54,7 +56,7 @@ const NotificationsBell = () => {
       const unreadIds = data.notifications.filter(n => !n.read).map(n => n._id as string);
       if (unreadIds.length > 0) {
         // Optimistically update the UI before the API call returns
-        queryClient.setQueryData(['notifications'], (oldData: any) => ({
+        queryClient.setQueryData(['notifications', userId], (oldData: any) => ({
             ...oldData,
             unreadCount: 0,
             notifications: oldData.notifications.map((n: AppNotification) => ({ ...n, read: true }))
@@ -62,11 +64,15 @@ const NotificationsBell = () => {
         markAsReadMutation.mutate(unreadIds);
       }
     }
-  }, [isOpen, data, markAsReadMutation, queryClient]);
+  }, [isOpen, data, markAsReadMutation, queryClient, userId]);
 
 
   const unreadCount = data?.unreadCount || 0;
   const notifications = data?.notifications || [];
+
+  if (!state.userProfile.isAuthenticated) {
+    return null;
+  }
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -98,7 +104,7 @@ const NotificationsBell = () => {
           ) : (
             <div className="p-2 space-y-1">
               {notifications.map(notification => (
-                <NotificationItem key={notification._id} notification={notification} />
+                <NotificationItem key={notification._id as string} notification={notification} />
               ))}
             </div>
           )}

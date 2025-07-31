@@ -4,7 +4,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import bcrypt from 'bcrypt';
-import { initializeFirebaseAdmin } from '@/lib/firebaseAdmin';
+import crypto from 'crypto';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const SALT_ROUNDS = 10;
@@ -104,29 +104,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "El número de teléfono ya está registrado." }, { status: 409 }); // 409 Conflict
     }
 
-    const firebaseAdminAuth = initializeFirebaseAdmin().auth();
-    let firebaseUser;
-    try {
-        firebaseUser = await firebaseAdminAuth.createUser({
-            phoneNumber: userProfile.phoneNumber,
-            disabled: false,
-        });
-    } catch (error: any) {
-        if (error.code === 'auth/phone-number-already-exists') {
-            firebaseUser = await firebaseAdminAuth.getUserByPhoneNumber(userProfile.phoneNumber);
-        } else {
-            console.error("Firebase Auth user creation error:", error);
-            return NextResponse.json({ message: 'Failed to create auth user.' }, { status: 500 });
-        }
-    }
-
+    const firebaseUid = `uid_${crypto.randomBytes(12).toString('hex')}`;
 
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(userProfile.password, SALT_ROUNDS);
 
     // Prepare a clean, serializable profile for MongoDB
     const serializableProfile: Omit<UserProfile, 'isAuthenticated'> = {
-      firebaseUid: firebaseUser.uid,
+      firebaseUid: firebaseUid,
       email: userProfile.email,
       firstName: userProfile.firstName,
       lastName: userProfile.lastName,
@@ -155,7 +140,7 @@ export async function POST(request: NextRequest) {
           message: "User profile created successfully.", 
           userId: result.insertedId.toString(),
           insertedId: result.insertedId,
-          firebaseUid: firebaseUser.uid
+          firebaseUid: firebaseUid
       });
 
     } catch (dbError) {
