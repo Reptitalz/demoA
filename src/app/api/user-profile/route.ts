@@ -4,7 +4,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import bcrypt from 'bcrypt';
-import { getFirebaseAdmin } from '@/lib/firebaseAdmin';
+import { initializeFirebaseAdmin } from '@/lib/firebaseAdmin';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const SALT_ROUNDS = 10;
@@ -104,16 +104,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "El número de teléfono ya está registrado." }, { status: 409 }); // 409 Conflict
     }
 
-    const adminAuth = getFirebaseAdmin().auth();
+    const firebaseAdminAuth = initializeFirebaseAdmin().auth();
     let firebaseUser;
     try {
-        firebaseUser = await adminAuth.createUser({
+        firebaseUser = await firebaseAdminAuth.createUser({
             phoneNumber: userProfile.phoneNumber,
             disabled: false,
         });
     } catch (error: any) {
         if (error.code === 'auth/phone-number-already-exists') {
-            firebaseUser = await adminAuth.getUserByPhoneNumber(userProfile.phoneNumber);
+            firebaseUser = await firebaseAdminAuth.getUserByPhoneNumber(userProfile.phoneNumber);
         } else {
             console.error("Firebase Auth user creation error:", error);
             return NextResponse.json({ message: 'Failed to create auth user.' }, { status: 500 });

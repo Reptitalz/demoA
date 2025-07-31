@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
  * This "lazy" initialization ensures that environment variables are loaded
  * before the SDK is configured, preventing startup errors.
  */
-export function getFirebaseAdmin() {
+export function initializeFirebaseAdmin() {
   if (!admin.apps.length) {
     try {
       const serviceAccount: admin.ServiceAccount = {
@@ -59,7 +59,7 @@ export async function verifyFirebaseToken(request: NextRequest): Promise<Decoded
 
   try {
     // Ensure the admin app is initialized before trying to use it.
-    const adminAuth = getFirebaseAdmin().auth();
+    const adminAuth = initializeFirebaseAdmin().auth();
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     return decodedToken;
   } catch (error) {
