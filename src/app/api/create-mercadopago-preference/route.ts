@@ -96,10 +96,9 @@ export async function POST(request: NextRequest) {
         notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/api/mercadopago-webhook`,
         statement_descriptor: "HE MANITO",
         payment_methods: {
-            excluded_payment_types: [],
-            excluded_payment_methods: [],
-            installments: 1, // Permitir solo 1 cuota
+            installments: 1,
         },
+        purpose: 'wallet_purchase',
     };
 
     console.log('🟡 Creating Mercado Pago preference with payload:', JSON.stringify(preferencePayload, null, 2));
@@ -107,6 +106,7 @@ export async function POST(request: NextRequest) {
     const result = await preference.create({ body: preferencePayload });
 
     console.log('✅ Preference created successfully with ID:', result.id);
+    console.log('🔵 Redirect URL (initPointUrl):', result.init_point);
 
     return NextResponse.json({
       preferenceId: result.id,
@@ -125,4 +125,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-    

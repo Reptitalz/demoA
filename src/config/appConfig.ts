@@ -44,11 +44,11 @@ export const PRICE_PER_CREDIT = 50;
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
 
-// 5 MXN / 50 MXN per credit = 0.1 credits. 0.1 credits * 1000 messages/credit = 100 messages.
-export const CREDITS_FOR_TEST_PLAN = 0.1;
+// 8 MXN / 50 MXN per credit = 0.16 credits. 0.16 credits * 1000 messages/credit = 160 messages.
+export const CREDITS_FOR_TEST_PLAN = 0.16;
 
 export const CREDIT_PACKAGES = [
-  { credits: CREDITS_FOR_TEST_PLAN, price: 8.00, name: "Prueba" }, // 100 mensajes
+  { credits: CREDITS_FOR_TEST_PLAN, price: 8.00, name: "Prueba" },
   { credits: 1, price: 50.00, name: "Básico" },
   { credits: 5, price: 250.00, name: "Estándar" },
   { credits: 10, price: 500.00, name: "Pro" },

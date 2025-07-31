@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -36,9 +37,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
   const [customCredits, setCustomCredits] = useState<number>(1);
   
-  const IVA_RATE = 1.16;
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
-  const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT * IVA_RATE;
+  const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT;
   
   useEffect(() => {
     if (isOpen) {
@@ -136,7 +136,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                       className="mt-2 grid grid-cols-2 gap-3"
                   >
                       {CREDIT_PACKAGES.map((pkg) => {
-                          const priceWithIva = pkg.price * IVA_RATE;
                           return (
                           <Label
                               key={pkg.credits}
@@ -148,7 +147,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                               <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
                               <p className="font-bold text-lg">{pkg.name}</p>
                               <p className="text-sm text-muted-foreground">
-                                  ${priceWithIva.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+                                  ${pkg.price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
                               </p>
                           </Label>
                           )
