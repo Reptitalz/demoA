@@ -66,6 +66,8 @@ export interface UserProfile {
   firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
   credits: number;
+  recoveryToken?: string;
+  recoveryTokenExpiry?: Date;
 }
 
 export interface WizardState {

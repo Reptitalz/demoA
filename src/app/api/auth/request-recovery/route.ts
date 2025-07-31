@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { sendRecoveryWebhook } from '@/services/recoveryWebhookService';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -22,13 +23,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Si tu número está registrado, recibirás un enlace de recuperación.' });
     }
 
-    // 2. Trigger the webhook service
+    // 2. Trigger the webhook service which now handles token creation and DB update
     await sendRecoveryWebhook(phoneNumber, method);
 
     return NextResponse.json({ message: 'Solicitud de recuperación enviada exitosamente.' });
 
   } catch (error) {
     console.error('API Error (auth/request-recovery):', error);
-    return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
+    // Ensure error is an instance of Error to access message property safely
+    const errorMessage = error instanceof Error ? error.message : 'Error interno del servidor';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
