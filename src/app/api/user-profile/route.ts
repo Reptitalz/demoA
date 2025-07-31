@@ -9,33 +9,28 @@ import crypto from 'crypto';
 const PROFILES_COLLECTION = 'userProfiles';
 const SALT_ROUNDS = 10;
 
-// This is a simplified in-memory store for a real production app, use a persistent cache like Redis.
-const verificationStore = new Map<string, { code: string; timestamp: number }>();
-const VERIFICATION_CODE_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
-
-// Helper to manage the verification code store
-function getVerificationData(key: string) {
-    const data = verificationStore.get(key);
-    if (!data || Date.now() - data.timestamp > VERIFICATION_CODE_EXPIRY_MS) {
-        verificationStore.delete(key);
-        return null;
-    }
-    return data;
+// This function will now be called by the verification webhook service to store the code in the DB.
+export async function storeVerificationCode(phoneNumber: string, code: string): Promise<void> {
+  try {
+    const { db } = await connectToDatabase();
+    const userCollection = db.collection<UserProfile>(PROFILES_COLLECTION);
+    
+    // Temporarily store the verification code on a document identified by the phone number.
+    // We can use a temporary user document for this.
+    await userCollection.updateOne(
+      { phoneNumber: phoneNumber },
+      { 
+        $set: { verificationCode: code, verificationCodeExpiry: new Date(Date.now() + 15 * 60 * 1000) }, // 15 min expiry
+        $setOnInsert: { phoneNumber: phoneNumber } // Create if it doesn't exist
+      },
+      { upsert: true }
+    );
+    console.log(`Stored verification code for phone number ${phoneNumber} in DB.`);
+  } catch (error) {
+    console.error('Failed to store verification code in DB:', error);
+    // Even if DB fails, don't block the webhook from sending. The user can try again.
+  }
 }
-
-// This function will now be called by the verification webhook service to store the code.
-// For this simulation, we'll expose it via a temporary mechanism. In a real app,
-// this would be an internal function called by the service that sends the code.
-export function storeVerificationCode(key: string, code: string) {
-    verificationStore.set(key, { code, timestamp: Date.now() });
-    console.log(`Stored verification code for key ${key}`);
-}
-
-// In a real app, the webhook service would call this. We simulate it here.
-// NOTE: This is a placeholder for where the actual verification code generation and storage would happen.
-// For the purpose of this simulation, we assume the `sendVerificationCodeWebhook` populates this.
-// A more robust solution would involve a dedicated API endpoint for the webhook to call.
-// We'll add the a check in the POST request to simulate this.
 
 // GET now uses phone number instead of firebaseUid
 export async function GET(request: NextRequest) {
@@ -48,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { db } = await connectToDatabase();
-    const profile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ phoneNumber: phoneNumber });
+    const profile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({ phoneNumber: phoneNumber, password: { $exists: true } }); // Ensure it's a complete profile
 
     if (profile) {
       // Ensure the returned profile conforms to the latest UserProfile structure
@@ -83,23 +78,29 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userProfile, verificationCode, verificationKey } = await request.json();
+    const { userProfile, verificationCode } = await request.json();
 
-    if (!userProfile || !userProfile.phoneNumber || !userProfile.password || !verificationCode || !verificationKey) {
+    if (!userProfile || !userProfile.phoneNumber || !userProfile.password || !verificationCode) {
       return NextResponse.json({ message: 'Se requieren todos los datos del perfil y el código de verificación.' }, { status: 400 });
     }
 
-    // *** Verification Step ***
-    const storedData = getVerificationData(verificationKey);
-    if (!storedData || storedData.code !== verificationCode) {
-      return NextResponse.json({ message: 'El código de verificación es incorrecto o ha expirado.' }, { status: 400 });
-    }
-    
     const { db } = await connectToDatabase();
     const userCollection = db.collection<UserProfile>(PROFILES_COLLECTION);
 
-    // Check if a user with this phone number already exists
-    const existingUser = await userCollection.findOne({ phoneNumber: userProfile.phoneNumber });
+    // *** Verification Step ***
+    const tempUser = await userCollection.findOne({ phoneNumber: userProfile.phoneNumber });
+
+    if (!tempUser || !tempUser.verificationCode || tempUser.verificationCode !== verificationCode) {
+        return NextResponse.json({ message: 'El código de verificación es incorrecto.' }, { status: 400 });
+    }
+    
+    // Optional: Check expiry if you want to keep it. For now, removing it as requested.
+    // if (!tempUser.verificationCodeExpiry || new Date() > new Date(tempUser.verificationCodeExpiry)) {
+    //   return NextResponse.json({ message: 'El código de verificación ha expirado.' }, { status: 400 });
+    // }
+
+    // Check if a user with this phone number and a password already exists
+    const existingUser = await userCollection.findOne({ phoneNumber: userProfile.phoneNumber, password: { $exists: true } });
     if (existingUser) {
         return NextResponse.json({ message: "El número de teléfono ya está registrado." }, { status: 409 }); // 409 Conflict
     }
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(userProfile.password, SALT_ROUNDS);
 
     // Prepare a clean, serializable profile for MongoDB
-    const serializableProfile: Omit<UserProfile, 'isAuthenticated'> = {
+    const finalProfile: Omit<UserProfile, 'isAuthenticated'> = {
       email: userProfile.email,
       firstName: userProfile.firstName,
       lastName: userProfile.lastName,
@@ -127,16 +128,19 @@ export async function POST(request: NextRequest) {
     };
     
     try {
-      // Insert the new user profile
-      const result = await userCollection.insertOne(serializableProfile as UserProfile);
-
-      // Invalidate the verification code after successful use
-      verificationStore.delete(verificationKey);
+      // Update the temporary user document with the full profile info, and remove verification fields.
+      const result = await userCollection.updateOne(
+        { phoneNumber: userProfile.phoneNumber },
+        {
+          $set: finalProfile,
+          $unset: { verificationCode: "", verificationCodeExpiry: "" }
+        }
+      );
 
       return NextResponse.json({ 
           message: "User profile created successfully.", 
-          userId: result.insertedId.toString(),
-          insertedId: result.insertedId,
+          userId: tempUser._id?.toString() ?? 'unknown',
+          insertedId: tempUser._id,
       });
 
     } catch (dbError) {

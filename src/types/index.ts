@@ -68,6 +68,8 @@ export interface UserProfile {
   recoveryToken?: string;
   recoveryTokenExpiry?: Date;
   pushSubscriptions?: any[]; // For web push notifications
+  verificationCode?: string; // For sign-up verification
+  verificationCodeExpiry?: Date;
 }
 
 export interface WizardState {

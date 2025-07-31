@@ -24,10 +24,9 @@ export async function sendVerificationCodeWebhook(phoneNumber: string): Promise<
   
   const formattedPhoneNumber = formatMexicanPhoneNumberForWebhook(phoneNumber);
   const verificationCode = generateVerificationCode();
-  const verificationKey = `phone_verification_${phoneNumber}`;
-
-  // Store the code so the API route can verify it later
-  storeVerificationCode(verificationKey, verificationCode);
+  
+  // Store the code in the DB so the API route can verify it later
+  await storeVerificationCode(phoneNumber, verificationCode);
 
   const payload: VerificationPayload = {
     phoneNumber: formattedPhoneNumber,

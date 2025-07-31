@@ -10,11 +10,7 @@ import { ShieldCheck } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
 
-interface Step5VerificationProps {
-  verificationKey: string;
-}
-
-const Step5Verification = ({ verificationKey }: Step5VerificationProps) => {
+const Step5Verification = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
   const { verificationCode, phoneNumber } = state.wizard;
@@ -25,13 +21,13 @@ const Step5Verification = ({ verificationKey }: Step5VerificationProps) => {
   };
   
   const handleResendCode = async () => {
-    if (!phoneNumber || !verificationKey) {
+    if (!phoneNumber) {
         toast({ title: "Error", description: "Falta información para reenviar el código.", variant: "destructive" });
         return;
     }
     setIsResending(true);
     try {
-        await sendVerificationCodeWebhook(phoneNumber, verificationKey);
+        await sendVerificationCodeWebhook(phoneNumber);
         toast({ title: "Código Reenviado", description: "Se ha enviado un nuevo código de verificación." });
     } catch (error) {
         toast({ title: "Error", description: "No se pudo reenviar el código.", variant: "destructive" });

@@ -34,7 +34,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
   const [webhookSent, setWebhookSent] = useState(false);
-  const [verificationKey, setVerificationKey] = useState("");
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -109,9 +108,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     if (currentStep === authStepIndex && !webhookSent) {
       setIsFinalizingSetup(true); // Show spinner while sending code
       try {
-        const key = `phone_verification_${phoneNumber}`;
         await sendVerificationCodeWebhook(phoneNumber!);
-        setVerificationKey(key);
         setWebhookSent(true);
         toast({ title: "Código Enviado", description: "Hemos enviado un código de verificación a tu WhatsApp." });
         dispatch({ type: 'NEXT_WIZARD_STEP' });
@@ -186,7 +183,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             body: JSON.stringify({ 
               userProfile: userProfileForApi,
               verificationCode,
-              verificationKey
             }),
         });
         const data = await response.json();
@@ -213,9 +209,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const renderStepContent = () => {
     let steps;
     if (dbNeeded) { // 7-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification />, <Step5TermsAndConditions />];
     } else { // 6-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification />, <Step5TermsAndConditions />];
     }
     return currentStep < steps.length ? steps[currentStep] : null;
   };
