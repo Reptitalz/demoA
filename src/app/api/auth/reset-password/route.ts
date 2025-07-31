@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
-    // Update the password and invalidate the token
+    // Update the password and invalidate the token by removing it
     const result = await userCollection.updateOne(
       { _id: user._id },
       {
         $set: { password: hashedPassword },
-        $unset: { recoveryToken: "", recoveryTokenExpiry: "" } // Invalidate the token
+        $unset: { recoveryToken: "", recoveryTokenExpiry: "" }
       }
     );
 
