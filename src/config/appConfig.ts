@@ -48,7 +48,7 @@ export const MESSAGES_PER_CREDIT = 1000;
 export const CREDITS_FOR_TEST_PLAN = 0.1;
 
 export const CREDIT_PACKAGES = [
-  { credits: CREDITS_FOR_TEST_PLAN, price: 5.00, name: "Prueba" }, // 100 mensajes
+  { credits: CREDITS_FOR_TEST_PLAN, price: 8.00, name: "Prueba" }, // 100 mensajes
   { credits: 1, price: 50.00, name: "Básico" },
   { credits: 5, price: 250.00, name: "Estándar" },
   { credits: 10, price: 500.00, name: "Pro" },
