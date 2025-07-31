@@ -7,8 +7,6 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getAuth, onAuthStateChanged, signOut, type User } from 'firebase/auth';
-import { getFirebaseApp } from '@/lib/firebase';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -197,10 +195,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'LOGOUT_USER':
       // Clear session storage on logout
       try {
-        const app = getFirebaseApp();
-        if (app) {
-          signOut(getAuth(app));
-        }
         sessionStorage.removeItem('loggedInUser');
       } catch (error) {
         console.error("Could not clear session storage or sign out:", error);
@@ -249,22 +243,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    const app = getFirebaseApp();
-    if (app) {
-      const auth = getAuth(app);
-      const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
-        if (user && user.phoneNumber) {
-          const loggedInUser = sessionStorage.getItem('loggedInUser');
-          if (loggedInUser === user.phoneNumber) {
-             // Already fetched, do nothing to prevent loops
-          } else {
-            fetchProfileCallback(user.phoneNumber);
-          }
-        } else {
-          dispatch({ type: 'LOGOUT_USER' });
-        }
-      });
-      return () => unsubscribe();
+    const loggedInUser = sessionStorage.getItem('loggedInUser');
+    if (loggedInUser) {
+      fetchProfileCallback(loggedInUser);
     } else {
       dispatch({ type: 'SET_LOADING', payload: false });
     }

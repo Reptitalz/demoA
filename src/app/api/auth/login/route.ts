@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 import bcrypt from 'bcrypt';
-import { getFirebaseAdmin } from '@/lib/firebaseAdmin';
 
 const PROFILES_COLLECTION = 'userProfiles';
 
@@ -34,17 +33,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'Error de configuración de la cuenta. Falta el identificador de usuario.' }, { status: 500 });
     }
     
-    // Generate a custom token for the client to sign in
-    const adminAuth = getFirebaseAdmin().auth();
-    const customToken = await adminAuth.createCustomToken(user.firebaseUid);
-
     // Omit password from the response
     const { password: _, ...userProfileWithoutPassword } = user;
 
     return NextResponse.json({ 
         message: 'Login successful', 
         userProfile: { ...userProfileWithoutPassword, isAuthenticated: true },
-        customToken: customToken
     });
 
   } catch (error) {

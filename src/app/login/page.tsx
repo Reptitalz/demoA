@@ -12,8 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { PhoneInput } from '@/components/ui/phone-input';
 import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
-import { getFirebaseApp } from '@/lib/firebase';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
 
 const APP_NAME = "Hey Manito";
 
@@ -63,22 +61,21 @@ const LoginPageContent = () => {
         throw new Error(data.message || 'Error al iniciar sesión');
       }
       
-      const app = getFirebaseApp();
-      if (!app) throw new Error("Firebase no está configurado.");
-      const auth = getAuth(app);
-      
-      // Sign in with the custom token provided by the backend
-      await signInWithCustomToken(auth, data.customToken);
-
-      // Now that the user is signed in with Firebase, fetch their profile
-      await fetchProfileCallback(phoneNumber);
-      
-      toast({
-        title: "¡Bienvenido/a de nuevo!",
-        description: "Has iniciado sesión correctamente.",
-      });
-
-      router.replace('/dashboard');
+      // The API now returns the full user profile on success.
+      // We can directly use this to update the app state.
+      if (data.userProfile) {
+        dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+        sessionStorage.setItem('loggedInUser', data.userProfile.phoneNumber); // Persist session
+        
+        toast({
+          title: "¡Bienvenido/a de nuevo!",
+          description: "Has iniciado sesión correctamente.",
+        });
+        
+        router.replace('/dashboard');
+      } else {
+        throw new Error("No se recibieron los datos del perfil.");
+      }
 
     } catch (error: any) {
       toast({
