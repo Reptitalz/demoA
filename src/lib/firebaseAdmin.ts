@@ -1,3 +1,4 @@
+
 // src/lib/firebaseAdmin.ts
 import 'dotenv/config'; // Make sure environment variables are loaded
 import admin from 'firebase-admin';
@@ -9,7 +10,7 @@ import type { NextRequest } from 'next/server';
  * This "lazy" initialization ensures that environment variables are loaded
  * before the SDK is configured, preventing startup errors.
  */
-function getFirebaseAdmin() {
+export function getFirebaseAdmin() {
   if (!admin.apps.length) {
     try {
       const serviceAccount: admin.ServiceAccount = {

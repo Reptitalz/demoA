@@ -30,10 +30,11 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   3: "Base de Datos",
   4: "Detalles del Usuario",
   5: "Credenciales de Cuenta",
-  6: "Términos y Condiciones",
+  6: "Verificación de Cuenta",
+  7: "Términos y Condiciones",
 };
 
-export const MAX_WIZARD_STEPS = 6;
+export const MAX_WIZARD_STEPS = 7;
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },

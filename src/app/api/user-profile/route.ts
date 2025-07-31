@@ -9,6 +9,34 @@ import { getFirebaseAdmin } from '@/lib/firebaseAdmin';
 const PROFILES_COLLECTION = 'userProfiles';
 const SALT_ROUNDS = 10;
 
+// This is a simplified in-memory store for a real production app, use a persistent cache like Redis.
+const verificationStore = new Map<string, { code: string; timestamp: number }>();
+const VERIFICATION_CODE_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+
+// Helper to manage the verification code store
+function getVerificationData(key: string) {
+    const data = verificationStore.get(key);
+    if (!data || Date.now() - data.timestamp > VERIFICATION_CODE_EXPIRY_MS) {
+        verificationStore.delete(key);
+        return null;
+    }
+    return data;
+}
+
+// This function will now be called by the verification webhook service to store the code.
+// For this simulation, we'll expose it via a temporary mechanism. In a real app,
+// this would be an internal function called by the service that sends the code.
+export function storeVerificationCode(key: string, code: string) {
+    verificationStore.set(key, { code, timestamp: Date.now() });
+    console.log(`Stored verification code for key ${key}`);
+}
+
+// In a real app, the webhook service would call this. We simulate it here.
+// NOTE: This is a placeholder for where the actual verification code generation and storage would happen.
+// For the purpose of this simulation, we assume the `sendVerificationCodeWebhook` populates this.
+// A more robust solution would involve a dedicated API endpoint for the webhook to call.
+// We'll add the a check in the POST request to simulate this.
+
 // GET now uses phone number instead of firebaseUid
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -55,10 +83,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userProfile } = await request.json();
+    const { userProfile, verificationCode, verificationKey } = await request.json();
 
-    if (!userProfile || !userProfile.phoneNumber || !userProfile.password) {
-      return NextResponse.json({ message: 'UserProfile with phoneNumber and password is required' }, { status: 400 });
+    if (!userProfile || !userProfile.phoneNumber || !userProfile.password || !verificationCode || !verificationKey) {
+      return NextResponse.json({ message: 'Se requieren todos los datos del perfil y el código de verificación.' }, { status: 400 });
+    }
+
+    // *** Verification Step ***
+    const storedData = getVerificationData(verificationKey);
+    if (!storedData || storedData.code !== verificationCode) {
+      return NextResponse.json({ message: 'El código de verificación es incorrecto o ha expirado.' }, { status: 400 });
     }
     
     const { db } = await connectToDatabase();
@@ -113,6 +147,9 @@ export async function POST(request: NextRequest) {
     try {
       // Insert the new user profile
       const result = await userCollection.insertOne(serializableProfile as UserProfile);
+
+      // Invalidate the verification code after successful use
+      verificationStore.delete(verificationKey);
 
       return NextResponse.json({ 
           message: "User profile created successfully.", 

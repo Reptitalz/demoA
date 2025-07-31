@@ -18,7 +18,6 @@ import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { sendAssistantCreatedWebhook, sendUserRegisteredWebhook } from '@/services/outboundWebhookService';
 import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
@@ -42,7 +41,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 6 : 5), [dbNeeded]);
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 7 : 6), [dbNeeded]);
 
   const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
@@ -74,16 +73,20 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       if (password !== confirmPassword) return "Las contraseñas no coinciden.";
       return null;
     };
+    const validateVerificationStep = () => {
+        if (!verificationCode.trim() || verificationCode.length !== 6) return "Por favor, ingresa el código de 6 dígitos.";
+        return null;
+    }
     const validateTermsStep = () => {
       if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
       return null;
     };
     
     let stepValidators;
-    if (dbNeeded) { // 6-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateAuthStep, validateTermsStep];
-    } else { // 5-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateAuthStep, validateTermsStep];
+    if (dbNeeded) { // 7-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
+    } else { // 6-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
     }
     
     return currentStep < stepValidators.length ? stepValidators[currentStep]!() : null;
@@ -101,12 +104,37 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       return;
     }
 
+    // Check if moving from credentials step to verification step
+    const authStepIndex = dbNeeded ? 5 : 4;
+    if (currentStep === authStepIndex && !webhookSent) {
+      setIsFinalizingSetup(true); // Show spinner while sending code
+      try {
+        const key = `phone_verification_${phoneNumber}`;
+        await sendVerificationCodeWebhook(phoneNumber!);
+        setVerificationKey(key);
+        setWebhookSent(true);
+        toast({ title: "Código Enviado", description: "Hemos enviado un código de verificación a tu WhatsApp." });
+        dispatch({ type: 'NEXT_WIZARD_STEP' });
+      } catch (error) {
+        toast({ title: "Error", description: "No se pudo enviar el código de verificación. Intenta de nuevo.", variant: "destructive"});
+      } finally {
+        setIsFinalizingSetup(false);
+      }
+      return;
+    }
+
+
     if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
     }
   };
 
   const handlePrevious = () => {
+    // When going back from verification step, reset webhook state
+    const verificationStepIndex = dbNeeded ? 6 : 5;
+    if (currentStep === verificationStepIndex) {
+        setWebhookSent(false);
+    }
     if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
@@ -155,7 +183,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         const response = await fetch('/api/user-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userProfile: userProfileForApi }),
+            body: JSON.stringify({ 
+              userProfile: userProfileForApi,
+              verificationCode,
+              verificationKey
+            }),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -180,10 +212,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   const renderStepContent = () => {
     let steps;
-    if (dbNeeded) { // 6-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5TermsAndConditions />];
-    } else { // 5-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5TermsAndConditions />];
+    if (dbNeeded) { // 7-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
+    } else { // 6-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
     }
     return currentStep < steps.length ? steps[currentStep] : null;
   };
