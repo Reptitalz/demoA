@@ -38,6 +38,7 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
   const processPayment = async (data: any) => {
     setIsProcessingPayment(true);
     try {
+        const external_reference = `${userProfile._id?.toString()}__${amount / 50}__${Date.now()}`;
         const response = await fetch('/api/process-payment', {
             method: 'POST',
             headers: {
@@ -46,17 +47,13 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
             body: JSON.stringify({
                 ...data,
                 transaction_amount: amount,
-                payer: {
-                  ...data.payer,
-                  first_name: userProfile.firstName,
-                  last_name: userProfile.lastName,
-                }
+                external_reference: external_reference, // Passing it here
             })
         });
 
         const result = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || result.status !== 'approved') {
             throw new Error(result.message || 'Error al procesar el pago.');
         }
 
@@ -108,6 +105,7 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
       initialization={initialization}
       customization={customization}
       onSubmit={processPayment}
+      onReady={() => console.log('Card Payment Brick is ready')}
       onError={(error) => console.error(error)}
     />
   );

@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { APP_NAME, CREDIT_PACKAGES } from '@/config/appConfig';
+import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
@@ -19,7 +19,7 @@ const client = new MercadoPagoConfig({
 const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
-  console.log('--- In-App Purchase endpoint hit ---');
+  console.log('--- Create Preference endpoint hit ---');
   try {
     const { credits, userPhoneNumber } = await request.json();
 
@@ -46,29 +46,22 @@ export async function POST(request: NextRequest) {
     }
     
     const selectedPackage = CREDIT_PACKAGES.find(p => p.credits === credits);
-    
-    if (!selectedPackage) {
-        return NextResponse.json({ error: 'Paquete de créditos no válido.' }, { status: 400 });
-    }
+    const finalPrice = selectedPackage ? selectedPackage.price : credits * PRICE_PER_CREDIT;
+    const finalTitle = selectedPackage 
+      ? `${selectedPackage.name} - ${credits * 1000} mensajes`
+      : `${credits} Créditos Personalizados`;
 
-    let external_reference;
-    // For diagnostic purposes, use a static external_reference for the test plan
-    if (selectedPackage.name === 'Prueba') {
-        external_reference = '119792215961';
-        console.log(`DIAGNOSTIC MODE: Using static external_reference: ${external_reference} for Test Plan.`);
-    } else {
-        external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
-    }
+    const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
     
     const preferencePayload = {
         items: [
             {
                 id: `credits-${credits}`,
-                title: `${selectedPackage.name} - ${credits * 1000} mensajes para ${APP_NAME}`,
-                description: `Paquete de ${selectedPackage.name} para recargar ${credits} créditos en la plataforma ${APP_NAME}.`,
-                category_id: "virtual_credits",
+                title: finalTitle,
+                description: `Recarga de ${credits} créditos en la plataforma ${APP_NAME}.`,
+                category_id: "digital_goods",
                 quantity: 1,
-                unit_price: selectedPackage.price,
+                unit_price: finalPrice,
                 currency_id: 'MXN',
             },
         ],
@@ -76,10 +69,10 @@ export async function POST(request: NextRequest) {
             name: user.firstName,
             surname: user.lastName,
             email: user.email,
-            phone: {
-                area_code: user.phoneNumber?.substring(1, 3),
-                number: user.phoneNumber?.substring(3)
-            },
+            phone: user.phoneNumber ? {
+                area_code: user.phoneNumber.substring(1, 3),
+                number: user.phoneNumber.substring(3)
+            } : undefined,
             address: user.address ? {
                 street_name: user.address.street_name,
                 street_number: user.address.street_number ? parseInt(user.address.street_number, 10) : undefined,
@@ -95,9 +88,6 @@ export async function POST(request: NextRequest) {
         external_reference,
         notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/api/mercadopago-webhook`,
         statement_descriptor: "HE MANITO",
-        payment_methods: {
-            installments: 1,
-        },
         purpose: 'wallet_purchase',
     };
 
@@ -106,11 +96,11 @@ export async function POST(request: NextRequest) {
     const result = await preference.create({ body: preferencePayload });
 
     console.log('✅ Preference created successfully with ID:', result.id);
-    console.log('🔵 Redirect URL (initPointUrl):', result.init_point);
-
+    
+    // For Checkout Bricks, we only need the preferenceId.
+    // The init_point is for Checkout Pro redirection.
     return NextResponse.json({
       preferenceId: result.id,
-      initPointUrl: result.init_point
     });
 
   } catch (error: any) {

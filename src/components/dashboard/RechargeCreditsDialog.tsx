@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -20,6 +19,7 @@ import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote } from '
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
+import MercadoPagoPaymentForm from './MercadoPagoPaymentForm';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ interface RechargeCreditsDialogProps {
 }
 
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
-  const { state } = useApp();
+  const { state, fetchProfileCallback } = useApp();
   const { toast } = useToast();
   const { userProfile } = state;
   const currentCredits = userProfile.credits || 0;
@@ -36,7 +36,9 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
   const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
   const [customCredits, setCustomCredits] = useState<number>(1);
-  
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [paymentStep, setPaymentStep] = useState<'selection' | 'payment'>('selection');
+
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
   const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT;
   
@@ -46,6 +48,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       setActiveTab('packages');
       setSelectedPackageCredits(CREDIT_PACKAGES[0].credits);
       setCustomCredits(1);
+      setPreferenceId(null);
+      setPaymentStep('selection');
     }
   }, [isOpen]);
 
@@ -64,13 +68,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 
         const response = await fetch('/api/create-mercadopago-preference', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              credits: creditsToPurchase,
-              userPhoneNumber: userProfile.phoneNumber
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credits: creditsToPurchase, userPhoneNumber: userProfile.phoneNumber }),
         });
 
         const data = await response.json();
@@ -79,15 +78,30 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             throw new Error(data.error || 'No se pudo crear la orden de pago.');
         }
         
-        if (data.initPointUrl) {
-            window.location.href = data.initPointUrl;
+        if (data.preferenceId) {
+            setPreferenceId(data.preferenceId);
+            setPaymentStep('payment');
         } else {
-            throw new Error('No se recibió la URL de pago. Por favor, intenta de nuevo.');
+            throw new Error('No se recibió el ID de preferencia. Por favor, intenta de nuevo.');
         }
     } catch (error: any) {
         toast({ title: "Error al generar orden", description: error.message, variant: "destructive" });
+    } finally {
         setIsProcessing(false);
     }
+  };
+  
+  const handlePaymentSuccess = () => {
+    toast({
+        title: "¡Pago Exitoso!",
+        description: "Tu pago fue aprobado. Actualizando tu saldo...",
+    });
+
+    if (userProfile.phoneNumber) {
+        // Refetch profile to show updated credits
+        fetchProfileCallback(userProfile.phoneNumber);
+    }
+    onOpenChange(false);
   };
   
   const handleClose = () => {
@@ -102,11 +116,19 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
           <DialogTitle className="flex items-center gap-2 text-xl">
             <WalletIcon className="h-6 w-6 text-primary" /> Recargar Saldo
           </DialogTitle>
-          <DialogDescription>
-            Añade créditos a tu cuenta para continuar usando tus asistentes.
-          </DialogDescription>
+           {paymentStep === 'selection' && (
+            <DialogDescription>
+              Añade créditos a tu cuenta para continuar usando tus asistentes.
+            </DialogDescription>
+          )}
+           {paymentStep === 'payment' && (
+            <DialogDescription>
+              Completa los datos de tu tarjeta para finalizar la compra.
+            </DialogDescription>
+          )}
         </DialogHeader>
 
+        {paymentStep === 'selection' ? (
         <div className="my-2 space-y-4">
           <div className="p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground mb-1">Saldo Actual</p>
@@ -194,6 +216,22 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               </div>
             </div>
         </div>
+         ) : (
+          <div className="animate-fadeIn">
+            {preferenceId ? (
+              <MercadoPagoPaymentForm 
+                preferenceId={preferenceId} 
+                amount={purchaseAmount} 
+                onPaymentSuccess={handlePaymentSuccess} 
+              />
+            ) : (
+               <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
+            )}
+            <Button variant="link" size="sm" className="w-full mt-2" onClick={() => setPaymentStep('selection')}>
+              Volver
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

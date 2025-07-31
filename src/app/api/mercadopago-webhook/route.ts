@@ -14,7 +14,6 @@ const client = new MercadoPagoConfig({
 });
 const payment = new Payment(client);
 
-// Función para verificar la firma del webhook
 function verifyWebhookSignature(request: NextRequest, rawBody: string, secret: string): boolean {
   const signatureHeader = request.headers.get('x-signature');
   if (!signatureHeader) {
@@ -36,7 +35,6 @@ function verifyWebhookSignature(request: NextRequest, rawBody: string, secret: s
     return false;
   }
 
-  // data.id se obtiene del cuerpo (body), no de los parámetros de búsqueda.
   const notification = JSON.parse(rawBody);
   const dataId = notification.data?.id;
 
@@ -51,7 +49,11 @@ function verifyWebhookSignature(request: NextRequest, rawBody: string, secret: s
   hmac.update(manifest);
   const generatedHash = hmac.digest('hex');
 
-  return generatedHash === hash;
+  const isValid = generatedHash === hash;
+  if (!isValid) {
+    console.error('Webhook signature verification failed. Generated vs Received:', generatedHash, hash);
+  }
+  return isValid;
 }
 
 export async function POST(request: NextRequest) {
@@ -59,11 +61,10 @@ export async function POST(request: NextRequest) {
   
   const rawBody = await request.text();
   
-  // Es crucial verificar la firma ANTES de procesar cualquier cosa.
   if (MERCADOPAGO_WEBHOOK_SECRET) {
       if (!verifyWebhookSignature(request, rawBody, MERCADOPAGO_WEBHOOK_SECRET)) {
           console.error('Webhook signature verification failed.');
-          return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+          return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
       }
       console.log('✅ Webhook signature verified successfully.');
   } else {
@@ -87,8 +88,10 @@ export async function POST(request: NextRequest) {
         const [userId, creditsStr] = external_reference.split('__');
         const creditsPurchased = parseFloat(creditsStr);
         
-        if (!userId || isNaN(creditsPurchased)) {
-          throw new Error(`Invalid external_reference format: ${external_reference}`);
+        if (!userId || !ObjectId.isValid(userId) || isNaN(creditsPurchased)) {
+          console.error(`Invalid external_reference format: ${external_reference}`);
+          // Acknowledge receipt but log error
+          return NextResponse.json({ received: true, error: "Invalid reference" }, { status: 200 });
         }
         
         const userObjectId = new ObjectId(userId);
@@ -102,7 +105,8 @@ export async function POST(request: NextRequest) {
         if (updateResult.modifiedCount === 1) {
           console.log(`✅ Successfully added ${creditsPurchased} credits to user ${userId}.`);
         } else {
-          console.error(`❌ Failed to update credits for user ${userId}. User not found or credits not updated.`);
+          // This can happen if the payment is processed twice. Log it but don't treat as a hard error.
+          console.warn(`Could not update credits for user ${userId}. User might not be found or credits already updated.`);
         }
       } else {
         console.log(`Payment ${paymentId} is not approved or has no external_reference. Status: ${paymentDetails.status}`);
