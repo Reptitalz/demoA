@@ -194,9 +194,10 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                   Continuar al Pago
               </Button>
               <div className="flex items-center justify-center gap-2 mt-2">
-                  <p className="text-xs text-muted-foreground">Pagos seguros con</p>
+                  <p className="text-xs text-muted-foreground">Paga de forma segura con</p>
                   <MercadoPagoIcon className="h-5"/>
               </div>
+               <p className="text-center text-xs text-muted-foreground pt-2">Aceptamos tarjetas, SPEI, OXXO y más a través de Mercado Pago.</p>
             </div>
         </div>
       </DialogContent>
