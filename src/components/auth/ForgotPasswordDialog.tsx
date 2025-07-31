@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -46,7 +47,7 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
       
       toast({
         title: "Solicitud Enviada",
-        description: `Hemos enviado un enlace para restablecer tu contraseña por ${method === 'whatsapp' ? 'WhatsApp' : 'correo electrónico'}. Revisa tus mensajes.`,
+        description: `Si tu número está registrado, recibirás las instrucciones por ${method === 'whatsapp' ? 'WhatsApp' : 'correo electrónico'}.`,
       });
 
       onOpenChange(false);
@@ -100,12 +101,12 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
                     Enviar por WhatsApp
                 </Button>
                 <Button
-                    onClick={() => handleRecovery('email')}
-                    disabled={isProcessing || !phoneNumber}
+                    disabled={true}
                     className="w-full sm:w-auto"
+                    title="Próximamente"
                 >
-                    {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaEnvelope className="mr-2" />}
-                    Enviar por Correo
+                    <FaEnvelope className="mr-2" />
+                    Enviar por Correo (Próximamente)
                 </Button>
             </div>
              <p className="text-xs text-muted-foreground pt-2">
