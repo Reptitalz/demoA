@@ -40,11 +40,11 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },
 ];
 
-export const PRICE_PER_CREDIT = 50; 
+export const PRICE_PER_CREDIT = 50.00; // Precio base por crédito
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
 
-// 8 MXN / 50 MXN per credit = 0.16 credits. 0.16 credits * 1000 messages/credit = 160 messages.
+// 8 MXN / 50 MXN per credit = 0.16 credits.
 export const CREDITS_FOR_TEST_PLAN = 0.16;
 
 export const CREDIT_PACKAGES = [

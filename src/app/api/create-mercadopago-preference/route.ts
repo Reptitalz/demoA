@@ -19,7 +19,7 @@ const client = new MercadoPagoConfig({
 const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
-  console.log('--- Create Preference endpoint hit ---');
+  console.log('--- Create Preference endpoint hit (Checkout Pro) ---');
   try {
     const { credits, userPhoneNumber } = await request.json();
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const selectedPackage = CREDIT_PACKAGES.find(p => p.credits === credits);
     const finalPrice = selectedPackage ? selectedPackage.price : credits * PRICE_PER_CREDIT;
     const finalTitle = selectedPackage 
-      ? `${selectedPackage.name} - ${credits * 1000} mensajes`
+      ? `${selectedPackage.name} - ${Math.floor(credits * MESSAGES_PER_CREDIT)} mensajes`
       : `${credits} Créditos Personalizados`;
 
     const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
@@ -96,11 +96,11 @@ export async function POST(request: NextRequest) {
     const result = await preference.create({ body: preferencePayload });
 
     console.log('✅ Preference created successfully with ID:', result.id);
+    console.log('✅ Checkout Pro Init Point URL:', result.init_point);
     
-    // For Checkout Bricks, we only need the preferenceId.
-    // The init_point is for Checkout Pro redirection.
+    // For Checkout Pro, we send the init_point URL back to the client for redirection.
     return NextResponse.json({
-      preferenceId: result.id,
+      initPointUrl: result.init_point,
     });
 
   } catch (error: any) {
