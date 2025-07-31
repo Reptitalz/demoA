@@ -9,7 +9,7 @@ const RECOVERY_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/recovery';
 
 interface RecoveryPayload {
   phoneNumber: string;
-  verificationCode: string;
+  verificationCode: string; // This will be the 6-digit code
   method: 'whatsapp' | 'email';
 }
 
@@ -34,7 +34,7 @@ export async function sendRecoveryWebhook(
 
   const payload: RecoveryPayload = {
     phoneNumber: formattedPhoneNumber,
-    verificationCode, // This is the dynamic, secure code.
+    verificationCode: verificationCode, // The payload now sends the code, as requested.
     method,
   };
 
@@ -47,10 +47,6 @@ export async function sendRecoveryWebhook(
     });
 
     console.log(`Recovery webhook sent successfully for method: ${method}`);
-
-    // In a real application, you would also save this code (or a hash of it)
-    // to the database with an expiration timestamp to verify it later.
-    // e.g., db.collection('userProfiles').updateOne({ phoneNumber }, { $set: { recoveryCode: hashedCode, recoveryExpires: new Date(Date.now() + 10 * 60 * 1000) } });
 
   } catch (error) {
     const axiosError = error as import('axios').AxiosError;
