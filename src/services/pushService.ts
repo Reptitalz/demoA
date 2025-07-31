@@ -5,6 +5,7 @@
 import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import webpush from 'web-push';
+import { ObjectId } from 'mongodb';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
@@ -30,27 +31,27 @@ interface PushPayload {
   tag?: string; // e.g., 'profile-update' to trigger client refresh
 }
 
-export async function sendPushNotification(userId: string, payload: PushPayload) {
+export async function sendPushNotification(userDbId: string, payload: PushPayload) {
   if (!isWebPushConfigured) {
-    console.log(`Push notifications not configured. Skipping notification for user ${userId}.`);
+    console.log(`Push notifications not configured. Skipping notification for user ${userDbId}.`);
     return { success: false, reason: 'Not configured' };
   }
 
   try {
     const { db } = await connectToDatabase();
-    const user = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid: userId });
+    const user = await db.collection<UserProfile>('userProfiles').findOne({ _id: new ObjectId(userDbId) });
 
     if (!user || !user.pushSubscriptions || user.pushSubscriptions.length === 0) {
-      console.log(`User ${userId} has no push subscriptions.`);
+      console.log(`User ${userDbId} has no push subscriptions.`);
       return { success: false, reason: 'No subscriptions' };
     }
 
     const notifications = user.pushSubscriptions.map(subscription => {
-      console.log(`Sending push to endpoint for user ${userId}`);
+      console.log(`Sending push to endpoint for user ${userDbId}`);
       return webpush.sendNotification(subscription, JSON.stringify(payload)).catch(error => {
         // This is common if a subscription is expired or invalid
         if (error.statusCode === 410 || error.statusCode === 404) {
-          console.log(`Subscription for user ${userId} is expired/invalid. It should be removed.`);
+          console.log(`Subscription for user ${userDbId} is expired/invalid. It should be removed.`);
           // TODO: Implement logic to remove expired subscriptions from the database
         } else {
           console.error('Error sending push notification:', error);
@@ -62,11 +63,11 @@ export async function sendPushNotification(userId: string, payload: PushPayload)
     const results = await Promise.all(notifications);
     const successfulSends = results.filter(r => r !== null).length;
 
-    console.log(`Sent ${successfulSends} / ${user.pushSubscriptions.length} push notifications for user ${userId}.`);
+    console.log(`Sent ${successfulSends} / ${user.pushSubscriptions.length} push notifications for user ${userDbId}.`);
     return { success: true, sent: successfulSends, total: user.pushSubscriptions.length };
 
   } catch (error) {
-    console.error(`Failed to send push notification for user ${userId}:`, error);
+    console.error(`Failed to send push notification for user ${userDbId}:`, error);
     return { success: false, reason: 'Database or unknown error' };
   }
 }

@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
     if (profile) {
       // Ensure the returned profile conforms to the latest UserProfile structure
       const profileSafe: Omit<UserProfile, 'password'> & { isAuthenticated: boolean } = {
+        _id: profile._id,
         isAuthenticated: true,
         email: profile.email,
         firstName: profile.firstName,
@@ -68,7 +69,6 @@ export async function GET(request: NextRequest) {
         databases: profile.databases || [],
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
         credits: profile.credits || 0,
-        firebaseUid: profile.firebaseUid,
       };
       
       return NextResponse.json({ userProfile: profileSafe, message: "User profile fetched successfully" });
@@ -104,14 +104,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "El número de teléfono ya está registrado." }, { status: 409 }); // 409 Conflict
     }
 
-    const firebaseUid = `uid_${crypto.randomBytes(12).toString('hex')}`;
-
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(userProfile.password, SALT_ROUNDS);
 
     // Prepare a clean, serializable profile for MongoDB
     const serializableProfile: Omit<UserProfile, 'isAuthenticated'> = {
-      firebaseUid: firebaseUid,
       email: userProfile.email,
       firstName: userProfile.firstName,
       lastName: userProfile.lastName,
@@ -140,7 +137,6 @@ export async function POST(request: NextRequest) {
           message: "User profile created successfully.", 
           userId: result.insertedId.toString(),
           insertedId: result.insertedId,
-          firebaseUid: firebaseUid
       });
 
     } catch (dbError) {

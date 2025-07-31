@@ -6,12 +6,13 @@ import type { UserProfile, AssistantConfig, DatabaseConfig, DatabaseSource } fro
 import axios from 'axios';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { formatMexicanPhoneNumberForWebhook } from '@/lib/utils';
+import { ObjectId } from 'mongodb';
 
 interface AssistantWebhookPayload {
   timestamp: string;
   event: 'assistant_created';
   userProfile: {
-    firebaseUid?: string;
+    userDbId?: string;
     email?: string;
     ownerPhoneNumberForNotifications?: string;
   };
@@ -53,7 +54,7 @@ export async function sendAssistantCreatedWebhook(
     timestamp: new Date().toISOString(),
     event: 'assistant_created',
     userProfile: {
-      firebaseUid: userProfile.firebaseUid,
+      userDbId: userProfile._id?.toString(),
       email: userProfile.email || userProfile.phoneNumber, // Fallback to phone number if email is not provided
       ownerPhoneNumberForNotifications: formattedOwnerPhone,
     },
@@ -76,7 +77,7 @@ export async function sendAssistantCreatedWebhook(
   };
 
   try {
-    console.log(`Enviando webhook 'assistant_created' a ${USER_ASSISTANT_WEBHOOK_URL} para el asistente ${assistant.id} del usuario ${userProfile.firebaseUid || userProfile.email || userProfile.phoneNumber}`);
+    console.log(`Enviando webhook 'assistant_created' a ${USER_ASSISTANT_WEBHOOK_URL} para el asistente ${assistant.id} del usuario ${userProfile._id?.toString()}`);
     const response = await axios.post(USER_ASSISTANT_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 10000, // Timeout de 10 segundos

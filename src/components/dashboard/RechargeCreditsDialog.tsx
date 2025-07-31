@@ -53,7 +53,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       return;
     }
     
-    if (!userProfile.firebaseUid) {
+    if (!userProfile._id) {
       toast({ title: "Error de Autenticación", description: "No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.", variant: "destructive" });
       return;
     }
@@ -68,7 +68,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             },
             body: JSON.stringify({ 
               credits: creditsToPurchase,
-              userFirebaseUid: userProfile.firebaseUid,
+              userDbId: userProfile._id.toString(),
             }),
         });
 

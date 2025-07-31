@@ -72,7 +72,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
         toast({ title: "Código Inválido", description: "Por favor, ingresa el código de 6 dígitos.", variant: "destructive" });
         return;
     }
-    if (!state.userProfile.firebaseUid) {
+    if (!state.userProfile._id) {
         toast({ title: "Error de autenticación", description: "No se pudo identificar al usuario.", variant: "destructive" });
         return;
     }
@@ -102,7 +102,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
                 assistantId, 
                 phoneNumber, 
                 verificationCode,
-                firebaseUid: state.userProfile.firebaseUid,
+                userDbId: state.userProfile._id.toString(),
             })
         });
         

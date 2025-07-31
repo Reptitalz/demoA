@@ -33,7 +33,7 @@ const NotificationsBell = () => {
   const { state } = useApp();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const userId = state.userProfile.firebaseUid;
+  const userId = state.userProfile._id?.toString();
 
   const { data, isLoading, error } = useQuery<{ notifications: AppNotification[], unreadCount: number }>({
     queryKey: ['notifications', userId],

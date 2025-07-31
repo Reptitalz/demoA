@@ -7,6 +7,7 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ObjectId } from 'mongodb';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -41,7 +42,6 @@ const initialUserProfileState: UserProfile = {
   password: undefined,
   assistants: [],
   databases: [],
-  firebaseUid: undefined,
   ownerPhoneNumberForNotifications: undefined,
   credits: 0,
 };

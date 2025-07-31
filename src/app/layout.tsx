@@ -7,7 +7,6 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
-import { FirebaseAnalyticsProvider } from '@/lib/firebaseAnalytics';
 import { Suspense } from 'react';
 
 const inter = Inter({ 
@@ -99,9 +98,6 @@ export default function RootLayout({
         >
           <AppProvider>
             <AppLayout>
-              <Suspense fallback={null}>
-                <FirebaseAnalyticsProvider />
-              </Suspense>
               {children}
             </AppLayout>
           </AppProvider>

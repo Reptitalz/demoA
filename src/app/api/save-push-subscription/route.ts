@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
+import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';
 
 export async function POST(request: NextRequest) {
-  const { subscription, firebaseUid } = await request.json();
+  const { subscription, userDbId } = await request.json();
 
-  if (!firebaseUid) {
+  if (!userDbId) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
   
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Use $addToSet to avoid duplicate subscriptions for the same endpoint
     const result = await userProfileCollection.updateOne(
-      { firebaseUid: firebaseUid },
+      { _id: new ObjectId(userDbId) },
       { $addToSet: { pushSubscriptions: subscription } }
     );
 
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Subscription saved successfully.' });
     } else {
       // This case means the user profile was not found, which is an issue.
-      console.error(`Failed to save push subscription: User profile not found for firebaseUid ${firebaseUid}`);
+      console.error(`Failed to save push subscription: User profile not found for userDbId ${userDbId}`);
       return NextResponse.json({ message: 'User profile not found.' }, { status: 404 });
     }
   } catch (error) {

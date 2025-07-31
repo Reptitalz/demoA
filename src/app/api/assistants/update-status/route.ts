@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
+import { ObjectId } from 'mongodb';
 
 // This map simulates different outcomes of an asynchronous process.
 const SIMULATION_OUTCOMES = [
@@ -13,9 +14,9 @@ const SIMULATION_OUTCOMES = [
 ] as const;
 
 export async function POST(request: NextRequest) {
-  const { assistantId, phoneNumber, verificationCode, firebaseUid } = await request.json();
-  if (!assistantId || !phoneNumber || !verificationCode || !firebaseUid) {
-    return NextResponse.json({ message: 'assistantId, phoneNumber, verificationCode, and firebaseUid are required' }, { status: 400 });
+  const { assistantId, phoneNumber, verificationCode, userDbId } = await request.json();
+  if (!assistantId || !phoneNumber || !verificationCode || !userDbId) {
+    return NextResponse.json({ message: 'assistantId, phoneNumber, verificationCode, and userDbId are required' }, { status: 400 });
   }
 
   // Simulate a delay for the backend process (e.g., 5-10 seconds)
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Update the assistant's status in the user's profile
     const userProfileUpdateResult = await userProfileCollection.updateOne(
-      { firebaseUid: firebaseUid, "assistants.id": assistantId },
+      { _id: new ObjectId(userDbId), "assistants.id": assistantId },
       { 
         $set: { "assistants.$.numberReady": outcome.status },
         // If the activation fails, clear the verification code to allow retries
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     );
     
     if (userProfileUpdateResult.matchedCount === 0) {
-      console.log(`Assistant ${assistantId} not found for user ${firebaseUid}`);
+      console.log(`Assistant ${assistantId} not found for user ${userDbId}`);
       return NextResponse.json({ message: 'Assistant not found' }, { status: 404 });
     }
 

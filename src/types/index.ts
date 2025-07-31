@@ -63,7 +63,6 @@ export interface UserProfile {
   password?: string;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  firebaseUid?: string;
   ownerPhoneNumberForNotifications?: string;
   credits: number;
   recoveryToken?: string;
