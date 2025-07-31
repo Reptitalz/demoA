@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { PhoneInput } from '@/components/ui/phone-input';
 import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
+import { getFirebaseApp } from '@/lib/firebase';
+import { getAuth, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, PhoneAuthProvider, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 
 const APP_NAME = "Hey Manito";
 
@@ -21,7 +23,7 @@ const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const { state, dispatch, fetchProfileCallback } = useApp();
   const { toast } = useToast();
 
   const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
@@ -60,11 +62,28 @@ const LoginPageContent = () => {
       if (!response.ok) {
         throw new Error(data.message || 'Error al iniciar sesión');
       }
+      
+      const app = getFirebaseApp();
+      if (!app) throw new Error("Firebase no está configurado.");
+      const auth = getAuth(app);
+      
+      // Temporarily create an email for auth purposes. This is a workaround for Firebase Phone Auth limitations on web.
+      const tempEmail = `${phoneNumber.replace('+', '')}@heymanito.app`;
+      
+      try {
+        await signInWithEmailAndPassword(auth, tempEmail, password);
+      } catch(error: any) {
+        if (error.code === 'auth/user-not-found') {
+          await auth.createUserWithEmailAndPassword(tempEmail, password);
+        } else if (error.code !== 'auth/wrong-password') {
+            throw error;
+        }
+        // now sign in again
+        await signInWithEmailAndPassword(auth, tempEmail, password);
+      }
 
-      // Store phone in session to fetch profile on reload
-      sessionStorage.setItem('loggedInUser', phoneNumber);
 
-      dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+      await fetchProfileCallback(phoneNumber);
       
       toast({
         title: "¡Bienvenido/a de nuevo!",
@@ -100,6 +119,7 @@ const LoginPageContent = () => {
   return (
     <>
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
+      <div id="recaptcha-container"></div>
       <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn animate-float">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>

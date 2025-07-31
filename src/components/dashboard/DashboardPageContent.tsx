@@ -16,6 +16,8 @@ import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import CountdownTimer from '@/components/home/CountdownTimer';
 import CountdownDialog from '@/components/home/CountdownDialog';
+import { getFirebaseApp } from '@/lib/firebase';
+import { getAuth } from 'firebase/auth';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -29,7 +31,7 @@ const DashboardPageContent = () => {
   useEffect(() => {
     // This effect ensures that if a user somehow lands on the dashboard
     // while not authenticated or still loading, they are shown a spinner
-    // while the main routing logic in AppProvider and AppRootPage takes over.
+    // while the main routing logic in AppProvider takes over.
     if (!isLoading && !state.userProfile.isAuthenticated) {
         router.replace('/login');
     }
@@ -38,20 +40,22 @@ const DashboardPageContent = () => {
   useEffect(() => {
     // Check for payment status from Mercado Pago redirection
     const paymentStatus = searchParams.get('payment_status');
-    if (paymentStatus === 'success' && userProfile.phoneNumber) {
+    const app = getFirebaseApp();
+    if (!app) return;
+    const auth = getAuth(app);
+    const currentUser = auth.currentUser;
+
+    if (paymentStatus === 'success' && currentUser?.phoneNumber) {
       toast({
         title: "¡Pago Exitoso!",
         description: "Tu compra ha sido procesada. Actualizando tu saldo...",
-        variant: "default", // Use a non-destructive variant
+        variant: "default",
       });
-      // Refetch user profile to get the latest credits
-      fetchProfileCallback(userProfile.phoneNumber);
-
-      // Clean the URL to avoid showing the toast on every refresh
+      fetchProfileCallback(currentUser.phoneNumber);
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
-  }, [searchParams, userProfile.phoneNumber, fetchProfileCallback, toast]);
+  }, [searchParams, fetchProfileCallback, toast]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -104,7 +108,7 @@ const DashboardPageContent = () => {
     try {
       dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      window.location.href = '/login';
+      router.replace('/login');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
@@ -124,7 +128,7 @@ const DashboardPageContent = () => {
     <PageContainer className="space-y-5"> 
       <div className="animate-fadeIn">
         <div className="flex justify-between items-center mb-0.5"> 
-          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.phoneNumber || "Usuario/a"}!</h2> 
+          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.firstName || userProfile.phoneNumber || "Usuario/a"}!</h2> 
           {userProfile.isAuthenticated && (
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
               <FaSignOutAlt size={12} className="mr-1" /> 

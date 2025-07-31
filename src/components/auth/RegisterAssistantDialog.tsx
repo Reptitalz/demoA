@@ -42,7 +42,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 7 : 6), [dbNeeded]);
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 6 : 5), [dbNeeded]);
 
   const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
@@ -74,21 +74,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       if (password !== confirmPassword) return "Las contraseñas no coinciden.";
       return null;
     };
-    const validateVerificationStep = () => {
-      if (!verificationCode?.trim()) return "Por favor, ingresa el código de verificación.";
-      if (verificationCode !== verificationKey) return "El código de verificación es incorrecto.";
-      return null;
-    }
     const validateTermsStep = () => {
       if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
       return null;
     };
     
     let stepValidators;
-    if (dbNeeded) { // 7-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
-    } else { // 6-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
+    if (dbNeeded) { // 6-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateAuthStep, validateTermsStep];
+    } else { // 5-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateAuthStep, validateTermsStep];
     }
     
     return currentStep < stepValidators.length ? stepValidators[currentStep]!() : null;
@@ -106,32 +101,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       return;
     }
 
-    const verificationTriggerStep = dbNeeded ? 5 : 4;
-
-    if (currentStep === verificationTriggerStep && !webhookSent) {
-        setIsFinalizingSetup(true);
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        setVerificationKey(code);
-        try {
-            await sendVerificationCodeWebhook(phoneNumber!, code);
-            toast({ title: "Código Enviado", description: "Hemos enviado el código de verificación a tu webhook." });
-            setWebhookSent(true);
-            dispatch({ type: 'NEXT_WIZARD_STEP' });
-        } catch (error) {
-            toast({ title: "Error de Webhook", description: "No se pudo enviar el código.", variant: "destructive" });
-        } finally {
-            setIsFinalizingSetup(false);
-        }
-    } else if (currentStep < effectiveMaxSteps) {
+    if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      if (webhookSent) {
-        setWebhookSent(false); // Allow resending if user goes back
-      }
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
   };
@@ -186,29 +162,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             throw new Error(data.message || "Failed to create profile.");
         }
         
-        const finalUserProfileForState: UserProfile = {
-            ...userProfileForApi,
-            isAuthenticated: true,
-            firebaseUid: data.userId,
-        }
-        
-        dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: finalUserProfileForState });
-        
-        sendAssistantCreatedWebhook(finalUserProfileForState, finalAssistantConfig, newDbEntry || null)
-            .catch(err => console.error("Error sending assistant created webhook:", err));
-
-        if (userProfileForApi.phoneNumber) {
-            sendUserRegisteredWebhook(userProfileForApi.phoneNumber)
-                .catch(err => console.error("Error sending user registered webhook:", err));
-        }
-
         toast({
-            title: "¡Configuración Completa!",
-            description: `${finalAssistantConfig.name} está listo.`,
+            title: "¡Cuenta Creada!",
+            description: `Ahora puedes iniciar sesión con tu número de teléfono.`,
         });
 
         onOpenChange(false);
-        router.push('/login');
+        // Do not auto-login, let user do it explicitly.
+        // router.push('/login');
     
     } catch (error: any) {
         toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
@@ -219,10 +180,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   const renderStepContent = () => {
     let steps;
-    if (dbNeeded) { // 7-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
-    } else { // 6-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification verificationKey={verificationKey} />, <Step5TermsAndConditions />];
+    if (dbNeeded) { // 6-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5TermsAndConditions />];
+    } else { // 5-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5TermsAndConditions />];
     }
     return currentStep < steps.length ? steps[currentStep] : null;
   };

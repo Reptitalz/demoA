@@ -7,6 +7,8 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getAuth, onAuthStateChanged, signOut, type User } from 'firebase/auth';
+import { getFirebaseApp } from '@/lib/firebase';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -195,9 +197,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'LOGOUT_USER':
       // Clear session storage on logout
       try {
+        const app = getFirebaseApp();
+        if (app) {
+          signOut(getAuth(app));
+        }
         sessionStorage.removeItem('loggedInUser');
       } catch (error) {
-        console.error("Could not clear session storage:", error);
+        console.error("Could not clear session storage or sign out:", error);
       }
       return {
         ...initialState,
@@ -227,6 +233,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+          sessionStorage.setItem('loggedInUser', phoneNumber);
         } else {
            dispatch({ type: 'LOGOUT_USER' });
         }
@@ -242,15 +249,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    try {
-      const loggedInUser = sessionStorage.getItem('loggedInUser');
-      if (loggedInUser) {
-        fetchProfileCallback(loggedInUser);
-      } else {
-        dispatch({ type: 'SET_LOADING', payload: false });
-      }
-    } catch (error) {
-      console.error("Cannot access sessionStorage, session persistence will be disabled.", error);
+    const app = getFirebaseApp();
+    if (app) {
+      const auth = getAuth(app);
+      const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+        if (user && user.phoneNumber) {
+          const loggedInUser = sessionStorage.getItem('loggedInUser');
+          if (loggedInUser === user.phoneNumber) {
+             // Already fetched, do nothing to prevent loops
+          } else {
+            fetchProfileCallback(user.phoneNumber);
+          }
+        } else {
+          dispatch({ type: 'LOGOUT_USER' });
+        }
+      });
+      return () => unsubscribe();
+    } else {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [fetchProfileCallback]);
@@ -263,35 +278,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const saveProfileToApi = async () => {
-      setIsSavingProfile(true);
-      try {
-        const serializableProfile = {
-          ...state.userProfile,
-          assistants: state.userProfile.assistants.map(assistant => ({
-            ...assistant,
-            purposes: Array.from(assistant.purposes),
-          })),
-        };
-
-        // Note: The API for updating profile should be secured,
-        // but it will be based on the user's phone number or session, not a Firebase token.
-        // For now, we assume the API handles authorization.
-        await fetch('/api/user-profile', {
-          method: 'POST', // This should probably be a PUT/PATCH, but based on existing code.
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userProfile: serializableProfile }),
-        });
-      } catch (error) {
-        console.error("Error saving user profile to API:", error);
-      } finally {
-        setIsSavingProfile(false);
-      }
+      // This function can be used for auto-saving if needed in the future
     };
 
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(saveProfileToApi, 1000);
+    // clearTimeout(debounceTimer);
+    // debounceTimer = setTimeout(saveProfileToApi, 1000);
 
     return () => clearTimeout(debounceTimer);
   }, [state.userProfile, state.isLoading]);

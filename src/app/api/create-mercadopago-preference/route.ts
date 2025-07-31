@@ -4,7 +4,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
-import { ObjectId } from 'mongodb';
+import { verifyFirebaseToken } from '@/lib/firebaseAdmin';
 
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
@@ -20,15 +20,16 @@ const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
   console.log('--- Create Preference endpoint hit (Checkout Pro) ---');
-  try {
-    const { credits, userPhoneNumber } = await request.json();
-
-    if (!userPhoneNumber) {
-      return NextResponse.json({ error: 'No autorizado. Número de teléfono no proporcionado.' }, { status: 401 });
+  const decodedToken = await verifyFirebaseToken(request);
+    if (!decodedToken) {
+        return NextResponse.json({ error: 'No autorizado. Token de Firebase no válido.' }, { status: 401 });
     }
-    
+
+  try {
+    const { credits } = await request.json();
+
     const { db } = await connectToDatabase();
-    const user = await db.collection<UserProfile>('userProfiles').findOne({ phoneNumber: userPhoneNumber });
+    const user = await db.collection<UserProfile>('userProfiles').findOne({ firebaseUid: decodedToken.uid });
 
     if (!user) {
         return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
@@ -98,7 +99,6 @@ export async function POST(request: NextRequest) {
     console.log('✅ Preference created successfully with ID:', result.id);
     console.log('✅ Checkout Pro Init Point URL:', result.init_point);
     
-    // For Checkout Pro, we send the init_point URL back to the client for redirection.
     return NextResponse.json({
       initPointUrl: result.init_point,
     });

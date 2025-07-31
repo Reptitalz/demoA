@@ -20,6 +20,8 @@ import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote } from '
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
+import { getAuth } from 'firebase/auth';
+import { getFirebaseApp } from '@/lib/firebase';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -30,7 +32,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const { state } = useApp();
   const { toast } = useToast();
   const { userProfile } = state;
-  const currentCredits = userProfile.credits || 0;
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
@@ -38,7 +39,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [customCredits, setCustomCredits] = useState<number>(1);
   
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
-  const purchaseAmount = creditsToPurchase * PRICE_PER_CREDIT;
   
   useEffect(() => {
     if (isOpen) {
@@ -58,14 +58,24 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     setIsProcessing(true);
 
     try {
-        if (!userProfile.phoneNumber) {
+        const app = getFirebaseApp();
+        if (!app) throw new Error("Firebase no está configurado.");
+        const auth = getAuth(app);
+        const user = auth.currentUser;
+
+        if (!user) {
             throw new Error("No estás autenticado. Por favor, inicia sesión de nuevo.");
         }
+        
+        const idToken = await user.getIdToken(true);
 
         const response = await fetch('/api/create-mercadopago-preference', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ credits: creditsToPurchase, userPhoneNumber: userProfile.phoneNumber }),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({ credits: creditsToPurchase }),
         });
 
         const data = await response.json();
@@ -75,7 +85,6 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
         }
         
         if (data.initPointUrl) {
-            // Redirect the user to Mercado Pago's checkout page
             window.location.href = data.initPointUrl;
         } else {
             throw new Error('No se recibió la URL de pago. Por favor, intenta de nuevo.');
@@ -90,6 +99,10 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     if (isProcessing) return;
     onOpenChange(false);
   };
+  
+  const purchaseAmount = activeTab === 'packages' 
+    ? (CREDIT_PACKAGES.find(p => p.credits === selectedPackageCredits)?.price || 0)
+    : customCredits * PRICE_PER_CREDIT;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -109,12 +122,12 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               <div className="flex items-center justify-center gap-6">
                 <div className="flex items-center gap-2">
                     <Coins className="h-5 w-5 text-accent" />
-                    <p className="text-2xl font-bold">{currentCredits}</p>
+                    <p className="text-2xl font-bold">{userProfile.credits || 0}</p>
                     <span className="text-xs text-muted-foreground mt-2">Créditos</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                     <MessagesSquare className="h-5 w-5 text-accent" />
-                    <p className="text-2xl font-bold">{(currentCredits * MESSAGES_PER_CREDIT).toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{((userProfile.credits || 0) * MESSAGES_PER_CREDIT).toLocaleString()}</p>
                     <span className="text-xs text-muted-foreground mt-2">Mensajes</span>
                 </div>
               </div>
