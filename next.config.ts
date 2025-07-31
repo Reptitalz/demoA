@@ -1,5 +1,4 @@
 
-
 import type { Configuration as WebpackConfiguration } from 'webpack';
 
 const securityHeaders = [
