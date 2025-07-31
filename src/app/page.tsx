@@ -280,26 +280,8 @@ export default function MarketingHomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Precios Flexibles y Transparentes</h2>
             <p className="mt-4 text-muted-foreground">Elige un plan que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
         </div>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 px-4 sm:px-6 lg:px-8">
-          <div className="lg:col-span-3">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <PayAsYouGoCalculator />
-          </div>
-          <div className="lg:col-span-2 flex flex-col justify-center gap-4">
-            {CREDIT_PACKAGES.map((pkg) => (
-              <Card key={pkg.name} className="bg-card/80 backdrop-blur-sm border-border/20 shadow-lg hover:shadow-primary/10 transition-shadow">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-lg">{pkg.name}</h3>
-                    <p className="text-sm text-muted-foreground">{Math.floor(pkg.credits * MESSAGES_PER_CREDIT).toLocaleString()} mensajes</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold">${pkg.price.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                    <p className="text-xs text-muted-foreground">MXN</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       </section>
 
