@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { PhoneInput } from '@/components/ui/phone-input';
+import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
 
 const APP_NAME = "Hey Manito";
 
@@ -26,6 +28,7 @@ const LoginPageContent = () => {
   const [password, setPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
+  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
 
   useEffect(() => {
     if (state.userProfile.isAuthenticated) {
@@ -132,6 +135,16 @@ const LoginPageContent = () => {
               disabled={isProcessing}
               className="w-full"
             />
+            <div className="text-right mt-1.5">
+                <Button 
+                    type="button" 
+                    variant="link" 
+                    className="p-0 h-auto text-xs text-muted-foreground hover:text-primary"
+                    onClick={() => setIsForgotPasswordDialogOpen(true)}
+                >
+                    ¿Olvidaste tu contraseña?
+                </Button>
+            </div>
           </div>
 
           <Button
@@ -164,6 +177,7 @@ const LoginPageContent = () => {
       </div>
     </div>
     <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
+    <ForgotPasswordDialog isOpen={isForgotPasswordDialogOpen} onOpenChange={setIsForgotPasswordDialogOpen} />
     </>
   );
 };
