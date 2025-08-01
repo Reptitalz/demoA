@@ -4,6 +4,7 @@ import type { DatabaseConfig, DatabaseSource } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain } from "react-icons/fa";
+import { useApp } from "@/providers/AppProvider";
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -11,6 +12,8 @@ interface DatabaseInfoCardProps {
 }
 
 const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardProps) => {
+  const { state } = useApp();
+  const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id).map(a => a.name);
 
   const getDatabaseIcon = (source: DatabaseSource) => {
     if (source === "google_sheets") return FaGoogle;
@@ -83,6 +86,18 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
               </div>
            )}
         </CardContent>
+         <CardFooter className="flex flex-col items-start gap-2 border-t pt-3 text-xs">
+            <h4 className="font-semibold">Vinculado a:</h4>
+            {linkedAssistants.length > 0 ? (
+                 <div className="flex flex-wrap gap-1">
+                    {linkedAssistants.map(name => (
+                        <Badge key={name} variant="secondary">{name}</Badge>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-muted-foreground">No está vinculado a ningún asistente.</p>
+            )}
+        </CardFooter>
       </Card>
     </>
   );
