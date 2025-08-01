@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useApp } from "@/providers/AppProvider";
@@ -8,6 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FaGoogle, FaBrain, FaExclamationTriangle, FaCheckCircle, FaRegCircle } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 
 interface DatabaseOptionConfig {
   id: DatabaseSource;
@@ -47,10 +53,14 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
 const Step2DatabaseConfig = () => {
   const { state, dispatch } = useApp();
   const { databaseOption, selectedPurposes } = state.wizard;
+  const { toast } = useToast();
 
   const [dbNameValue, setDbNameValue] = useState('');
   const [accessUrlValue, setAccessUrlValue] = useState('');
   const [availableOptions, setAvailableOptions] = useState<DatabaseOptionConfig[]>([]);
+
+  const [isLoadingColumns, setIsLoadingColumns] = useState(false);
+  const [fetchedColumns, setFetchedColumns] = useState<string[]>([]);
 
   useEffect(() => {
     let currentAvailableOptions: DatabaseOptionConfig[] = [];
@@ -66,13 +76,13 @@ const Step2DatabaseConfig = () => {
       if (!currentSelectionIsValid) {
         dispatch({
           type: 'SET_DATABASE_OPTION',
-          payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '' }
+          payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
         });
       }
     } else if (databaseOption.type) { 
         dispatch({
           type: 'SET_DATABASE_OPTION',
-          payload: { type: null, name: '', accessUrl: '' }
+          payload: { type: null, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
         });
     }
   }, [selectedPurposes, dispatch, databaseOption.type]);
@@ -81,7 +91,8 @@ const Step2DatabaseConfig = () => {
   useEffect(() => {
     setDbNameValue(databaseOption.name || '');
     setAccessUrlValue(databaseOption.accessUrl || '');
-  }, [databaseOption.type, databaseOption.name, databaseOption.accessUrl]);
+    setFetchedColumns(databaseOption.selectedColumns || []);
+  }, [databaseOption]);
 
 
   const handleOptionChange = (value: string) => {
@@ -92,6 +103,8 @@ const Step2DatabaseConfig = () => {
         type: valueAsDbSource,
         name: '', 
         accessUrl: valueAsDbSource === 'google_sheets' ? '' : undefined,
+        selectedColumns: [],
+        relevantColumnsDescription: '',
       }
     });
   };
@@ -106,6 +119,49 @@ const Step2DatabaseConfig = () => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
+  };
+  
+  const handleRelevantColumnsDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, relevantColumnsDescription: e.target.value } });
+  }
+  
+  const toggleColumnSelection = (column: string) => {
+    const newSelectedColumns = [...(databaseOption.selectedColumns || [])];
+    const index = newSelectedColumns.indexOf(column);
+    if (index > -1) {
+      newSelectedColumns.splice(index, 1);
+    } else {
+      newSelectedColumns.push(column);
+    }
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: newSelectedColumns } });
+  }
+
+  const handleFetchColumns = async () => {
+    if (!accessUrlValue) {
+        toast({ title: "URL Requerida", description: "Por favor, ingresa la URL de la Hoja de Google.", variant: "destructive" });
+        return;
+    }
+    setIsLoadingColumns(true);
+    try {
+        const response = await fetch('/api/sheets/get-columns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sheetUrl: accessUrlValue })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || "Error desconocido al cargar columnas.");
+        }
+        setFetchedColumns(data.columns);
+        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns } });
+        toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
+
+    } catch (error: any) {
+        toast({ title: "Error al Cargar Columnas", description: error.message, variant: "destructive" });
+        setFetchedColumns([]);
+    } finally {
+        setIsLoadingColumns(false);
+    }
   };
 
   const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
@@ -163,9 +219,8 @@ const Step2DatabaseConfig = () => {
           </div>
         )}
 
-        {selectedDbConfig && (selectedDbConfig.inputNameLabel || selectedDbConfig.requiresAccessUrlInput) && (
+        {selectedDbConfig && (
           <div className="space-y-4 pt-4 border-t mt-4 animate-fadeIn">
-            <h4 className="font-medium">Detalles de la Conexión</h4>
             {selectedDbConfig.inputNameLabel && (
               <div className="space-y-2">
                 <Label htmlFor="dbNameInput" className="text-base">
@@ -187,21 +242,58 @@ const Step2DatabaseConfig = () => {
                 <Label htmlFor="accessUrlInput" className="text-base">
                   {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
                 </Label>
-                <Input
-                  id="accessUrlInput"
-                  type="url"
-                  placeholder={selectedDbConfig.accessUrlPlaceholder}
-                  value={accessUrlValue}
-                  onChange={handleAccessUrlChange}
-                  className="text-base py-6"
-                  aria-required={selectedDbConfig.requiresAccessUrlInput}
-                />
+                <div className="flex items-center gap-2">
+                    <Input
+                        id="accessUrlInput"
+                        type="url"
+                        placeholder={selectedDbConfig.accessUrlPlaceholder}
+                        value={accessUrlValue}
+                        onChange={handleAccessUrlChange}
+                        className="text-base py-6"
+                        aria-required={selectedDbConfig.requiresAccessUrlInput}
+                        />
+                    <Button onClick={handleFetchColumns} disabled={isLoadingColumns}>
+                        {isLoadingColumns && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Cargar Columnas
+                    </Button>
+                </div>
                  {selectedDbConfig.description && (
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
                     <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />
                     <span>{selectedDbConfig.description}</span>
                   </p>
                  )}
+              </div>
+            )}
+
+            {fetchedColumns.length > 0 && (
+              <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-2">
+                    <Label className="text-base">Columnas Disponibles</Label>
+                    <p className="text-xs text-muted-foreground">Selecciona las columnas que el asistente debe considerar. Las columnas no seleccionadas serán ignoradas.</p>
+                    <div className="flex flex-wrap gap-2">
+                        {fetchedColumns.map(col => (
+                            <Badge 
+                                key={col}
+                                variant={(databaseOption.selectedColumns || []).includes(col) ? 'default' : 'secondary'}
+                                onClick={() => toggleColumnSelection(col)}
+                                className="cursor-pointer text-sm"
+                            >
+                                {col}
+                            </Badge>
+                        ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="relevantColumnsDesc" className="text-base">Columnas Prioritarias</Label>
+                     <p className="text-xs text-muted-foreground">Describe brevemente qué columnas son las más importantes o cómo debe usarlas el asistente. (Ej: "La columna 'Teléfono' es el identificador principal. Usa 'Estatus' para saber si un cliente está activo.")</p>
+                    <Textarea 
+                        id="relevantColumnsDesc"
+                        placeholder="Describe la importancia de las columnas seleccionadas..."
+                        value={databaseOption.relevantColumnsDescription || ''}
+                        onChange={handleRelevantColumnsDescChange}
+                    />
+                  </div>
               </div>
             )}
           </div>
@@ -212,3 +304,4 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
+

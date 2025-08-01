@@ -15,7 +15,7 @@ const initialWizardState: WizardState = {
   assistantName: '',
   assistantPrompt: '',
   selectedPurposes: new Set(),
-  databaseOption: { type: null, name: '', accessUrl: '' },
+  databaseOption: { type: null, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' },
   authMethod: null,
   firstName: '',
   lastName: '',

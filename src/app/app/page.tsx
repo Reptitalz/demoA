@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -76,6 +77,7 @@ const AppSetupPageContent = () => {
       if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
       if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
       if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
+      if (databaseOption.type === 'google_sheets' && (!databaseOption.selectedColumns || databaseOption.selectedColumns.length === 0)) return 'Por favor, carga y selecciona las columnas de la Hoja de Google.';
       return null;
     }
     const validateTermsStep = () => {
@@ -142,6 +144,8 @@ const AppSetupPageContent = () => {
         source: state.wizard.databaseOption.type!,
         details: state.wizard.databaseOption.name,
         accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
+        selectedColumns: databaseOption.selectedColumns,
+        relevantColumnsDescription: databaseOption.relevantColumnsDescription,
     } : undefined;
 
     const assistantToUpdate = state.userProfile.assistants.find(a => a.id === state.wizard.editingAssistantId)!;

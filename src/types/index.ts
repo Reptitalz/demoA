@@ -18,6 +18,8 @@ export interface DatabaseConfig {
   source: DatabaseSource;
   details?: string;
   accessUrl?: string;
+  selectedColumns?: string[];
+  relevantColumnsDescription?: string;
 }
 
 export interface AssistantBusinessInfo {
@@ -82,6 +84,8 @@ export interface WizardState {
     type: DatabaseSource | null;
     name?: string;
     accessUrl?: string;
+    selectedColumns?: string[];
+    relevantColumnsDescription?: string;
   };
   authMethod: AuthProviderType | null;
   // User details

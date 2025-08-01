@@ -61,7 +61,11 @@ export async function GET(request: NextRequest) {
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
           businessInfo: asst.businessInfo || {},
         })),
-        databases: profile.databases || [],
+        databases: (profile.databases || []).map(db => ({
+          ...db,
+          selectedColumns: db.selectedColumns || [],
+          relevantColumnsDescription: db.relevantColumnsDescription || '',
+        })),
         ownerPhoneNumberForNotifications: profile.ownerPhoneNumberForNotifications,
         credits: profile.credits || 0,
       };
@@ -124,7 +128,11 @@ export async function POST(request: NextRequest) {
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         businessInfo: asst.businessInfo || {},
       })),
-      databases: userProfile.databases || [],
+      databases: (userProfile.databases || []).map((db: any) => ({
+        ...db,
+        selectedColumns: db.selectedColumns || [],
+        relevantColumnsDescription: db.relevantColumnsDescription || '',
+      })),
     };
     
     try {

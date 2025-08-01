@@ -72,7 +72,7 @@ const DashboardPageContent = () => {
         if(assistant.databaseId) {
             const db = userProfile.databases.find(d => d.id === assistant.databaseId);
             if (db) {
-                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, accessUrl: db.accessUrl, }});
+                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, accessUrl: db.accessUrl, selectedColumns: db.selectedColumns, relevantColumnsDescription: db.relevantColumnsDescription }});
             }
         }
         

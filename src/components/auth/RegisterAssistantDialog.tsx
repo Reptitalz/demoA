@@ -58,6 +58,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
       if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
       if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Proporciona una URL válida de Hoja de Google.";
+      if (databaseOption.type === 'google_sheets' && (!databaseOption.selectedColumns || databaseOption.selectedColumns.length === 0)) return 'Por favor, carga y selecciona las columnas de la Hoja de Google.';
       return null;
     };
      const validateUserDetailsStep = () => {
@@ -152,6 +153,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         source: databaseOption.type!,
         details: databaseOption.name,
         accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
+        selectedColumns: databaseOption.selectedColumns,
+        relevantColumnsDescription: databaseOption.relevantColumnsDescription,
     } : undefined;
 
     const finalAssistantConfig: AssistantConfig = {
