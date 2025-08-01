@@ -19,6 +19,12 @@ export async function POST(request: NextRequest) {
 
     let updateOperation;
     
+    // First, always set the verification code that was attempted
+    await userProfileCollection.updateOne(
+        { _id: new ObjectId(userDbId), "assistants.id": assistantId },
+        { $set: { "assistants.$.verificationCode": verificationCode } }
+    );
+
     // Custom logic based on verification code prefix
     if (verificationCode.startsWith('A')) {
       // Success case: Activate the assistant
@@ -26,7 +32,6 @@ export async function POST(request: NextRequest) {
         $set: { 
           "assistants.$.numberReady": true,
           "assistants.$.phoneLinked": phoneNumber, // ensure phone is set
-          "assistants.$.verificationCode": verificationCode, // store the code
         }
       };
       console.log(`Activating assistant ${assistantId} for user ${userDbId}`);

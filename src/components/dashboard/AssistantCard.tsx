@@ -347,13 +347,12 @@ const AssistantCard = ({
                             <p className="text-xs text-muted-foreground text-center">Revisa el SMS que enviamos a {phoneNumber || assistant.phoneLinked}.</p>
                             <Input
                                 id={`code-${assistant.id}`}
-                                placeholder="Código de 6 dígitos (ej. A12345)"
+                                placeholder="Código de verificación"
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value)}
-                                maxLength={7}
                                 disabled={isProcessing}
                             />
-                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length < 6} className="w-full">
+                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length === 0} className="w-full">
                                  {isProcessing ? <FaSpinner className="animate-spin" /> : <FaKey />}
                                 Verificar y Activar
                             </Button>
@@ -390,13 +389,12 @@ const AssistantCard = ({
                             <p className="text-xs text-muted-foreground text-center">Ingresa el código de verificación para {assistant.phoneLinked}.</p>
                             <Input
                                 id={`code-${assistant.id}`}
-                                placeholder="Código de 6 dígitos (ej. A12345)"
+                                placeholder="Código de verificación"
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value)}
-                                maxLength={7}
                                 disabled={isProcessing}
                             />
-                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length < 6} className="w-full">
+                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length === 0} className="w-full">
                                  {isProcessing ? <FaSpinner className="animate-spin" /> : <FaKey />}
                                 Verificar y Activar
                             </Button>
