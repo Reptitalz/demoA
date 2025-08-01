@@ -285,11 +285,11 @@ const Step2DatabaseConfig = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="relevantColumnsDesc" className="text-base">Columnas Prioritarias</Label>
-                     <p className="text-xs text-muted-foreground">Describe brevemente qué columnas son las más importantes o cómo debe usarlas el asistente. (Ej: "La columna 'Teléfono' es el identificador principal. Usa 'Estatus' para saber si un cliente está activo.")</p>
+                    <Label htmlFor="relevantColumnsDesc" className="text-base">Define la Relevancia para tus Ventas</Label>
+                     <p className="text-xs text-muted-foreground">Explícale al asistente cómo usar estas columnas para vender. Ej: "La columna 'Teléfono' es para contactar. 'Estatus' indica si el cliente está listo para comprar. 'Producto de Interés' es lo que quiere."</p>
                     <Textarea 
                         id="relevantColumnsDesc"
-                        placeholder="Describe la importancia de las columnas seleccionadas..."
+                        placeholder="Ej: 'Teléfono' para contactar, 'Estatus' para saber si está listo para comprar..."
                         value={databaseOption.relevantColumnsDescription || ''}
                         onChange={handleRelevantColumnsDescChange}
                     />
