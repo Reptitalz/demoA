@@ -14,8 +14,6 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
-import CountdownTimer from '@/components/home/CountdownTimer';
-import CountdownDialog from '@/components/home/CountdownDialog';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -23,7 +21,6 @@ const DashboardPageContent = () => {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
-  const [isCountdownDialogOpen, setIsCountdownDialogOpen] = useState(false);
 
 
   useEffect(() => {
@@ -136,10 +133,6 @@ const DashboardPageContent = () => {
       
       <DashboardSummary />
 
-      <div className="py-4 animate-fadeIn" style={{animationDelay: "0.3s"}}>
-        <CountdownTimer onTimerClick={() => setIsCountdownDialogOpen(true)} />
-      </div>
-
       <div className="space-y-4"> 
         <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
           <h3 className="text-lg font-semibold flex items-center gap-1"> 
@@ -197,9 +190,10 @@ const DashboardPageContent = () => {
         )}
       </div>
     </PageContainer>
-    <CountdownDialog isOpen={isCountdownDialogOpen} onOpenChange={setIsCountdownDialogOpen} />
     </>
   );
 };
 
 export default DashboardPageContent;
+
+    

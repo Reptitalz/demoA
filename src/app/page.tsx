@@ -13,8 +13,6 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import CountdownDialog from '@/components/home/CountdownDialog';
-import CountdownTimer from '@/components/home/CountdownTimer';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 
 const PayAsYouGoCalculator = () => {
@@ -221,13 +219,9 @@ const HeroSection = () => {
 }
 
 export default function MarketingHomePage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   return (
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
       <HeroSection />
-
-      <CountdownTimer onTimerClick={() => setIsDialogOpen(true)} />
 
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{animationDelay: '0.5s', perspective: '1000px'}}>
         <PhoneChatMockup />
@@ -310,7 +304,6 @@ export default function MarketingHomePage() {
         </div>
       </section>
       
-      <CountdownDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </PageContainer>
   );
 }
@@ -330,3 +323,5 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
+
+    
