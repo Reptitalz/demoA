@@ -1,17 +1,8 @@
-
 // src/app/api/assistants/update-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
-
-// This map simulates different outcomes of an asynchronous process.
-const SIMULATION_OUTCOMES = [
-  { status: true, message: "ha sido activado y está listo para usarse.", type: 'success' as const },
-  { status: false, message: "no pudo ser activado. El número no es válido para WhatsApp.", type: 'error' as const },
-  { status: true, message: "ha sido activado y está listo para usarse.", type: 'success' as const }, // Higher chance of success
-  { status: false, message: "fue rechazado. Por favor, reenvía el código de verificación.", type: 'warning' as const },
-] as const;
 
 export async function POST(request: NextRequest) {
   const { assistantId, phoneNumber, verificationCode, userDbId } = await request.json();
@@ -19,24 +10,46 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'assistantId, phoneNumber, verificationCode, and userDbId are required' }, { status: 400 });
   }
 
-  // Simulate a delay for the backend process (e.g., 5-10 seconds)
-  await new Promise(resolve => setTimeout(resolve, 7000));
+  // Simulate a short delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   try {
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
-    
-    // Pick a random outcome for the simulation
-    const outcome = SIMULATION_OUTCOMES[Math.floor(Math.random() * SIMULATION_OUTCOMES.length)];
 
-    // Update the assistant's status in the user's profile
+    let updateOperation;
+    
+    // Custom logic based on verification code prefix
+    if (verificationCode.startsWith('A')) {
+      // Success case: Activate the assistant
+      updateOperation = {
+        $set: { 
+          "assistants.$.numberReady": true,
+          "assistants.$.phoneLinked": phoneNumber, // ensure phone is set
+          "assistants.$.verificationCode": verificationCode, // store the code
+        }
+      };
+      console.log(`Activating assistant ${assistantId} for user ${userDbId}`);
+    } else if (verificationCode.startsWith('B')) {
+      // Failure case: Reset the assistant's phone details
+      updateOperation = {
+        $set: {
+            "assistants.$.numberReady": false, // explicitly set to false
+        },
+        $unset: { 
+          "assistants.$.phoneLinked": "", 
+          "assistants.$.verificationCode": "" 
+        }
+      };
+      console.log(`Activation failed for assistant ${assistantId}. Resetting phone details.`);
+    } else {
+      // Invalid code case
+      return NextResponse.json({ message: 'Código de verificación inválido.' }, { status: 400 });
+    }
+
     const userProfileUpdateResult = await userProfileCollection.updateOne(
       { _id: new ObjectId(userDbId), "assistants.id": assistantId },
-      { 
-        $set: { "assistants.$.numberReady": outcome.status },
-        // If the activation fails, clear the verification code to allow retries
-        ...(!outcome.status && { $unset: { "assistants.$.verificationCode": "" } })
-      }
+      updateOperation
     );
     
     if (userProfileUpdateResult.matchedCount === 0) {
@@ -44,7 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Assistant not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, message: 'Assistant status updated and notification sent.' });
+    return NextResponse.json({ success: true, message: 'Assistant status updated.' });
 
   } catch (error) {
     console.error('API Error (update-status):', error);

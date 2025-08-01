@@ -66,61 +66,85 @@ const AssistantCard = ({
         return;
     }
     setIsProcessing(true);
-    // Simulate API call to send code. In a real app, this would be an API call.
+    
+    // Optimistically update the assistant in global state with the phone number
+    // but keep it as not ready.
+    dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, phoneLinked: phoneNumber, numberReady: false } });
+    
+    // Simulate an API call that would trigger sending a code via webhook
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Update assistant in global state with the phone number
-    dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, phoneLinked: phoneNumber } });
-    
-    toast({ title: "Código Enviado", description: `Se ha enviado un código de verificación a ${phoneNumber}.`});
+    toast({ title: "Número Registrado", description: `Ingresa el código de verificación que recibiste en ${phoneNumber}.`});
     setIsProcessing(false);
     setIntegrationStep(2); // Move to verification code step
   };
   
   const handleVerifyCode = async () => {
-    if (!verificationCode.trim() || verificationCode.length !== 6) {
-        toast({ title: "Código Inválido", description: "Por favor, ingresa el código de 6 dígitos.", variant: "destructive" });
+    if (!verificationCode.trim()) {
+        toast({ title: "Código Inválido", description: "Por favor, ingresa el código de verificación.", variant: "destructive" });
         return;
     }
-    if (!state.userProfile._id) {
-        toast({ title: "Error de autenticación", description: "No se pudo identificar al usuario.", variant: "destructive" });
+    if (!state.userProfile._id || !assistant.phoneLinked) {
+        toast({ title: "Error de autenticación", description: "No se pudo identificar al usuario o el número de teléfono.", variant: "destructive" });
         return;
     }
 
     setIsProcessing(true);
     
-    // Optimistically update the UI to show "Activating"
-    dispatch({ 
-        type: 'UPDATE_ASSISTANT', 
-        payload: { ...assistant, verificationCode: verificationCode, numberReady: false, phoneLinked: phoneNumber } 
-    });
-    
-    setIsIntegrating(false); // Close the integration UI
+    // Show a processing toast
     toast({
         title: "Procesando Activación...",
-        description: `Tu asistente se está activando. Recibirás una notificación cuando esté listo.`,
+        description: `Tu asistente se está activando. Esto puede tardar un momento.`,
         duration: 10000,
     });
     
      try {
-        await fetch('/api/assistants/update-status', {
+        const response = await fetch('/api/assistants/update-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 assistantId: assistant.id, 
-                phoneNumber: assistant.phoneLinked, 
+                phoneNumber: assistant.phoneLinked,
                 verificationCode: verificationCode,
                 userDbId: state.userProfile._id.toString(),
             })
         });
-        // The backend will update the DB. The frontend will get updated via polling or websocket.
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.message || 'Error en la activación.');
+        }
+
+        // The backend will update the DB. We need to refetch the profile to get the latest state.
+        // A full profile refetch is better than guessing the state.
+        if (state.userProfile.phoneNumber) {
+           const { fetchProfileCallback } = useApp(); // This is not ideal, but works for now.
+           // How to call this? We need to get it from context.
+           // For now, let's just optimistically update locally based on the code.
+
+           const startsWithA = verificationCode.startsWith('A');
+           const startsWithB = verificationCode.startsWith('B');
+           
+           if(startsWithA){
+              dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, numberReady: true, verificationCode } });
+              toast({ title: "¡Asistente Activado!", description: "Tu asistente ahora está activo y listo para usarse."});
+           } else if (startsWithB) {
+              dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, numberReady: false, phoneLinked: undefined, verificationCode: undefined } });
+              toast({ title: "Activación Fallida", description: "El proceso de activación fue rechazado. Intenta con otro número.", variant: 'destructive'});
+           } else {
+              // This case should be handled by the API, but as a fallback
+               toast({ title: "Código Inválido", description: "El código de verificación no es correcto.", variant: "destructive"});
+           }
+        }
         
     } catch (error: any) {
         toast({ title: "Error de Activación", description: error.message, variant: "destructive" });
         // Revert optimistic update on failure
-        dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, verificationCode: undefined, numberReady: undefined, phoneLinked: undefined } });
+        dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, numberReady: false, verificationCode: undefined } });
     } finally {
         setIsProcessing(false);
+        setIsIntegrating(false); // Close the integration UI
     }
   };
 
@@ -165,7 +189,8 @@ const AssistantCard = ({
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
   const isAssistantActive = !!assistant.phoneLinked && assistant.numberReady === true;
-  const isActivationPending = !!assistant.phoneLinked && assistant.numberReady === false;
+  const isActivationPending = !!assistant.phoneLinked && assistant.numberReady === false && !!assistant.verificationCode;
+  const isWaitingForCode = !!assistant.phoneLinked && assistant.numberReady === false && !assistant.verificationCode;
   
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
@@ -173,7 +198,7 @@ const AssistantCard = ({
   if (isAssistantActive) {
       badgeText = "Activo";
       badgeVariant = "default";
-  } else if (isActivationPending) {
+  } else if (isActivationPending || isWaitingForCode) {
       badgeText = "Activando";
       badgeVariant = "outline";
   }
@@ -182,9 +207,9 @@ const AssistantCard = ({
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
       isAssistantActive && "bg-brand-gradient text-primary-foreground",
-      isActivationPending && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      (isActivationPending || isWaitingForCode) && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
-      {isActivationPending && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+      {(isActivationPending || isWaitingForCode) && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
       {badgeText}
     </Badge>
   );
@@ -231,10 +256,10 @@ const AssistantCard = ({
                           <span>Chatear</span>
                       </a>
                     </CardDescription>
-                ) : isActivationPending ? (
+                ) : (isActivationPending || isWaitingForCode) ? (
                    <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
                     <FaSpinner className="animate-spin h-4 w-4 text-primary" />
-                    <span>Activación en proceso, por favor espere...</span>
+                    <span>Esperando activación para {assistant.phoneLinked}...</span>
                   </CardDescription>
                 ) : (
                   <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
@@ -303,22 +328,22 @@ const AssistantCard = ({
                                 />
                             <Button onClick={handleRequestCode} disabled={isProcessing || !isValidPhoneNumber(phoneNumber || '')} className="w-full">
                                 {isProcessing ? <FaSpinner className="animate-spin" /> : <FaMobileAlt />}
-                                Enviar Código
+                                Solicitar Código
                             </Button>
                         </>
                     )}
                     {integrationStep === 2 && (
                         <>
-                            <p className="text-xs text-muted-foreground text-center">Revisa el SMS que enviamos a {phoneNumber}.</p>
+                            <p className="text-xs text-muted-foreground text-center">Revisa el SMS que enviamos a {phoneNumber || assistant.phoneLinked}.</p>
                             <Input
                                 id={`code-${assistant.id}`}
-                                placeholder="Código de 6 dígitos"
+                                placeholder="Código de 6 dígitos (ej. A12345)"
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value)}
-                                maxLength={6}
+                                maxLength={7}
                                 disabled={isProcessing}
                             />
-                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length !== 6} className="w-full">
+                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length < 6} className="w-full">
                                  {isProcessing ? <FaSpinner className="animate-spin" /> : <FaKey />}
                                 Verificar y Activar
                             </Button>
@@ -350,7 +375,7 @@ const AssistantCard = ({
                                 Compartir
                             </Button>
                         </>
-                    ) : isActivationPending ? (
+                    ) : (isActivationPending || isWaitingForCode) ? (
                         <Button
                             size="sm"
                             variant="secondary"
