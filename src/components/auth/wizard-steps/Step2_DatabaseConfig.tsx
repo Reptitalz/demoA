@@ -55,12 +55,11 @@ const Step2DatabaseConfig = () => {
   const { databaseOption, selectedPurposes } = state.wizard;
   const { toast } = useToast();
 
-  const [dbNameValue, setDbNameValue] = useState('');
-  const [accessUrlValue, setAccessUrlValue] = useState('');
-  const [availableOptions, setAvailableOptions] = useState<DatabaseOptionConfig[]>([]);
-
   const [isLoadingColumns, setIsLoadingColumns] = useState(false);
   const [fetchedColumns, setFetchedColumns] = useState<string[]>([]);
+
+  // Derived state from global state for local control
+  const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
 
   useEffect(() => {
     let currentAvailableOptions: DatabaseOptionConfig[] = [];
@@ -69,7 +68,6 @@ const Step2DatabaseConfig = () => {
     } else if (selectedPurposes.has("create_smart_db")) {
       currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "smart_db");
     }
-    setAvailableOptions(currentAvailableOptions);
 
     if (currentAvailableOptions.length > 0) {
       const currentSelectionIsValid = databaseOption.type && currentAvailableOptions.some(opt => opt.id === databaseOption.type);
@@ -79,18 +77,16 @@ const Step2DatabaseConfig = () => {
           payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
         });
       }
-    } else if (databaseOption.type) { 
-        dispatch({
-          type: 'SET_DATABASE_OPTION',
-          payload: { type: null, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
-        });
     }
   }, [selectedPurposes, dispatch, databaseOption.type]);
 
 
   useEffect(() => {
-    setDbNameValue(databaseOption.name || '');
-    setAccessUrlValue(databaseOption.accessUrl || '');
+    // Sync local state when global state changes, but only if it's different
+    if (databaseOption.accessUrl !== accessUrlValue) {
+      setAccessUrlValue(databaseOption.accessUrl || '');
+    }
+    // Fetched columns are now driven by the global state to persist them across steps
     setFetchedColumns(databaseOption.selectedColumns || []);
   }, [databaseOption]);
 
@@ -111,13 +107,12 @@ const Step2DatabaseConfig = () => {
 
   const handleDbNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
-    setDbNameValue(newName);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, name: newName } });
   };
 
   const handleAccessUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
-    setAccessUrlValue(newUrl);
+    setAccessUrlValue(newUrl); // Update local state immediately for button enable/disable
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
   };
   
@@ -126,7 +121,8 @@ const Step2DatabaseConfig = () => {
   }
   
   const toggleColumnSelection = (column: string) => {
-    const newSelectedColumns = [...(databaseOption.selectedColumns || [])];
+    const currentSelected = databaseOption.selectedColumns || [];
+    const newSelectedColumns = [...currentSelected];
     const index = newSelectedColumns.indexOf(column);
     if (index > -1) {
       newSelectedColumns.splice(index, 1);
@@ -152,27 +148,26 @@ const Step2DatabaseConfig = () => {
         if (!response.ok) {
             throw new Error(data.message || "Error desconocido al cargar columnas.");
         }
-        setFetchedColumns(data.columns);
-        // Pre-select all columns by default
+        // Set fetched columns to state and pre-select all columns by dispatching to global state
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns } });
         toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
 
     } catch (error: any) {
         toast({ title: "Error al Cargar Columnas", description: error.message, variant: "destructive" });
-        setFetchedColumns([]);
+        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: [] } });
     } finally {
         setIsLoadingColumns(false);
     }
   };
 
-  const selectedDbConfig = availableOptions.find(opt => opt.id === databaseOption.type);
+  const selectedDbConfig = allDatabaseOptionsConfig.find(opt => opt.id === databaseOption.type);
 
   return (
     <div className="w-full animate-fadeIn space-y-6">
       <div className="text-center">
         <h3 className="text-xl font-semibold">Configura tu Base de Datos</h3>
         <p className="text-sm text-muted-foreground">
-          {availableOptions.length > 0 
+          {allDatabaseOptionsConfig.length > 0 
             ? "Elige cómo tu asistente almacenará y accederá a la información."
             : "Vuelve al paso 1 y elige un propósito que requiera una base de datos."
           }
@@ -180,27 +175,31 @@ const Step2DatabaseConfig = () => {
       </div>
 
       <div className="space-y-6">
-        {availableOptions.length > 0 ? (
+        {allDatabaseOptionsConfig.length > 0 ? (
           <RadioGroup
             value={databaseOption.type || ""}
             onValueChange={handleOptionChange}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
             aria-label="Opciones de Base de Datos"
           >
-            {availableOptions.map((option) => {
+            {allDatabaseOptionsConfig.map((option) => {
               const Icon = option.icon;
               const isChecked = databaseOption.type === option.id;
+              const isDisabled = !selectedPurposes.has(option.id as any);
+
               return (
                 <Label
                   key={option.id}
                   htmlFor={`db-option-${option.id}`}
                   className={cn(
                     "flex items-start space-x-4 p-4 border rounded-lg transition-all duration-200 relative",
-                    "hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-primary/50",
+                    isDisabled 
+                      ? 'opacity-50 cursor-not-allowed bg-muted/40'
+                      : "hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-primary/50",
                      isChecked ? 'border-primary bg-primary/10 shadow-lg' : 'bg-card'
                   )}
                 >
-                  <input type="radio" value={option.id} id={`db-option-${option.id}`} name="db-option" className="sr-only" />
+                  <input type="radio" value={option.id} id={`db-option-${option.id}`} name="db-option" className="sr-only" disabled={isDisabled} />
                    {isChecked 
                     ? <FaCheckCircle className="absolute top-3 right-3 h-5 w-5 text-green-500 shrink-0" />
                     : <FaRegCircle className="absolute top-3 right-3 h-5 w-5 text-muted-foreground/50 shrink-0" />
@@ -231,7 +230,7 @@ const Step2DatabaseConfig = () => {
                   id="dbNameInput"
                   type="text"
                   placeholder={selectedDbConfig.inputNamePlaceholder}
-                  value={dbNameValue}
+                  value={databaseOption.name || ''}
                   onChange={handleDbNameChange}
                   className="text-base py-6"
                   aria-required={!!selectedDbConfig.inputNameLabel}
@@ -253,7 +252,7 @@ const Step2DatabaseConfig = () => {
                         className="text-base py-6"
                         aria-required={selectedDbConfig.requiresAccessUrlInput}
                         />
-                    <Button onClick={handleFetchColumns} disabled={isLoadingColumns || !accessUrlValue}>
+                    <Button onClick={handleFetchColumns} disabled={isLoadingColumns || !accessUrlValue.trim()}>
                         {isLoadingColumns && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Cargar Columnas
                     </Button>
@@ -267,7 +266,7 @@ const Step2DatabaseConfig = () => {
               </div>
             )}
 
-            {fetchedColumns.length > 0 && (
+            {(databaseOption.selectedColumns || []).length > 0 && (
               <div className="space-y-4 pt-4 border-t">
                   <div className="space-y-2">
                     <Label className="text-base">Columnas Disponibles</Label>
@@ -306,4 +305,4 @@ const Step2DatabaseConfig = () => {
 
 export default Step2DatabaseConfig;
 
-
+    
