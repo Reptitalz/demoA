@@ -4,14 +4,17 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
 import BusinessInfoDialog from './BusinessInfoDialog';
+import { Input } from "../ui/input";
+import { PhoneInput } from "../ui/phone-input";
+import { E164Number, isValidPhoneNumber } from "react-phone-number-input";
+import { useApp } from "@/providers/AppProvider";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -26,11 +29,29 @@ const AssistantCard = ({
   onReconfigure, 
   animationDelay = "0s",
 }: AssistantCardProps) => {
-  const [showAllPurposes, setShowAllPurposes] = useState(false);
+  const { state, dispatch } = useApp();
   const { toast } = useToast();
+  
+  const [showAllPurposes, setShowAllPurposes] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [isSetupDialogOpen, setIsSetupDialogOpen] = useState(false);
   const [isBusinessInfoDialogOpen, setIsBusinessInfoDialogOpen] = useState(false);
+
+  // Local state for the phone integration flow
+  const [isIntegrating, setIsIntegrating] = useState(false);
+  const [integrationStep, setIntegrationStep] = useState(1); // 1 for phone, 2 for code
+  const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    // If dialog is closed or assistant changes, reset state
+    if (!isIntegrating) {
+        setIntegrationStep(1);
+        setPhoneNumber(undefined);
+        setVerificationCode('');
+        setIsProcessing(false);
+    }
+  }, [isIntegrating, assistant.id]);
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
@@ -38,6 +59,71 @@ const AssistantCard = ({
   const handleReconfigureClick = () => {
     onReconfigure(assistant.id);
   };
+  
+  const handleRequestCode = async () => {
+    if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+        toast({ title: "Número Inválido", description: "Por favor, ingresa un número de teléfono válido.", variant: "destructive" });
+        return;
+    }
+    setIsProcessing(true);
+    // Simulate API call to send code. In a real app, this would be an API call.
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Update assistant in global state with the phone number
+    dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, phoneLinked: phoneNumber } });
+    
+    toast({ title: "Código Enviado", description: `Se ha enviado un código de verificación a ${phoneNumber}.`});
+    setIsProcessing(false);
+    setIntegrationStep(2); // Move to verification code step
+  };
+  
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim() || verificationCode.length !== 6) {
+        toast({ title: "Código Inválido", description: "Por favor, ingresa el código de 6 dígitos.", variant: "destructive" });
+        return;
+    }
+    if (!state.userProfile._id) {
+        toast({ title: "Error de autenticación", description: "No se pudo identificar al usuario.", variant: "destructive" });
+        return;
+    }
+
+    setIsProcessing(true);
+    
+    // Optimistically update the UI to show "Activating"
+    dispatch({ 
+        type: 'UPDATE_ASSISTANT', 
+        payload: { ...assistant, verificationCode: verificationCode, numberReady: false, phoneLinked: phoneNumber } 
+    });
+    
+    setIsIntegrating(false); // Close the integration UI
+    toast({
+        title: "Procesando Activación...",
+        description: `Tu asistente se está activando. Recibirás una notificación cuando esté listo.`,
+        duration: 10000,
+    });
+    
+     try {
+        await fetch('/api/assistants/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                assistantId: assistant.id, 
+                phoneNumber: assistant.phoneLinked, 
+                verificationCode: verificationCode,
+                userDbId: state.userProfile._id.toString(),
+            })
+        });
+        // The backend will update the DB. The frontend will get updated via polling or websocket.
+        
+    } catch (error: any) {
+        toast({ title: "Error de Activación", description: error.message, variant: "destructive" });
+        // Revert optimistic update on failure
+        dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, verificationCode: undefined, numberReady: undefined, phoneLinked: undefined } });
+    } finally {
+        setIsProcessing(false);
+    }
+  };
+
 
   const handleShareOnWhatsApp = async () => {
     if (!cleanedPhoneNumberForWhatsApp) {
@@ -202,69 +288,102 @@ const AssistantCard = ({
           )}
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-            {isAssistantActive ? (
-              <>
-                <Button
-                    size="sm"
-                    onClick={() => setIsBusinessInfoDialogOpen(true)}
-                    variant="secondary"
-                    className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
-                >
-                    <FaInfoCircle size={14} className="mr-1.5 sm:mr-2" />
-                    Editar Información de Negocio
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleShareOnWhatsApp}
-                  className={cn(
-                    "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                    "bg-brand-gradient"
-                  )}
-                >
-                  <FaShareAlt size={14} className="mr-1.5 sm:mr-2" />
-                  Compartir por WhatsApp
-                </Button>
-              </>
-            ) : isActivationPending ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setIsSetupDialogOpen(true)}
-                className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
-              >
-                <FaKey size={13} className="mr-1.5 sm:mr-2" />
-                Reenviar Código
-              </Button>
+            {isIntegrating ? (
+                <div className="space-y-3 animate-fadeIn p-2">
+                    {integrationStep === 1 && (
+                        <>
+                            <p className="text-xs text-muted-foreground text-center">Usa un chip nuevo que nunca haya tenido WhatsApp.</p>
+                             <PhoneInput
+                                id={`phone-${assistant.id}`}
+                                placeholder="Número de WhatsApp del asistente"
+                                value={phoneNumber}
+                                onChange={(value) => setPhoneNumber(value)}
+                                defaultCountry="MX"
+                                disabled={isProcessing}
+                                />
+                            <Button onClick={handleRequestCode} disabled={isProcessing || !isValidPhoneNumber(phoneNumber || '')} className="w-full">
+                                {isProcessing ? <FaSpinner className="animate-spin" /> : <FaMobileAlt />}
+                                Enviar Código
+                            </Button>
+                        </>
+                    )}
+                    {integrationStep === 2 && (
+                        <>
+                            <p className="text-xs text-muted-foreground text-center">Revisa el SMS que enviamos a {phoneNumber}.</p>
+                            <Input
+                                id={`code-${assistant.id}`}
+                                placeholder="Código de 6 dígitos"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value)}
+                                maxLength={6}
+                                disabled={isProcessing}
+                            />
+                            <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length !== 6} className="w-full">
+                                 {isProcessing ? <FaSpinner className="animate-spin" /> : <FaKey />}
+                                Verificar y Activar
+                            </Button>
+                        </>
+                    )}
+                     <Button variant="ghost" size="sm" onClick={() => setIsIntegrating(false)} disabled={isProcessing} className="w-full text-xs h-auto py-1">
+                        Cancelar
+                    </Button>
+                </div>
             ) : (
-              <Button
-                size="sm"
-                onClick={() => setIsSetupDialogOpen(true)}
-                className={cn(
-                  "text-primary-foreground transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5 hover:opacity-90",
-                  "bg-brand-gradient"
-                )}
-              >
-                <FaPhoneAlt size={13} className="mr-1.5 sm:mr-2" />
-                Integrar número de teléfono
-              </Button>
+                <>
+                    {isAssistantActive ? (
+                        <>
+                            <Button
+                                size="sm"
+                                onClick={() => setIsBusinessInfoDialogOpen(true)}
+                                variant="secondary"
+                                className="transition-transform transform hover:scale-105 w-full text-xs"
+                            >
+                                <FaInfoCircle size={14} />
+                                Info. de Negocio
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleShareOnWhatsApp}
+                                className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs"
+                            >
+                                <FaShareAlt size={14} />
+                                Compartir
+                            </Button>
+                        </>
+                    ) : isActivationPending ? (
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={true}
+                            className="w-full text-xs"
+                        >
+                            <FaSpinner className="animate-spin" />
+                            Activación Pendiente
+                        </Button>
+                    ) : (
+                         <Button
+                            size="sm"
+                            onClick={() => setIsIntegrating(true)}
+                            className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs"
+                         >
+                            <FaPhoneAlt size={13} />
+                            Integrar número de teléfono
+                        </Button>
+                    )}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleReconfigureClick}
+                        className="transition-transform transform hover:scale-105 w-full text-xs"
+                    >
+                        <FaCog size={14} />
+                        Reconfigurar
+                    </Button>
+                </>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReconfigureClick}
-              className="transition-transform transform hover:scale-105 w-full text-xs px-2 py-1 sm:px-3 sm:py-1.5"
-            >
-              <FaCog size={14} className="mr-1.5 sm:mr-2" />
-              Reconfigurar
-            </Button>
         </CardFooter>
       </Card>
-      <PhoneNumberSetupDialog
-        isOpen={isSetupDialogOpen}
-        onOpenChange={setIsSetupDialogOpen}
-        assistantId={assistant.id}
-        assistantName={assistant.name}
-      />
+      
       <BusinessInfoDialog
         isOpen={isBusinessInfoDialogOpen}
         onOpenChange={setIsBusinessInfoDialogOpen}
