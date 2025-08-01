@@ -1,3 +1,4 @@
+
 // src/app/api/assistants/link-phone/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
 
-    // 1. Update the assistant's phoneLinked number in the database
+    // 1. Update the assistant's phoneLinked number and reset verification status.
     const updateResult = await userProfileCollection.updateOne(
       { _id: new ObjectId(userDbId), "assistants.id": assistantId },
       {
@@ -34,10 +35,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Assistant not found for the given user' }, { status: 404 });
     }
 
-    // 2. Trigger the webhook to send the verification code via WhatsApp
+    // 2. Trigger a webhook to notify that a number has been linked and is pending verification.
+    // The verification code itself is now expected to be set by an external process.
     await sendVerificationCodeWebhook(phoneNumber);
 
-    return NextResponse.json({ success: true, message: 'Phone number linked and verification code sent.' });
+    return NextResponse.json({ success: true, message: 'Phone number linked and verification process initiated.' });
 
   } catch (error) {
     console.error('API Error (link-phone):', error);
