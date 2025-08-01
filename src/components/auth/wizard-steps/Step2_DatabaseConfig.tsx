@@ -153,6 +153,7 @@ const Step2DatabaseConfig = () => {
             throw new Error(data.message || "Error desconocido al cargar columnas.");
         }
         setFetchedColumns(data.columns);
+        // Pre-select all columns by default
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns } });
         toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
 
@@ -252,7 +253,7 @@ const Step2DatabaseConfig = () => {
                         className="text-base py-6"
                         aria-required={selectedDbConfig.requiresAccessUrlInput}
                         />
-                    <Button onClick={handleFetchColumns} disabled={isLoadingColumns}>
+                    <Button onClick={handleFetchColumns} disabled={isLoadingColumns || !accessUrlValue}>
                         {isLoadingColumns && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Cargar Columnas
                     </Button>
@@ -304,4 +305,5 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
+
 
