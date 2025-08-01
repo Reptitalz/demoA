@@ -91,7 +91,7 @@ const AssistantCard = ({
         // but keep it as not ready.
         dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, phoneLinked: phoneNumber, numberReady: false } });
         
-        toast({ title: "Número Registrado", description: `Ingresa el código de verificación que recibiste en ${phoneNumber}.`});
+        toast({ title: "Número Registrado", description: `Ingresa el código de verificación que recibirás.`});
         setIntegrationStep(2); // Move to verification code step
         
     } catch (error: any) {
@@ -387,7 +387,7 @@ const AssistantCard = ({
                         </>
                     ) : isWaitingForCode ? (
                         <div className="space-y-3 animate-fadeIn p-2">
-                            <p className="text-xs text-muted-foreground text-center">Revisa el SMS que enviamos a {assistant.phoneLinked}.</p>
+                            <p className="text-xs text-muted-foreground text-center">Ingresa el código de verificación para {assistant.phoneLinked}.</p>
                             <Input
                                 id={`code-${assistant.id}`}
                                 placeholder="Código de 6 dígitos (ej. A12345)"
