@@ -60,6 +60,9 @@ export async function GET(request: NextRequest) {
           purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
           businessInfo: asst.businessInfo || {},
+          phoneLinked: asst.phoneLinked || '',
+          verificationCode: asst.verificationCode || '',
+          numberReady: asst.numberReady || false,
         })),
         databases: (profile.databases || []).map(db => ({
           ...db,
@@ -98,10 +101,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'El código de verificación es incorrecto.' }, { status: 400 });
     }
     
-    // Optional: Check expiry if you want to keep it. For now, removing it as requested.
-    // if (!tempUser.verificationCodeExpiry || new Date() > new Date(tempUser.verificationCodeExpiry)) {
-    //   return NextResponse.json({ message: 'El código de verificación ha expirado.' }, { status: 400 });
-    // }
+    if (tempUser.verificationCodeExpiry && new Date() > new Date(tempUser.verificationCodeExpiry)) {
+      return NextResponse.json({ message: 'El código de verificación ha expirado.' }, { status: 400 });
+    }
 
     // Check if a user with this phone number and a password already exists
     const existingUser = await userCollection.findOne({ phoneNumber: userProfile.phoneNumber, password: { $exists: true } });
@@ -127,6 +129,9 @@ export async function POST(request: NextRequest) {
         purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || []),
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         businessInfo: asst.businessInfo || {},
+        phoneLinked: asst.phoneLinked || '',
+        verificationCode: asst.verificationCode || '',
+        numberReady: asst.numberReady || false,
       })),
       databases: (userProfile.databases || []).map((db: any) => ({
         ...db,

@@ -164,6 +164,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         purposes: selectedPurposes,
         databaseId: newDbEntry?.id,
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+        businessInfo: {},
+        phoneLinked: '',
+        verificationCode: '',
+        numberReady: false,
     };
     
     const userProfileForApi: Omit<UserProfile, 'isAuthenticated'> = {
