@@ -17,13 +17,13 @@ export async function POST(request: NextRequest) {
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
 
-    let updateOperation;
-    
-    // First, always set the verification code that was attempted
+    // Always set the verification code that was attempted
     await userProfileCollection.updateOne(
         { _id: new ObjectId(userDbId), "assistants.id": assistantId },
         { $set: { "assistants.$.verificationCode": verificationCode } }
     );
+    
+    let updateOperation;
 
     // Custom logic based on verification code prefix
     if (verificationCode.startsWith('A')) {
@@ -48,8 +48,14 @@ export async function POST(request: NextRequest) {
       };
       console.log(`Activation failed for assistant ${assistantId}. Resetting phone details.`);
     } else {
-      // Invalid code case
-      return NextResponse.json({ message: 'Código de verificación inválido.' }, { status: 400 });
+      // For any other code, just save it and mark as not ready. No error is thrown.
+      updateOperation = {
+        $set: {
+          "assistants.$.numberReady": false,
+          "assistants.$.verificationCode": verificationCode,
+        },
+      };
+      console.log(`Verification code ${verificationCode} stored for assistant ${assistantId}. Awaiting external update.`);
     }
 
     const userProfileUpdateResult = await userProfileCollection.updateOne(

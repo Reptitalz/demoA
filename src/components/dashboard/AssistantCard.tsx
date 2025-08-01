@@ -117,11 +117,11 @@ const AssistantCard = ({
     // Show a processing toast
     const processingToast = toast({
         title: "Procesando Activación...",
-        description: `Tu asistente se está activando. Esto puede tardar un momento.`,
+        description: `Tu asistente se está actualizando. Esto puede tardar un momento.`,
     });
     
      try {
-        const response = await fetch('/api/assistants/update-status', {
+        await fetch('/api/assistants/update-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -131,23 +131,16 @@ const AssistantCard = ({
                 userDbId: state.userProfile._id.toString(),
             })
         });
-
-        const result = await response.json();
         
-        if (!response.ok) {
-          throw new Error(result.message || 'Error en la activación.');
-        }
-
         // The backend has updated the DB. Refetch the profile to get the definitive latest state.
         if (state.userProfile.phoneNumber) {
            await fetchProfileCallback(state.userProfile.phoneNumber);
         }
         
-        const startsWithA = verificationCode.startsWith('A');
         toast({ 
-            title: startsWithA ? "¡Asistente Activado!" : "Activación Fallida", 
-            description: startsWithA ? "Tu asistente ahora está activo y listo para usarse." : "El proceso de activación fue rechazado. Intenta con otro número.",
-            variant: startsWithA ? "default" : "destructive"
+            title: "Estado del Asistente Actualizado", 
+            description: `Se ha procesado el código. El estado de tu asistente se reflejará en el panel.`,
+            variant: "default"
         });
         
     } catch (error: any) {
@@ -349,7 +342,13 @@ const AssistantCard = ({
                                 id={`code-${assistant.id}`}
                                 placeholder="Código de verificación"
                                 value={verificationCode}
-                                onChange={(e) => setVerificationCode(e.target.value)}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  // Allow only numbers
+                                  if (/^\d*$/.test(value)) {
+                                    setVerificationCode(value);
+                                  }
+                                }}
                                 disabled={isProcessing}
                             />
                             <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length === 0} className="w-full">
@@ -391,7 +390,13 @@ const AssistantCard = ({
                                 id={`code-${assistant.id}`}
                                 placeholder="Código de verificación"
                                 value={verificationCode}
-                                onChange={(e) => setVerificationCode(e.target.value)}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  // Allow only numbers
+                                  if (/^\d*$/.test(value)) {
+                                    setVerificationCode(value);
+                                  }
+                                }}
                                 disabled={isProcessing}
                             />
                             <Button onClick={handleVerifyCode} disabled={isProcessing || verificationCode.length === 0} className="w-full">
