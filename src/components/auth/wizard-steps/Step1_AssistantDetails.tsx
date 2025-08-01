@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
 import { FaWhatsapp, FaCheckCircle, FaRegCircle } from "react-icons/fa";
@@ -51,17 +51,17 @@ const Step1AssistantDetails = () => {
         {selectedPurposes.has('notify_owner') && (
           <div className="space-y-2 animate-fadeIn bg-muted/30 p-4 rounded-lg">
             <Label htmlFor="ownerPhoneNumber" className="text-base font-medium flex items-center gap-2">
-              <FaWhatsapp className="text-green-500" /> Tu WhatsApp para notificaciones
+              <FaWhatsapp className="text-green-500" /> Tu WhatsApp para Notificaciones
             </Label>
             <PhoneInput
               id="ownerPhoneNumber"
-              placeholder="Ingresa tu número de teléfono"
+              placeholder="Ingresa tu número de WhatsApp"
               value={ownerPhoneNumberForNotifications as E164Number | undefined}
               onChange={handleOwnerPhoneChange}
               defaultCountry="MX"
             />
             <p className="text-xs text-muted-foreground">
-              El asistente te notificará a este número cuando esté listo o requiera tu ayuda.
+              El asistente te notificará a este número cuando requiera tu atención.
             </p>
           </div>
         )}
