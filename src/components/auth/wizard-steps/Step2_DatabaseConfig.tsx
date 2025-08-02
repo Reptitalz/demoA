@@ -57,36 +57,42 @@ const Step2DatabaseConfig = () => {
 
   const [isLoadingColumns, setIsLoadingColumns] = useState(false);
   const [fetchedColumns, setFetchedColumns] = useState<string[]>([]);
-
-  // Derived state from global state for local control
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
+  const [availableDbOptions, setAvailableDbOptions] = useState(allDatabaseOptionsConfig);
 
+  // This effect now handles both the wizard and the dialog cases
   useEffect(() => {
-    let currentAvailableOptions: DatabaseOptionConfig[] = [];
-    if (selectedPurposes.has("import_spreadsheet")) {
-      currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "google_sheets");
-    } else if (selectedPurposes.has("create_smart_db")) {
-      currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "smart_db");
-    }
-
-    if (currentAvailableOptions.length > 0) {
-      const currentSelectionIsValid = databaseOption.type && currentAvailableOptions.some(opt => opt.id === databaseOption.type);
-      if (!currentSelectionIsValid) {
-        dispatch({
-          type: 'SET_DATABASE_OPTION',
-          payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
-        });
-      }
+    // In the main wizard, filter options based on selected purposes
+    if (selectedPurposes.size > 0) {
+        let currentAvailableOptions: DatabaseOptionConfig[] = [];
+        if (selectedPurposes.has("import_spreadsheet")) {
+            currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "google_sheets");
+        } else if (selectedPurposes.has("create_smart_db")) {
+            currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "smart_db");
+        }
+        setAvailableDbOptions(currentAvailableOptions);
+        
+        // Auto-select if only one option is available
+        if (currentAvailableOptions.length > 0) {
+            const currentSelectionIsValid = databaseOption.type && currentAvailableOptions.some(opt => opt.id === databaseOption.type);
+            if (!currentSelectionIsValid) {
+                dispatch({
+                    type: 'SET_DATABASE_OPTION',
+                    payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
+                });
+            }
+        }
+    } else {
+        // In other contexts (like AddDatabaseDialog), show all options
+        setAvailableDbOptions(allDatabaseOptionsConfig);
     }
   }, [selectedPurposes, dispatch, databaseOption.type]);
 
 
   useEffect(() => {
-    // Sync local state when global state changes, but only if it's different
     if (databaseOption.accessUrl !== accessUrlValue) {
       setAccessUrlValue(databaseOption.accessUrl || '');
     }
-    // Fetched columns are now driven by the global state to persist them across steps
     setFetchedColumns(databaseOption.selectedColumns || []);
   }, [databaseOption]);
 
@@ -112,7 +118,7 @@ const Step2DatabaseConfig = () => {
 
   const handleAccessUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
-    setAccessUrlValue(newUrl); // Update local state immediately for button enable/disable
+    setAccessUrlValue(newUrl);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
   };
   
@@ -148,7 +154,6 @@ const Step2DatabaseConfig = () => {
         if (!response.ok) {
             throw new Error(data.message || "Error desconocido al cargar columnas.");
         }
-        // Set fetched columns to state and pre-select all columns by dispatching to global state
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns } });
         toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
 
@@ -167,7 +172,7 @@ const Step2DatabaseConfig = () => {
       <div className="text-center">
         <h3 className="text-xl font-semibold">Configura tu Base de Datos</h3>
         <p className="text-sm text-muted-foreground">
-          {allDatabaseOptionsConfig.length > 0 
+          {availableDbOptions.length > 0 
             ? "Elige cómo tu asistente almacenará y accederá a la información."
             : "Vuelve al paso 1 y elige un propósito que requiera una base de datos."
           }
@@ -175,31 +180,27 @@ const Step2DatabaseConfig = () => {
       </div>
 
       <div className="space-y-6">
-        {allDatabaseOptionsConfig.length > 0 ? (
+        {availableDbOptions.length > 0 ? (
           <RadioGroup
             value={databaseOption.type || ""}
             onValueChange={handleOptionChange}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
             aria-label="Opciones de Base de Datos"
           >
-            {allDatabaseOptionsConfig.map((option) => {
+            {availableDbOptions.map((option) => {
               const Icon = option.icon;
               const isChecked = databaseOption.type === option.id;
-              const isDisabled = !selectedPurposes.has(option.id as any);
-
+              
               return (
                 <Label
                   key={option.id}
                   htmlFor={`db-option-${option.id}`}
                   className={cn(
-                    "flex items-start space-x-4 p-4 border rounded-lg transition-all duration-200 relative",
-                    isDisabled 
-                      ? 'opacity-50 cursor-not-allowed bg-muted/40'
-                      : "hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-primary/50",
+                    "flex items-start space-x-4 p-4 border rounded-lg transition-all duration-200 relative hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-primary/50",
                      isChecked ? 'border-primary bg-primary/10 shadow-lg' : 'bg-card'
                   )}
                 >
-                  <input type="radio" value={option.id} id={`db-option-${option.id}`} name="db-option" className="sr-only" disabled={isDisabled} />
+                  <input type="radio" value={option.id} id={`db-option-${option.id}`} name="db-option" className="sr-only" />
                    {isChecked 
                     ? <FaCheckCircle className="absolute top-3 right-3 h-5 w-5 text-green-500 shrink-0" />
                     : <FaRegCircle className="absolute top-3 right-3 h-5 w-5 text-muted-foreground/50 shrink-0" />
@@ -304,5 +305,3 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
-
-    

@@ -31,8 +31,8 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange, assistantsWithoutDb }: AddDat
       setCurrentStep(1);
       setSelectedAssistantId(null);
       setIsProcessing(false);
-      // Also reset the database part of the wizard state
-      dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: null, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }});
+      // Reset the wizard state for this flow
+      dispatch({ type: 'RESET_WIZARD' });
     }
   }, [isOpen, dispatch]);
 
@@ -58,7 +58,7 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange, assistantsWithoutDb }: AddDat
        toast({ title: "Configuración Incompleta", description: "Por favor, completa los detalles de la base de datos.", variant: "destructive" });
        return;
     }
-     if (databaseOption.type === 'google_sheets' && (!databaseOption.accessUrl || databaseOption.selectedColumns?.length === 0)) {
+     if (databaseOption.type === 'google_sheets' && (!databaseOption.accessUrl || (databaseOption.selectedColumns || []).length === 0)) {
        toast({ title: "Configuración Incompleta", description: "Proporciona la URL de la Hoja de Google y carga las columnas.", variant: "destructive" });
        return;
     }
