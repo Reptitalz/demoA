@@ -26,16 +26,24 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange }: AddDatabaseDialogProps) => 
   const [assistantsWithoutDb, setAssistantsWithoutDb] = useState<AssistantConfig[]>([]);
   
   useEffect(() => {
-    if (isOpen) {
+    // This effect runs when the dialog opens or the main user profile changes.
+    // It ensures the list of available assistants is always up-to-date.
+    if (state.userProfile.assistants) {
       const availableAssistants = state.userProfile.assistants.filter(a => !a.databaseId);
       setAssistantsWithoutDb(availableAssistants);
+    }
+  }, [state.userProfile.assistants]);
 
+  useEffect(() => {
+    // This effect resets the state whenever the dialog is opened.
+    if (isOpen) {
       setCurrentStep(1);
       setSelectedAssistantId(null);
       setIsProcessing(false);
       dispatch({ type: 'RESET_WIZARD' });
     }
-  }, [isOpen, state.userProfile.assistants, dispatch]);
+  }, [isOpen, dispatch]);
+
 
   const handleNext = () => {
     if (currentStep === 1) {
@@ -108,11 +116,15 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange }: AddDatabaseDialogProps) => 
                   <SelectValue placeholder="Selecciona un asistente..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {assistantsWithoutDb.map(asst => (
-                    <SelectItem key={asst.id} value={asst.id}>
-                      {asst.name}
-                    </SelectItem>
-                  ))}
+                  {assistantsWithoutDb.length > 0 ? (
+                    assistantsWithoutDb.map(asst => (
+                      <SelectItem key={asst.id} value={asst.id}>
+                        {asst.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                     <SelectItem value="no-assistants" disabled>No hay asistentes sin base de datos</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
