@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, Suspense } from 'react';
@@ -5,10 +6,11 @@ import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaUser, FaKey, FaWhatsapp } from 'react-icons/fa';
+import { FaUser, FaKey, FaWhatsapp, FaPalette } from 'react-icons/fa';
 import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog'; // Import the new dialog
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 
 function ProfilePageContent() {
     const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
@@ -46,8 +48,18 @@ function ProfilePageContent() {
                            </Button>
                         </CardContent>
                     </Card>
+
+                    <Card className="animate-fadeIn" style={{ animationDelay: "0.3s" }}>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><FaPalette /> Apariencia</CardTitle>
+                            <CardDescription>Elige entre el tema claro y el tema oscuro para la aplicación.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <ThemeToggle />
+                        </CardContent>
+                    </Card>
                     
-                    <Card className="animate-fadeIn lg:col-span-2" style={{ animationDelay: "0.3s" }}>
+                    <Card className="animate-fadeIn" style={{ animationDelay: "0.4s" }}>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><FaWhatsapp /> Soporte Técnico</CardTitle>
                             <CardDescription>¿Necesitas ayuda o tienes alguna pregunta? Contáctanos directamente por WhatsApp.</CardDescription>
