@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaRobot, FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaRobot, FaDatabase, FaUser, FaSignOutAlt, FaBars } from 'react-icons/fa';
 import {
     Sidebar,
     SidebarMenu,
@@ -87,10 +87,8 @@ export default function DashboardLayout({
                          <AppIcon className="h-6 w-6" />
                         <span className="sr-only">{APP_NAME}</span>
                     </Link>
-                    <SidebarTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <span className="sr-only">Toggle sidebar</span>
-                        </Button>
+                    <SidebarTrigger>
+                        <FaBars />
                     </SidebarTrigger>
                 </header>
                 {children}
