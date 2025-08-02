@@ -84,6 +84,7 @@ type Action =
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
   | { type: 'REMOVE_ASSISTANT'; payload: string }
   | { type: 'ADD_DATABASE_TO_ASSISTANT'; payload: { assistantId: string, database: DatabaseConfig } }
+  | { type: 'REMOVE_DATABASE'; payload: string }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
@@ -196,6 +197,26 @@ const appReducer = (state: AppState, action: Action): AppState => {
       );
       const updatedDatabases = [...state.userProfile.databases, database];
       return { ...state, userProfile: { ...state.userProfile, assistants: updatedAssistants, databases: updatedDatabases }};
+    }
+    case 'REMOVE_DATABASE': {
+      const dbIdToRemove = action.payload;
+      // Remove the database from the databases array
+      const updatedDatabases = state.userProfile.databases.filter(db => db.id !== dbIdToRemove);
+      // Unlink the database from any assistants that were using it
+      const updatedAssistants = state.userProfile.assistants.map(asst => {
+        if (asst.databaseId === dbIdToRemove) {
+          return { ...asst, databaseId: undefined };
+        }
+        return asst;
+      });
+      return {
+        ...state,
+        userProfile: {
+          ...state.userProfile,
+          databases: updatedDatabases,
+          assistants: updatedAssistants,
+        }
+      };
     }
     case 'LOGOUT_USER':
       try {
