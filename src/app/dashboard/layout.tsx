@@ -1,26 +1,18 @@
+
 "use client";
 
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaRobot, FaDatabase, FaUser, FaSignOutAlt, FaBars } from 'react-icons/fa';
-import {
-    Sidebar,
-    SidebarMenu,
-    SidebarMenuItem,
-    SidebarMenuButton,
-    SidebarProvider,
-    SidebarInset,
-    SidebarHeader,
-    SidebarFooter,
-    SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { FaRobot, FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
-import AppIcon from '@/components/shared/AppIcon';
-import { APP_NAME } from '@/config/appConfig';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import AppIcon from '@/components/shared/AppIcon';
+import { APP_NAME } from '@/config/appConfig';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
@@ -45,54 +37,76 @@ export default function DashboardLayout({
     };
     
     return (
-        <SidebarProvider>
-            <Sidebar>
-                <SidebarHeader>
-                    <div className="flex items-center gap-2">
-                        <AppIcon className="h-7 w-7" />
-                        <span className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden">
-                            {APP_NAME}
-                        </span>
-                    </div>
-                </SidebarHeader>
-                <SidebarMenu>
-                    {menuItems.map(item => (
-                        <SidebarMenuItem key={item.path}>
-                            <Link href={item.path} passHref legacyBehavior>
-                                <SidebarMenuButton
-                                    isActive={pathname.startsWith(item.path)}
-                                    tooltip={item.label}
-                                >
-                                    <item.icon />
-                                    <span>{item.label}</span>
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-                <SidebarFooter>
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
-                                <FaSignOutAlt />
-                                <span>Cerrar Sesión</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarFooter>
-            </Sidebar>
-            <SidebarInset>
-                <header className="flex h-12 items-center justify-between border-b bg-background/50 px-4 md:hidden">
-                    <Link href="/" className="flex items-center gap-2 font-semibold">
+        <div className="flex flex-col h-screen">
+             <header className="flex h-14 items-center justify-between border-b bg-background/50 px-4 shrink-0">
+                    <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                          <AppIcon className="h-6 w-6" />
-                        <span className="sr-only">{APP_NAME}</span>
+                        <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
-                    <SidebarTrigger>
-                        <FaBars />
-                    </SidebarTrigger>
+                    <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
+                        <FaSignOutAlt size={12} className="mr-1" /> 
+                        Cerrar Sesión
+                    </Button>
                 </header>
+            <main className="flex-grow overflow-y-auto pb-20">
                 {children}
-            </SidebarInset>
-        </SidebarProvider>
+            </main>
+            <TooltipProvider>
+                <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t z-10 md:hidden">
+                    <div className="flex justify-around items-center h-full max-w-md mx-auto">
+                        {menuItems.map(item => (
+                            <Tooltip key={item.path}>
+                                <TooltipTrigger asChild>
+                                    <Link href={item.path} passHref legacyBehavior>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className={cn(
+                                                "flex flex-col h-auto p-2 rounded-lg items-center gap-1 transition-colors",
+                                                pathname.startsWith(item.path) ? "text-primary" : "text-muted-foreground"
+                                            )}
+                                        >
+                                            <item.icon className="h-5 w-5" />
+                                            <span className="text-[10px]">{item.label}</span>
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{item.label}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ))}
+                    </div>
+                </nav>
+            </TooltipProvider>
+
+             <nav className="hidden md:flex fixed bottom-4 left-1/2 -translate-x-1/2 z-10">
+                <TooltipProvider>
+                    <div className="flex items-center gap-2 bg-card border shadow-lg rounded-full p-2">
+                        {menuItems.map(item => (
+                            <Tooltip key={item.path}>
+                                <TooltipTrigger asChild>
+                                    <Link href={item.path} passHref legacyBehavior>
+                                        <Button
+                                            variant={pathname.startsWith(item.path) ? "default" : "ghost"}
+                                            size="icon"
+                                            className={cn(
+                                                "rounded-full transition-all",
+                                                pathname.startsWith(item.path) && "shadow-md"
+                                            )}
+                                        >
+                                            <item.icon className="h-5 w-5" />
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{item.label}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ))}
+                    </div>
+                </TooltipProvider>
+             </nav>
+        </div>
     );
 }
