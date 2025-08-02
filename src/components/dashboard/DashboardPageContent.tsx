@@ -98,8 +98,7 @@ const DashboardPageContent = () => {
     }
   };
 
-  const assistantsWithoutDb = userProfile.assistants.filter(a => !a.databaseId);
-  const showAddDatabaseButton = assistantsWithoutDb.length > 0;
+  const showAddDatabaseButton = userProfile.assistants.some(a => !a.databaseId);
 
   if (isLoading || !userProfile.isAuthenticated) {
     return (
@@ -192,7 +191,6 @@ const DashboardPageContent = () => {
     <AddDatabaseDialog 
         isOpen={isAddDatabaseDialogOpen} 
         onOpenChange={setIsAddDatabaseDialogOpen} 
-        assistantsWithoutDb={assistantsWithoutDb}
     />
     </>
   );

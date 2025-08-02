@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -14,27 +14,30 @@ import Step2DatabaseConfig from '../auth/wizard-steps/Step2_DatabaseConfig';
 interface AddDatabaseDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  assistantsWithoutDb: AssistantConfig[];
 }
 
-const AddDatabaseDialog = ({ isOpen, onOpenChange, assistantsWithoutDb }: AddDatabaseDialogProps) => {
+const AddDatabaseDialog = ({ isOpen, onOpenChange }: AddDatabaseDialogProps) => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Reset local state when dialog is opened/closed
-  React.useEffect(() => {
+  const [assistantsWithoutDb, setAssistantsWithoutDb] = useState<AssistantConfig[]>([]);
+  
+  // This effect runs when the dialog is opened, ensuring the list of assistants is fresh.
+  useEffect(() => {
     if (isOpen) {
+      const availableAssistants = state.userProfile.assistants.filter(a => !a.databaseId);
+      setAssistantsWithoutDb(availableAssistants);
+
+      // Reset state for a clean start
       setCurrentStep(1);
       setSelectedAssistantId(null);
       setIsProcessing(false);
-      // Reset the wizard state for this flow
       dispatch({ type: 'RESET_WIZARD' });
     }
-  }, [isOpen, dispatch]);
+  }, [isOpen, state.userProfile.assistants, dispatch]);
 
   const handleNext = () => {
     if (currentStep === 1) {
