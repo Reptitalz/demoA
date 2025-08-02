@@ -1,8 +1,7 @@
-
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
@@ -14,21 +13,37 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
+import AddDatabaseDialog from './AddDatabaseDialog';
 
 const DashboardPageContent = () => {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, fetchProfileCallback } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
+  const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
 
   useEffect(() => {
-    // This effect ensures that if a user somehow lands on the dashboard
-    // while not authenticated or still loading, they are shown a spinner
-    // while the main routing logic in AppProvider and AppRootPage takes over.
     if (!isLoading && !state.userProfile.isAuthenticated) {
         router.replace('/login');
     }
   }, [isLoading, state.userProfile.isAuthenticated, router]);
+  
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment_status');
+    const phoneNumber = state.userProfile.phoneNumber;
+
+    if (paymentStatus === 'success' && phoneNumber) {
+      toast({
+        title: "¡Pago Exitoso!",
+        description: "Tu compra ha sido procesada. Actualizando tu saldo...",
+        variant: "default",
+      });
+      fetchProfileCallback(phoneNumber);
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -50,12 +65,12 @@ const DashboardPageContent = () => {
         if(assistant.databaseId) {
             const db = userProfile.databases.find(d => d.id === assistant.databaseId);
             if (db) {
-                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, accessUrl: db.accessUrl, }});
+                dispatch({ type: 'SET_DATABASE_OPTION', payload: { type: db.source, name: db.name, accessUrl: db.accessUrl, selectedColumns: db.selectedColumns, relevantColumnsDescription: db.relevantColumnsDescription }});
             }
         }
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
-        router.push('/app'); // The wizard is now on the /app route
+        router.push('/app');
         toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
@@ -68,25 +83,21 @@ const DashboardPageContent = () => {
   };
 
   const handleAddNewDatabase = () => {
-    dispatch({ type: 'RESET_WIZARD' });
-    toast({
-      title: "Añadir Nueva Base de Datos",
-      description: "Para añadir una base de datos, inicia el proceso de 'Añadir Asistente' y configúrala allí.",
-      duration: 7000,
-    });
-    router.push('/app?action=add');
+    setIsAddDatabaseDialogOpen(true);
   };
 
   const handleLogout = async () => {
     try {
       dispatch({ type: 'LOGOUT_USER' });
       toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      window.location.href = '/login';
+      router.replace('/login');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
     }
   };
+
+  const showAddDatabaseButton = userProfile.assistants.some(a => !a.databaseId);
 
   if (isLoading || !userProfile.isAuthenticated) {
     return (
@@ -97,10 +108,11 @@ const DashboardPageContent = () => {
   }
   
   return (
+    <>
     <PageContainer className="space-y-5"> 
       <div className="animate-fadeIn">
         <div className="flex justify-between items-center mb-0.5"> 
-          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.phoneNumber || "Usuario/a"}!</h2> 
+          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.firstName || userProfile.phoneNumber || "Usuario/a"}!</h2> 
           {userProfile.isAuthenticated && (
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
               <FaSignOutAlt size={12} className="mr-1" /> 
@@ -152,6 +164,12 @@ const DashboardPageContent = () => {
             <FaDatabase size={18} className="text-primary" /> 
             Bases de Datos Vinculadas
           </h3>
+          {showAddDatabaseButton && (
+             <Button onClick={handleAddNewDatabase} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
+                <FaPlusCircle size={13} className="mr-1" /> 
+                Añadir Base de Datos
+            </Button>
+          )}
         </div>
         {userProfile.databases.length > 0 ? (
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">  
@@ -164,13 +182,19 @@ const DashboardPageContent = () => {
             <CardContent className="flex flex-col items-center gap-2.5"> 
               <FaDatabase size={36} className="text-muted-foreground" /> 
               <p className="text-xs text-muted-foreground">No hay bases de datos vinculadas o creadas aún.</p>
-              <Button onClick={handleAddNewDatabase} size="sm" className="text-xs px-2 py-1">Crear Base de Datos</Button>
             </CardContent>
           </Card>
         )}
       </div>
     </PageContainer>
+    <AddDatabaseDialog 
+        isOpen={isAddDatabaseDialogOpen} 
+        onOpenChange={setIsAddDatabaseDialogOpen} 
+    />
+    </>
   );
 };
 
+// This is no longer the main export, but kept in case of direct reference.
+// The new layout system handles routing.
 export default DashboardPageContent;

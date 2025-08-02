@@ -1,20 +1,30 @@
+"use client";
 
-import { Suspense } from 'react';
-import PageContainer from '@/components/layout/PageContainer';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import DashboardPageContent from '@/components/dashboard/DashboardPageContent';
+import PageContainer from '@/components/layout/PageContainer';
+import { useApp } from '@/providers/AppProvider';
 
-const DashboardPage = () => {
-  return (
-    // The Suspense boundary is a good practice for pages that might fetch data.
-    <Suspense fallback={
-      <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
-        <LoadingSpinner size={36} />
-      </PageContainer>
-    }>
-      <DashboardPageContent />
-    </Suspense>
-  );
-};
+// This page now acts as a redirector to the default dashboard page.
+export default function DashboardRedirector() {
+    const router = useRouter();
+    const { state } = useApp();
+    const { isLoading, userProfile } = state;
 
-export default DashboardPage;
+    useEffect(() => {
+        if (!isLoading) {
+            if (!userProfile.isAuthenticated) {
+                router.replace('/login');
+            } else {
+                router.replace('/dashboard/assistants');
+            }
+        }
+    }, [isLoading, userProfile.isAuthenticated, router]);
+
+    return (
+        <PageContainer className="flex items-center justify-center min-h-screen">
+            <LoadingSpinner size={36} />
+        </PageContainer>
+    );
+}
