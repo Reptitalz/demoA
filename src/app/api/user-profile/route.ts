@@ -63,6 +63,8 @@ export async function GET(request: NextRequest) {
           phoneLinked: asst.phoneLinked || '',
           verificationCode: asst.verificationCode || '',
           numberReady: asst.numberReady || false,
+          monthlyMessageLimit: asst.monthlyMessageLimit || 0,
+          messagesSentThisMonth: asst.messagesSentThisMonth || 0,
         })),
         databases: (profile.databases || []).map(db => ({
           ...db,
@@ -132,6 +134,8 @@ export async function POST(request: NextRequest) {
         phoneLinked: asst.phoneLinked || '',
         verificationCode: asst.verificationCode || '',
         numberReady: asst.numberReady || false,
+        monthlyMessageLimit: asst.monthlyMessageLimit || 0,
+        messagesSentThisMonth: asst.messagesSentThisMonth || 0,
       })),
       databases: (userProfile.databases || []).map((db: any) => ({
         ...db,

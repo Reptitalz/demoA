@@ -41,6 +41,8 @@ export interface AssistantConfig {
   verificationCode?: string;
   numberReady?: boolean;
   businessInfo?: AssistantBusinessInfo;
+  monthlyMessageLimit?: number;
+  messagesSentThisMonth?: number;
 }
 
 export type AuthProviderType = "google" | "phone";

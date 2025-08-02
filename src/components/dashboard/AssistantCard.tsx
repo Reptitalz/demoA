@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt } from "react-icons/fa";
-import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
+import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MESSAGES_PER_CREDIT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,9 @@ import { Input } from "../ui/input";
 import { PhoneInput } from "../ui/phone-input";
 import { E164Number, isValidPhoneNumber } from "react-phone-number-input";
 import { useApp } from "@/providers/AppProvider";
+import MessageLimitDialog from './MessageLimitDialog';
+import { Progress } from "../ui/progress";
+import { MessagesSquare } from "lucide-react";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -35,6 +38,7 @@ const AssistantCard = ({
   const [showAllPurposes, setShowAllPurposes] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isBusinessInfoDialogOpen, setIsBusinessInfoDialogOpen] = useState(false);
+  const [isMessageLimitDialogOpen, setIsMessageLimitDialogOpen] = useState(false);
 
   // Local state for the phone integration flow
   const [isIntegrating, setIsIntegrating] = useState(false);
@@ -86,13 +90,11 @@ const AssistantCard = ({
             const result = await response.json();
             throw new Error(result.message || 'Error al vincular el número.');
         }
-
-        // Optimistically update the assistant in global state with the phone number
-        // but keep it as not ready.
-        dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, phoneLinked: phoneNumber, numberReady: false } });
         
+        await fetchProfileCallback(state.userProfile.phoneNumber!);
+
         toast({ title: "Número Registrado", description: `Ingresa el código de verificación que recibirás.`});
-        setIntegrationStep(2); // Move to verification code step
+        setIntegrationStep(2);
         
     } catch (error: any) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -114,7 +116,6 @@ const AssistantCard = ({
 
     setIsProcessing(true);
     
-    // Show a processing toast
     const processingToast = toast({
         title: "Procesando Activación...",
         description: `Tu asistente se está actualizando. Esto puede tardar un momento.`,
@@ -132,7 +133,6 @@ const AssistantCard = ({
             })
         });
         
-        // The backend has updated the DB. Refetch the profile to get the definitive latest state.
         if (state.userProfile.phoneNumber) {
            await fetchProfileCallback(state.userProfile.phoneNumber);
         }
@@ -148,7 +148,7 @@ const AssistantCard = ({
     } finally {
         processingToast.dismiss();
         setIsProcessing(false);
-        setIsIntegrating(false); // Close the integration UI
+        setIsIntegrating(false);
     }
   };
 
@@ -216,6 +216,10 @@ const AssistantCard = ({
       {badgeText}
     </Badge>
   );
+  
+  const consumptionPercentage = assistant.monthlyMessageLimit 
+    ? Math.min(((assistant.messagesSentThisMonth || 0) / assistant.monthlyMessageLimit) * 100, 100)
+    : 0;
 
   return (
     <>
@@ -275,7 +279,19 @@ const AssistantCard = ({
 
           </div>
         </CardHeader>
-        <CardContent className="flex-grow space-y-2.5 sm:space-y-3">
+        <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
+          <div>
+            <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
+              <MessagesSquare size={14} className="text-accent" /> Consumo Mensual:
+            </h4>
+            <div className="mt-1.5 space-y-1">
+              <Progress value={consumptionPercentage} className="h-1.5" />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{(assistant.messagesSentThisMonth || 0).toLocaleString()}</span>
+                <span>{(assistant.monthlyMessageLimit || 0).toLocaleString()} msjs.</span>
+              </div>
+            </div>
+          </div>
           <div>
             <div className="flex justify-between items-center mb-1 sm:mb-1.5">
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
@@ -344,7 +360,6 @@ const AssistantCard = ({
                                 value={verificationCode}
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  // Allow only numbers
                                   if (/^\d*$/.test(value)) {
                                     setVerificationCode(value);
                                   }
@@ -364,7 +379,7 @@ const AssistantCard = ({
             ) : (
                 <>
                     {isAssistantActive ? (
-                        <>
+                        <div className="grid grid-cols-2 gap-2">
                             <Button
                                 size="sm"
                                 onClick={() => setIsBusinessInfoDialogOpen(true)}
@@ -374,15 +389,24 @@ const AssistantCard = ({
                                 <FaInfoCircle size={14} />
                                 Info. de Negocio
                             </Button>
+                             <Button
+                                size="sm"
+                                onClick={() => setIsMessageLimitDialogOpen(true)}
+                                variant="secondary"
+                                className="transition-transform transform hover:scale-105 w-full text-xs"
+                            >
+                                <MessagesSquare size={14} />
+                                Asignar Límite
+                            </Button>
                             <Button
                                 size="sm"
                                 onClick={handleShareOnWhatsApp}
-                                className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs"
+                                className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs col-span-2"
                             >
                                 <FaShareAlt size={14} />
                                 Compartir
                             </Button>
-                        </>
+                        </div>
                     ) : isWaitingForCode ? (
                         <div className="space-y-3 animate-fadeIn p-2">
                             <p className="text-xs text-muted-foreground text-center">Ingresa el código de verificación para {assistant.phoneLinked}.</p>
@@ -392,7 +416,6 @@ const AssistantCard = ({
                                 value={verificationCode}
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  // Allow only numbers
                                   if (/^\d*$/.test(value)) {
                                     setVerificationCode(value);
                                   }
@@ -431,6 +454,11 @@ const AssistantCard = ({
       <BusinessInfoDialog
         isOpen={isBusinessInfoDialogOpen}
         onOpenChange={setIsBusinessInfoDialogOpen}
+        assistant={assistant}
+      />
+      <MessageLimitDialog
+        isOpen={isMessageLimitDialogOpen}
+        onOpenChange={setIsMessageLimitDialogOpen}
         assistant={assistant}
       />
     </>

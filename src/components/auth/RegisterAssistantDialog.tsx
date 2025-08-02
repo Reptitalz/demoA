@@ -168,6 +168,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         phoneLinked: '',
         verificationCode: '',
         numberReady: false,
+        monthlyMessageLimit: 0,
+        messagesSentThisMonth: 0,
     };
     
     const userProfileForApi: Omit<UserProfile, 'isAuthenticated'> = {
