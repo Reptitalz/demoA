@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -8,23 +9,15 @@ import { useState } from 'react';
 import RechargeCreditsDialog from './RechargeCreditsDialog';
 import { MESSAGES_PER_CREDIT } from "@/config/appConfig";
 import { cn } from '@/lib/utils';
-import { useToast } from "@/hooks/use-toast";
+import MessagesInfoDialog from "./MessagesInfoDialog";
 
 const DashboardSummary = () => {
   const { state } = useApp();
-  const { toast } = useToast();
   const { assistants, credits } = state.userProfile;
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
+  const [isMessagesInfoOpen, setIsMessagesInfoOpen] = useState(false);
   const availableMessages = (credits || 0) * MESSAGES_PER_CREDIT;
-  
-  const handleMessagesInfoClick = () => {
-    toast({
-        title: "¿Cómo se Cuentan los Mensajes?",
-        description: "Cada mensaje enviado o recibido por tu asistente, así como cada notificación que te envíe, cuenta como un mensaje. ¡Cada interacción es un mensaje!",
-        duration: 8000,
-    });
-  }
 
   return (
     <>
@@ -77,7 +70,7 @@ const DashboardSummary = () => {
             "shadow-lg hover:shadow-xl transition-all duration-300 md:col-span-2 cursor-pointer",
              "bg-gradient-to-br from-card to-primary/10 hover:from-primary/10"
           )}
-          onClick={handleMessagesInfoClick}
+          onClick={() => setIsMessagesInfoOpen(true)}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Mensajes Disponibles</CardTitle>
@@ -95,6 +88,7 @@ const DashboardSummary = () => {
       </div>
       
       <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
+      <MessagesInfoDialog isOpen={isMessagesInfoOpen} onOpenChange={setIsMessagesInfoOpen} />
     </>
   );
 };
