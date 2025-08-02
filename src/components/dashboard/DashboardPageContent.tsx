@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
+import AddDatabaseDialog from './AddDatabaseDialog';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -21,19 +22,15 @@ const DashboardPageContent = () => {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
-
+  const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
 
   useEffect(() => {
-    // This effect ensures that if a user somehow lands on the dashboard
-    // while not authenticated or still loading, they are shown a spinner
-    // while the main routing logic in AppProvider and AppRootPage takes over.
     if (!isLoading && !state.userProfile.isAuthenticated) {
         router.replace('/login');
     }
   }, [isLoading, state.userProfile.isAuthenticated, router]);
   
   useEffect(() => {
-    // Check for payment status from Mercado Pago redirection
     const paymentStatus = searchParams.get('payment_status');
     const phoneNumber = state.userProfile.phoneNumber;
 
@@ -74,7 +71,7 @@ const DashboardPageContent = () => {
         }
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
-        router.push('/app'); // The wizard is now on the /app route
+        router.push('/app');
         toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
@@ -87,13 +84,7 @@ const DashboardPageContent = () => {
   };
 
   const handleAddNewDatabase = () => {
-    dispatch({ type: 'RESET_WIZARD' });
-    toast({
-      title: "Añadir Nueva Base de Datos",
-      description: "Para añadir una base de datos, inicia el proceso de 'Añadir Asistente' y configúrala allí.",
-      duration: 7000,
-    });
-    router.push('/app?action=add');
+    setIsAddDatabaseDialogOpen(true);
   };
 
   const handleLogout = async () => {
@@ -106,6 +97,9 @@ const DashboardPageContent = () => {
       toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
     }
   };
+
+  const assistantsWithoutDb = userProfile.assistants.filter(a => !a.databaseId);
+  const showAddDatabaseButton = assistantsWithoutDb.length > 0;
 
   if (isLoading || !userProfile.isAuthenticated) {
     return (
@@ -172,6 +166,12 @@ const DashboardPageContent = () => {
             <FaDatabase size={18} className="text-primary" /> 
             Bases de Datos Vinculadas
           </h3>
+          {showAddDatabaseButton && (
+             <Button onClick={handleAddNewDatabase} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
+                <FaPlusCircle size={13} className="mr-1" /> 
+                Añadir Base de Datos
+            </Button>
+          )}
         </div>
         {userProfile.databases.length > 0 ? (
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">  
@@ -184,16 +184,18 @@ const DashboardPageContent = () => {
             <CardContent className="flex flex-col items-center gap-2.5"> 
               <FaDatabase size={36} className="text-muted-foreground" /> 
               <p className="text-xs text-muted-foreground">No hay bases de datos vinculadas o creadas aún.</p>
-              <Button onClick={handleAddNewDatabase} size="sm" className="text-xs px-2 py-1">Crear Base de Datos</Button>
             </CardContent>
           </Card>
         )}
       </div>
     </PageContainer>
+    <AddDatabaseDialog 
+        isOpen={isAddDatabaseDialogOpen} 
+        onOpenChange={setIsAddDatabaseDialogOpen} 
+        assistantsWithoutDb={assistantsWithoutDb}
+    />
     </>
   );
 };
 
 export default DashboardPageContent;
-
-    

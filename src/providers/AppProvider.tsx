@@ -83,7 +83,7 @@ type Action =
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
   | { type: 'REMOVE_ASSISTANT'; payload: string }
-  | { type: 'ADD_DATABASE'; payload: DatabaseConfig }
+  | { type: 'ADD_DATABASE_TO_ASSISTANT'; payload: { assistantId: string, database: DatabaseConfig } }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
@@ -189,10 +189,15 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.map(a => a.id === action.payload.id ? action.payload : a) }};
     case 'REMOVE_ASSISTANT':
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.filter(a => a.id !== action.payload) }};
-    case 'ADD_DATABASE':
-      return { ...state, userProfile: { ...state.userProfile, databases: [...state.userProfile.databases, action.payload] }};
+    case 'ADD_DATABASE_TO_ASSISTANT': {
+      const { assistantId, database } = action.payload;
+      const updatedAssistants = state.userProfile.assistants.map(a => 
+        a.id === assistantId ? { ...a, databaseId: database.id } : a
+      );
+      const updatedDatabases = [...state.userProfile.databases, database];
+      return { ...state, userProfile: { ...state.userProfile, assistants: updatedAssistants, databases: updatedDatabases }};
+    }
     case 'LOGOUT_USER':
-      // Clear session storage on logout
       try {
         sessionStorage.removeItem('loggedInUser');
       } catch (error) {
