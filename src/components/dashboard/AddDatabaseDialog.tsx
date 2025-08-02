@@ -26,23 +26,18 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange }: AddDatabaseDialogProps) => 
   const [assistantsWithoutDb, setAssistantsWithoutDb] = useState<AssistantConfig[]>([]);
   
   useEffect(() => {
-    // This effect runs when the dialog opens or the main user profile changes.
-    // It ensures the list of available assistants is always up-to-date.
-    if (state.userProfile.assistants) {
-      const availableAssistants = state.userProfile.assistants.filter(a => !a.databaseId);
-      setAssistantsWithoutDb(availableAssistants);
-    }
-  }, [state.userProfile.assistants]);
-
-  useEffect(() => {
-    // This effect resets the state whenever the dialog is opened.
+    // This effect resets and prepares the state whenever the dialog is opened.
     if (isOpen) {
+      if (state.userProfile.assistants) {
+        const availableAssistants = state.userProfile.assistants.filter(a => !a.databaseId);
+        setAssistantsWithoutDb(availableAssistants);
+      }
       setCurrentStep(1);
       setSelectedAssistantId(null);
       setIsProcessing(false);
       dispatch({ type: 'RESET_WIZARD' });
     }
-  }, [isOpen, dispatch]);
+  }, [isOpen, dispatch, state.userProfile.assistants]);
 
 
   const handleNext = () => {
@@ -84,13 +79,10 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange }: AddDatabaseDialogProps) => 
       relevantColumnsDescription: databaseOption.relevantColumnsDescription,
     };
     
+    // The AppProvider will now handle saving this to the database
     dispatch({ type: 'ADD_DATABASE_TO_ASSISTANT', payload: { assistantId: selectedAssistantId!, database: newDb }});
 
-    toast({
-        title: "¡Base de Datos Vinculada!",
-        description: `La base de datos "${newDb.name}" ha sido vinculada al asistente.`,
-    });
-
+    // Toast will be shown from the AppProvider after successful save
     setIsProcessing(false);
     onOpenChange(false);
   };

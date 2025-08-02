@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';
 const SALT_ROUNDS = 10;
@@ -170,5 +171,48 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'Invalid JSON in request body' }, { status: 400 });
     }
     return NextResponse.json({ message: 'Failed to process request due to an internal error' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { userProfile } = await request.json();
+    const userId = userProfile._id;
+
+    if (!userId || !ObjectId.isValid(userId)) {
+      return NextResponse.json({ message: 'Invalid user ID' }, { status: 400 });
+    }
+
+    const { db } = await connectToDatabase();
+    const userCollection = db.collection<UserProfile>(PROFILES_COLLECTION);
+
+    // Create a copy of the profile and remove fields that should not be updated directly
+    const { _id, password, isAuthenticated, ...updateData } = userProfile;
+    
+    // Ensure assistants' purposes are stored as arrays, not Sets
+    if (updateData.assistants) {
+      updateData.assistants = updateData.assistants.map((asst: any) => ({
+        ...asst,
+        purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || [])
+      }));
+    }
+
+    const result = await userCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ message: 'User profile not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'User profile updated successfully', updatedCount: result.modifiedCount });
+
+  } catch (error) {
+    console.error("API PUT Error:", error);
+    if (error instanceof SyntaxError) {
+        return NextResponse.json({ message: 'Invalid JSON in request body' }, { status: 400 });
+    }
+    return NextResponse.json({ message: 'Failed to update user profile' }, { status: 500 });
   }
 }

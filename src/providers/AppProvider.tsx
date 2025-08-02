@@ -2,7 +2,7 @@
 "use client";
 
 import type { ReactNode } from 'react';
-import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress } from '@/types';
 import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
@@ -218,9 +218,53 @@ const appReducer = (state: AppState, action: Action): AppState => {
 
 const queryClient = new QueryClient();
 
+async function saveUserProfile(userProfile: UserProfile): Promise<void> {
+  if (!userProfile._id) {
+    console.error("Cannot save profile without an ID.");
+    throw new Error("Cannot save profile without an ID.");
+  }
+  try {
+    const response = await fetch('/api/user-profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userProfile }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to save user profile.");
+    }
+  } catch (error) {
+    console.error("Error saving user profile:", error);
+    throw error;
+  }
+}
+
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
+  const previousStateRef = useRef<AppState>(initialState);
+
+  useEffect(() => {
+    // This effect tracks changes to the state and saves the userProfile if it has changed.
+    const hasProfileChanged = JSON.stringify(previousStateRef.current.userProfile) !== JSON.stringify(state.userProfile);
+    
+    if (hasProfileChanged && state.userProfile.isAuthenticated && state.userProfile._id) {
+      saveUserProfile(state.userProfile)
+        .then(() => {
+           console.log("Profile saved successfully.");
+           toast({ title: "Cambios Guardados", description: "Tus cambios se han guardado exitosamente."});
+        })
+        .catch((error) => {
+          console.error("Failed to save profile, reverting state.", error);
+          toast({ title: "Error al Guardar", description: `No se pudieron guardar los cambios: ${error.message}`, variant: "destructive" });
+          // Revert to the previous state on failure
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: previousStateRef.current.userProfile });
+        });
+    }
+
+    previousStateRef.current = state;
+  }, [state]);
+
   const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
