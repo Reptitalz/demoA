@@ -62,17 +62,15 @@ export default function DashboardLayout({
                             <Tooltip key={item.path}>
                                 <TooltipTrigger asChild>
                                     <Link href={item.path} passHref legacyBehavior>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
+                                        <div
                                             className={cn(
-                                                "flex flex-col h-auto p-2 rounded-lg items-center gap-1 transition-colors",
-                                                pathname.startsWith(item.path) ? "text-primary" : "text-muted-foreground"
+                                                "flex flex-col items-center justify-center h-full w-20 cursor-pointer transition-colors text-muted-foreground hover:text-primary",
+                                                pathname.startsWith(item.path) && "text-primary"
                                             )}
                                         >
                                             <item.icon className="h-5 w-5" />
-                                            <span className="text-[10px]">{item.label}</span>
-                                        </Button>
+                                            <span className="text-[10px] mt-1">{item.label}</span>
+                                        </div>
                                     </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
