@@ -20,6 +20,7 @@ export interface DatabaseConfig {
   accessUrl?: string;
   selectedColumns?: string[];
   relevantColumnsDescription?: string;
+  storageSize?: number; // in bytes
 }
 
 export interface AssistantBusinessInfo {

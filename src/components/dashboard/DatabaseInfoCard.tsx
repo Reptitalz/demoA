@@ -1,8 +1,9 @@
+
 "use client";
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload } from "react-icons/fa";
+import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload, FaHdd } from "react-icons/fa";
 import { useApp } from "@/providers/AppProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
@@ -10,6 +11,8 @@ import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import ChangeDatabaseTypeDialog from "./ChangeDatabaseTypeDialog";
+import { Progress } from "../ui/progress";
+import { formatBytes } from "@/lib/utils";
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -95,6 +98,11 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
     }
   };
 
+  const MAX_STORAGE_MB = 50;
+  const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
+  const storageUsed = database.storageSize || 0;
+  const storagePercentage = Math.min((storageUsed / MAX_STORAGE_BYTES) * 100, 100);
+
   return (
     <>
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn flex flex-col" style={{animationDelay}}>
@@ -161,6 +169,19 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                 <span>URL no proporcionada.</span>
               </div>
            )}
+
+          {database.source === 'smart_db' && (
+            <div className="space-y-2 pt-2">
+              <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <FaHdd size={14} className="text-accent" /> Almacenamiento
+              </h4>
+              <Progress value={storagePercentage} className="h-1.5" />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{formatBytes(storageUsed)}</span>
+                <span>{MAX_STORAGE_MB} MB</span>
+              </div>
+            </div>
+          )}
         </CardContent>
          <CardFooter className="flex flex-col items-start gap-2 border-t pt-3 text-xs">
             <h4 className="font-semibold">Vinculado a:</h4>
