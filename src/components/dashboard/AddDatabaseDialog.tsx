@@ -25,13 +25,11 @@ const AddDatabaseDialog = ({ isOpen, onOpenChange }: AddDatabaseDialogProps) => 
   const [isProcessing, setIsProcessing] = useState(false);
   const [assistantsWithoutDb, setAssistantsWithoutDb] = useState<AssistantConfig[]>([]);
   
-  // This effect runs when the dialog is opened, ensuring the list of assistants is fresh.
   useEffect(() => {
     if (isOpen) {
       const availableAssistants = state.userProfile.assistants.filter(a => !a.databaseId);
       setAssistantsWithoutDb(availableAssistants);
 
-      // Reset state for a clean start
       setCurrentStep(1);
       setSelectedAssistantId(null);
       setIsProcessing(false);

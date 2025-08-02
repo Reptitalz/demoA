@@ -60,34 +60,17 @@ const Step2DatabaseConfig = () => {
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
   const [availableDbOptions, setAvailableDbOptions] = useState(allDatabaseOptionsConfig);
 
-  // This effect now handles both the wizard and the dialog cases
   useEffect(() => {
-    // In the main wizard, filter options based on selected purposes
+    let currentAvailableOptions: DatabaseOptionConfig[] = allDatabaseOptionsConfig;
     if (selectedPurposes.size > 0) {
-        let currentAvailableOptions: DatabaseOptionConfig[] = [];
         if (selectedPurposes.has("import_spreadsheet")) {
             currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "google_sheets");
         } else if (selectedPurposes.has("create_smart_db")) {
             currentAvailableOptions = allDatabaseOptionsConfig.filter(opt => opt.id === "smart_db");
         }
-        setAvailableDbOptions(currentAvailableOptions);
-        
-        // Auto-select if only one option is available
-        if (currentAvailableOptions.length > 0) {
-            const currentSelectionIsValid = databaseOption.type && currentAvailableOptions.some(opt => opt.id === databaseOption.type);
-            if (!currentSelectionIsValid) {
-                dispatch({
-                    type: 'SET_DATABASE_OPTION',
-                    payload: { type: currentAvailableOptions[0].id, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' }
-                });
-            }
-        }
-    } else {
-        // In other contexts (like AddDatabaseDialog), show all options
-        setAvailableDbOptions(allDatabaseOptionsConfig);
     }
-  }, [selectedPurposes, dispatch, databaseOption.type]);
-
+    setAvailableDbOptions(currentAvailableOptions);
+  }, [selectedPurposes]);
 
   useEffect(() => {
     if (databaseOption.accessUrl !== accessUrlValue) {
@@ -103,8 +86,8 @@ const Step2DatabaseConfig = () => {
       type: 'SET_DATABASE_OPTION',
       payload: {
         type: valueAsDbSource,
-        name: '', 
-        accessUrl: valueAsDbSource === 'google_sheets' ? '' : undefined,
+        name: databaseOption.name, // Keep name if already set
+        accessUrl: valueAsDbSource === 'google_sheets' ? databaseOption.accessUrl : undefined,
         selectedColumns: [],
         relevantColumnsDescription: '',
       }
@@ -155,11 +138,13 @@ const Step2DatabaseConfig = () => {
             throw new Error(data.message || "Error desconocido al cargar columnas.");
         }
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns } });
+        setFetchedColumns(data.columns);
         toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
 
     } catch (error: any) {
         toast({ title: "Error al Cargar Columnas", description: error.message, variant: "destructive" });
         dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: [] } });
+        setFetchedColumns([]);
     } finally {
         setIsLoadingColumns(false);
     }
@@ -267,7 +252,7 @@ const Step2DatabaseConfig = () => {
               </div>
             )}
 
-            {(databaseOption.selectedColumns || []).length > 0 && (
+            {(fetchedColumns || []).length > 0 && (
               <div className="space-y-4 pt-4 border-t">
                   <div className="space-y-2">
                     <Label className="text-base">Columnas Disponibles</Label>
