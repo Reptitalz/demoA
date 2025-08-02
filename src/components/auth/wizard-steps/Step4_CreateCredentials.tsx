@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -129,15 +130,28 @@ const Step4CreateCredentials = () => {
           <Label htmlFor="confirm-password" className="text-sm font-medium flex items-center gap-2">
             <Key className="h-4 w-4" /> Confirma tu Contraseña
           </Label>
-          <Input
-            id="confirm-password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Repite la contraseña"
-            value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            aria-required="true"
-            disabled={!password}
-          />
+          <div className="relative">
+            <Input
+              id="confirm-password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Repite la contraseña"
+              value={confirmPassword}
+              onChange={handleConfirmPasswordChange}
+              aria-required="true"
+              disabled={!password}
+              className="pr-10"
+            />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
            <p className="text-xs text-muted-foreground pt-1">
               Asegúrate de que ambas contraseñas coincidan.
             </p>

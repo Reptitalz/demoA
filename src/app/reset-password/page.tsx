@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Key, Eye, EyeOff, FaSpinner } from 'lucide-react';
+import { Key, Eye, EyeOff } from 'lucide-react';
+import { FaSpinner } from 'react-icons/fa';
 import Link from 'next/link';
 
 const APP_NAME = "Hey Manito";
@@ -112,6 +113,7 @@ const ResetPasswordContent = () => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isProcessing}
                     required
+                    className="pr-10"
                 />
                  <Button
                     type="button"
@@ -128,7 +130,8 @@ const ResetPasswordContent = () => {
               <Label htmlFor="confirm-password" className="flex items-center gap-2">
                 <Key className="h-4 w-4" /> Confirmar Contraseña
               </Label>
-               <Input
+               <div className="relative">
+                <Input
                     id="confirm-password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Confirma tu nueva contraseña"
@@ -136,7 +139,18 @@ const ResetPasswordContent = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isProcessing}
                     required
+                    className="pr-10"
                 />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                 >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                 </Button>
+               </div>
             </div>
             <Button type="submit" className="w-full bg-brand-gradient text-primary-foreground" disabled={isProcessing}>
               {isProcessing && <FaSpinner className="animate-spin mr-2" />}
@@ -155,7 +169,7 @@ const ResetPasswordContent = () => {
 };
 
 const ResetPasswordPage = () => (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><FaSpinner className="animate-spin text-primary h-8 w-8" /></div>}>
         <ResetPasswordContent />
     </Suspense>
 );

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
-import { LogIn, UserPlus, Phone, Key } from 'lucide-react';
+import { LogIn, UserPlus, Phone, Key, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,7 @@ const LoginPageContent = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state.userProfile.isAuthenticated) {
@@ -131,15 +132,26 @@ const LoginPageContent = () => {
             <label htmlFor="password" className="block text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
               <Key className="h-4 w-4" /> Contraseña
             </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Tu contraseña segura"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isProcessing}
-              className="w-full"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Tu contraseña segura"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isProcessing}
+                className="w-full pr-10"
+              />
+              <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+               >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+               </Button>
+            </div>
             <div className="text-right mt-1.5">
                 <Button 
                     type="button" 
