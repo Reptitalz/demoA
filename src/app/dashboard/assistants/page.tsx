@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
@@ -14,9 +15,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 
 function AssistantsPageContent() {
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state, dispatch } = useApp();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
 
@@ -25,22 +25,6 @@ function AssistantsPageContent() {
         router.replace('/login');
     }
   }, [isLoading, state.userProfile.isAuthenticated, router]);
-  
-  useEffect(() => {
-    const paymentStatus = searchParams.get('payment_status');
-    const phoneNumber = state.userProfile.phoneNumber;
-
-    if (paymentStatus === 'success' && phoneNumber) {
-      toast({
-        title: "¡Pago Exitoso!",
-        description: "Tu compra ha sido procesada. Actualizando tu saldo...",
-        variant: "default",
-      });
-      fetchProfileCallback(phoneNumber);
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-  }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);

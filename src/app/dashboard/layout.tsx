@@ -3,12 +3,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { FaRobot, FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
@@ -27,9 +26,27 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname();
-    const { dispatch } = useApp();
-    const { toast } = useToast();
+    const searchParams = useSearchParams();
     const router = useRouter();
+    const { state, dispatch, fetchProfileCallback } = useApp();
+    const { toast } = useToast();
+
+    React.useEffect(() => {
+        const paymentStatus = searchParams.get('payment_status');
+        const phoneNumber = state.userProfile.phoneNumber;
+
+        if (paymentStatus === 'success' && phoneNumber) {
+        toast({
+            title: "¡Pago Exitoso!",
+            description: "Tu compra ha sido procesada. Actualizando tu saldo...",
+            variant: "default",
+        });
+        fetchProfileCallback(phoneNumber);
+        // Clean up the URL
+        router.replace(pathname);
+        }
+    }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber, router, pathname]);
+
 
     const handleLogout = () => {
         dispatch({ type: 'LOGOUT_USER' });
