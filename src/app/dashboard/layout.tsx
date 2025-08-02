@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
+import NotificationsBell from '@/components/notifications/NotificationsBell';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
@@ -37,16 +38,19 @@ export default function DashboardLayout({
     };
     
     return (
-        <div className="flex flex-col h-screen">
-             <header className="flex h-14 items-center justify-between border-b bg-background/50 px-4 shrink-0">
+        <div className="flex flex-col h-screen bg-muted/30">
+             <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
                     <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                          <AppIcon className="h-6 w-6" />
                         <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
-                    <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
-                        <FaSignOutAlt size={12} className="mr-1" /> 
-                        Cerrar Sesión
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                        <NotificationsBell />
+                        <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
+                            <FaSignOutAlt size={12} className="mr-1" /> 
+                            Cerrar Sesión
+                        </Button>
+                    </div>
                 </header>
             <main className="flex-grow overflow-y-auto pb-20">
                 {children}

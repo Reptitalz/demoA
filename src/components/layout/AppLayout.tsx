@@ -14,15 +14,16 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
   const isMarketingPage = pathname === '/'; 
+  const isDashboardPage = pathname.startsWith('/dashboard');
   const layoutShouldBeFullWidth = isMarketingPage;
   
   return (
     <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
-      <Header fullWidth={layoutShouldBeFullWidth} />
+      {!isDashboardPage && <Header fullWidth={layoutShouldBeFullWidth} />}
       <div className={cn("flex-grow w-full")}>
         {children}
       </div>
-      <Footer fullWidth={layoutShouldBeFullWidth} />
+      {!isDashboardPage && <Footer fullWidth={layoutShouldBeFullWidth} />}
       <Toaster />
     </div>
   );
