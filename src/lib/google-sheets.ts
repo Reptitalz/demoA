@@ -58,3 +58,28 @@ export async function getSheetHeaders(sheetId: string): Promise<string[]> {
         throw new Error("No se pudo conectar con la Hoja de Google.");
     }
 }
+
+/**
+ * Asynchronously gets all data from a Google Sheet.
+ * @param sheetId The ID of the google sheet to import.
+ * @returns A promise that resolves to a 2D array of strings representing the sheet data.
+ */
+export async function getSheetData(sheetId: string): Promise<any[][]> {
+    try {
+        const client = await getSheetsClient();
+        // Assuming data is on the first sheet, and we fetch a reasonable range.
+        // You might need to make this more robust to get the actual sheet name and used range.
+        const response = await client.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: 'A:Z', // Get all data in columns A to Z
+        });
+
+        return response.data.values || [];
+    } catch(err: any) {
+        console.error("Error al obtener los datos de la Hoja de Google:", err.message);
+        if (err.code === 403) {
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio.");
+        }
+        throw new Error("No se pudo conectar con la Hoja de Google.");
+    }
+}

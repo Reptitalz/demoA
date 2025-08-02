@@ -2,13 +2,14 @@
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt } from "react-icons/fa";
+import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload } from "react-icons/fa";
 import { useApp } from "@/providers/AppProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import ChangeDatabaseTypeDialog from "./ChangeDatabaseTypeDialog";
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -19,6 +20,8 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const { state, dispatch } = useApp();
   const { toast } = useToast();
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isChangeTypeDialogOpen, setIsChangeTypeDialogOpen] = useState(false);
+  
   const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id).map(a => a.name);
 
   const getDatabaseIcon = (source: DatabaseSource) => {
@@ -55,11 +58,41 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
     }
   };
 
-  const handleChangeType = () => {
-    toast({
-      title: "Próximamente",
-      description: "La funcionalidad para cambiar el tipo de base de datos estará disponible pronto.",
-    });
+  const handleDownload = async () => {
+    if (database.source !== 'google_sheets' || !database.accessUrl) {
+      toast({ title: "No disponible", description: "La descarga solo está disponible para Hojas de Google." });
+      return;
+    }
+    
+    toast({ title: "Preparando descarga...", description: "Esto puede tardar un momento." });
+
+    try {
+      const response = await fetch('/api/sheets/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetUrl: database.accessUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'No se pudo descargar el archivo.');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${database.name.replace(/\s+/g, '_') || 'database'}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({ title: "¡Descarga Completa!", description: "El archivo CSV se ha descargado." });
+
+    } catch (error: any) {
+      toast({ title: "Error de Descarga", description: error.message, variant: 'destructive' });
+    }
   };
 
   return (
@@ -67,9 +100,9 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn flex flex-col" style={{animationDelay}}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <FaDatabase className="h-8 w-8 text-primary" />
-              <div className="flex-1">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <FaDatabase className="h-8 w-8 text-primary shrink-0" />
+              <div className="flex-1 overflow-hidden">
                 <CardTitle className="text-xl truncate" title={database.name}>{database.name}</CardTitle>
                 <CardDescription className="text-xs pt-1 flex items-center gap-1.5 whitespace-nowrap">
                    <Icon size={12} /> {getSourceName(database.source)}
@@ -78,7 +111,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
             </div>
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
                         <FaEllipsisV />
                     </Button>
                 </DropdownMenuTrigger>
@@ -86,7 +119,10 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                     <DropdownMenuItem onClick={handleViewContent} disabled={database.source !== 'google_sheets'}>
                         <FaEye className="mr-2" /> Ver Contenido
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleChangeType}>
+                    <DropdownMenuItem onClick={handleDownload} disabled={database.source !== 'google_sheets'}>
+                        <FaDownload className="mr-2" /> Descargar Datos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsChangeTypeDialogOpen(true)}>
                         <FaExchangeAlt className="mr-2" /> Cambiar Tipo
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -101,8 +137,8 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
           </div>
         </CardHeader>
         <CardContent className="flex-grow space-y-3 text-sm">
-          <p className="text-muted-foreground">
-            ID: <span className="font-mono text-xs">{database.id.substring(0,15)}...</span>
+          <p className="text-muted-foreground break-all">
+            ID: <span className="font-mono text-xs">{database.id}</span>
           </p>
           {database.source === 'google_sheets' && database.accessUrl && (
             <div className="flex items-center gap-1.5">
@@ -162,6 +198,12 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ChangeDatabaseTypeDialog 
+        isOpen={isChangeTypeDialogOpen}
+        onOpenChange={setIsChangeTypeDialogOpen}
+        database={database}
+      />
     </>
   );
 };
