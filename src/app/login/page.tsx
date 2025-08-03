@@ -12,11 +12,12 @@ import { useToast } from '@/hooks/use-toast';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { PhoneInput } from '@/components/ui/phone-input';
 import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
+import { FaSpinner } from 'react-icons/fa';
 
 const APP_NAME = "Hey Manito";
 
 const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
-  <div className="animate-spin rounded-full border-4 border-t-transparent border-primary" style={{ width: size, height: size }} />
+  <FaSpinner className="animate-spin" style={{ width: size, height: size }} />
 );
 
 const LoginPageContent = () => {
