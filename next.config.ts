@@ -21,7 +21,7 @@ const securityHeaders = [
     value: 'true',
   },
   {
-    key: 'Access-control-allow-origin',
+    key: 'access-control-allow-origin',
     value: '*', // Replace with your actual domain in production for better security
   },
   {
@@ -60,15 +60,6 @@ const nextConfig = {
       }
     ],
   },
-  assetPrefix: '/static',
-  async rewrites() {
-    return [
-      {
-        source: '/static/:path*',
-        destination: '/_next/static/:path*',
-      },
-    ];
-  },
   async headers() {
     return [
       {
@@ -78,9 +69,25 @@ const nextConfig = {
       },
     ];
   },
-  experimental: {
-    // This is necessary to prevent bundling issues with native modules used by server-side packages.
-    serverComponentsExternalPackages: ['bcrypt', 'firebase-admin'],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Exclude server-only modules from client-side bundle
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        "mongodb-client-encryption": false,
+        "bson-ext": false,
+        "kerberos": false,
+        "@mongodb-js/zstd": false,
+        "aws4": false,
+        "snappy": false,
+        "gcp-metadata": false,
+        "child_process": false,
+        "fs": false,
+      };
+    }
+     // This is necessary to prevent bundling issues with native modules used by server-side packages.
+    config.externals.push('bcrypt');
+    return config;
   },
 };
 
