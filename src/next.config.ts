@@ -1,6 +1,4 @@
 
-import type { Configuration as WebpackConfiguration } from 'webpack';
-
 const securityHeaders = [
   // Prevents browsers from incorrectly guessing content types.
   {
@@ -23,7 +21,7 @@ const securityHeaders = [
     value: 'true',
   },
   {
-    key: 'Access-Control-Allow-Origin',
+    key: 'access-control-allow-origin',
     value: '*', // Replace with your actual domain in production for better security
   },
   {
@@ -37,6 +35,9 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -59,15 +60,6 @@ const nextConfig = {
       }
     ],
   },
-  assetPrefix: '/static',
-  async rewrites() {
-    return [
-      {
-        source: '/static/:path*',
-        destination: '/_next/static/:path*',
-      },
-    ];
-  },
   async headers() {
     return [
       {
@@ -77,36 +69,26 @@ const nextConfig = {
       },
     ];
   },
-  webpack: (
-    config: WebpackConfiguration,
-    { isServer }: { isServer: boolean }
-  ): WebpackConfiguration => {
+  webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Initialize resolve and fallback if they don't exist to prevent errors
-      if (!config.resolve) {
-        config.resolve = {};
-      }
-      if (!config.resolve.fallback) {
-        config.resolve.fallback = {}; // Ensure fallback is an object
-      }
-
-      // Add fallbacks for Node.js core modules.
-      // This prevents "Module not found" errors for these modules on the client-side,
-      // as database operations are handled by Server Actions.
+      // Exclude server-only modules from client-side bundle
       config.resolve.fallback = {
-        ...config.resolve.fallback, // Preserve existing fallbacks if any
+        ...config.resolve.fallback,
+        "mongodb-client-encryption": false,
+        "bson-ext": false,
+        "kerberos": false,
+        "@mongodb-js/zstd": false,
+        "aws4": false,
+        "snappy": false,
+        "gcp-metadata": false,
         "child_process": false,
         "fs": false,
-        "net": false,
-        "tls": false,
-        "dns": false,
-        // The 'mongodb-client-encryption' module is problematic for client bundles
-        // as it depends on 'child_process'. Marking it as false prevents bundling.
-        "mongodb-client-encryption": false,
       };
     }
+     // This is necessary to prevent bundling issues with native modules used by server-side packages.
+    config.externals.push('bcrypt');
     return config;
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
