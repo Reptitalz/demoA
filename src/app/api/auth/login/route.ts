@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const PROFILES_COLLECTION = 'userProfiles';
 

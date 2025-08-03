@@ -1,14 +1,14 @@
 
 "use client";
 
-import { useEffect, Suspense } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import PageContainer from '@/components/layout/PageContainer';
 import { useApp } from '@/providers/AppProvider';
 
 // This page now acts as a redirector to the default dashboard page.
-function DashboardRedirectorContent() {
+function DashboardRedirector() {
     const router = useRouter();
     const { state } = useApp();
     const { isLoading, userProfile } = state;
@@ -30,14 +30,4 @@ function DashboardRedirectorContent() {
     );
 }
 
-export default function DashboardRedirector() {
-    return (
-        <Suspense fallback={
-            <PageContainer className="flex items-center justify-center min-h-screen">
-                <LoadingSpinner size={36} />
-            </PageContainer>
-        }>
-            <DashboardRedirectorContent />
-        </Suspense>
-    );
-}
+export default DashboardRedirector;

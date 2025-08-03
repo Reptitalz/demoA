@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FaRobot, FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -26,27 +26,9 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname();
-    const searchParams = useSearchParams();
     const router = useRouter();
-    const { state, dispatch, fetchProfileCallback } = useApp();
+    const { dispatch } = useApp();
     const { toast } = useToast();
-
-    React.useEffect(() => {
-        const paymentStatus = searchParams.get('payment_status');
-        const phoneNumber = state.userProfile.phoneNumber;
-
-        if (paymentStatus === 'success' && phoneNumber) {
-        toast({
-            title: "¡Pago Exitoso!",
-            description: "Tu compra ha sido procesada. Actualizando tu saldo...",
-            variant: "default",
-        });
-        fetchProfileCallback(phoneNumber);
-        // Clean up the URL
-        router.replace(pathname);
-        }
-    }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber, router, pathname]);
-
 
     const handleLogout = () => {
         dispatch({ type: 'LOGOUT_USER' });

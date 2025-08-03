@@ -3,7 +3,7 @@ import type { UserProfile } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { ObjectId } from 'mongodb';
 
