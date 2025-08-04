@@ -3,6 +3,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
+import axios from 'axios';
+
+const N8N_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/codemax';
+
+async function sendActivationWebhook(userEmail: string, assistantName: string, verificationCode: string) {
+    try {
+        const payload = {
+            email: userEmail,
+            assistantName: assistantName,
+            code: verificationCode,
+        };
+        console.log("Sending activation webhook to n8n with payload:", payload);
+        await axios.post(N8N_WEBHOOK_URL, payload, { timeout: 5000 });
+        console.log("Successfully sent activation webhook to n8n.");
+    } catch (error) {
+        // We don't want to block the main flow if the webhook fails, but we should log it.
+        console.error("Error sending activation webhook to n8n:", error instanceof Error ? error.message : error);
+    }
+}
+
 
 export async function POST(request: NextRequest) {
   const { assistantId, phoneNumber, verificationCode, userDbId } = await request.json();
@@ -16,6 +36,25 @@ export async function POST(request: NextRequest) {
   try {
     const { db } = await connectToDatabase();
     const userProfileCollection = db.collection<UserProfile>('userProfiles');
+
+    // First, find the user and the specific assistant to get details for the webhook
+    const user = await userProfileCollection.findOne({ _id: new ObjectId(userDbId) });
+    if (!user) {
+        return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+    
+    const assistant = user.assistants.find(a => a.id === assistantId);
+    if (!assistant) {
+        return NextResponse.json({ message: 'Assistant not found for this user' }, { status: 404 });
+    }
+
+    // Send the webhook notification
+    if (user.email && assistant.name) {
+       await sendActivationWebhook(user.email, assistant.name, verificationCode);
+    } else {
+       console.warn("Could not send activation webhook because user email or assistant name is missing.");
+    }
+    
 
     // Always set the verification code that was attempted
     await userProfileCollection.updateOne(
@@ -31,6 +70,7 @@ export async function POST(request: NextRequest) {
       updateOperation = {
         $set: { 
           "assistants.$.numberReady": true,
+          "assistants.$.isActive": true, // Also set the primary status flag
           "assistants.$.phoneLinked": phoneNumber, // ensure phone is set
         }
       };
@@ -40,6 +80,7 @@ export async function POST(request: NextRequest) {
       updateOperation = {
         $set: {
             "assistants.$.numberReady": false, // explicitly set to false
+            "assistants.$.isActive": false,
         },
         $unset: { 
           "assistants.$.phoneLinked": "", 
@@ -52,6 +93,7 @@ export async function POST(request: NextRequest) {
       updateOperation = {
         $set: {
           "assistants.$.numberReady": false,
+          "assistants.$.isActive": false,
           "assistants.$.verificationCode": verificationCode,
         },
       };
