@@ -301,7 +301,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     previousStateRef.current = state;
-  }, [state]);
+  }, [state.userProfile]);
 
   const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });

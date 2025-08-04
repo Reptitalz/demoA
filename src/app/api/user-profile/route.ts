@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         phoneNumber: profile.phoneNumber,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
-          isActive: asst.numberReady || false,
+          isActive: asst.isActive || false, // Use new isActive flag
           purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
           businessInfo: asst.businessInfo || {},
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       credits: userProfile.credits || 0,
       assistants: (userProfile.assistants || []).map((asst: AssistantConfig) => ({
         ...asst,
-        isActive: asst.numberReady || false,
+        isActive: asst.isActive || false, // Use new isActive flag
         purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         businessInfo: asst.businessInfo || {},
@@ -193,13 +193,23 @@ export async function PUT(request: NextRequest) {
     // Create a copy of the profile and remove fields that should not be updated directly
     const { _id, password, isAuthenticated, ...updateData } = userProfile;
     
-    // Ensure assistants' purposes are stored as arrays
+    // Ensure assistants and databases are arrays and have required fields initialized
     if (updateData.assistants) {
-      updateData.assistants = updateData.assistants.map((asst: any) => ({
+      updateData.assistants = updateData.assistants.map((asst: AssistantConfig) => ({
         ...asst,
-        purposes: Array.isArray(asst.purposes) ? asst.purposes : []
+        purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
+        messageCount: asst.messageCount || 0,
+        monthlyMessageLimit: asst.monthlyMessageLimit || 0,
       }));
     }
+     if (updateData.databases) {
+      updateData.databases = updateData.databases.map((db: any) => ({
+        ...db,
+        selectedColumns: db.selectedColumns || [],
+        relevantColumnsDescription: db.relevantColumnsDescription || '',
+      }));
+    }
+
 
     const result = await userCollection.updateOne(
       { _id: new ObjectId(userId) },
