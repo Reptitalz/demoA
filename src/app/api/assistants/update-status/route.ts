@@ -1,3 +1,4 @@
+
 // src/app/api/assistants/update-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -5,7 +6,7 @@ import type { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
 import axios from 'axios';
 
-const N8N_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/codemax';
+const N8N_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook-test/codemax';
 
 async function sendActivationWebhook(userEmail: string, assistantName: string, verificationCode: string) {
     try {
