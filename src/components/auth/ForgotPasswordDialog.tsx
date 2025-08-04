@@ -20,7 +20,7 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
   const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleRecovery = async (method: 'whatsapp' | 'email') => {
+  const handleRecovery = async (method: 'whatsapp') => {
     if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
       toast({
         title: "Número de Teléfono Inválido",
@@ -47,7 +47,7 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
       
       toast({
         title: "Solicitud Enviada",
-        description: `Si tu número está registrado, recibirás las instrucciones por ${method === 'whatsapp' ? 'WhatsApp' : 'correo electrónico'}.`,
+        description: `Si tu número está registrado, recibirás las instrucciones por WhatsApp.`,
       });
 
       onOpenChange(false);
@@ -71,7 +71,7 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
             <FaKey /> Recuperar Contraseña
           </DialogTitle>
           <DialogDescription>
-            Ingresa tu número de teléfono para enviarte un enlace de recuperación.
+            Ingresa tu número de teléfono para enviarte un enlace de recuperación por WhatsApp.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -90,28 +90,14 @@ const ForgotPasswordDialog = ({ isOpen, onOpenChange }: ForgotPasswordDialogProp
           </div>
 
           <div className="space-y-2 text-center">
-            <p className="text-sm font-medium">Elige un método de recuperación:</p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Button
-                    onClick={() => handleRecovery('whatsapp')}
-                    disabled={isProcessing || !phoneNumber}
-                    className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
-                >
-                    {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaWhatsapp className="mr-2" />}
-                    Enviar por WhatsApp
-                </Button>
-                <Button
-                    disabled={true}
-                    className="w-full sm:w-auto"
-                    title="Próximamente"
-                >
-                    <FaEnvelope className="mr-2" />
-                    Enviar por Correo (Próximamente)
-                </Button>
-            </div>
-             <p className="text-xs text-muted-foreground pt-2">
-                El correo se enviará a la dirección asociada a tu cuenta.
-            </p>
+            <Button
+                onClick={() => handleRecovery('whatsapp')}
+                disabled={isProcessing || !phoneNumber}
+                className="w-full bg-green-500 hover:bg-green-600 text-white"
+            >
+                {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaWhatsapp className="mr-2" />}
+                Enviar por WhatsApp
+            </Button>
           </div>
         </div>
         <DialogFooter>
