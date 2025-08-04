@@ -5,14 +5,14 @@ import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { PRICE_PER_CREDIT } from '@/config/appConfig';
 
 interface MercadoPagoPaymentFormProps {
-  preferenceId: string;
-  amount: number;
+  credits: number; // Changed from amount
   onPaymentSuccess: () => void;
 }
 
-const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: MercadoPagoPaymentFormProps) => {
+const MercadoPagoPaymentForm = ({ credits, onPaymentSuccess }: MercadoPagoPaymentFormProps) => {
   const { state } = useApp();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -20,6 +20,7 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
   const { userProfile } = state;
 
   const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY;
+  const amount = credits * PRICE_PER_CREDIT; // Calculate amount here
 
   useEffect(() => {
     if (publicKey) {
@@ -38,7 +39,7 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
   const processPayment = async (data: any) => {
     setIsProcessingPayment(true);
     try {
-        const external_reference = `${userProfile._id?.toString()}__${amount / 50}__${Date.now()}`;
+        const external_reference = `${userProfile._id?.toString()}__${credits}__${Date.now()}`;
         const response = await fetch('/api/process-payment', {
             method: 'POST',
             headers: {
@@ -46,8 +47,8 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
             },
             body: JSON.stringify({
                 ...data,
-                transaction_amount: amount,
-                external_reference: external_reference, // Passing it here
+                credits: credits, // Pass credits to the backend
+                external_reference: external_reference,
             })
         });
 
@@ -72,7 +73,6 @@ const MercadoPagoPaymentForm = ({ preferenceId, amount, onPaymentSuccess }: Merc
 
   const initialization = {
     amount: amount,
-    preferenceId: preferenceId,
   };
 
   const customization = {

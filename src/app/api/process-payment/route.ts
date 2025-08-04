@@ -4,6 +4,7 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
+import { PRICE_PER_CREDIT } from '@/config/appConfig';
 
 const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
@@ -20,11 +21,13 @@ const payment = new Payment(client);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, issuer_id, payment_method_id, transaction_amount, installments, payer, external_reference } = body;
+    const { token, issuer_id, payment_method_id, installments, payer, external_reference, credits } = body;
     
-    if (!token || !payment_method_id || !transaction_amount || !payer?.email || !external_reference) {
+    if (!token || !payment_method_id || !credits || !payer?.email || !external_reference) {
       return NextResponse.json({ message: 'Faltan datos para procesar el pago.' }, { status: 400 });
     }
+
+    const transaction_amount = credits * PRICE_PER_CREDIT;
 
     const [userId] = external_reference.split('__');
     if (!userId || !ObjectId.isValid(userId)) {
@@ -38,9 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     const paymentData: any = {
-      transaction_amount: Number(transaction_amount),
+      transaction_amount: Number(transaction_amount.toFixed(2)),
       token: token,
-      description: 'Recarga de Créditos Hey Manito!',
+      description: `Recarga de ${credits} Créditos Hey Manito!`,
       installments: Number(installments),
       payment_method_id: payment_method_id,
       issuer_id: issuer_id,
@@ -69,8 +72,7 @@ export async function POST(request: NextRequest) {
 
     // Handle the payment status. If approved, update user credits.
     if (paymentResult.status === 'approved') {
-        const [ , creditsStr ] = external_reference.split('__');
-        const creditsPurchased = parseFloat(creditsStr);
+        const creditsPurchased = parseFloat(credits);
 
         await db.collection<UserProfile>('userProfiles').updateOne(
             { _id: new ObjectId(userId) },
