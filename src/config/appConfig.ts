@@ -50,17 +50,17 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
   { id: "phone", name: "Continuar con Teléfono", icon: FaPhone },
 ];
 
-export const PRICE_PER_CREDIT = 50.00; // Precio base por crédito
+export const PRICE_PER_CREDIT = 65.00; // Precio base por crédito
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
 
-// 8 MXN / 50 MXN per credit = 0.16 credits.
-export const CREDITS_FOR_TEST_PLAN = 0.16;
+// 10 MXN / 65 MXN per credit
+export const CREDITS_FOR_TEST_PLAN = 10 / PRICE_PER_CREDIT;
 
 export const CREDIT_PACKAGES = [
-  { credits: CREDITS_FOR_TEST_PLAN, price: 8.00, name: "Prueba" },
-  { credits: 1, price: 50.00, name: "Básico" },
-  { credits: 5, price: 250.00, name: "Estándar" },
-  { credits: 10, price: 500.00, name: "Pro" },
-  { credits: 25, price: 1250.00, name: "Premium" },
+  { credits: CREDITS_FOR_TEST_PLAN, price: 10.00, name: "Prueba" },
+  { credits: 1, price: 65.00, name: "Básico" },
+  { credits: 5, price: 325.00, name: "Estándar" },
+  { credits: 10, price: 650.00, name: "Pro" },
+  { credits: 25, price: 1625.00, name: "Premium" },
 ];
