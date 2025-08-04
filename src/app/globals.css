@@ -136,6 +136,19 @@ body {
       transform: translateY(-10px);
     }
   }
+
+  .animate-pulse-border {
+    animation: pulse-border 2s infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsla(var(--primary), 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 4px hsla(var(--primary), 0);
+    }
+  }
 }
 
 

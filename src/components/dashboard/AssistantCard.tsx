@@ -431,7 +431,7 @@ const AssistantCard = ({
                          <Button
                             size="sm"
                             onClick={() => setIsIntegrating(true)}
-                            className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs"
+                            className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs animate-pulse-border"
                          >
                             <FaPhoneAlt size={13} />
                             Integrar número de teléfono
