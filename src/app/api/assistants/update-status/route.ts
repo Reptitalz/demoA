@@ -6,7 +6,7 @@ import type { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
 import axios from 'axios';
 
-const N8N_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook-test/codemax';
+const N8N_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/codemax';
 
 async function sendActivationWebhook(userEmail: string, assistantName: string, verificationCode: string) {
     try {
