@@ -1,10 +1,8 @@
-
 // src/app/api/assistants/link-phone/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
-import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
 
 export async function POST(request: NextRequest) {
   const { assistantId, phoneNumber, userDbId } = await request.json();
@@ -35,9 +33,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Assistant not found for the given user' }, { status: 404 });
     }
 
-    // 2. Trigger a webhook to notify that a number has been linked and is pending verification.
-    // The verification code itself is now expected to be set by an external process.
-    await sendVerificationCodeWebhook(phoneNumber);
+    // 2. The verification code is now expected to be sent and set by an external process.
+    // This endpoint no longer triggers a webhook.
+    console.log(`Phone number ${phoneNumber} linked to assistant ${assistantId}. Awaiting external verification process.`);
 
     return NextResponse.json({ success: true, message: 'Phone number linked and verification process initiated.' });
 
