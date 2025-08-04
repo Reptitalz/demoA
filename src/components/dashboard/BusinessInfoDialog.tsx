@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaBuilding, FaEnvelope, FaMapMarkerAlt, FaClock, FaGlobe, FaImage } from 'react-icons/fa';
+import { FaSpinner, FaBuilding, FaEnvelope, FaMapMarkerAlt, FaClock, FaGlobe, FaImage, FaBriefcase } from 'react-icons/fa';
 import type { AssistantConfig, AssistantBusinessInfo } from '@/types';
 import Image from 'next/image';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
@@ -60,7 +59,16 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!businessInfo.vertical) {
+      toast({
+        title: "Campo Requerido",
+        description: "Por favor, especifica la categoría del negocio.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     
     const updatedAssistant: AssistantConfig = {
@@ -69,12 +77,44 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
       businessInfo: businessInfo,
     };
     
+    // First, update the state and our own DB
     dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
     
     toast({
       title: "Información Guardada",
-      description: `La información de negocio para "${assistant.name}" ha sido actualizada.`,
+      description: `La información de negocio para "${assistant.name}" ha sido actualizada en la plataforma.`,
     });
+
+    // If the assistant is active and has Gupshup credentials, call the API to update WA profile
+    if (assistant.numberReady && assistant.gupshupConfig?.appId && assistant.gupshupConfig?.apiKey) {
+      try {
+        const response = await fetch('/api/assistants/update-business-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              assistantId: assistant.id,
+              businessInfo: businessInfo
+            })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || "Error al sincronizar con WhatsApp.");
+        }
+        
+        toast({
+          title: "¡Perfil de WhatsApp Sincronizado!",
+          description: "La información de tu negocio se ha actualizado en WhatsApp.",
+        });
+
+      } catch (error: any) {
+        toast({
+          title: "Error de Sincronización con WhatsApp",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
     
     setIsProcessing(false);
     onOpenChange(false);
@@ -88,7 +128,7 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
             <FaBuilding /> Información de Negocio para "{assistant.name}"
           </DialogTitle>
           <DialogDescription>
-            Completa los detalles de tu negocio. Esta información puede ser utilizada por tu asistente.
+            Completa los detalles de tu negocio. Esta información puede ser utilizada por tu asistente y se mostrará en su perfil de WhatsApp.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -118,6 +158,21 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
               />
             </div>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="vertical" className="flex items-center gap-2">
+              <FaBriefcase /> Categoría del Negocio (Vertical)
+            </Label>
+            <Input 
+              id="vertical" 
+              name="vertical" 
+              type="text"
+              placeholder="Ej: Ropa, Restaurante, Educación, etc."
+              value={businessInfo.vertical || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="companyEmail" className="flex items-center gap-2">
@@ -144,21 +199,6 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
               value={businessInfo.companyAddress || ''}
               onChange={handleInputChange}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="googleMapsUrl" className="flex items-center gap-2">
-              <FaMapMarkerAlt /> URL de Google Maps
-            </Label>
-            <Input 
-              id="googleMapsUrl" 
-              name="googleMapsUrl" 
-              type="url"
-              placeholder="https://maps.app.goo.gl/..."
-              value={businessInfo.googleMapsUrl || ''}
-              onChange={handleInputChange}
-            />
-            <p className="text-xs text-muted-foreground">Busca tu negocio en Google Maps, haz clic en "Compartir" y copia el enlace.</p>
           </div>
           
           <div className="space-y-2">

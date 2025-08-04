@@ -26,9 +26,14 @@ export interface DatabaseConfig {
 export interface AssistantBusinessInfo {
   companyEmail?: string;
   companyAddress?: string;
-  googleMapsUrl?: string;
   openingHours?: string;
   websiteUrl?: string;
+  vertical?: string; // e.g. "Restaurant", "Clothing", etc.
+}
+
+export interface GupshupConfig {
+    appId: string;
+    apiKey: string;
 }
 
 export interface AssistantConfig {
@@ -44,6 +49,7 @@ export interface AssistantConfig {
   businessInfo?: AssistantBusinessInfo;
   monthlyMessageLimit?: number;
   messagesSentThisMonth?: number;
+  gupshupConfig?: GupshupConfig;
 }
 
 export type AuthProviderType = "google" | "phone";
