@@ -17,7 +17,14 @@ const DashboardSummary = () => {
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [isMessagesInfoOpen, setIsMessagesInfoOpen] = useState(false);
-  const availableMessages = (credits || 0) * MESSAGES_PER_CREDIT;
+
+  // Calculate total messages from credits
+  const totalMessagesFromCredits = (credits || 0) * MESSAGES_PER_CREDIT;
+  // Calculate total consumed messages from all assistants
+  const totalConsumedMessages = assistants.reduce((sum, asst) => sum + (asst.messageCount || 0), 0);
+  // The final available messages is the difference
+  const availableMessages = totalMessagesFromCredits - totalConsumedMessages;
+
 
   return (
     <>
