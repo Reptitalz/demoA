@@ -162,17 +162,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     case 'SYNC_PROFILE_FROM_API': {
         const apiProfile = action.payload;
-        const assistantsWithSetPurposes = (apiProfile.assistants || []).map(assistant => ({
-            ...assistant,
-            purposes: new Set(Array.isArray(assistant.purposes) ? assistant.purposes : []) as Set<AssistantPurposeType>,
-        }));
         const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
         
         const freshUserProfile: UserProfile = {
             ...initialUserProfileState,
             ...apiProfile,
             isAuthenticated: true,
-            assistants: assistantsWithSetPurposes,
             credits: apiProfile.credits || 0,
         };
 
@@ -183,8 +178,17 @@ const appReducer = (state: AppState, action: Action): AppState => {
             isLoading: false,
         };
     }
-    case 'UPDATE_USER_PROFILE':
-      return { ...state, userProfile: { ...state.userProfile, ...action.payload }};
+    case 'UPDATE_USER_PROFILE': {
+      // Ensure 'purposes' in assistants remains an array.
+      const payload = action.payload;
+      if (payload.assistants) {
+        payload.assistants = payload.assistants.map(a => ({
+          ...a,
+          purposes: Array.isArray(a.purposes) ? a.purposes : Array.from((a.purposes as any) || [])
+        }))
+      }
+      return { ...state, userProfile: { ...state.userProfile, ...payload }};
+    }
     case 'ADD_ASSISTANT':
       return { ...state, userProfile: { ...state.userProfile, assistants: [...state.userProfile.assistants, action.payload] }};
     case 'UPDATE_ASSISTANT':
@@ -251,10 +255,17 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
     throw new Error("Cannot save profile without an ID.");
   }
   try {
+    const profileToSave = {
+      ...userProfile,
+      assistants: userProfile.assistants.map(a => ({
+        ...a,
+        purposes: Array.isArray(a.purposes) ? a.purposes : Array.from((a.purposes as any) || []),
+      }))
+    }
     const response = await fetch('/api/user-profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userProfile }),
+      body: JSON.stringify({ userProfile: profileToSave }),
     });
 
     if (!response.ok) {

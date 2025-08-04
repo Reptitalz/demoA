@@ -161,15 +161,12 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: assistantName,
         prompt: assistantPrompt,
-        purposes: selectedPurposes,
+        purposes: Array.from(selectedPurposes),
         databaseId: newDbEntry?.id,
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-        businessInfo: {},
-        phoneLinked: '',
-        verificationCode: '',
-        numberReady: false,
+        isActive: false,
+        messageCount: 0,
         monthlyMessageLimit: 0,
-        messagesSentThisMonth: 0,
     };
     
     const userProfileForApi: Omit<UserProfile, 'isAuthenticated'> = {

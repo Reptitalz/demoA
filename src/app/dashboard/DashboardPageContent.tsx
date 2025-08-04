@@ -66,9 +66,7 @@ const DashboardPageContent = () => {
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
         dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
         
-        const purposesArray = Array.isArray(assistant.purposes) 
-          ? assistant.purposes 
-          : (assistant.purposes instanceof Set ? Array.from(assistant.purposes) : []);
+        const purposesArray = Array.isArray(assistant.purposes) ? assistant.purposes : [];
 
         purposesArray.forEach(purpose => {
             dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose });

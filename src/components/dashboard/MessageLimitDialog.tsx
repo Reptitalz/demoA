@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaInfoCircle } from 'react-icons/fa';
 import { MessagesSquare, Coins } from 'lucide-react';
 import type { AssistantConfig } from '@/types';
-import { MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from '@/config/appConfig';
+import { MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
 
 interface MessageLimitDialogProps {

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt } from "react-icons/fa";
-import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MESSAGES_PER_CREDIT } from "@/config/appConfig";
+import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -183,7 +183,7 @@ const AssistantCard = ({
   };
 
 
-  const allPurposes = Array.from(assistant.purposes).map(pid =>
+  const allPurposes = assistant.purposes.map(pid =>
     assistantPurposesConfig.find(p => p.id === pid)
   ).filter(p => p);
 
@@ -192,7 +192,7 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isAssistantActive = !!assistant.phoneLinked && assistant.numberReady === true;
+  const isAssistantActive = assistant.isActive;
   const isWaitingForCode = !!assistant.phoneLinked && !assistant.numberReady;
   
   let badgeText = "Inactivo";
@@ -218,7 +218,7 @@ const AssistantCard = ({
   );
   
   const consumptionPercentage = assistant.monthlyMessageLimit 
-    ? Math.min(((assistant.messagesSentThisMonth || 0) / assistant.monthlyMessageLimit) * 100, 100)
+    ? Math.min(((assistant.messageCount || 0) / assistant.monthlyMessageLimit) * 100, 100)
     : 0;
 
   return (
@@ -287,7 +287,7 @@ const AssistantCard = ({
             <div className="mt-1.5 space-y-1">
               <Progress value={consumptionPercentage} className="h-1.5" />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{(assistant.messagesSentThisMonth || 0).toLocaleString()}</span>
+                <span>{(assistant.messageCount || 0).toLocaleString()}</span>
                 <span>{(assistant.monthlyMessageLimit || 0).toLocaleString()} msjs.</span>
               </div>
             </div>

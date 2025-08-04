@@ -1,5 +1,5 @@
 
-import type { UserProfile } from '@/types';
+import type { UserProfile, AssistantConfig } from '@/types';
 import { connectToDatabase } from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
         phoneNumber: profile.phoneNumber,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
+          isActive: asst.numberReady || false,
           purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
           imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
           businessInfo: asst.businessInfo || {},
@@ -65,7 +66,8 @@ export async function GET(request: NextRequest) {
           verificationCode: asst.verificationCode || '',
           numberReady: asst.numberReady || false,
           monthlyMessageLimit: asst.monthlyMessageLimit || 0,
-          messagesSentThisMonth: asst.messagesSentThisMonth || 0,
+          messageCount: asst.messageCount || 0,
+          tools: asst.tools || {},
         })),
         databases: (profile.databases || []).map(db => ({
           ...db,
@@ -127,16 +129,18 @@ export async function POST(request: NextRequest) {
       password: hashedPassword, // Store the hashed password
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
       credits: userProfile.credits || 0,
-      assistants: (userProfile.assistants || []).map((asst: any) => ({
+      assistants: (userProfile.assistants || []).map((asst: AssistantConfig) => ({
         ...asst,
-        purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || []),
+        isActive: asst.numberReady || false,
+        purposes: Array.isArray(asst.purposes) ? asst.purposes : [],
         imageUrl: asst.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
         businessInfo: asst.businessInfo || {},
         phoneLinked: asst.phoneLinked || '',
         verificationCode: asst.verificationCode || '',
         numberReady: asst.numberReady || false,
         monthlyMessageLimit: asst.monthlyMessageLimit || 0,
-        messagesSentThisMonth: asst.messagesSentThisMonth || 0,
+        messageCount: asst.messageCount || 0,
+        tools: asst.tools || {},
       })),
       databases: (userProfile.databases || []).map((db: any) => ({
         ...db,
@@ -189,11 +193,11 @@ export async function PUT(request: NextRequest) {
     // Create a copy of the profile and remove fields that should not be updated directly
     const { _id, password, isAuthenticated, ...updateData } = userProfile;
     
-    // Ensure assistants' purposes are stored as arrays, not Sets
+    // Ensure assistants' purposes are stored as arrays
     if (updateData.assistants) {
       updateData.assistants = updateData.assistants.map((asst: any) => ({
         ...asst,
-        purposes: Array.isArray(asst.purposes) ? asst.purposes : Array.from(asst.purposes || [])
+        purposes: Array.isArray(asst.purposes) ? asst.purposes : []
       }));
     }
 

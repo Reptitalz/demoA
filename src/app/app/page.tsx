@@ -153,7 +153,7 @@ const AppSetupPageContent = () => {
         ...assistantToUpdate,
         name: assistantName,
         prompt: assistantPrompt,
-        purposes: selectedPurposes,
+        purposes: Array.from(selectedPurposes),
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
     };
     
@@ -173,8 +173,7 @@ const AppSetupPageContent = () => {
         }
     }
 
-    const finalUserProfile: UserProfile = {
-        ...state.userProfile,
+    const finalUserProfile: Partial<UserProfile> = {
         assistants: updatedAssistantsArray,
         databases: updatedDatabasesArray,
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,

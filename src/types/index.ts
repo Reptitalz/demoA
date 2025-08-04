@@ -36,20 +36,33 @@ export interface GupshupConfig {
     apiKey: string;
 }
 
+export interface GoogleSheetsTool {
+  enabled: boolean;
+  spreadsheetUrl?: string;
+  sheetName?: string;
+}
+
+export interface AssistantTools {
+  googleSheets?: GoogleSheetsTool;
+}
+
 export interface AssistantConfig {
   id: string;
   name: string;
   prompt?: string;
-  phoneLinked?: string;
-  purposes: Set<AssistantPurposeType>;
-  databaseId?: string;
-  imageUrl?: string;
-  verificationCode?: string;
-  numberReady?: boolean;
-  businessInfo?: AssistantBusinessInfo;
+  isActive: boolean; // Replaces numberReady
+  messageCount: number; // Replaces messagesSentThisMonth
   monthlyMessageLimit: number;
-  messagesSentThisMonth: number;
+  phoneLinked?: string;
+  webhookPath?: string;
+  imageUrl?: string;
+  purposes: AssistantPurposeType[];
+  databaseId?: string | null;
+  verificationCode?: string;
+  numberReady?: boolean; // Kept for backend logic, but isActive is the new frontend flag
+  businessInfo?: AssistantBusinessInfo;
   gupshupConfig?: GupshupConfig;
+  tools?: AssistantTools;
 }
 
 export type AuthProviderType = "google" | "phone";
