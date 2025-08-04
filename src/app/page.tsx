@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave } from 'react-icons/fa';
-import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight } from 'lucide-react';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle } from 'react-icons/fa';
+import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -210,13 +210,29 @@ const HeroSection = () => {
                     <Link href="/login">Empezar Ahora <ArrowRight className="ml-2"/></Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm">
-                    <Link href="#features">Ver características</Link>
+                    <Link href="#how-it-works">Cómo Funciona</Link>
                 </Button>
             </div>
         </div>
     </div>
   )
 }
+
+const StepCard = ({ num, icon, title, description, animationDelay }: { num: string, icon: React.ReactNode, title: string, description: string, animationDelay: string }) => (
+    <div className="relative bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-border/10 transition-all duration-300 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 animate-fadeIn" style={{ animationDelay }}>
+        <div className="absolute -top-5 -left-5 bg-primary text-primary-foreground h-12 w-12 flex items-center justify-center rounded-full text-2xl font-bold shadow-lg">
+            {num}
+        </div>
+        <div className="pl-8">
+            <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
+                {icon}
+            </div>
+            <h3 className="text-xl font-semibold mb-2">{title}</h3>
+            <p className="text-muted-foreground">{description}</p>
+        </div>
+    </div>
+);
+
 
 export default function MarketingHomePage() {
   return (
@@ -226,6 +242,38 @@ export default function MarketingHomePage() {
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{animationDelay: '0.5s', perspective: '1000px'}}>
         <PhoneChatMockup />
       </div>
+
+       <section id="how-it-works" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Empieza en 3 Sencillos Pasos</h2>
+            <p className="mt-4 text-muted-foreground">Configurar tu asistente es rápido e intuitivo.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <StepCard
+              num="1"
+              icon={<UserCog size={28} className="text-primary" />}
+              title="Crea tu Asistente"
+              description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
+              animationDelay="0.2s"
+            />
+            <StepCard
+              num="2"
+              icon={<FaSimCard size={28} className="text-primary" />}
+              title="Vincula un Número"
+              description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
+              animationDelay="0.4s"
+            />
+            <StepCard
+              num="3"
+              icon={<FaCheckCircle size={28} className="text-primary" />}
+              title="Activa y Disfruta"
+              description="Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
+              animationDelay="0.6s"
+            />
+          </div>
+        </div>
+      </section>
 
       <section id="features" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -323,5 +371,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
-
-    
