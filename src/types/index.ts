@@ -47,8 +47,8 @@ export interface AssistantConfig {
   verificationCode?: string;
   numberReady?: boolean;
   businessInfo?: AssistantBusinessInfo;
-  monthlyMessageLimit?: number;
-  messagesSentThisMonth?: number;
+  monthlyMessageLimit: number;
+  messagesSentThisMonth: number;
   gupshupConfig?: GupshupConfig;
 }
 
