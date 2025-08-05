@@ -40,6 +40,10 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
   
+  const totalMessagesFromCredits = (userProfile.credits || 0) * MESSAGES_PER_CREDIT;
+  const totalConsumedMessages = userProfile.assistants.reduce((sum, asst) => sum + (asst.messageCount || 0), 0);
+  const availableMessages = totalMessagesFromCredits - totalConsumedMessages;
+
   useEffect(() => {
     if (isOpen) {
       setIsProcessing(false);
@@ -143,7 +147,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                   </div>
                   <div className="flex items-center justify-center gap-2">
                       <MessagesSquare className="h-5 w-5 text-accent" />
-                      <p className="text-2xl font-bold">{((userProfile.credits || 0) * MESSAGES_PER_CREDIT).toLocaleString()}</p>
+                      <p className="text-2xl font-bold">{availableMessages.toLocaleString()}</p>
                       <span className="text-xs text-muted-foreground mt-2">Mensajes</span>
                   </div>
                 </div>
