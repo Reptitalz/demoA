@@ -44,15 +44,17 @@ const DashboardPageContent = () => {
     const paymentStatus = searchParams.get('payment_status');
     const phoneNumber = state.userProfile.phoneNumber;
 
-    if (paymentStatus === 'success' && phoneNumber) {
-      toast({
-        title: "¡Pago Exitoso!",
-        description: "Tu compra ha sido procesada. Actualizando tu saldo...",
-        variant: "default",
-      });
-      fetchProfileCallback(phoneNumber);
-      // Clean up the URL
-      router.replace(pathname);
+    if (paymentStatus && phoneNumber) {
+      if (paymentStatus === 'success') {
+          toast({
+            title: "¡Pago Exitoso!",
+            description: "Tu compra ha sido procesada. Actualizando tu saldo...",
+            variant: "default",
+          });
+          fetchProfileCallback(phoneNumber);
+      }
+      // Clean up the URL by removing search params, regardless of status
+      router.replace(pathname, { scroll: false });
     }
   }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber, router, pathname]);
 
@@ -326,3 +328,5 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
+
+    
