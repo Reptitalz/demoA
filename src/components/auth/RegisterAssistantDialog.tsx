@@ -167,6 +167,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         isActive: false,
         messageCount: 0,
         monthlyMessageLimit: 0,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     
     const userProfileForApi: Omit<UserProfile, 'isAuthenticated'> = {

@@ -50,8 +50,8 @@ export interface AssistantConfig {
   id: string;
   name: string;
   prompt?: string;
-  isActive: boolean; // Replaces numberReady
-  messageCount: number; // Replaces messagesSentThisMonth
+  isActive: boolean;
+  messageCount: number;
   monthlyMessageLimit: number;
   phoneLinked?: string;
   webhookPath?: string;
@@ -59,10 +59,11 @@ export interface AssistantConfig {
   purposes: AssistantPurposeType[];
   databaseId?: string | null;
   verificationCode?: string;
-  numberReady?: boolean; // Kept for backend logic, but isActive is the new frontend flag
+  numberReady?: boolean;
   businessInfo?: AssistantBusinessInfo;
   gupshupConfig?: GupshupConfig;
   tools?: AssistantTools;
+  timezone?: string;
 }
 
 export type AuthProviderType = "google" | "phone";

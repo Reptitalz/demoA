@@ -155,6 +155,7 @@ const AppSetupPageContent = () => {
         prompt: assistantPrompt,
         purposes: Array.from(selectedPurposes),
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     
     let updatedAssistantsArray = state.userProfile.assistants.map(a => a.id === state.wizard.editingAssistantId ? finalAssistantConfig : a);

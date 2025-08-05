@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
           monthlyMessageLimit: asst.monthlyMessageLimit || 0,
           messageCount: asst.messageCount || 0,
           tools: asst.tools || {},
+          timezone: asst.timezone,
         })),
         databases: (profile.databases || []).map(db => ({
           ...db,
@@ -141,6 +142,7 @@ export async function POST(request: NextRequest) {
         monthlyMessageLimit: asst.monthlyMessageLimit || 0,
         messageCount: asst.messageCount || 0,
         tools: asst.tools || {},
+        timezone: asst.timezone,
       })),
       databases: (userProfile.databases || []).map((db: any) => ({
         ...db,
