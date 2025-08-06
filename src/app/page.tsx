@@ -38,6 +38,12 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
       icon: <FaCheckCircle size={32} className="text-primary" />,
       title: "Activa y Disfruta",
       description: "Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
+    },
+    {
+      num: "4",
+      icon: <MercadoPagoIcon className="h-8 w-auto text-primary" />,
+      title: "Recarga Créditos",
+      description: "Añade saldo a tu cuenta de forma segura con Mercado Pago para que tu asistente nunca deje de operar."
     }
   ];
 
