@@ -6,7 +6,9 @@ import React, { createContext, useContext, useReducer, useEffect, useState, useC
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ObjectId } from 'mongodb';
+import { auth } from '@/lib/firebase';
+import type { User } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -29,10 +31,10 @@ const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
   authProvider: 'google',
   email: '',
+  firebaseUid: '',
   firstName: undefined,
   lastName: undefined,
   address: undefined,
-  googleId: undefined,
   assistants: [],
   databases: [],
   ownerPhoneNumberForNotifications: undefined,
@@ -75,6 +77,7 @@ type Action =
   | { type: 'ADD_DATABASE_TO_ASSISTANT'; payload: { assistantId: string, database: DatabaseConfig } }
   | { type: 'UPDATE_DATABASE'; payload: DatabaseConfig }
   | { type: 'REMOVE_DATABASE'; payload: string }
+  | { type: 'LOGIN_USER'; payload: { user: User, profile: UserProfile } }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
@@ -141,6 +144,20 @@ const appReducer = (state: AppState, action: Action): AppState => {
         ...state,
         wizard: initialWizardState
       };
+     case 'LOGIN_USER': {
+      const { user, profile } = action.payload;
+      return {
+        ...state,
+        userProfile: {
+          ...profile,
+          isAuthenticated: true,
+          email: user.email!,
+          firebaseUid: user.uid,
+        },
+        isLoading: false,
+        isSetupComplete: profile.assistants && profile.assistants.length > 0,
+      };
+    }
     case 'SYNC_PROFILE_FROM_API': {
         const apiProfile = action.payload;
         const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
@@ -210,11 +227,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     }
     case 'LOGOUT_USER':
-      try {
-        sessionStorage.removeItem('loggedInUser');
-      } catch (error) {
-        console.error("Could not clear session storage:", error);
-      }
       return {
         ...initialState,
         isLoading: false,
@@ -289,11 +301,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
 
+      if (response.status === 404) {
+          // User is authenticated with Firebase but has no profile in our DB
+          dispatch({ type: 'LOGOUT_USER' }); // Treat as logged out from our app
+          return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          sessionStorage.setItem('loggedInUser', email);
         } else {
            dispatch({ type: 'LOGOUT_USER' });
         }
@@ -309,12 +326,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    const loggedInUser = sessionStorage.getItem('loggedInUser');
-    if (loggedInUser) {
-      fetchProfileCallback(loggedInUser);
-    } else {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user && user.email) {
+        // User is signed in, see if they have a profile in our DB
+        await fetchProfileCallback(user.email);
+      } else {
+        // User is signed out
+        dispatch({ type: 'LOGOUT_USER' });
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [fetchProfileCallback]);
 
   return (

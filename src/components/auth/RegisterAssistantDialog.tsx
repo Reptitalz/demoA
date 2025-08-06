@@ -15,6 +15,8 @@ import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -101,67 +103,69 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     setIsFinalizingSetup(true);
 
-    const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
-        id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        name: databaseOption.name!,
-        source: databaseOption.type!,
-        details: databaseOption.name,
-        accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
-        selectedColumns: databaseOption.selectedColumns,
-        relevantColumnsDescription: databaseOption.relevantColumnsDescription,
-    } : undefined;
-
-    const finalAssistantConfig: AssistantConfig = {
-        id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        name: assistantName,
-        prompt: assistantPrompt,
-        purposes: Array.from(selectedPurposes),
-        databaseId: newDbEntry?.id,
-        imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-        isActive: false,
-        messageCount: 0,
-        monthlyMessageLimit: 0,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    };
-    
-    // Simulate getting user data from Google Sign-In
-    const mockEmail = 'user@example.com';
-    const mockFirstName = 'Usuario';
-    const mockLastName = 'Nuevo';
-
-    const userProfileForApi: Omit<UserProfile, 'isAuthenticated' | '_id'> = {
-        email: mockEmail,
-        firstName: mockFirstName,
-        lastName: mockLastName,
-        googleId: `google_${Date.now()}`, // Mock Google ID
-        assistants: [finalAssistantConfig],
-        databases: newDbEntry ? [newDbEntry] : [],
-        ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
-        credits: 0,
-        authProvider: 'google',
-    };
-    
+    const provider = new GoogleAuthProvider();
     try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ["Usuario", "Nuevo"];
+        const lastName = lastNameParts.join(' ');
+
+        const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
+            id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            name: databaseOption.name!,
+            source: databaseOption.type!,
+            details: databaseOption.name,
+            accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
+            selectedColumns: databaseOption.selectedColumns,
+            relevantColumnsDescription: databaseOption.relevantColumnsDescription,
+        } : undefined;
+
+        const finalAssistantConfig: AssistantConfig = {
+            id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            name: assistantName,
+            prompt: assistantPrompt,
+            purposes: Array.from(selectedPurposes),
+            databaseId: newDbEntry?.id,
+            imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+            isActive: false,
+            messageCount: 0,
+            monthlyMessageLimit: 0,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        };
+        
+        const userProfileForApi: Omit<UserProfile, 'isAuthenticated' | '_id'> = {
+            email: user.email!,
+            firebaseUid: user.uid,
+            firstName: firstName,
+            lastName: lastName,
+            assistants: [finalAssistantConfig],
+            databases: newDbEntry ? [newDbEntry] : [],
+            ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
+            credits: 0,
+            authProvider: 'google',
+        };
+        
         const response = await fetch('/api/user-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              userProfile: userProfileForApi,
-            }),
+            body: JSON.stringify({ userProfile: userProfileForApi }),
         });
+
         const data = await response.json();
         if (!response.ok) {
+            // If user exists, sign them out from firebase as well to avoid inconsistent state
+            if (response.status === 409) await auth.signOut();
             throw new Error(data.message || "Failed to create profile.");
         }
         
         toast({
-            title: "¡Cuenta Creada!",
-            description: `Ahora puedes iniciar sesión con tu cuenta de Google.`,
+            title: "¡Cuenta Creada y Sesión Iniciada!",
+            description: `Bienvenido/a, ${firstName}.`,
         });
 
+        // The onAuthStateChanged listener in AppProvider will handle fetching the created profile and redirecting.
         onOpenChange(false);
-        // Do not auto-login, let user do it explicitly.
-    
+
     } catch (error: any) {
         toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
     } finally {

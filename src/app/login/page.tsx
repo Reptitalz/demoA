@@ -4,11 +4,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { LogIn, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { FaSpinner, FaGoogle } from 'react-icons/fa';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const APP_NAME = "Hey Manito";
 
@@ -18,7 +20,7 @@ const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const { state, dispatch, fetchProfileCallback } = useApp();
   const { toast } = useToast();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,51 +34,37 @@ const LoginPageContent = () => {
   
   const handleGoogleLogin = async () => {
     setIsProcessing(true);
-    // This is a placeholder for the actual Google Sign-In logic.
-    // In a real app, you would use a library like next-auth or Firebase Auth.
-    // For this prototype, we'll simulate a successful login.
-    
-    // Simulate fetching a user profile from Google/your backend
-    // In a real scenario, this would involve a redirect or popup and a callback.
-    const mockGoogleEmail = 'user@example.com';
-    
+    const provider = new GoogleAuthProvider();
     try {
-      const response = await fetch(`/api/user-profile?email=${encodeURIComponent(mockGoogleEmail)}`);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
       
-      if (response.status === 404) {
-          toast({
-            title: "Cuenta no encontrada",
-            description: "No encontramos una cuenta con este email. Por favor, crea un asistente primero.",
-            variant: "destructive",
-          });
-          setIsProcessing(false);
-          return;
+      // The onAuthStateChanged listener in AppProvider will handle fetching the profile
+      // and updating the state. We can show a toast here.
+      if (user) {
+         const response = await fetch(`/api/user-profile?email=${encodeURIComponent(user.email!)}`);
+         if (response.status === 404) {
+             toast({
+                title: "Cuenta no encontrada",
+                description: "No tienes un perfil. Por favor, crea un asistente primero.",
+                variant: "destructive"
+             });
+             await auth.signOut(); // Sign out the user from firebase as they don't have a profile
+         } else if (response.ok) {
+            toast({
+              title: "¡Bienvenido/a de nuevo!",
+              description: "Has iniciado sesión correctamente.",
+            });
+            // The AppProvider listener will redirect to /dashboard
+         } else {
+            throw new Error('No se pudo verificar el perfil de usuario.');
+         }
       }
-      
-      if (!response.ok) {
-        throw new Error('Error al iniciar sesión');
-      }
-
-      const data = await response.json();
-      
-      if (data.userProfile) {
-        dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-        sessionStorage.setItem('loggedInUser', data.userProfile.email); // Use email for session
-        
-        toast({
-          title: "¡Bienvenido/a de nuevo!",
-          description: "Has iniciado sesión correctamente.",
-        });
-        
-        router.replace('/dashboard');
-      } else {
-        throw new Error("No se recibieron los datos del perfil.");
-      }
-
     } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
       toast({
         title: "Error de inicio de sesión",
-        description: error.message,
+        description: error.code === 'auth/popup-closed-by-user' ? 'El proceso de inicio de sesión fue cancelado.' : 'No se pudo iniciar sesión con Google. Intenta de nuevo.',
         variant: "destructive",
       });
     } finally {

@@ -91,7 +91,7 @@ const AssistantCard = ({
             throw new Error(result.message || 'Error al vincular el número.');
         }
         
-        await fetchProfileCallback(state.userProfile.phoneNumber!);
+        await fetchProfileCallback(state.userProfile.email!);
 
         toast({ title: "Número Registrado", description: `Ingresa el código de verificación que recibirás.`});
         setIntegrationStep(2);
@@ -133,8 +133,8 @@ const AssistantCard = ({
             })
         });
         
-        if (state.userProfile.phoneNumber) {
-           await fetchProfileCallback(state.userProfile.phoneNumber);
+        if (state.userProfile.email) {
+           await fetchProfileCallback(state.userProfile.email);
         }
         
         toast({ 

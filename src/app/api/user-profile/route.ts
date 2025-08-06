@@ -25,11 +25,11 @@ export async function GET(request: NextRequest) {
         _id: profile._id,
         isAuthenticated: true,
         email: profile.email,
+        firebaseUid: profile.firebaseUid,
         authProvider: 'google',
         firstName: profile.firstName,
         lastName: profile.lastName,
         address: profile.address,
-        googleId: profile.googleId,
         assistants: (profile.assistants || []).map(asst => ({
           ...asst,
           isActive: asst.isActive || false,
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
   try {
     const { userProfile } = await request.json();
 
-    if (!userProfile || !userProfile.email) {
-      return NextResponse.json({ message: 'User profile with email is required.' }, { status: 400 });
+    if (!userProfile || !userProfile.email || !userProfile.firebaseUid) {
+      return NextResponse.json({ message: 'User profile with email and firebaseUid is required.' }, { status: 400 });
     }
 
     const { db } = await connectToDatabase();
@@ -82,10 +82,10 @@ export async function POST(request: NextRequest) {
     // Prepare a clean, serializable profile for MongoDB
     const finalProfile: Omit<UserProfile, 'isAuthenticated' | '_id'> = {
       email: userProfile.email,
+      firebaseUid: userProfile.firebaseUid,
       firstName: userProfile.firstName,
       lastName: userProfile.lastName,
       address: userProfile.address,
-      googleId: userProfile.googleId,
       authProvider: 'google',
       ownerPhoneNumberForNotifications: userProfile.ownerPhoneNumberForNotifications,
       credits: userProfile.credits || 0,

@@ -78,13 +78,13 @@ export interface UserAddress {
 
 export interface UserProfile {
   _id?: ObjectId;
+  firebaseUid: string; // Firebase UID is the primary identifier
   isAuthenticated: boolean;
   authProvider: AuthProviderType;
   email: string;
   firstName?: string;
   lastName?: string;
   address?: UserAddress;
-  googleId?: string; // Unique ID from Google
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   ownerPhoneNumberForNotifications?: string;

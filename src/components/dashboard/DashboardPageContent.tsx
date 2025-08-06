@@ -2,28 +2,38 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
 import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaSignOutAlt } from 'react-icons/fa';
+import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaSignOutAlt, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
-import AddDatabaseDialog from './AddDatabaseDialog';
+import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
+import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { Separator } from '@/components/ui/separator';
+import { MessageSquare, User } from 'lucide-react';
+import Link from 'next/link';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { userProfile, isLoading } = state;
+  
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
+  const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
 
+  // Handle session and payment status logic
   useEffect(() => {
     if (!isLoading && !state.userProfile.isAuthenticated) {
         router.replace('/login');
@@ -32,19 +42,21 @@ const DashboardPageContent = () => {
   
   useEffect(() => {
     const paymentStatus = searchParams.get('payment_status');
-    const email = state.userProfile.email;
+    const userEmail = state.userProfile.email;
 
-    if (paymentStatus === 'success' && email) {
-      toast({
-        title: "¡Pago Exitoso!",
-        description: "Tu compra ha sido procesada. Actualizando tu saldo...",
-        variant: "default",
-      });
-      fetchProfileCallback(email);
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+    if (paymentStatus && userEmail) {
+      if (paymentStatus === 'success') {
+          toast({
+            title: "¡Pago Exitoso!",
+            description: "Tu compra ha sido procesada. Actualizando tu saldo...",
+            variant: "default",
+          });
+          fetchProfileCallback(userEmail);
+      }
+      // Clean up the URL by removing search params, regardless of status
+      router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email]);
+  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email, router, pathname]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -55,9 +67,7 @@ const DashboardPageContent = () => {
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
         dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
         
-        const purposesArray = Array.isArray(assistant.purposes) 
-          ? assistant.purposes 
-          : [];
+        const purposesArray = Array.isArray(assistant.purposes) ? assistant.purposes : [];
 
         purposesArray.forEach(purpose => {
             dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose });
@@ -82,22 +92,7 @@ const DashboardPageContent = () => {
     dispatch({ type: 'RESET_WIZARD' });
     router.push('/app?action=add'); 
   };
-
-  const handleAddNewDatabase = () => {
-    setIsAddDatabaseDialogOpen(true);
-  };
-
-  const handleLogout = async () => {
-    try {
-      dispatch({ type: 'LOGOUT_USER' });
-      toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-      router.replace('/login');
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
-    }
-  };
-
+  
   const showAddDatabaseButton = userProfile.assistants.some(a => !a.databaseId);
 
   if (isLoading || !userProfile.isAuthenticated) {
@@ -108,90 +103,217 @@ const DashboardPageContent = () => {
     );
   }
   
+  const renderContentForRoute = () => {
+    if (pathname.startsWith('/dashboard/assistants')) {
+      return (
+        <div className="space-y-4"> 
+            <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
+            <h3 className="text-lg font-semibold flex items-center gap-2"> 
+                <FaRobot size={18} className="text-primary" /> 
+                Tus Asistentes
+            </h3>
+            <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
+                <FaPlusCircle size={13} className="mr-1" /> 
+                Añadir Asistente
+            </Button>
+            </div>
+            {userProfile.assistants.length > 0 ? (
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"> 
+                {userProfile.assistants.map((assistant, index) => (
+                <AssistantCard 
+                    key={assistant.id} 
+                    assistant={assistant} 
+                    onReconfigure={handleReconfigureAssistant}
+                    animationDelay={`${0.4 + index * 0.1}s`}
+                />
+                ))}
+            </div>
+            ) : (
+            <Card className="text-center py-10 animate-fadeIn" style={{animationDelay: "0.4s"}}> 
+                <CardContent className="flex flex-col items-center gap-3"> 
+                <FaRobot size={40} className="text-muted-foreground" /> 
+                <h3 className="text-lg font-semibold">No has creado ningún asistente</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                    Los asistentes son agentes de IA que puedes personalizar para realizar tareas como responder preguntas, agendar citas o gestionar datos.
+                </p>
+                <Button onClick={handleAddNewAssistant} size="sm" className="text-sm px-4 py-2 mt-2">Crear mi Primer Asistente</Button> 
+                </CardContent>
+            </Card>
+            )}
+        </div>
+      );
+    }
+    
+    if (pathname.startsWith('/dashboard/databases')) {
+      return (
+        <div className="space-y-4">
+            <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <FaDatabase size={18} className="text-primary" />
+                    Bases de Datos Vinculadas
+                </h3>
+                {showAddDatabaseButton && (
+                    <Button onClick={() => setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
+                        <FaPlusCircle size={13} className="mr-1" />
+                        Añadir Base de Datos
+                    </Button>
+                )}
+            </div>
+            {userProfile.databases.length > 0 ? (
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    {userProfile.databases.map((db, index) => (
+                        <DatabaseInfoCard key={db.id} database={db} animationDelay={`${0.2 + index * 0.1}s`} />
+                    ))}
+                </div>
+            ) : (
+                <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                    <CardContent className="flex flex-col items-center gap-3">
+                        <FaDatabase size={40} className="text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">No tienes bases de datos</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                            Conecta una Hoja de Google o crea una Base de Datos Inteligente para darle a tus asistentes el conocimiento que necesitan para operar.
+                        </p>
+                        {showAddDatabaseButton && (
+                            <Button onClick={() => setIsAddDatabaseDialogOpen(true)} size="sm" className="text-sm px-4 py-2 mt-2">Añadir Base de Datos</Button>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+      );
+    }
+    
+    if (pathname.startsWith('/dashboard/profile')) {
+      return (
+         <Card
+          className="animate-fadeIn transition-all hover:shadow-lg"
+          style={{ animationDelay: '0.1s' }}
+        >
+          <CardContent className="p-0">
+            <div className="flex flex-col">
+              {/* Personal Info Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <User className="h-6 w-6 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Información Personal</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Actualiza tus datos personales y de facturación.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setIsPersonalInfoOpen(true)}
+                  className="shrink-0"
+                >
+                  Editar
+                </Button>
+              </div>
+              <Separator />
+
+              {/* Security Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <FaKey className="h-6 w-6 text-destructive" />
+                  <div>
+                    <h3 className="font-semibold">Seguridad</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Tu cuenta está segura con Google.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled
+                >
+                  Gestionado por Google
+                </Button>
+              </div>
+              <Separator />
+
+              {/* Appearance Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <FaPalette className="h-6 w-6 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Apariencia</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Elige entre el tema claro y el oscuro.
+                    </p>
+                  </div>
+                </div>
+                <ThemeToggle />
+              </div>
+              <Separator />
+
+              {/* Support Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <MessageSquare className="h-6 w-6 text-green-500" />
+                  <div>
+                    <h3 className="font-semibold">Soporte Técnico</h3>
+                    <p className="text-sm text-muted-foreground">
+                      ¿Necesitas ayuda? Contáctanos por WhatsApp.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  asChild
+                  size="sm"
+                  className="shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Link
+                    href="https://wa.me/5213344090167"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Contactar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return null; // Or a default view
+  }
+  
   return (
     <>
-    <PageContainer className="space-y-5"> 
-      <div className="animate-fadeIn">
-        <div className="flex justify-between items-center mb-0.5"> 
-          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.firstName || userProfile.email || "Usuario/a"}!</h2> 
-          {userProfile.isAuthenticated && (
-            <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
-              <FaSignOutAlt size={12} className="mr-1" /> 
-              Cerrar Sesión
-            </Button>
-          )}
+      <PageContainer className="space-y-5"> 
+        <div className="animate-fadeIn">
+          <div className="flex justify-between items-center mb-0.5"> 
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              {pathname.startsWith('/dashboard/assistants') && 'Panel de Asistentes'}
+              {pathname.startsWith('/dashboard/databases') && 'Bases de Datos'}
+              {pathname.startsWith('/dashboard/profile') && 'Perfil y Soporte'}
+            </h2> 
+          </div>
+          <p className="text-xs text-muted-foreground">
+             {pathname.startsWith('/dashboard/assistants') && 'Gestiona todos tus asistentes de IA desde aquí.'}
+             {pathname.startsWith('/dashboard/databases') && 'Administra las fuentes de datos conectadas a tus asistentes.'}
+             {pathname.startsWith('/dashboard/profile') && 'Administra tu información, apariencia y obtén ayuda.'}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">Aquí tienes un resumen de tu {APP_NAME}.</p>
-      </div>
+        
+        {pathname !== '/dashboard/profile' && <DashboardSummary />}
+
+        {renderContentForRoute()}
+      </PageContainer>
       
-      <DashboardSummary />
-
-      <div className="space-y-4"> 
-        <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
-          <h3 className="text-lg font-semibold flex items-center gap-1"> 
-            <FaSitemap size={18} className="text-primary" /> 
-            Tus Asistentes
-          </h3>
-          <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
-            <FaPlusCircle size={13} className="mr-1" /> 
-            Añadir Asistente
-          </Button>
-        </div>
-        {userProfile.assistants.length > 0 ? (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"> 
-            {userProfile.assistants.map((assistant, index) => (
-              <AssistantCard 
-                key={assistant.id} 
-                assistant={assistant} 
-                onReconfigure={handleReconfigureAssistant}
-                animationDelay={`${0.4 + index * 0.1}s`}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card className="text-center py-6 animate-fadeIn" style={{animationDelay: "0.4s"}}> 
-            <CardContent className="flex flex-col items-center gap-2.5"> 
-              <FaRobot size={36} className="text-muted-foreground" /> 
-              <p className="text-xs text-muted-foreground">Aún no has configurado ningún asistente.</p>
-              <Button onClick={handleAddNewAssistant} size="sm" className="text-xs px-2 py-1">Crear Asistente</Button> 
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <div className="space-y-4"> 
-        <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: `${0.5 + userProfile.assistants.length * 0.1}s`}}>
-          <h3 className="text-lg font-semibold flex items-center gap-1"> 
-            <FaDatabase size={18} className="text-primary" /> 
-            Bases de Datos Vinculadas
-          </h3>
-          {showAddDatabaseButton && (
-             <Button onClick={handleAddNewDatabase} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
-                <FaPlusCircle size={13} className="mr-1" /> 
-                Añadir Base de Datos
-            </Button>
-          )}
-        </div>
-        {userProfile.databases.length > 0 ? (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">  
-            {userProfile.databases.map((db, index) => (
-              <DatabaseInfoCard key={db.id} database={db} animationDelay={`${0.6 + (userProfile.assistants.length + index) * 0.1}s`} />
-            ))}
-          </div>
-        ) : (
-           <Card className="text-center py-6 animate-fadeIn" style={{animationDelay: `${0.6 + userProfile.assistants.length * 0.1}s`}}> 
-            <CardContent className="flex flex-col items-center gap-2.5"> 
-              <FaDatabase size={36} className="text-muted-foreground" /> 
-              <p className="text-xs text-muted-foreground">No hay bases de datos vinculadas o creadas aún.</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </PageContainer>
-    <AddDatabaseDialog 
-        isOpen={isAddDatabaseDialogOpen} 
-        onOpenChange={setIsAddDatabaseDialogOpen} 
-    />
+      {/* Dialogs that can be opened from multiple places */}
+      <AddDatabaseDialog 
+          isOpen={isAddDatabaseDialogOpen} 
+          onOpenChange={setIsAddDatabaseDialogOpen} 
+      />
+       <PersonalInfoDialog
+        isOpen={isPersonalInfoOpen}
+        onOpenChange={setIsPersonalInfoOpen}
+      />
     </>
   );
 };
