@@ -15,6 +15,60 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+
+const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
+  const steps = [
+    {
+      num: "1",
+      icon: <UserCog size={28} className="text-primary" />,
+      title: "Crea tu Asistente",
+      description: "Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
+    },
+    {
+      num: "2",
+      icon: <FaSimCard size={28} className="text-primary" />,
+      title: "Vincula un Número",
+      description: "Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
+    },
+    {
+      num: "3",
+      icon: <FaCheckCircle size={28} className="text-primary" />,
+      title: "Activa y Disfruta",
+      description: "Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
+    }
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl text-center">Cómo Funciona</DialogTitle>
+          <DialogDescription className="text-center">
+            Configurar tu asistente es rápido e intuitivo.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          {steps.map((step, index) => (
+            <div key={index} className="flex items-start gap-4">
+              <div className="flex-shrink-0 bg-primary text-primary-foreground h-10 w-10 flex items-center justify-center rounded-full text-xl font-bold shadow-lg">
+                {step.num}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  {step.icon}
+                  <h3 className="text-lg font-semibold">{step.title}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">{step.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 
 const PayAsYouGoCalculator = () => {
   const [messages, setMessages] = useState(MESSAGES_PER_CREDIT);
@@ -175,6 +229,7 @@ const PhoneChatMockup = () => {
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -192,6 +247,7 @@ const HeroSection = () => {
   }, []);
 
   return (
+    <>
     <div ref={containerRef} className="relative w-full text-center py-20 sm:py-28 md:py-32 lg:py-36 overflow-hidden">
         <div 
           className="absolute inset-0 z-0 opacity-0 dark:opacity-100 transition-opacity duration-500" 
@@ -210,8 +266,8 @@ const HeroSection = () => {
                 <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg")}>
                     <Link href="/login">Empezar Ahora <ArrowRight className="ml-2"/></Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm">
-                    <Link href="#how-it-works">Cómo Funciona</Link>
+                <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
+                    Cómo Funciona
                 </Button>
             </div>
              <div className="mt-8 animate-fadeIn" style={{animationDelay: '0.4s'}}>
@@ -222,6 +278,8 @@ const HeroSection = () => {
             </div>
         </div>
     </div>
+    <HowItWorksDialog open={isHowItWorksOpen} onOpenChange={setIsHowItWorksOpen} />
+    </>
   )
 }
 
