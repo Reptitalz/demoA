@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
@@ -15,29 +15,54 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
+  const [step, setStep] = useState(0);
+
   const steps = [
     {
       num: "1",
-      icon: <UserCog size={28} className="text-primary" />,
+      icon: <UserCog size={32} className="text-primary" />,
       title: "Crea tu Asistente",
       description: "Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
     },
     {
       num: "2",
-      icon: <FaSimCard size={28} className="text-primary" />,
+      icon: <FaSimCard size={32} className="text-primary" />,
       title: "Vincula un Número",
       description: "Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
     },
     {
       num: "3",
-      icon: <FaCheckCircle size={28} className="text-primary" />,
+      icon: <FaCheckCircle size={32} className="text-primary" />,
       title: "Activa y Disfruta",
       description: "Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
     }
   ];
+
+  const currentStepData = steps[step];
+
+  const handleNext = () => {
+    if (step < steps.length - 1) {
+      setStep(s => s + 1);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  const handlePrev = () => {
+    if (step > 0) {
+      setStep(s => s - 1);
+    }
+  };
+  
+  // Reset step when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      setTimeout(() => setStep(0), 200); // Delay to allow animation
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,22 +73,44 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
             Configurar tu asistente es rápido e intuitivo.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-          {steps.map((step, index) => (
-            <div key={index} className="flex items-start gap-4">
-              <div className="flex-shrink-0 bg-primary text-primary-foreground h-10 w-10 flex items-center justify-center rounded-full text-xl font-bold shadow-lg">
-                {step.num}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  {step.icon}
-                  <h3 className="text-lg font-semibold">{step.title}</h3>
+        
+        <div className="py-6 min-h-[220px] flex items-center justify-center animate-fadeIn">
+            {currentStepData && (
+                <div className="text-center space-y-4">
+                    <div className="inline-block bg-primary/10 p-4 rounded-full border border-primary/20">
+                         {currentStepData.icon}
+                    </div>
+                    <h3 className="text-xl font-bold">{currentStepData.title}</h3>
+                    <p className="text-sm text-muted-foreground px-4">{currentStepData.description}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
-              </div>
-            </div>
-          ))}
+            )}
         </div>
+
+        <DialogFooter className="flex-col sm:flex-col sm:space-x-0 items-center gap-4">
+          <div className="flex justify-center items-center gap-3">
+              {steps.map((_, index) => (
+                  <button 
+                      key={index} 
+                      onClick={() => setStep(index)}
+                      className={cn(
+                          "h-2 w-2 rounded-full transition-all",
+                          step === index ? "w-4 bg-primary" : "bg-muted hover:bg-muted-foreground/50"
+                      )}
+                      aria-label={`Ir al paso ${index + 1}`}
+                  />
+              ))}
+          </div>
+
+          <div className="flex justify-between w-full">
+            <Button variant="outline" onClick={handlePrev} disabled={step === 0}>
+                <FaArrowLeft className="mr-2" /> Anterior
+            </Button>
+            <Button onClick={handleNext}>
+                {step === steps.length - 1 ? "Finalizar" : "Siguiente"}
+                {step < steps.length - 1 && <FaArrowRight className="ml-2" />}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
