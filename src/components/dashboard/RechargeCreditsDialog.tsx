@@ -55,8 +55,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     }
   }, [isOpen]);
 
-  const handlePaymentInitiation = () => {
-    if (!userProfile.firstName || !userProfile.lastName) {
+  const validateAndProceed = (callback: () => void) => {
+     if (!userProfile.firstName || !userProfile.lastName) {
       toast({
         title: "Información Requerida",
         description: "Por favor, completa tu información personal para continuar con el pago.",
@@ -70,8 +70,44 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       toast({ title: "Selección Requerida", description: "Por favor, selecciona o ingresa una cantidad de créditos válida.", variant: "destructive" });
       return;
     }
+    callback();
+  }
 
-    setView('cardForm');
+  const handlePayWithCard = () => {
+    validateAndProceed(() => setView('cardForm'));
+  };
+
+  const handlePayWithMercadoPagoRedirect = async () => {
+    validateAndProceed(async () => {
+        setIsProcessing(true);
+        try {
+            const response = await fetch('/api/create-mercadopago-preference', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    credits: creditsToPurchase, 
+                    userDbId: userProfile._id?.toString() 
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'No se pudo iniciar el pago.');
+            }
+
+            // Redirect to Mercado Pago's checkout page
+            window.location.href = data.initPointUrl;
+
+        } catch (error: any) {
+            toast({
+                title: 'Error al iniciar pago',
+                description: error.message,
+                variant: 'destructive',
+            });
+            setIsProcessing(false);
+        }
+    });
   };
   
   const handleClose = () => {
@@ -191,17 +227,22 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             </Tabs>
               <div className="flex flex-col gap-2 pt-2">
                  <Button
-                    className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
-                    onClick={handlePaymentInitiation}
+                    className="w-full"
+                    onClick={handlePayWithCard}
                     disabled={isProcessing}
                   >
                     {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <CreditCard className="mr-2 h-4 w-4" />}
-                    Continuar al Pago
+                    Pagar con Tarjeta
                 </Button>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                    <p className="text-xs text-muted-foreground">Pagos seguros con</p>
-                    <MercadoPagoIcon className="h-5"/>
-                </div>
+                 <Button
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                    onClick={handlePayWithMercadoPagoRedirect}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <MercadoPagoIcon className="mr-2 h-4 w-auto"/>}
+                    Pagar en Mercado Pago
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">Paga con SPEI, OXXO, saldo en cuenta y más.</p>
               </div>
           </div>
         )}
