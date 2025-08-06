@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
@@ -215,8 +216,8 @@ const HeroSection = () => {
             </div>
              <div className="mt-8 animate-fadeIn" style={{animationDelay: '0.4s'}}>
                 <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
-                    <FaGoogle className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Autenticación segura con Google</span>
+                    <FcGoogle className="h-4 w-4" />
+                    <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                 </div>
             </div>
         </div>
@@ -377,4 +378,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
-
