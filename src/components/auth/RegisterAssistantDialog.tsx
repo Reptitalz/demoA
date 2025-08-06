@@ -10,16 +10,12 @@ import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_Assistan
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
 import Step3UserDetails from '@/components/auth/wizard-steps/Step3_UserDetails';
-import Step4CreateCredentials from '@/components/auth/wizard-steps/Step4_CreateCredentials';
-import Step5Verification from '@/components/auth/wizard-steps/Step5_Verification';
 import Step5TermsAndConditions from '@/components/auth/wizard-steps/Step5_TermsAndConditions';
 import { Button } from '@/components/ui/button';
-import { FaArrowLeft, FaArrowRight, FaSpinner } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { sendVerificationCodeWebhook } from '@/services/verificationWebhookService';
-import { isValidPhoneNumber } from 'react-phone-number-input';
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -30,17 +26,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, phoneNumber, password, confirmPassword, verificationCode, firstName, lastName, email, address } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, firstName, lastName, email, address } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
-  const [webhookSent, setWebhookSent] = useState(false);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 7 : 6), [dbNeeded]);
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 5 : 4), [dbNeeded]);
 
   const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
@@ -62,31 +57,23 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       return null;
     };
      const validateUserDetailsStep = () => {
+      // In a real Google Auth flow, this data would be pre-filled and non-editable.
+      // For the prototype, we make it required.
       if (!firstName.trim()) return "Por favor, ingresa tu nombre.";
       if (!lastName.trim()) return "Por favor, ingresa tu apellido.";
       if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) return "Por favor, ingresa un correo electrónico válido.";
       return null;
     };
-    const validateAuthStep = () => {
-      if (!isValidPhoneNumber(phoneNumber || '')) return "Por favor, proporciona un número de teléfono válido.";
-      if (!password || password.length < 6) return "La contraseña debe tener al menos 6 caracteres.";
-      if (password !== confirmPassword) return "Las contraseñas no coinciden.";
-      return null;
-    };
-    const validateVerificationStep = () => {
-        if (!verificationCode.trim() || verificationCode.length !== 6) return "Por favor, ingresa el código de 6 dígitos.";
-        return null;
-    }
     const validateTermsStep = () => {
       if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
       return null;
     };
     
     let stepValidators;
-    if (dbNeeded) { // 7-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
-    } else { // 6-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateAuthStep, validateVerificationStep, validateTermsStep];
+    if (dbNeeded) { // 5-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateTermsStep];
+    } else { // 4-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateTermsStep];
     }
     
     return currentStep < stepValidators.length ? stepValidators[currentStep]!() : null;
@@ -103,36 +90,12 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       toast({ title: "Error de Validación", description: validationError, variant: "destructive" });
       return;
     }
-
-    // Check if moving from credentials step to verification step
-    const authStepIndex = dbNeeded ? 5 : 4;
-    if (currentStep === authStepIndex && !webhookSent) {
-      setIsFinalizingSetup(true); // Show spinner while sending code
-      try {
-        await sendVerificationCodeWebhook(phoneNumber!);
-        setWebhookSent(true);
-        toast({ title: "Código Enviado", description: "Hemos enviado un código de verificación a tu WhatsApp." });
-        dispatch({ type: 'NEXT_WIZARD_STEP' });
-      } catch (error) {
-        toast({ title: "Error", description: "No se pudo enviar el código de verificación. Intenta de nuevo.", variant: "destructive"});
-      } finally {
-        setIsFinalizingSetup(false);
-      }
-      return;
-    }
-
-
     if (currentStep < effectiveMaxSteps) {
         dispatch({ type: 'NEXT_WIZARD_STEP' });
     }
   };
 
   const handlePrevious = () => {
-    // When going back from verification step, reset webhook state
-    const verificationStepIndex = dbNeeded ? 6 : 5;
-    if (currentStep === verificationStepIndex) {
-        setWebhookSent(false);
-    }
     if (currentStep > 1) {
       dispatch({ type: 'PREVIOUS_WIZARD_STEP' });
     }
@@ -170,17 +133,17 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     
-    const userProfileForApi: Omit<UserProfile, 'isAuthenticated'> = {
+    const userProfileForApi: Omit<UserProfile, 'isAuthenticated' | '_id'> = {
         email: email,
         firstName: firstName,
         lastName: lastName,
         address: address,
-        phoneNumber: phoneNumber,
-        password: password,
+        googleId: `google_${Date.now()}`, // Mock Google ID
         assistants: [finalAssistantConfig],
         databases: newDbEntry ? [newDbEntry] : [],
         ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
         credits: 0,
+        authProvider: 'google',
     };
     
     try {
@@ -189,7 +152,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               userProfile: userProfileForApi,
-              verificationCode,
             }),
         });
         const data = await response.json();
@@ -199,12 +161,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         
         toast({
             title: "¡Cuenta Creada!",
-            description: `Ahora puedes iniciar sesión con tu número de teléfono.`,
+            description: `Ahora puedes iniciar sesión con tu cuenta de Google.`,
         });
 
         onOpenChange(false);
         // Do not auto-login, let user do it explicitly.
-        // router.push('/login');
     
     } catch (error: any) {
         toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
@@ -215,10 +176,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   const renderStepContent = () => {
     let steps;
-    if (dbNeeded) { // 7-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification />, <Step5TermsAndConditions />];
-    } else { // 6-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step4CreateCredentials />, <Step5Verification />, <Step5TermsAndConditions />];
+    if (dbNeeded) { // 5-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step5TermsAndConditions />];
+    } else { // 4-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step5TermsAndConditions />];
     }
     return currentStep < steps.length ? steps[currentStep] : null;
   };
@@ -246,7 +207,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             {isFinalizingSetup && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 rounded-md">
                 <FaSpinner className="animate-spin h-10 w-10 text-primary" />
-                <p className="mt-4 text-sm text-muted-foreground">Enviando información...</p>
+                <p className="mt-4 text-sm text-muted-foreground">Finalizando registro...</p>
                 </div>
             )}
             <div className="p-1">
@@ -262,14 +223,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
           {currentStep < effectiveMaxSteps ? (
               <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
-                {isFinalizingSetup ? <FaSpinner className="animate-spin mr-2 h-4 w-4" /> : null}
                 Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
               </Button>
           ) : (
               <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-2 h-4 w-4" />}
-              Completar Configuración
-              <FaArrowRight className="ml-2 h-4 w-4" />
+              <FaGoogle className="mr-2 h-4 w-4" />
+              Completar con Google
               </Button>
           )}
         </div>

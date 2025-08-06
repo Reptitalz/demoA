@@ -16,15 +16,11 @@ const initialWizardState: WizardState = {
   assistantPrompt: '',
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' },
-  authMethod: null,
+  authMethod: 'google',
   firstName: '',
   lastName: '',
   email: '',
   address: {},
-  phoneNumber: '',
-  password: '',
-  confirmPassword: '',
-  verificationCode: '',
   ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
   editingAssistantId: null,
@@ -33,13 +29,12 @@ const initialWizardState: WizardState = {
 
 const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
-  authProvider: undefined,
-  email: undefined,
+  authProvider: 'google',
+  email: '',
   firstName: undefined,
   lastName: undefined,
   address: undefined,
-  phoneNumber: undefined,
-  password: undefined,
+  googleId: undefined,
   assistants: [],
   databases: [],
   ownerPhoneNumberForNotifications: undefined,
@@ -56,7 +51,7 @@ const initialState: AppState = {
 const AppContext = createContext<{ 
   state: AppState; 
   dispatch: React.Dispatch<Action>; 
-  fetchProfileCallback: (phoneNumber: string) => Promise<void>;
+  fetchProfileCallback: (email: string) => Promise<void>;
 } | undefined>(undefined);
 
 type Action =
@@ -69,10 +64,6 @@ type Action =
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
-  | { type: 'SET_WIZARD_PHONE_NUMBER'; payload: string }
-  | { type: 'SET_WIZARD_PASSWORD'; payload: string }
-  | { type: 'SET_WIZARD_CONFIRM_PASSWORD'; payload: string }
-  | { type: 'SET_WIZARD_VERIFICATION_CODE'; payload: string }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
   | { type: 'UPDATE_WIZARD_USER_DETAILS'; payload: { field: keyof UserProfile; value: string | UserAddress } }
@@ -136,14 +127,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       }
       return { ...state, wizard: { ...state.wizard, [field]: value }};
     }
-    case 'SET_WIZARD_PHONE_NUMBER':
-      return { ...state, wizard: { ...state.wizard, phoneNumber: action.payload } };
-    case 'SET_WIZARD_PASSWORD':
-      return { ...state, wizard: { ...state.wizard, password: action.payload } };
-    case 'SET_WIZARD_CONFIRM_PASSWORD':
-      return { ...state, wizard: { ...state.wizard, confirmPassword: action.payload } };
-    case 'SET_WIZARD_VERIFICATION_CODE':
-      return { ...state, wizard: { ...state.wizard, verificationCode: action.payload } };
     case 'UPDATE_OWNER_PHONE_NUMBER':
       return { ...state, wizard: { ...state.wizard, ownerPhoneNumberForNotifications: action.payload } };
     case 'SET_TERMS_ACCEPTED':
@@ -303,16 +286,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     previousStateRef.current = state;
   }, [state.userProfile]);
 
-  const fetchProfileCallback = useCallback(async (phoneNumber: string) => {
+  const fetchProfileCallback = useCallback(async (email: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const response = await fetch(`/api/user-profile?phoneNumber=${encodeURIComponent(phoneNumber)}`);
+      const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
 
       if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          sessionStorage.setItem('loggedInUser', phoneNumber);
+          sessionStorage.setItem('loggedInUser', email);
         } else {
            dispatch({ type: 'LOGOUT_USER' });
         }

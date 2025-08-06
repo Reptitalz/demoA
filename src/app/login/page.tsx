@@ -4,15 +4,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { isValidPhoneNumber, type E164Number } from 'react-phone-number-input';
-import { LogIn, UserPlus, Phone, Key, Eye, EyeOff } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { PhoneInput } from '@/components/ui/phone-input';
-import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
-import { FaSpinner } from 'react-icons/fa';
+import { FaSpinner, FaGoogle } from 'react-icons/fa';
 
 const APP_NAME = "Hey Manito";
 
@@ -25,12 +21,8 @@ const LoginPageContent = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
 
-  const [phoneNumber, setPhoneNumber] = useState<E164Number | undefined>();
-  const [password, setPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
-  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state.userProfile.isAuthenticated) {
@@ -38,36 +30,38 @@ const LoginPageContent = () => {
     }
   }, [state.userProfile.isAuthenticated, router]);
   
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phoneNumber || !isValidPhoneNumber(phoneNumber) || !password) {
-      toast({
-        title: "Credenciales incompletas",
-        description: "Por favor, ingresa un número de teléfono y contraseña válidos.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleGoogleLogin = async () => {
     setIsProcessing(true);
+    // This is a placeholder for the actual Google Sign-In logic.
+    // In a real app, you would use a library like next-auth or Firebase Auth.
+    // For this prototype, we'll simulate a successful login.
+    
+    // Simulate fetching a user profile from Google/your backend
+    // In a real scenario, this would involve a redirect or popup and a callback.
+    const mockGoogleEmail = 'user@example.com';
+    
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión');
+      const response = await fetch(`/api/user-profile?email=${encodeURIComponent(mockGoogleEmail)}`);
+      
+      if (response.status === 404) {
+          toast({
+            title: "Cuenta no encontrada",
+            description: "No encontramos una cuenta con este email. Por favor, crea un asistente primero.",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
       }
       
-      // The API now returns the full user profile on success.
-      // We can directly use this to update the app state.
+      if (!response.ok) {
+        throw new Error('Error al iniciar sesión');
+      }
+
+      const data = await response.json();
+      
       if (data.userProfile) {
         dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-        sessionStorage.setItem('loggedInUser', data.userProfile.phoneNumber); // Persist session
+        sessionStorage.setItem('loggedInUser', data.userProfile.email); // Use email for session
         
         toast({
           title: "¡Bienvenido/a de nuevo!",
@@ -106,74 +100,23 @@ const LoginPageContent = () => {
   return (
     <>
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
-      <div id="recaptcha-container"></div>
       <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn animate-float">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label htmlFor="phone-number" className="block text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
-              <Phone className="h-4 w-4" /> Número de Teléfono
-            </label>
-            <PhoneInput
-              id="phone-number"
-              placeholder="+52 123 456 7890"
-              value={phoneNumber}
-              onChange={(value) => setPhoneNumber(value)}
-              disabled={isProcessing}
-              className="w-full"
-              defaultCountry="MX"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
-              <Key className="h-4 w-4" /> Contraseña
-            </label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Tu contraseña segura"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isProcessing}
-                className="w-full pr-10"
-              />
-              <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
-                  onClick={() => setShowPassword(!showPassword)}
-               >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-               </Button>
-            </div>
-            <div className="text-right mt-1.5">
-                <Button 
-                    type="button" 
-                    variant="link" 
-                    className="p-0 h-auto text-xs text-muted-foreground hover:text-primary"
-                    onClick={() => setIsForgotPasswordDialogOpen(true)}
-                >
-                    ¿Olvidaste tu contraseña?
-                </Button>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
+        <div className="space-y-4">
+           <Button
+            onClick={handleGoogleLogin}
             disabled={isProcessing}
             className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
           >
-            {isProcessing ? <LoadingSpinner size={20} /> : <LogIn className="h-5 w-5" />}
-            Iniciar Sesión
+            {isProcessing ? <LoadingSpinner size={20} /> : <FaGoogle className="h-5 w-5" />}
+            Iniciar Sesión con Google
           </Button>
-        </form>
+        </div>
+
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
@@ -195,7 +138,6 @@ const LoginPageContent = () => {
       </div>
     </div>
     <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
-    <ForgotPasswordDialog isOpen={isForgotPasswordDialogOpen} onOpenChange={setIsForgotPasswordDialogOpen} />
     </>
   );
 };

@@ -79,22 +79,17 @@ export interface UserAddress {
 export interface UserProfile {
   _id?: ObjectId;
   isAuthenticated: boolean;
-  authProvider?: AuthProviderType;
-  email?: string;
+  authProvider: AuthProviderType;
+  email: string;
   firstName?: string;
   lastName?: string;
   address?: UserAddress;
-  phoneNumber?: string; 
-  password?: string;
+  googleId?: string; // Unique ID from Google
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   ownerPhoneNumberForNotifications?: string;
   credits: number;
-  recoveryToken?: string;
-  recoveryTokenExpiry?: Date;
-  pushSubscriptions?: any[]; // For web push notifications
-  verificationCode?: string; // For sign-up verification
-  verificationCodeExpiry?: Date;
+  pushSubscriptions?: any[];
 }
 
 export interface WizardState {
@@ -111,16 +106,11 @@ export interface WizardState {
     relevantColumnsDescription?: string;
   };
   authMethod: AuthProviderType | null;
-  // User details
+  // User details from Google
   firstName: string;
   lastName: string;
   email: string;
   address: UserAddress;
-  // Credentials
-  phoneNumber?: string;
-  password?: string;
-  confirmPassword?: string;
-  verificationCode?: string;
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;

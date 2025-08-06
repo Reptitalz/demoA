@@ -18,27 +18,24 @@ const SetupProgressBar = () => {
   
   const { effectiveMaxSteps, stepTitleKey } = useMemo(() => {
     if (isReconfiguring) {
-      // Reconfiguring flow is simpler and does not include user details or auth steps.
+      // Reconfiguring flow is simpler
       const maxSteps = dbNeeded ? 4 : 3;
       let titleKey: number;
       if (currentStep === 1) titleKey = 1; // Details
       else if (currentStep === 2) titleKey = 2; // Prompt
-      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 7; // DB or Terms (use key 7 for terms)
-      else if (currentStep === 4) titleKey = 7; // Terms
+      else if (currentStep === 3) titleKey = dbNeeded ? 3 : 5; // DB or Terms (use key 5 for terms)
+      else if (currentStep === 4) titleKey = 5; // Terms
       else titleKey = currentStep;
       return { effectiveMaxSteps: maxSteps, stepTitleKey: titleKey };
     } else {
       // New user registration flow
-      const maxSteps = dbNeeded ? 7 : 6;
+      const maxSteps = dbNeeded ? 5 : 4;
       let titleKey: number;
-      if (currentStep <= 2) titleKey = currentStep;
-      else if (dbNeeded) {
-        // 7 steps: Details, Prompt, DB, UserDetails, Auth, Verify, Terms
-        const keyMap = [0, 1, 2, 3, 4, 5, 6, 7];
+       if (dbNeeded) { // 5 steps
+        const keyMap = [0, 1, 2, 3, 4, 5];
         titleKey = keyMap[currentStep];
-      } else {
-        // 6 steps: Details, Prompt, UserDetails, Auth, Verify, Terms
-        const keyMap = [0, 1, 2, 4, 5, 6, 7]; // Skip DB config (step 3)
+      } else { // 4 steps
+        const keyMap = [0, 1, 2, 4, 5]; // Skip DB config (step 3)
         titleKey = keyMap[currentStep];
       }
       return { effectiveMaxSteps: maxSteps, stepTitleKey: titleKey };

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -15,7 +16,6 @@ import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
-import ForgotPasswordDialog from '@/components/auth/ForgotPasswordDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User } from 'lucide-react';
@@ -31,7 +31,6 @@ const DashboardPageContent = () => {
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
-  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   // Handle session and payment status logic
   useEffect(() => {
@@ -42,21 +41,21 @@ const DashboardPageContent = () => {
   
   useEffect(() => {
     const paymentStatus = searchParams.get('payment_status');
-    const phoneNumber = state.userProfile.phoneNumber;
+    const userEmail = state.userProfile.email;
 
-    if (paymentStatus && phoneNumber) {
+    if (paymentStatus && userEmail) {
       if (paymentStatus === 'success') {
           toast({
             title: "¡Pago Exitoso!",
             description: "Tu compra ha sido procesada. Actualizando tu saldo...",
             variant: "default",
           });
-          fetchProfileCallback(phoneNumber);
+          fetchProfileCallback(userEmail);
       }
       // Clean up the URL by removing search params, regardless of status
       router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber, router, pathname]);
+  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email, router, pathname]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -223,17 +222,16 @@ const DashboardPageContent = () => {
                   <div>
                     <h3 className="font-semibold">Seguridad</h3>
                     <p className="text-sm text-muted-foreground">
-                      ¿Olvidaste tu contraseña? Inicia la recuperación.
+                      Tu cuenta está segura con Google.
                     </p>
                   </div>
                 </div>
                 <Button
                   size="sm"
-                  variant="destructive"
-                  onClick={() => setIsForgotPasswordOpen(true)}
-                  className="shrink-0"
+                  variant="secondary"
+                  disabled
                 >
-                  Recuperar
+                  Gestionado por Google
                 </Button>
               </div>
               <Separator />
@@ -318,10 +316,6 @@ const DashboardPageContent = () => {
        <PersonalInfoDialog
         isOpen={isPersonalInfoOpen}
         onOpenChange={setIsPersonalInfoOpen}
-      />
-      <ForgotPasswordDialog
-        isOpen={isForgotPasswordOpen}
-        onOpenChange={setIsForgotPasswordOpen}
       />
     </>
   );
