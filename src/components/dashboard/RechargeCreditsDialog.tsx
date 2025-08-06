@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, Banknote, CreditCard } from 'lucide-react';
+import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, CreditCard } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
@@ -56,8 +56,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     }
   }, [isOpen]);
 
-  const handlePaymentInitiation = (paymentMethod: 'card' | 'redirect') => {
-    // Check if personal info is complete before proceeding
+  const handlePaymentInitiation = () => {
     if (!userProfile.firstName || !userProfile.lastName) {
       toast({
         title: "Información Requerida",
@@ -67,54 +66,13 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       setIsPersonalInfoDialogOpen(true);
       return;
     }
-
-    if (paymentMethod === 'card') {
-      setView('cardForm');
-    } else {
-      redirectToCheckoutPro();
-    }
-  };
-
-  const redirectToCheckoutPro = async () => {
+    
     if (!creditsToPurchase || creditsToPurchase <= 0) {
       toast({ title: "Selección Requerida", description: "Por favor, selecciona o ingresa una cantidad de créditos válida.", variant: "destructive" });
       return;
     }
-    
-    if (!userProfile._id) {
-      toast({ title: "Error de Autenticación", description: "No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.", variant: "destructive" });
-      return;
-    }
 
-    setIsProcessing(true);
-
-    try {
-        const response = await fetch('/api/create-mercadopago-preference', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              credits: creditsToPurchase,
-              userDbId: userProfile._id.toString(),
-            }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'No se pudo crear la orden de pago.');
-        }
-        
-        if (data.initPointUrl) {
-            window.location.href = data.initPointUrl;
-        } else {
-            throw new Error('No se recibió la URL de pago. Por favor, intenta de nuevo.');
-        }
-    } catch (error: any) {
-        toast({ title: "Error al generar orden", description: error.message, variant: "destructive" });
-        setIsProcessing(false);
-    }
+    setView('cardForm');
   };
   
   const handleClose = () => {
@@ -234,20 +192,12 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
             </Tabs>
               <div className="flex flex-col gap-2 pt-2">
                  <Button
-                    className="w-full"
-                    onClick={() => handlePaymentInitiation('card')}
+                    className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+                    onClick={handlePaymentInitiation}
                     disabled={isProcessing}
                   >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Pagar con Tarjeta
-                </Button>
-                <Button
-                    className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
-                    onClick={() => handlePaymentInitiation('redirect')}
-                    disabled={isProcessing}
-                >
-                    {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Banknote className="mr-2 h-4 w-4" />}
-                    Otros Métodos de Pago
+                    {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <CreditCard className="mr-2 h-4 w-4" />}
+                    Continuar al Pago
                 </Button>
                 <div className="flex items-center justify-center gap-2 mt-2">
                     <p className="text-xs text-muted-foreground">Pagos seguros con</p>

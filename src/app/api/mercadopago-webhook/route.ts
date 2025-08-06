@@ -1,121 +1,229 @@
-// src/app/api/mercadopago-webhook/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
-import type { UserProfile } from '@/types';
-import { MercadoPagoConfig, Payment } from 'mercadopago';
-import crypto from 'crypto';
+"use client";
 
-const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
-const MERCADOPAGO_WEBHOOK_SECRET = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { useApp } from '@/providers/AppProvider';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
+import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2, CreditCard } from 'lucide-react';
+import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
+import { Button } from '../ui/button';
+import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
+import MercadoPagoPaymentForm from './MercadoPagoPaymentForm';
+import PersonalInfoDialog from './PersonalInfoDialog';
 
-const client = new MercadoPagoConfig({
-    accessToken: MERCADOPAGO_ACCESS_TOKEN!,
-});
-const payment = new Payment(client);
-
-function verifyWebhookSignature(request: NextRequest, rawBody: string, secret: string): boolean {
-  const signatureHeader = request.headers.get('x-signature');
-  if (!signatureHeader) {
-    console.error('Missing x-signature header');
-    return false;
-  }
-
-  const parts = signatureHeader.split(',').reduce((acc, part) => {
-    const [key, value] = part.split('=');
-    acc[key.trim()] = value.trim();
-    return acc;
-  }, {} as Record<string, string>);
-
-  const ts = parts['ts'];
-  const hash = parts['v1'];
-  
-  if (!ts || !hash) {
-    console.error('Invalid signature header format');
-    return false;
-  }
-
-  const notification = JSON.parse(rawBody);
-  const dataId = notification.data?.id;
-
-  if (!dataId) {
-      console.error('data.id not found in webhook body');
-      return false;
-  }
-  
-  const manifest = `id:${dataId};request-id:${request.headers.get('x-request-id')};ts:${ts};`;
-  
-  const hmac = crypto.createHmac('sha256', secret);
-  hmac.update(manifest);
-  const generatedHash = hmac.digest('hex');
-
-  const isValid = generatedHash === hash;
-  if (!isValid) {
-    console.error('Webhook signature verification failed. Generated vs Received:', generatedHash, hash);
-  }
-  return isValid;
+interface RechargeCreditsDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export async function POST(request: NextRequest) {
-  console.log('--- Mercado Pago Webhook Received ---');
+const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
+  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { toast } = useToast();
+  const { userProfile } = state;
   
-  const rawBody = await request.text();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [view, setView] = useState<'options' | 'cardForm'>('options');
+  const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
+  const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
+  const [customCredits, setCustomCredits] = useState<number>(1);
+  const [isPersonalInfoDialogOpen, setIsPersonalInfoDialogOpen] = useState(false);
   
-  if (MERCADOPAGO_WEBHOOK_SECRET) {
-      if (!verifyWebhookSignature(request, rawBody, MERCADOPAGO_WEBHOOK_SECRET)) {
-          console.error('Webhook signature verification failed.');
-          return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
-      }
-      console.log('✅ Webhook signature verified successfully.');
-  } else {
-      console.warn('MERCADOPAGO_WEBHOOK_SECRET is not configured. Skipping signature verification. This is NOT recommended for production.');
-  }
+  const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
+  
+  const totalMessagesFromCredits = (userProfile.credits || 0) * MESSAGES_PER_CREDIT;
+  const totalConsumedMessages = userProfile.assistants.reduce((sum, asst) => sum + (asst.messageCount || 0), 0);
+  const availableMessages = totalMessagesFromCredits - totalConsumedMessages;
 
-  try {
-    const notification = JSON.parse(rawBody);
-    console.log('Notification body:', JSON.stringify(notification, null, 2));
+  useEffect(() => {
+    if (isOpen) {
+      setIsProcessing(false);
+      setView('options');
+      setActiveTab('packages');
+      setSelectedPackageCredits(CREDIT_PACKAGES[0].credits);
+      setCustomCredits(1);
+    }
+  }, [isOpen]);
 
-    if (notification.type === 'payment' && notification.data.id) {
-      const paymentId = notification.data.id;
-      console.log(`Processing payment event for payment ID: ${paymentId}`);
-      
-      const paymentDetails = await payment.get({ id: paymentId });
-      console.log('Fetched Payment Details:', JSON.stringify(paymentDetails, null, 2));
-
-      if (paymentDetails.status === 'approved' && paymentDetails.external_reference) {
-        const { external_reference } = paymentDetails;
-        
-        const [userId, creditsStr] = external_reference.split('__');
-        const creditsPurchased = parseFloat(creditsStr);
-        
-        if (!userId || !ObjectId.isValid(userId) || isNaN(creditsPurchased)) {
-          console.error(`Invalid external_reference format: ${external_reference}`);
-          // Acknowledge receipt but log error
-          return NextResponse.json({ received: true, error: "Invalid reference" }, { status: 200 });
-        }
-        
-        const userObjectId = new ObjectId(userId);
-
-        const { db } = await connectToDatabase();
-        const updateResult = await db.collection<UserProfile>('userProfiles').updateOne(
-          { _id: userObjectId },
-          { $inc: { credits: creditsPurchased } }
-        );
-
-        if (updateResult.modifiedCount === 1) {
-          console.log(`✅ Successfully added ${creditsPurchased} credits to user ${userId}.`);
-        } else {
-          // This can happen if the payment is processed twice. Log it but don't treat as a hard error.
-          console.warn(`Could not update credits for user ${userId}. User might not be found or credits already updated.`);
-        }
-      } else {
-        console.log(`Payment ${paymentId} is not approved or has no external_reference. Status: ${paymentDetails.status}`);
-      }
+  const handlePaymentInitiation = () => {
+    if (!userProfile.firstName || !userProfile.lastName) {
+      toast({
+        title: "Información Requerida",
+        description: "Por favor, completa tu información personal para continuar con el pago.",
+        variant: "default",
+      });
+      setIsPersonalInfoDialogOpen(true);
+      return;
+    }
+    
+    if (!creditsToPurchase || creditsToPurchase <= 0) {
+      toast({ title: "Selección Requerida", description: "Por favor, selecciona o ingresa una cantidad de créditos válida.", variant: "destructive" });
+      return;
     }
 
-    return NextResponse.json({ received: true }, { status: 200 });
-  } catch (error) {
-    console.error('❌ Error processing Mercado Pago webhook:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
+    setView('cardForm');
+  };
+  
+  const handleClose = () => {
+    if (isProcessing) return;
+    onOpenChange(false);
+  };
+  
+  const handlePaymentSuccess = () => {
+    toast({
+      title: "¡Pago Exitoso!",
+      description: "Tus créditos han sido añadidos a tu cuenta.",
+    });
+    if (userProfile.email) {
+        fetchProfileCallback(userProfile.email);
+    }
+    handleClose();
+  };
+  
+  const purchaseAmount = activeTab === 'packages' 
+    ? (CREDIT_PACKAGES.find(p => p.credits === selectedPackageCredits)?.price || 0)
+    : customCredits * PRICE_PER_CREDIT;
+
+  return (
+    <>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <WalletIcon className="h-6 w-6 text-primary" /> Recargar Saldo
+          </DialogTitle>
+           {view === 'options' && (
+            <DialogDescription>
+              Añade créditos a tu cuenta para continuar usando tus asistentes.
+            </DialogDescription>
+          )}
+           {view === 'cardForm' && (
+            <DialogDescription>
+              Ingresa los datos de tu tarjeta para completar la compra.
+            </DialogDescription>
+          )}
+        </DialogHeader>
+
+        {view === 'options' && (
+           <div className="my-2 space-y-4">
+            <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground mb-1">Saldo Actual</p>
+                <div className="flex items-center justify-center gap-6">
+                  <div className="flex items-center gap-2">
+                      <Coins className="h-5 w-5 text-accent" />
+                      <p className="text-2xl font-bold">{userProfile.credits || 0}</p>
+                      <span className="text-xs text-muted-foreground mt-2">Créditos</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                      <MessagesSquare className="h-5 w-5 text-accent" />
+                      <p className="text-2xl font-bold">{availableMessages.toLocaleString()}</p>
+                      <span className="text-xs text-muted-foreground mt-2">Mensajes</span>
+                  </div>
+                </div>
+            </div>
+            
+            <Tabs defaultValue="packages" className="w-full" onValueChange={(value) => setActiveTab(value as 'packages' | 'custom')}>
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="packages">Paquetes</TabsTrigger>
+                    <TabsTrigger value="custom">Personalizar</TabsTrigger>
+                </TabsList>
+                <TabsContent value="packages" className="pt-2">
+                    <RadioGroup
+                        value={selectedPackageCredits.toString()}
+                        onValueChange={(value) => setSelectedPackageCredits(Number(value))}
+                        className="mt-2 grid grid-cols-2 gap-3"
+                    >
+                        {CREDIT_PACKAGES.map((pkg) => {
+                            const messages = Math.floor(pkg.credits * MESSAGES_PER_CREDIT);
+                            return (
+                              <Label
+                                  key={pkg.credits}
+                                  htmlFor={`pkg-${pkg.credits}`}
+                                  className={cn(
+                                      "flex flex-col items-center justify-center p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary has-[input:checked]:ring-1 has-[input:checked]:ring-primary"
+                                  )}
+                              >
+                                  <RadioGroupItem value={pkg.credits.toString()} id={`pkg-${pkg.credits}`} className="sr-only" />
+                                  <p className="font-bold text-base">{pkg.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                      ${pkg.price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+                                  </p>
+                                  <p className="text-xs text-muted-foreground/80">({messages.toLocaleString()} mensajes)</p>
+                              </Label>
+                            )
+                        })}
+                    </RadioGroup>
+                </TabsContent>
+                <TabsContent value="custom" className="pt-4 space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center font-semibold text-lg">
+                            <span className="flex items-center gap-2">Créditos</span>
+                            <span className="text-primary">{customCredits}</span>
+                        </div>
+                        <Slider
+                            value={[customCredits]}
+                            onValueChange={(value) => setCustomCredits(value[0])}
+                            min={1}
+                            max={MAX_CUSTOM_CREDITS}
+                            step={1}
+                            aria-label="Selector de créditos"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>1</span>
+                            <span>{MAX_CUSTOM_CREDITS}</span>
+                        </div>
+                         <div className="p-3 bg-muted/50 rounded-lg text-center mt-2">
+                            <p className="text-sm text-muted-foreground mb-1">Costo Total</p>
+                            <p className="text-xl font-bold">${purchaseAmount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</p>
+                        </div>
+                    </div>
+                </TabsContent>
+            </Tabs>
+              <div className="flex flex-col gap-2 pt-2">
+                 <Button
+                    className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
+                    onClick={handlePaymentInitiation}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <CreditCard className="mr-2 h-4 w-4" />}
+                    Continuar al Pago
+                </Button>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                    <p className="text-xs text-muted-foreground">Pagos seguros con</p>
+                    <MercadoPagoIcon className="h-5"/>
+                </div>
+              </div>
+          </div>
+        )}
+        {view === 'cardForm' && (
+            <div className="animate-fadeIn">
+                 <MercadoPagoPaymentForm
+                    credits={creditsToPurchase}
+                    onPaymentSuccess={handlePaymentSuccess}
+                  />
+                  <Button variant="link" size="sm" className="w-full mt-2" onClick={() => setView('options')}>
+                      Volver
+                  </Button>
+            </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    <PersonalInfoDialog
+      isOpen={isPersonalInfoDialogOpen}
+      onOpenChange={setIsPersonalInfoDialogOpen}
+    />
+    </>
+  );
+};
+
+export default RechargeCreditsDialog;
