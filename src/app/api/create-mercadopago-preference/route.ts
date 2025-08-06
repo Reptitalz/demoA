@@ -19,7 +19,7 @@ const client = new MercadoPagoConfig({
 const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
-  console.log('--- Create Preference endpoint hit (Checkout Pro) ---');
+  console.log('--- Create Preference endpoint hit ---');
   
   try {
     const { credits, userDbId } = await request.json();
@@ -97,10 +97,10 @@ export async function POST(request: NextRequest) {
     const result = await preference.create({ body: preferencePayload });
 
     console.log('✅ Preference created successfully with ID:', result.id);
-    console.log('✅ Checkout Pro Init Point URL:', result.init_point);
     
     return NextResponse.json({
-      initPointUrl: result.init_point,
+      preferenceId: result.id,
+      initPointUrl: result.init_point, // Fallback for redirection
     });
 
   } catch (error: any) {
