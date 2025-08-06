@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -6,11 +5,11 @@ import { useApp } from "@/providers/AppProvider";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Mail, Home } from 'lucide-react';
-import type { UserAddress } from '@/types';
+import type { UserAddress, UserProfile } from '@/types';
 
 const Step3UserDetails = () => {
   const { state, dispatch } = useApp();
-  const { firstName, lastName, email, address } = state.wizard;
+  const { firstName, lastName, address } = state.wizard;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,21 +64,6 @@ const Step3UserDetails = () => {
               aria-required="true"
             />
           </div>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
-            <Mail className="h-4 w-4" /> Correo Electrónico
-          </Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="tu@correo.com"
-            value={email}
-            onChange={handleInputChange}
-            aria-required="true"
-          />
         </div>
         
         <div className="space-y-2">
