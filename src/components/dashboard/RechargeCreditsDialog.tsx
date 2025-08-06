@@ -21,6 +21,7 @@ import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CRED
 import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 import MercadoPagoPaymentForm from './MercadoPagoPaymentForm';
+import PersonalInfoDialog from './PersonalInfoDialog';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
   const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
   const [customCredits, setCustomCredits] = useState<number>(1);
+  const [isPersonalInfoDialogOpen, setIsPersonalInfoDialogOpen] = useState(false);
   
   const creditsToPurchase = activeTab === 'packages' ? selectedPackageCredits : customCredits;
   
@@ -53,6 +55,25 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       setCustomCredits(1);
     }
   }, [isOpen]);
+
+  const handlePaymentInitiation = (paymentMethod: 'card' | 'redirect') => {
+    // Check if personal info is complete before proceeding
+    if (!userProfile.firstName || !userProfile.lastName) {
+      toast({
+        title: "Información Requerida",
+        description: "Por favor, completa tu información personal para continuar con el pago.",
+        variant: "default",
+      });
+      setIsPersonalInfoDialogOpen(true);
+      return;
+    }
+
+    if (paymentMethod === 'card') {
+      setView('cardForm');
+    } else {
+      redirectToCheckoutPro();
+    }
+  };
 
   const redirectToCheckoutPro = async () => {
     if (!creditsToPurchase || creditsToPurchase <= 0) {
@@ -106,8 +127,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       title: "¡Pago Exitoso!",
       description: "Tus créditos han sido añadidos a tu cuenta.",
     });
-    if (userProfile.phoneNumber) {
-        fetchProfileCallback(userProfile.phoneNumber);
+    if (userProfile.email) {
+        fetchProfileCallback(userProfile.email);
     }
     handleClose();
   };
@@ -117,6 +138,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     : customCredits * PRICE_PER_CREDIT;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
@@ -213,7 +235,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
               <div className="flex flex-col gap-2 pt-2">
                  <Button
                     className="w-full"
-                    onClick={() => setView('cardForm')}
+                    onClick={() => handlePaymentInitiation('card')}
                     disabled={isProcessing}
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
@@ -221,7 +243,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                 </Button>
                 <Button
                     className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
-                    onClick={redirectToCheckoutPro}
+                    onClick={() => handlePaymentInitiation('redirect')}
                     disabled={isProcessing}
                 >
                     {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Banknote className="mr-2 h-4 w-4" />}
@@ -247,6 +269,11 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
         )}
       </DialogContent>
     </Dialog>
+    <PersonalInfoDialog
+      isOpen={isPersonalInfoDialogOpen}
+      onOpenChange={setIsPersonalInfoDialogOpen}
+    />
+    </>
   );
 };
 

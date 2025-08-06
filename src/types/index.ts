@@ -94,7 +94,6 @@ export interface UserProfile {
 
 export interface WizardState {
   currentStep: number;
-  maxSteps: number;
   assistantName: string;
   assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
@@ -106,7 +105,7 @@ export interface WizardState {
     relevantColumnsDescription?: string;
   };
   authMethod: AuthProviderType | null;
-  // User details from Google
+  // User details, now optional in the wizard itself
   firstName: string;
   lastName: string;
   email: string;

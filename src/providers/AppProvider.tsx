@@ -4,14 +4,12 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress } from '@/types';
-import { MAX_WIZARD_STEPS } from '@/config/appConfig';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ObjectId } from 'mongodb';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
-  maxSteps: MAX_WIZARD_STEPS,
   assistantName: '',
   assistantPrompt: '',
   selectedPurposes: new Set(),
@@ -167,7 +165,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       if (payload.assistants) {
         payload.assistants = payload.assistants.map(a => ({
           ...a,
-          purposes: Array.isArray(a.purposes) ? a.purposes : Array.from((a.purposes as any) || [])
+          purposes: Array.isArray(a.purposes) ? a.purposes : []
         }))
       }
       return { ...state, userProfile: { ...state.userProfile, ...payload }};
@@ -242,7 +240,7 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
       ...userProfile,
       assistants: userProfile.assistants.map(a => ({
         ...a,
-        purposes: Array.isArray(a.purposes) ? a.purposes : Array.from((a.purposes as any) || []),
+        purposes: Array.isArray(a.purposes) ? a.purposes : [],
       }))
     }
     const response = await fetch('/api/user-profile', {

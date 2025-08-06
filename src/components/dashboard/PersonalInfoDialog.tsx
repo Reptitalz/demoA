@@ -89,7 +89,7 @@ const PersonalInfoDialog = ({ isOpen, onOpenChange }: PersonalInfoDialogProps) =
             </div>
             <div className="space-y-1.5">
                 <Label htmlFor="email" className="flex items-center gap-2"><FaEnvelope /> Correo Electrónico</Label>
-                <Input id="email" name="email" type="email" value={formData.email || ''} onChange={handleInputChange} />
+                <Input id="email" name="email" type="email" value={formData.email || ''} onChange={handleInputChange} readOnly disabled/>
             </div>
             
             <div className="space-y-2 pt-4 border-t">

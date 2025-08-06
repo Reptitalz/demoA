@@ -38,11 +38,10 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   1: "Detalles del Asistente",
   2: "Personalidad (Prompt)",
   3: "Base de Datos",
-  4: "Detalles del Usuario",
-  5: "Términos y Condiciones",
+  4: "Términos y Condiciones",
+  5: "Términos y Condiciones" // Fallback
 };
 
-export const MAX_WIZARD_STEPS = 5;
 
 export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: React.ElementType}> = [
   { id: "google", name: "Continuar con Google", icon: FaGoogle },

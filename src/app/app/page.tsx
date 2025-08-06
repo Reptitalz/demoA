@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -9,7 +8,6 @@ import SetupProgressBar from '@/components/setup/SetupProgressBar';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
-import Step4CreateCredentials from '@/components/auth/wizard-steps/Step4_CreateCredentials';
 import Step5TermsAndConditions from '@/components/auth/wizard-steps/Step5_TermsAndConditions';
 import { Button } from '@/components/ui/button';
 import { FaArrowLeft, FaArrowRight, FaHome, FaSpinner } from 'react-icons/fa';

@@ -32,19 +32,19 @@ const DashboardPageContent = () => {
   
   useEffect(() => {
     const paymentStatus = searchParams.get('payment_status');
-    const phoneNumber = state.userProfile.phoneNumber;
+    const email = state.userProfile.email;
 
-    if (paymentStatus === 'success' && phoneNumber) {
+    if (paymentStatus === 'success' && email) {
       toast({
         title: "¡Pago Exitoso!",
         description: "Tu compra ha sido procesada. Actualizando tu saldo...",
         variant: "default",
       });
-      fetchProfileCallback(phoneNumber);
+      fetchProfileCallback(email);
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
-  }, [searchParams, fetchProfileCallback, toast, state.userProfile.phoneNumber]);
+  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -57,7 +57,7 @@ const DashboardPageContent = () => {
         
         const purposesArray = Array.isArray(assistant.purposes) 
           ? assistant.purposes 
-          : (assistant.purposes instanceof Set ? Array.from(assistant.purposes) : []);
+          : [];
 
         purposesArray.forEach(purpose => {
             dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose });
@@ -113,7 +113,7 @@ const DashboardPageContent = () => {
     <PageContainer className="space-y-5"> 
       <div className="animate-fadeIn">
         <div className="flex justify-between items-center mb-0.5"> 
-          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.firstName || userProfile.phoneNumber || "Usuario/a"}!</h2> 
+          <h2 className="text-xl font-bold tracking-tight text-foreground">¡Bienvenido/a, {userProfile.firstName || userProfile.email || "Usuario/a"}!</h2> 
           {userProfile.isAuthenticated && (
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
               <FaSignOutAlt size={12} className="mr-1" /> 

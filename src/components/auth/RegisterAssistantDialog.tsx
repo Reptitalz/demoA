@@ -9,7 +9,6 @@ import SetupProgressBar from '@/components/setup/SetupProgressBar';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
-import Step3UserDetails from '@/components/auth/wizard-steps/Step3_UserDetails';
 import Step5TermsAndConditions from '@/components/auth/wizard-steps/Step5_TermsAndConditions';
 import { Button } from '@/components/ui/button';
 import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
@@ -26,7 +25,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, firstName, lastName, email, address } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
@@ -35,7 +34,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, [selectedPurposes]);
 
   const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 5 : 4), [dbNeeded]);
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 4 : 3), [dbNeeded]);
 
   const getValidationMessage = (): string | null => {
     const validateStep1 = () => {
@@ -56,24 +55,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       if (databaseOption.type === 'google_sheets' && (!databaseOption.selectedColumns || databaseOption.selectedColumns.length === 0)) return 'Por favor, carga y selecciona las columnas de la Hoja de Google.';
       return null;
     };
-     const validateUserDetailsStep = () => {
-      // In a real Google Auth flow, this data would be pre-filled and non-editable.
-      // For the prototype, we make it required.
-      if (!firstName.trim()) return "Por favor, ingresa tu nombre.";
-      if (!lastName.trim()) return "Por favor, ingresa tu apellido.";
-      if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) return "Por favor, ingresa un correo electrónico válido.";
-      return null;
-    };
     const validateTermsStep = () => {
       if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
       return null;
     };
     
     let stepValidators;
-    if (dbNeeded) { // 5-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateUserDetailsStep, validateTermsStep];
-    } else { // 4-step flow
-      stepValidators = [null, validateStep1, validateStep2, validateUserDetailsStep, validateTermsStep];
+    if (dbNeeded) { // 4-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateDbStep, validateTermsStep];
+    } else { // 3-step flow
+      stepValidators = [null, validateStep1, validateStep2, validateTermsStep];
     }
     
     return currentStep < stepValidators.length ? stepValidators[currentStep]!() : null;
@@ -133,11 +124,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     
+    // Simulate getting user data from Google Sign-In
+    const mockEmail = 'user@example.com';
+    const mockFirstName = 'Usuario';
+    const mockLastName = 'Nuevo';
+
     const userProfileForApi: Omit<UserProfile, 'isAuthenticated' | '_id'> = {
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        address: address,
+        email: mockEmail,
+        firstName: mockFirstName,
+        lastName: mockLastName,
         googleId: `google_${Date.now()}`, // Mock Google ID
         assistants: [finalAssistantConfig],
         databases: newDbEntry ? [newDbEntry] : [],
@@ -176,10 +171,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   const renderStepContent = () => {
     let steps;
-    if (dbNeeded) { // 5-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step3UserDetails />, <Step5TermsAndConditions />];
-    } else { // 4-step flow
-        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step3UserDetails />, <Step5TermsAndConditions />];
+    if (dbNeeded) { // 4-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step2DatabaseConfig />, <Step5TermsAndConditions />];
+    } else { // 3-step flow
+        steps = [null, <Step1AssistantDetails />, <Step2AssistantPrompt />, <Step5TermsAndConditions />];
     }
     return currentStep < steps.length ? steps[currentStep] : null;
   };
