@@ -276,6 +276,9 @@ const HeroSection = () => {
                     <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                 </div>
             </div>
+             <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
+                <span className="font-bold text-brand-gradient">Registro Gratis</span>. Recarga cuando quieras.
+            </p>
         </div>
     </div>
     <HowItWorksDialog open={isHowItWorksOpen} onOpenChange={setIsHowItWorksOpen} />
