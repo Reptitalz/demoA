@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaSignOutAlt, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,8 +19,6 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User } from 'lucide-react';
 import Link from 'next/link';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();

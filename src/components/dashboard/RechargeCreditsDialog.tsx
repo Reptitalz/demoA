@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -29,7 +28,7 @@ interface RechargeCreditsDialogProps {
 }
 
 const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogProps) => {
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state } = useApp();
   const { toast } = useToast();
   const { userProfile } = state;
   
