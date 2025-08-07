@@ -57,6 +57,7 @@ const Step2DatabaseConfig = () => {
   const [fetchedColumns, setFetchedColumns] = useState<string[]>([]);
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
   const [availableDbOptions, setAvailableDbOptions] = useState<DatabaseOptionConfig[]>([]);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Simplified logic: If specific purposes are selected, filter the options. Otherwise, show all.
@@ -69,6 +70,44 @@ const Step2DatabaseConfig = () => {
       setAvailableDbOptions(allDatabaseOptionsConfig);
     }
   }, [selectedPurposes]);
+  
+  const handleFetchColumns = useCallback(async (sheetUrl: string) => {
+    if (!sheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)) {
+      setFetchedColumns([]);
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { selectedColumns: [] } });
+      return;
+    }
+
+    setIsLoadingColumns(true);
+    try {
+      const response = await fetch('/api/sheets/get-columns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetUrl }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'No se pudieron cargar las columnas.');
+      
+      setFetchedColumns(data.columns);
+      // Automatically select all columns by default, user can then deselect
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { selectedColumns: data.columns } });
+      
+      toast({
+        title: "Columnas Cargadas",
+        description: `Se encontraron ${data.columns.length} columnas en tu Hoja de Google.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al Cargar Columnas",
+        description: error.message,
+        variant: "destructive",
+      });
+      setFetchedColumns([]);
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { selectedColumns: [] } });
+    } finally {
+      setIsLoadingColumns(false);
+    }
+  }, [dispatch, toast]);
 
   useEffect(() => {
     // Sync local state with global state when it changes from outside
@@ -78,16 +117,35 @@ const Step2DatabaseConfig = () => {
     // This ensures fetched columns are displayed correctly if already present in the global state
     setFetchedColumns(databaseOption.selectedColumns || []);
   }, [databaseOption]);
+  
+  useEffect(() => {
+    if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+    }
+
+    if (databaseOption.type === 'google_sheets' && accessUrlValue.startsWith('https://docs.google.com/spreadsheets/d/')) {
+        debounceTimeout.current = setTimeout(() => {
+            handleFetchColumns(accessUrlValue);
+        }, 1000); // 1 second debounce
+    }
+
+    return () => {
+        if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current);
+        }
+    };
+  }, [accessUrlValue, databaseOption.type, handleFetchColumns]);
 
 
   const handleOptionChange = (value: string) => {
     const valueAsDbSource = value as DatabaseSource;
+    setFetchedColumns([]); // Clear columns when type changes
     dispatch({
       type: 'SET_DATABASE_OPTION',
       payload: {
         type: valueAsDbSource,
-        name: databaseOption.name, // Keep name if already set
-        accessUrl: valueAsDbSource === 'google_sheets' ? databaseOption.accessUrl : undefined,
+        name: '', // Reset name
+        accessUrl: '',
         selectedColumns: [],
         relevantColumnsDescription: '',
       }

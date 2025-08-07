@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -75,6 +76,9 @@ const AppSetupPageContent = () => {
       if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
       if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
       if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Por favor, proporciona una URL válida de Hoja de Google.";
+      if (databaseOption.type === 'google_sheets' && (databaseOption.selectedColumns || []).length === 0) {
+        return "Por favor, espera a que carguen las columnas y selecciona al menos una.";
+      }
       return null;
     }
     const validateTermsStep = () => {
