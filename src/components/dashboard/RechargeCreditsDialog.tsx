@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ import { Button } from '../ui/button';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 import PersonalInfoDialog from './PersonalInfoDialog';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import MercadoLibreIcon from '../shared/MercadoLibreIcon';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -231,7 +233,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                             onClick={handleCreatePreference}
                             disabled={isProcessing}
                             >
-                            {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <MercadoPagoIcon className="mr-2 h-4 w-auto"/>}
+                            {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <MercadoLibreIcon className="mr-2 h-4 w-auto"/>}
                             Pagar con Mercado Pago
                         </Button>
                         <p className="text-center text-xs text-muted-foreground">Paga con SPEI, OXXO, saldo en cuenta y más.</p>
@@ -250,3 +252,5 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 };
 
 export default RechargeCreditsDialog;
+
+    
