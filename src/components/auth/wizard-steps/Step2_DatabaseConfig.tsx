@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,7 @@ const Step2DatabaseConfig = () => {
   const [fetchedColumns, setFetchedColumns] = useState<string[]>([]);
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
   const [availableDbOptions, setAvailableDbOptions] = useState<DatabaseOptionConfig[]>([]);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Simplified logic: If specific purposes are selected, filter the options. Otherwise, show all.
@@ -79,6 +80,32 @@ const Step2DatabaseConfig = () => {
     setFetchedColumns(databaseOption.selectedColumns || []);
   }, [databaseOption]);
 
+  const handleFetchColumns = useCallback(async (url: string) => {
+    if (!url || !url.startsWith('https://docs.google.com/spreadsheets/')) {
+        return;
+    }
+    setIsLoadingColumns(true);
+    try {
+        const response = await fetch('/api/sheets/get-columns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sheetUrl: url })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || "Error desconocido al cargar columnas.");
+        }
+        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns, accessUrl: url } });
+        setFetchedColumns(data.columns);
+        toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
+    } catch (error: any) {
+        toast({ title: "Error al Cargar Columnas", description: error.message, variant: "destructive" });
+        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: [] } });
+        setFetchedColumns([]);
+    } finally {
+        setIsLoadingColumns(false);
+    }
+  }, [dispatch, toast, databaseOption]);
 
   const handleOptionChange = (value: string) => {
     const valueAsDbSource = value as DatabaseSource;
@@ -103,6 +130,13 @@ const Step2DatabaseConfig = () => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
+
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    debounceTimeoutRef.current = setTimeout(() => {
+      handleFetchColumns(newUrl);
+    }, 1000); // 1-second debounce
   };
   
   const handleRelevantColumnsDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -120,36 +154,7 @@ const Step2DatabaseConfig = () => {
     }
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: newSelectedColumns } });
   }
-
-  const handleFetchColumns = async () => {
-    if (!accessUrlValue) {
-        toast({ title: "URL Requerida", description: "Por favor, ingresa la URL de la Hoja de Google.", variant: "destructive" });
-        return;
-    }
-    setIsLoadingColumns(true);
-    try {
-        const response = await fetch('/api/sheets/get-columns', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sheetUrl: accessUrlValue })
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || "Error desconocido al cargar columnas.");
-        }
-        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns, accessUrl: accessUrlValue } });
-        setFetchedColumns(data.columns);
-        toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
-
-    } catch (error: any) {
-        toast({ title: "Error al Cargar Columnas", description: error.message, variant: "destructive" });
-        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: [] } });
-        setFetchedColumns([]);
-    } finally {
-        setIsLoadingColumns(false);
-    }
-  };
-
+  
   const selectedDbConfig = allDatabaseOptionsConfig.find(opt => opt.id === databaseOption.type);
 
   return (
@@ -228,20 +233,17 @@ const Step2DatabaseConfig = () => {
                 <Label htmlFor="accessUrlInput" className="text-base">
                   {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
                 </Label>
-                <div className="flex items-center gap-2">
+                <div className="relative flex items-center">
                     <Input
                         id="accessUrlInput"
                         type="url"
                         placeholder={selectedDbConfig.accessUrlPlaceholder}
                         value={accessUrlValue}
                         onChange={handleAccessUrlChange}
-                        className="text-base py-6"
+                        className={cn("text-base py-6", isLoadingColumns && "pr-10")}
                         aria-required={selectedDbConfig.requiresAccessUrlInput}
                         />
-                    <Button onClick={handleFetchColumns} disabled={isLoadingColumns || !accessUrlValue.trim()}>
-                        {isLoadingColumns && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Cargar Columnas
-                    </Button>
+                    {isLoadingColumns && <Loader2 className="absolute right-3 h-5 w-5 animate-spin text-primary" />}
                 </div>
                  {selectedDbConfig.description && (
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
