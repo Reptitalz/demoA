@@ -73,9 +73,9 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl p-0">
-        <div className="flex">
-          {/* Vertical Stepper */}
-          <div className="w-1/3 bg-muted/50 p-6 flex flex-col justify-center border-r">
+        <div className="flex flex-col sm:flex-row">
+          {/* Vertical Stepper - Hidden on mobile */}
+          <div className="hidden sm:flex w-1/3 bg-muted/50 p-6 flex-col justify-center border-r">
               <DialogHeader className="mb-8 text-left">
                 <DialogTitle className="text-2xl">Cómo Funciona</DialogTitle>
                 <DialogDescription>
@@ -107,15 +107,18 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
               </div>
           </div>
           
-          {/* Step Content */}
-          <div className="w-2/3 p-8 flex flex-col">
+          {/* Step Content - Full width on mobile */}
+          <div className="w-full sm:w-2/3 p-6 sm:p-8 flex flex-col">
+              <DialogHeader className="sm:hidden mb-4 text-center">
+                 <DialogTitle className="text-xl">Cómo Funciona</DialogTitle>
+              </DialogHeader>
               <div className="flex-grow min-h-[280px] flex items-center justify-center animate-fadeIn">
                   {currentStepData && (
                       <div className="text-center space-y-4">
                           <div className="inline-block bg-primary/10 p-4 rounded-full border border-primary/20 shadow-inner">
                               {currentStepData.icon}
                           </div>
-                          <h3 className="text-2xl font-bold">{currentStepData.title}</h3>
+                          <h3 className="text-xl sm:text-2xl font-bold">{currentStepData.title}</h3>
                           <p className="text-muted-foreground px-4 max-w-sm mx-auto">{currentStepData.description}</p>
                       </div>
                   )}
