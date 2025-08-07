@@ -22,101 +22,86 @@ const PrivacyPolicyPage = () => {
         </p>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          1. Información que {APP_NAME} Maneja
+          1. Información que Recopilamos y Manejamos
         </h2>
         <p className="mb-4">
-          {APP_NAME} como plataforma está diseñado para ser una herramienta que TÚ controlas.
+          {APP_NAME} como plataforma está diseñado para ser una herramienta que TÚ controlas. Para poder ofrecer nuestros servicios, recopilamos y almacenamos la siguiente información:
         </p>
         <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
           <li>
-            <strong>Datos de Configuración de Cuenta y Asistentes:</strong> Para operar el servicio, almacenamos la información que proporcionas al configurar tu cuenta (por ejemplo, dirección de correo electrónico, plan de suscripción) y tus asistentes (por ejemplo, nombre del asistente, propósitos seleccionados, configuración de la base de datos vinculada como el ID de una Hoja de Google y su URL de acceso si la proporcionas, número de teléfono vinculado). Esta información es esencial para el funcionamiento de los servicios que te ofrecemos.
+            <strong>Datos de tu Cuenta:</strong> Cuando te registras utilizando Google, recopilamos tu nombre, dirección de correo electrónico y tu identificador único de Firebase (Firebase UID) para crear y gestionar tu cuenta.
           </li>
           <li>
-            <strong>No Recopilación ni Monitoreo Activo del Contenido de Conversaciones:</strong> {APP_NAME} NO recopila, almacena para uso propio, ni monitorea activamente el contenido de las conversaciones que tus asistentes inteligentes tienen con tus clientes o usuarios finales a través de WhatsApp, Facebook u otras plataformas integradas. La transmisión de estos mensajes es gestionada por las plataformas correspondientes (ej. Vonage para WhatsApp) y la lógica de tu asistente.
+            <strong>Datos de Contacto y Facturación:</strong> Para procesar los pagos de créditos, te solicitamos que proporciones tu nombre, apellidos y, opcionalmente, tu dirección de facturación. Esta información es necesaria para nuestros proveedores de pago y para cumplir con las normativas fiscales.
+          </li>
+           <li>
+            <strong>Datos de Configuración de Asistentes:</strong> Almacenamos la configuración que defines para cada uno de tus asistentes. Esto incluye el nombre del asistente, el prompt (las instrucciones de comportamiento), los propósitos que has seleccionado, y la información de las bases de datos que vincules (como la URL y las columnas seleccionadas de una Hoja de Google).
+          </li>
+           <li>
+            <strong>Número de Teléfono Vinculado:</strong> Guardamos el número de teléfono que vinculas a cada asistente para permitir la comunicación a través de WhatsApp. Este número se utiliza exclusivamente para el funcionamiento del asistente que has configurado.
           </li>
           <li>
-            <strong>Metadatos de Uso (Agregados y Anónimos):</strong> Podemos recopilar metadatos anónimos y agregados sobre el uso general del servicio (por ejemplo, número de asistentes creados, volumen de interacciones procesadas por la plataforma a nivel general, funciones más utilizadas). Estos datos se utilizan exclusivamente para mejorar la funcionalidad, el rendimiento y la seguridad de {APP_NAME}, y no contienen información personal identificable de tus usuarios finales ni el contenido de sus comunicaciones.
+            <strong>No Recopilación del Contenido de Conversaciones:</strong> {APP_NAME} NO recopila, almacena, ni monitorea activamente el contenido de las conversaciones que tus asistentes tienen con tus clientes a través de WhatsApp. La transmisión de mensajes es gestionada por proveedores externos y la lógica de tu asistente.
           </li>
         </ul>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          2. Tus Responsabilidades y el Control de tus Datos
+          2. Cómo Usamos tu Información
+        </h2>
+        <p className="mb-4">
+          La información que recopilamos se utiliza exclusivamente para:
+        </p>
+        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
+          <li>Proporcionar, mantener y mejorar los servicios de {APP_NAME}.</li>
+          <li>Gestionar tu cuenta, incluyendo las recargas de créditos y la facturación.</li>
+          <li>Permitir el funcionamiento técnico de tus asistentes según tu configuración.</li>
+          <li>Contactarte con información importante sobre tu cuenta, actualizaciones del servicio o notificaciones de seguridad.</li>
+          <li>Enviar notificaciones a tu número de WhatsApp personal si has habilitado esa función para uno de tus asistentes.</li>
+        </ul>
+
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
+          3. Pagos y Proveedores Externos
+        </h2>
+        <p className="mb-4">
+          Para la recarga de créditos, utilizamos **Mercado Pago** como nuestro procesador de pagos. Nosotros no almacenamos los datos completos de tu tarjeta de crédito o débito. Al realizar un pago, proporcionas tu información directamente a Mercado Pago, y su uso de tu información personal se rige por su propia política de privacidad. Solo recibimos una confirmación del pago, tu nombre, correo y la información de facturación que proporcionaste para generar las órdenes de pago.
+        </p>
+        
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
+          4. Tus Responsabilidades y el Control de tus Datos
         </h2>
         <p className="mb-4">
           Tú eres el principal responsable de la gestión de los datos de tus usuarios finales y del cumplimiento de las normativas de privacidad aplicables:
         </p>
         <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
           <li>
-            <strong>Plataformas de Terceros:</strong> Los datos de las conversaciones y la información de tus contactos residen en las plataformas que utilizas (por ejemplo, WhatsApp, Facebook) y, si así lo configuras, en tus propias bases de datos (por ejemplo, Google Sheets). El manejo de esta información se rige por los términos de servicio y las políticas de privacidad de dichos proveedores (Meta, Google, etc.). {APP_NAME} no controla ni es responsable de las prácticas de privacidad de estos terceros.
+            <strong>Plataformas de Terceros:</strong> Los datos de las conversaciones y la información de tus contactos residen en las plataformas que utilizas (por ejemplo, WhatsApp) y, si así lo configuras, en tus propias bases de datos (por ejemplo, Google Sheets). El manejo de esta información se rige por los términos de servicio y las políticas de privacidad de dichos proveedores (Meta, Google, etc.).
           </li>
           <li>
-            <strong>Cumplimiento Normativo:</strong> Eres responsable de asegurar que el uso que haces de {APP_NAME} y de tus asistentes de IA cumple con todas las leyes de protección de datos y privacidad aplicables en tu jurisdicción y en la de tus usuarios finales (por ejemplo, GDPR, CCPA, etc.). Esto incluye obtener los consentimientos necesarios de tus usuarios para procesar su información.
-          </li>
-          <li>
-            <strong>Transparencia con tus Usuarios:</strong> Te recomendamos ser transparente con tus usuarios finales sobre cómo utilizas los asistentes de IA, qué información recopilas a través de ellos y cómo se maneja dicha información.
+            <strong>Cumplimiento Normativo:</strong> Eres responsable de asegurar que el uso que haces de {APP_NAME} cumple con todas las leyes de protección de datos aplicables en tu jurisdicción y en la de tus usuarios finales.
           </li>
         </ul>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          3. Uso de la Información de Configuración
+          5. Seguridad de la Información
         </h2>
         <p className="mb-4">
-          La información de configuración de tu cuenta y asistentes que almacenamos se utiliza exclusivamente para:
-        </p>
-        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
-          <li>Proporcionar, mantener y mejorar los servicios de {APP_NAME}.</li>
-          <li>Gestionar tu cuenta y suscripción.</li>
-          <li>Permitir el funcionamiento técnico de tus asistentes según tu configuración.</li>
-          <li>Contactarte con información importante sobre tu cuenta o actualizaciones del servicio.</li>
-        </ul>
-
-        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          4. Seguridad de la Información
-        </h2>
-        <p className="mb-4">
-          Nos esforzamos por proteger la información de configuración de tu cuenta y de tus asistentes utilizando medidas de seguridad técnicas y organizativas razonables para prevenir el acceso no autorizado, la alteración, divulgación o destrucción. Sin embargo, ningún sistema de transmisión por Internet o de almacenamiento electrónico es 100% seguro.
+          Nos esforzamos por proteger la información de tu cuenta y de tus asistentes utilizando medidas de seguridad técnicas y organizativas razonables para prevenir el acceso no autorizado, la alteración, divulgación o destrucción.
         </p>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          5. Integraciones con Servicios de Terceros
+          6. Cambios a esta Política de Privacidad
         </h2>
         <p className="mb-4">
-          {APP_NAME} facilita la integración con servicios de terceros (como WhatsApp a través de Vonage, Google Sheets, etc.). Cuando habilitas estas integraciones:
-        </p>
-        <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
-          <li>
-            El intercambio de información entre {APP_NAME} y estos servicios se realiza según tu configuración y autorización.
-          </li>
-          <li>
-            El tratamiento de tus datos por parte de estos terceros se rige por sus propias políticas de privacidad y términos de servicio. Te recomendamos revisarlos cuidadosamente.
-          </li>
-        </ul>
-
-        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          6. Privacidad de los Niños
-        </h2>
-        <p className="mb-4">
-          Nuestros servicios no están dirigidos a personas menores de 13 años (o la edad mínima estipulada por la ley en la jurisdicción aplicable). No recopilamos de forma intencionada información personal de niños. Si tienes conocimiento de que un niño nos ha proporcionado información personal sin el consentimiento de sus padres, por favor contáctanos.
+          Podemos actualizar esta Política de Privacidad periódicamente. Te notificaremos de cualquier cambio material publicando la nueva política en esta página y actualizando la fecha de "Última actualización".
         </p>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          7. Cambios a esta Política de Privacidad
+          7. Contacto
         </h2>
         <p className="mb-4">
-          Podemos actualizar esta Política de Privacidad periódicamente para reflejar cambios en nuestras prácticas o por otros motivos operativos, legales o regulatorios. Te notificaremos de cualquier cambio material publicando la nueva política en esta página y actualizando la fecha de "Última actualización" en la parte superior. Te recomendamos revisar esta política regularmente.
+          Si tienes alguna pregunta o inquietud sobre esta Política de Privacidad, por favor contáctanos a través de los canales de soporte indicados en nuestra aplicación o sitio web.
         </p>
-
-        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
-          8. Contacto
-        </h2>
-        <p className="mb-4">
-          Si tienes alguna pregunta o inquietud sobre esta Política de Privacidad o nuestras prácticas de manejo de datos, por favor contáctanos a través de los canales de soporte indicados en nuestra aplicación o sitio web.
-        </p>
-        <p className="text-sm text-muted-foreground mt-8">
-          <em>
-            Nota Importante: Esta política de privacidad está diseñada para ser informativa. {APP_NAME} te proporciona las herramientas para gestionar tus asistentes. La responsabilidad final sobre el cumplimiento de las leyes de protección de datos en el uso de estas herramientas recae sobre ti, el usuario de la plataforma. Te recomendamos consultar con un profesional legal para asegurar que tus prácticas cumplen con todas las regulaciones aplicables.
-          </em>
-        </p>
+        
          <div className="mt-8 text-center">
             <Link href="/" className="text-primary hover:underline">
               Volver a la página principal
