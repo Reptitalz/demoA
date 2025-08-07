@@ -22,8 +22,8 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
   },
   { 
     id: "notify_owner", 
-    name: "Recibir Notificaciones del Asistente", 
-    description: "El asistente te enviará actualizaciones y alertas a tu WhatsApp personal.", 
+    name: "Notificar al propietario por WhatsApp", 
+    description: "El asistente te enviará notificaciones a tu número de WhatsApp personal cuando necesite tu atención.", 
     icon: FaBell 
   },
   { 
