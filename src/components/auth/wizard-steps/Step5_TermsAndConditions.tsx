@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -41,6 +42,7 @@ const Step5TermsAndConditions = () => {
               <Link
                 href="/terms"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="underline underline-offset-4 hover:text-primary"
               >
                 Términos y Condiciones
@@ -49,6 +51,7 @@ const Step5TermsAndConditions = () => {
               <Link
                 href="/privacy"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="underline underline-offset-4 hover:text-primary"
               >
                 Política de Privacidad

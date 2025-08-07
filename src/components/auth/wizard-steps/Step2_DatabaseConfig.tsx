@@ -57,7 +57,6 @@ const Step2DatabaseConfig = () => {
   const [fetchedColumns, setFetchedColumns] = useState<string[]>([]);
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
   const [availableDbOptions, setAvailableDbOptions] = useState<DatabaseOptionConfig[]>([]);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Simplified logic: If specific purposes are selected, filter the options. Otherwise, show all.
@@ -80,32 +79,6 @@ const Step2DatabaseConfig = () => {
     setFetchedColumns(databaseOption.selectedColumns || []);
   }, [databaseOption]);
 
-  const handleFetchColumns = useCallback(async (url: string) => {
-    if (!url || !url.startsWith('https://docs.google.com/spreadsheets/')) {
-        return;
-    }
-    setIsLoadingColumns(true);
-    try {
-        const response = await fetch('/api/sheets/get-columns', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sheetUrl: url })
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || "Error desconocido al cargar columnas.");
-        }
-        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: data.columns, accessUrl: url } });
-        setFetchedColumns(data.columns);
-        toast({ title: "¡Columnas Cargadas!", description: "Selecciona las columnas que tu asistente debe usar."});
-    } catch (error: any) {
-        toast({ title: "Error al Cargar Columnas", description: error.message, variant: "destructive" });
-        dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, selectedColumns: [] } });
-        setFetchedColumns([]);
-    } finally {
-        setIsLoadingColumns(false);
-    }
-  }, [dispatch, toast, databaseOption]);
 
   const handleOptionChange = (value: string) => {
     const valueAsDbSource = value as DatabaseSource;
@@ -130,13 +103,6 @@ const Step2DatabaseConfig = () => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
-
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    debounceTimeoutRef.current = setTimeout(() => {
-      handleFetchColumns(newUrl);
-    }, 1000); // 1-second debounce
   };
   
   const handleRelevantColumnsDescChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
