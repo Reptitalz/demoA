@@ -72,51 +72,65 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-center">Cómo Funciona</DialogTitle>
-          <DialogDescription className="text-center">
-            Configurar tu asistente es rápido e intuitivo.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="py-6 min-h-[220px] flex items-center justify-center animate-fadeIn">
-            {currentStepData && (
-                <div className="text-center space-y-4">
-                    <div className="inline-block bg-primary/10 p-4 rounded-full border border-primary/20">
-                         {currentStepData.icon}
-                    </div>
-                    <h3 className="text-xl font-bold">{currentStepData.title}</h3>
-                    <p className="text-sm text-muted-foreground px-4">{currentStepData.description}</p>
-                </div>
-            )}
+      <DialogContent className="sm:max-w-3xl p-0">
+        <div className="flex">
+          {/* Vertical Stepper */}
+          <div className="w-1/3 bg-muted/50 p-6 flex flex-col justify-center border-r">
+              <DialogHeader className="mb-8 text-left">
+                <DialogTitle className="text-2xl">Cómo Funciona</DialogTitle>
+                <DialogDescription>
+                  Configurar tu asistente es rápido e intuitivo.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-1 relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border -z-10" />
+                  {steps.map((s, index) => (
+                      <button 
+                          key={s.num} 
+                          onClick={() => setStep(index)}
+                          className={cn(
+                              "w-full text-left p-3 flex items-center gap-4 rounded-lg transition-all",
+                              step === index 
+                                ? "bg-primary/10 text-primary font-bold border-l-4 border-primary"
+                                : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
+                          )}
+                      >
+                          <div className={cn(
+                              "h-8 w-8 rounded-full flex items-center justify-center text-sm shrink-0 border-2",
+                              step === index ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"
+                          )}>
+                              {s.num}
+                          </div>
+                          <span>{s.title}</span>
+                      </button>
+                  ))}
+              </div>
+          </div>
+          
+          {/* Step Content */}
+          <div className="w-2/3 p-8 flex flex-col">
+              <div className="flex-grow min-h-[280px] flex items-center justify-center animate-fadeIn">
+                  {currentStepData && (
+                      <div className="text-center space-y-4">
+                          <div className="inline-block bg-primary/10 p-4 rounded-full border border-primary/20 shadow-inner">
+                              {currentStepData.icon}
+                          </div>
+                          <h3 className="text-2xl font-bold">{currentStepData.title}</h3>
+                          <p className="text-muted-foreground px-4 max-w-sm mx-auto">{currentStepData.description}</p>
+                      </div>
+                  )}
+              </div>
+              <DialogFooter className="flex justify-between w-full mt-8">
+                  <Button variant="outline" onClick={handlePrev} disabled={step === 0}>
+                      <FaArrowLeft className="mr-2" /> Anterior
+                  </Button>
+                  <Button onClick={handleNext}>
+                      {step === steps.length - 1 ? "Finalizar" : "Siguiente"}
+                      {step < steps.length - 1 && <FaArrowRight className="ml-2" />}
+                  </Button>
+              </DialogFooter>
+          </div>
         </div>
-
-        <DialogFooter className="flex-col sm:flex-col sm:space-x-0 items-center gap-4">
-          <div className="flex justify-center items-center gap-3">
-              {steps.map((_, index) => (
-                  <button 
-                      key={index} 
-                      onClick={() => setStep(index)}
-                      className={cn(
-                          "h-2 w-2 rounded-full transition-all",
-                          step === index ? "w-4 bg-primary" : "bg-muted hover:bg-muted-foreground/50"
-                      )}
-                      aria-label={`Ir al paso ${index + 1}`}
-                  />
-              ))}
-          </div>
-
-          <div className="flex justify-between w-full">
-            <Button variant="outline" onClick={handlePrev} disabled={step === 0}>
-                <FaArrowLeft className="mr-2" /> Anterior
-            </Button>
-            <Button onClick={handleNext}>
-                {step === steps.length - 1 ? "Finalizar" : "Siguiente"}
-                {step < steps.length - 1 && <FaArrowRight className="ml-2" />}
-            </Button>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
