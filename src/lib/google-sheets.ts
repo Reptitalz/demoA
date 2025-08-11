@@ -1,5 +1,6 @@
 
 import { google } from 'googleapis';
+import { JWT } from 'google-auth-library';
 
 let sheets: any;
 
@@ -9,38 +10,56 @@ async function getSheetsClient() {
         return sheets;
     }
 
-    const serviceAccountKey = process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON;
-    if (!serviceAccountKey) {
-        throw new Error("Las credenciales de la cuenta de servicio de Google (GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON) no están configuradas.");
-    }
-    
-    let credentials;
-    try {
-        // Parseamos las credenciales desde el string JSON de la variable de entorno,
-        // asegurándonos de manejar correctamente los saltos de línea en la clave privada.
-        credentials = JSON.parse(serviceAccountKey.replace(/\\n/g, '\n'));
-    } catch(e) {
-        console.error("Error al parsear las credenciales JSON de la cuenta de servicio:", e);
-        throw new Error("La clave de la cuenta de servicio de Google no es un JSON válido.");
-    }
-    
-    console.log(`Attempting to authenticate with Google Sheets API using project_id: ${credentials.project_id} and client_email: ${credentials.client_email}`);
+    // Check for essential environment variables for the new method
+    const projectId = process.env.GOOGLE_PROJECT_ID;
+    const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
+    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
 
-    try {
-        // Autenticamos usando el método fromJSON que es más directo.
+    if (!projectId || !privateKeyBase64 || !clientEmail) {
+      console.error("Missing required Google service account environment variables (PROJECT_ID, PRIVATE_KEY_BASE64, CLIENT_EMAIL).");
+      // Fallback to the old method if it exists, otherwise throw error.
+      const serviceAccountKey = process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON;
+      if (!serviceAccountKey) {
+        throw new Error("Las credenciales de la cuenta de servicio de Google no están configuradas. Por favor, define las variables de entorno necesarias.");
+      }
+      // Attempt old method
+      try {
+        console.warn("Attempting to use legacy GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON variable.");
+        const credentials = JSON.parse(serviceAccountKey.replace(/\\n/g, '\n'));
         const auth = new google.auth.GoogleAuth({
             credentials,
             scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
         });
-
         const authClient = await auth.getClient();
-        
-        // Creamos el cliente de la API de Sheets con el cliente autenticado.
         sheets = google.sheets({ version: 'v4', auth: authClient });
-        
-        console.log("Successfully authenticated with Google Sheets API.");
+        console.log("Successfully authenticated with legacy method.");
         return sheets;
-    } catch(error: any) {
+      } catch (e) {
+         console.error("Failed to authenticate using legacy method.", e);
+         throw new Error("Las credenciales de la cuenta de servicio (legacy) no son un JSON válido o fallaron al autenticar.");
+      }
+    }
+    
+    console.log(`Attempting to authenticate with Google Sheets API using project_id: ${projectId} and client_email: ${clientEmail}`);
+    
+    // New, more robust method
+    try {
+        const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8');
+
+        const auth = new JWT({
+            email: clientEmail,
+            key: privateKey,
+            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+            // You can optionally specify the project ID, but it's often inferred
+            // projectId: projectId, 
+        });
+
+        sheets = google.sheets({ version: 'v4', auth });
+        
+        console.log("Successfully authenticated with Google Sheets API using new method.");
+        return sheets;
+
+    } catch (error: any) {
         console.error("Error during Google Sheets API authentication or client creation:", error.message);
         throw new Error(`No se pudo autenticar con las credenciales de la cuenta de servicio. Error: ${error.message}`);
     }
