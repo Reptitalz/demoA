@@ -10,7 +10,7 @@ async function getSheetsClient() {
 
     const serviceAccountKey = process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON;
     if (!serviceAccountKey) {
-        throw new Error("GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON no está configurada en las variables de entorno.");
+        throw new Error("Las credenciales de la cuenta de servicio de Google (GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON) no están configuradas.");
     }
     
     let credentials;
@@ -54,7 +54,7 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
     } catch(err: any) {
         console.error("Error al obtener los nombres de las hojas de Google:", err.message);
         if (err.code === 403) {
-            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio.");
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com");
         }
         throw new Error("No se pudo conectar con la Hoja de Google.");
     }
@@ -83,7 +83,7 @@ export async function getSheetHeaders(sheetId: string): Promise<string[]> {
     } catch(err: any) {
         console.error("Error al obtener los encabezados de la Hoja de Google:", err.message);
         if (err.code === 403) {
-            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio.");
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com");
         }
         throw new Error("No se pudo conectar con la Hoja de Google.");
     }
@@ -108,7 +108,7 @@ export async function getSheetData(sheetId: string): Promise<any[][]> {
     } catch(err: any) {
         console.error("Error al obtener los datos de la Hoja de Google:", err.message);
         if (err.code === 403) {
-            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio.");
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com");
         }
         throw new Error("No se pudo conectar con la Hoja de Google.");
     }

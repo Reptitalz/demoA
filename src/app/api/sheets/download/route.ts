@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('API Error (sheets/download):', error);
     let errorMessage = 'No se pudo descargar el archivo.';
-    if (error.message && error.message.includes('permission')) {
-        errorMessage = 'Permiso denegado. Verifica que la hoja sea "Pública en la web" o compártela con el correo de la cuenta de servicio.';
+    if (error.message && error.message.includes('Permiso denegado')) {
+        errorMessage = 'Permiso denegado. Verifica que la hoja sea "Pública en la web" o compártela con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com';
     }
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
