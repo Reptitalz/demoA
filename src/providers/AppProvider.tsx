@@ -15,7 +15,7 @@ const initialWizardState: WizardState = {
   assistantName: '',
   assistantPrompt: '',
   selectedPurposes: new Set(),
-  databaseOption: { type: null, name: '', accessUrl: '', selectedColumns: [], relevantColumnsDescription: '' },
+  databaseOption: { type: null, name: '', accessUrl: '', sheetNames: [], selectedSheetName: '', selectedColumns: [], relevantColumnsDescription: '' },
   authMethod: 'google',
   firstName: '',
   lastName: '',

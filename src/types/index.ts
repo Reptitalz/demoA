@@ -18,6 +18,7 @@ export interface DatabaseConfig {
   source: DatabaseSource;
   details?: string;
   accessUrl?: string;
+  sheetName?: string;
   selectedColumns?: string[];
   relevantColumnsDescription?: string;
   storageSize?: number; // in bytes
@@ -101,6 +102,8 @@ export interface WizardState {
     type: DatabaseSource | null;
     name?: string;
     accessUrl?: string;
+    sheetNames?: string[];
+    selectedSheetName?: string;
     selectedColumns?: string[];
     relevantColumnsDescription?: string;
   };

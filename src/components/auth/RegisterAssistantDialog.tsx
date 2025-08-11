@@ -54,6 +54,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
       if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
       if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Proporciona una URL válida de Hoja de Google.";
+      if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
       return null;
     };
     const validateTermsStep = () => {
@@ -115,6 +116,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             source: databaseOption.type!,
             details: databaseOption.name,
             accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
+            sheetName: databaseOption.type === 'google_sheets' ? databaseOption.selectedSheetName : undefined,
             selectedColumns: databaseOption.selectedColumns,
             relevantColumnsDescription: databaseOption.relevantColumnsDescription,
         } : undefined;

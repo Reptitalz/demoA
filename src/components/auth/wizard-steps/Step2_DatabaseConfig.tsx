@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DatabaseOptionConfig {
   id: DatabaseSource;
@@ -50,10 +51,13 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
 
 const Step2DatabaseConfig = () => {
   const { state, dispatch } = useApp();
+  const { toast } = useToast();
   const { databaseOption, selectedPurposes } = state.wizard;
   
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
+  const [isLoadingSheetNames, setIsLoadingSheetNames] = useState(false);
   const [availableDbOptions, setAvailableDbOptions] = useState<DatabaseOptionConfig[]>([]);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (selectedPurposes.has("import_spreadsheet")) {
@@ -69,7 +73,54 @@ const Step2DatabaseConfig = () => {
     if (databaseOption.accessUrl !== accessUrlValue) {
       setAccessUrlValue(databaseOption.accessUrl || '');
     }
-  }, [databaseOption]);
+  }, [databaseOption.accessUrl]);
+
+  const handleFetchSheetNames = useCallback(async (url: string) => {
+    if (!url.startsWith('https://docs.google.com/spreadsheets/d/')) {
+      return;
+    }
+    setIsLoadingSheetNames(true);
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { sheetNames: [] } });
+
+    try {
+      const res = await fetch('/api/sheets/get-sheet-names', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheetUrl: url }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Error al cargar las hojas');
+      }
+      const data = await res.json();
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { sheetNames: data.sheetNames } });
+      if (data.sheetNames && data.sheetNames.length > 0) {
+        dispatch({ type: 'SET_DATABASE_OPTION', payload: { selectedSheetName: data.sheetNames[0] } });
+      }
+      toast({ title: 'Hojas Cargadas', description: 'Se encontraron las hojas de tu documento.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      dispatch({ type: 'SET_DATABASE_OPTION', payload: { sheetNames: [] } });
+    } finally {
+      setIsLoadingSheetNames(false);
+    }
+  }, [dispatch, toast]);
+
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    if (accessUrlValue && accessUrlValue.includes('/edit')) {
+      debounceTimeoutRef.current = setTimeout(() => {
+        handleFetchSheetNames(accessUrlValue);
+      }, 1000); // Debounce time of 1 second
+    }
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [accessUrlValue, handleFetchSheetNames]);
 
   const handleOptionChange = (value: string) => {
     const valueAsDbSource = value as DatabaseSource;
@@ -81,6 +132,8 @@ const Step2DatabaseConfig = () => {
         accessUrl: '',
         selectedColumns: [],
         relevantColumnsDescription: '',
+        sheetNames: [],
+        selectedSheetName: ''
       }
     });
   };
@@ -93,9 +146,13 @@ const Step2DatabaseConfig = () => {
   const handleAccessUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setAccessUrlValue(newUrl);
-    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl } });
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { ...databaseOption, accessUrl: newUrl, sheetNames: [], selectedSheetName: '' } });
   };
   
+  const handleSheetNameChange = (value: string) => {
+    dispatch({ type: 'SET_DATABASE_OPTION', payload: { selectedSheetName: value } });
+  };
+
   const selectedDbConfig = allDatabaseOptionsConfig.find(opt => opt.id === databaseOption.type);
 
   return (
@@ -170,27 +227,52 @@ const Step2DatabaseConfig = () => {
               </div>
             )}
             {selectedDbConfig.requiresAccessUrlInput && (
-              <div className="space-y-2">
-                <Label htmlFor="accessUrlInput" className="text-base">
-                  {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
-                </Label>
-                <div className="relative flex items-center">
-                    <Input
-                        id="accessUrlInput"
-                        type="url"
-                        placeholder={selectedDbConfig.accessUrlPlaceholder}
-                        value={accessUrlValue}
-                        onChange={handleAccessUrlChange}
-                        className="text-base py-6"
-                        aria-required={selectedDbConfig.requiresAccessUrlInput}
-                        />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="accessUrlInput" className="text-base">
+                    {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
+                  </Label>
+                  <div className="relative flex items-center">
+                      <Input
+                          id="accessUrlInput"
+                          type="url"
+                          placeholder={selectedDbConfig.accessUrlPlaceholder}
+                          value={accessUrlValue}
+                          onChange={handleAccessUrlChange}
+                          className="text-base py-6 pr-10"
+                          aria-required={selectedDbConfig.requiresAccessUrlInput}
+                          />
+                      {isLoadingSheetNames && (
+                          <Loader2 className="absolute right-3 h-5 w-5 animate-spin text-muted-foreground" />
+                      )}
+                  </div>
+                  {selectedDbConfig.description && (
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
+                      <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />
+                      <span>{selectedDbConfig.description}</span>
+                    </p>
+                  )}
                 </div>
-                 {selectedDbConfig.description && (
-                  <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
-                    <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />
-                    <span>{selectedDbConfig.description}</span>
-                  </p>
-                 )}
+
+                {Array.isArray(databaseOption.sheetNames) && databaseOption.sheetNames.length > 0 && (
+                  <div className="space-y-2 animate-fadeIn">
+                    <Label htmlFor="sheetNameSelect" className="text-base">
+                      Selecciona la Hoja
+                    </Label>
+                    <Select onValueChange={handleSheetNameChange} value={databaseOption.selectedSheetName}>
+                      <SelectTrigger id="sheetNameSelect">
+                        <SelectValue placeholder="Elige una hoja..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {databaseOption.sheetNames.map((name) => (
+                          <SelectItem key={name} value={name}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             )}
           </div>

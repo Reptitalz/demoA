@@ -31,6 +31,36 @@ async function getSheetsClient() {
     return sheets;
 }
 
+
+/**
+ * Asynchronously gets the names of all sheets in a Google Spreadsheet.
+ * @param sheetId The ID of the google sheet.
+ * @returns A promise that resolves to an array of strings representing the sheet names.
+ */
+export async function getSheetNames(sheetId: string): Promise<string[]> {
+    try {
+        const client = await getSheetsClient();
+        const response = await client.spreadsheets.get({
+            spreadsheetId: sheetId,
+            fields: 'sheets.properties.title', // Only fetch the titles of the sheets
+        });
+        
+        const sheetsData = response.data.sheets;
+        if (sheetsData) {
+            return sheetsData.map(sheet => sheet.properties?.title || '').filter(Boolean);
+        } else {
+            return [];
+        }
+    } catch(err: any) {
+        console.error("Error al obtener los nombres de las hojas de Google:", err.message);
+        if (err.code === 403) {
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio.");
+        }
+        throw new Error("No se pudo conectar con la Hoja de Google.");
+    }
+}
+
+
 /**
  * Asynchronously gets the headers from a Google Sheet.
  * @param sheetId The ID of the google sheet to import.
