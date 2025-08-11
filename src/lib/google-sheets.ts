@@ -50,8 +50,6 @@ async function getSheetsClient() {
             email: clientEmail,
             key: privateKey,
             scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-            // You can optionally specify the project ID, but it's often inferred
-            // projectId: projectId, 
         });
 
         sheets = google.sheets({ version: 'v4', auth });
