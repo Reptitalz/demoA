@@ -8,9 +8,9 @@ async function getSheetsClient() {
         return sheets;
     }
 
-    const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    const serviceAccountKey = process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON;
     if (!serviceAccountKey) {
-        throw new Error("GOOGLE_SERVICE_ACCOUNT_KEY no está configurada en las variables de entorno.");
+        throw new Error("GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON no está configurada en las variables de entorno.");
     }
     
     let credentials;
