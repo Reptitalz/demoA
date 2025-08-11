@@ -35,7 +35,7 @@ const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
     requiresAccessUrlInput: true,
     accessUrlLabel: "URL de la Hoja de Google",
     accessUrlPlaceholder: "https://docs.google.com/spreadsheets/d/...",
-    description: "Asegúrate de que la Hoja sea pública para que tu asistente pueda acceder a los datos."
+    description: "Importante: Debes compartir esta Hoja de Google con `excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com` con permisos de 'Editor' para que tu asistente pueda acceder a los datos."
   },
   {
     id: "smart_db" as DatabaseSource,
@@ -181,7 +181,6 @@ const Step2DatabaseConfig = () => {
                   <Icon className="h-8 w-8 text-primary mt-1" />
                   <div className="flex-1 pr-4">
                     <Label className="font-semibold text-sm cursor-pointer">{option.name}</Label>
-                    <p className="text-xs text-muted-foreground cursor-pointer">{option.description}</p>
                   </div>
                 </div>
               );
@@ -238,7 +237,7 @@ const Step2DatabaseConfig = () => {
                         ) : "Probar"}
                       </Button>
                   </div>
-                  {selectedDbConfig.description && (
+                   {selectedDbConfig.description && (
                     <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
                       <FaExclamationTriangle className="h-3 w-3 mt-0.5 shrink-0 text-orange-500" />
                       <span>{selectedDbConfig.description}</span>
