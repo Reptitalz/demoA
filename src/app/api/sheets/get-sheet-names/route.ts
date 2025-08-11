@@ -22,10 +22,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('API Error (sheets/get-sheet-names):', error);
-    let errorMessage = 'No se pudieron cargar las hojas. Asegúrate de que la hoja sea pública o que la cuenta de servicio tenga acceso.';
-    if (error.message && error.message.includes('Permiso denegado')) {
-        errorMessage = 'Permiso denegado. Verifica que la hoja sea "Pública en la web" o compártela con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com';
-    }
+    // Send a more specific error message back to the client
+    let errorMessage = error.message || 'Ocurrió un error desconocido al cargar las hojas.';
+    
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

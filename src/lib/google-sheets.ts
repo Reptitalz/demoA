@@ -22,6 +22,8 @@ async function getSheetsClient() {
         console.error("Error al parsear las credenciales JSON de la cuenta de servicio:", e);
         throw new Error("La clave de la cuenta de servicio de Google no es un JSON válido.");
     }
+    
+    console.log(`Attempting to authenticate with Google Sheets API using project_id: ${credentials.project_id} and client_email: ${credentials.client_email}`);
 
     try {
         // Autenticamos usando el método fromJSON que es más directo.
@@ -35,10 +37,11 @@ async function getSheetsClient() {
         // Creamos el cliente de la API de Sheets con el cliente autenticado.
         sheets = google.sheets({ version: 'v4', auth: authClient });
         
+        console.log("Successfully authenticated with Google Sheets API.");
         return sheets;
-    } catch(error) {
-        console.error("Error al autenticar con la API de Google Sheets:", error);
-        throw new Error("No se pudo autenticar con las credenciales de la cuenta de servicio.");
+    } catch(error: any) {
+        console.error("Error during Google Sheets API authentication or client creation:", error.message);
+        throw new Error(`No se pudo autenticar con las credenciales de la cuenta de servicio. Error: ${error.message}`);
     }
 }
 
@@ -63,11 +66,11 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
             return [];
         }
     } catch(err: any) {
-        console.error("Error al obtener los nombres de las hojas de Google:", err.message);
-        if (err.code === 403) {
-            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com");
+        console.error("Error fetching Google Sheet names:", err.message);
+        if (err.code === 403 || (err.message && err.message.includes('permission'))) {
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con 'excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com'.");
         }
-        throw new Error("No se pudo conectar con la Hoja de Google.");
+        throw new Error(`No se pudo conectar con la Hoja de Google. Detalle: ${err.message}`);
     }
 }
 
@@ -92,11 +95,11 @@ export async function getSheetHeaders(sheetId: string): Promise<string[]> {
             return [];
         }
     } catch(err: any) {
-        console.error("Error al obtener los encabezados de la Hoja de Google:", err.message);
-        if (err.code === 403) {
-            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com");
+        console.error("Error fetching Google Sheet headers:", err.message);
+         if (err.code === 403 || (err.message && err.message.includes('permission'))) {
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con 'excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com'.");
         }
-        throw new Error("No se pudo conectar con la Hoja de Google.");
+        throw new Error(`No se pudo conectar con la Hoja de Google. Detalle: ${err.message}`);
     }
 }
 
@@ -117,10 +120,10 @@ export async function getSheetData(sheetId: string): Promise<any[][]> {
 
         return response.data.values || [];
     } catch(err: any) {
-        console.error("Error al obtener los datos de la Hoja de Google:", err.message);
-        if (err.code === 403) {
-            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con el correo de la cuenta de servicio: excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com");
+        console.error("Error fetching Google Sheet data:", err.message);
+         if (err.code === 403 || (err.message && err.message.includes('permission'))) {
+            throw new Error("Permiso denegado. Asegúrate de compartir la Hoja de Google con 'excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com'.");
         }
-        throw new Error("No se pudo conectar con la Hoja de Google.");
+        throw new Error(`No se pudo conectar con la Hoja de Google. Detalle: ${err.message}`);
     }
 }
