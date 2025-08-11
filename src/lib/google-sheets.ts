@@ -4,6 +4,7 @@ import { google } from 'googleapis';
 let sheets: any;
 
 async function getSheetsClient() {
+    // Si ya tenemos un cliente autenticado, lo reutilizamos.
     if (sheets) {
         return sheets;
     }
@@ -15,20 +16,30 @@ async function getSheetsClient() {
     
     let credentials;
     try {
+        // Parseamos las credenciales desde el string JSON de la variable de entorno.
         credentials = JSON.parse(serviceAccountKey);
     } catch(e) {
+        console.error("Error al parsear las credenciales JSON de la cuenta de servicio:", e);
         throw new Error("La clave de la cuenta de servicio de Google no es un JSON válido.");
     }
 
-    const auth = new google.auth.GoogleAuth({
-        credentials,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
+    try {
+        // Autenticamos usando el método fromJSON que es más directo.
+        const auth = new google.auth.GoogleAuth({
+            credentials,
+            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        });
 
-    const authClient = await auth.getClient();
-    sheets = google.sheets({ version: 'v4', auth: authClient });
-    
-    return sheets;
+        const authClient = await auth.getClient();
+        
+        // Creamos el cliente de la API de Sheets con el cliente autenticado.
+        sheets = google.sheets({ version: 'v4', auth: authClient });
+        
+        return sheets;
+    } catch(error) {
+        console.error("Error al autenticar con la API de Google Sheets:", error);
+        throw new Error("No se pudo autenticar con las credenciales de la cuenta de servicio.");
+    }
 }
 
 
