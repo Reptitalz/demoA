@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from "@/providers/AppProvider";
@@ -57,8 +56,7 @@ const Step2DatabaseConfig = () => {
   const [accessUrlValue, setAccessUrlValue] = useState(databaseOption.accessUrl || '');
   const [isLoadingSheetNames, setIsLoadingSheetNames] = useState(false);
   const [availableDbOptions, setAvailableDbOptions] = useState<DatabaseOptionConfig[]>([]);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  
   useEffect(() => {
     if (selectedPurposes.has("import_spreadsheet")) {
       setAvailableDbOptions(allDatabaseOptionsConfig.filter(opt => opt.id === "google_sheets"));
@@ -77,6 +75,7 @@ const Step2DatabaseConfig = () => {
 
   const handleFetchSheetNames = useCallback(async (url: string) => {
     if (!url.startsWith('https://docs.google.com/spreadsheets/d/')) {
+       toast({ title: 'URL Inválida', description: 'Por favor, introduce una URL de Hoja de Google válida.', variant: 'destructive' });
       return;
     }
     setIsLoadingSheetNames(true);
@@ -106,22 +105,6 @@ const Step2DatabaseConfig = () => {
     }
   }, [dispatch, toast]);
 
-  useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    if (accessUrlValue && accessUrlValue.includes('/edit')) {
-      debounceTimeoutRef.current = setTimeout(() => {
-        handleFetchSheetNames(accessUrlValue);
-      }, 1000); // Debounce time of 1 second
-    }
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [accessUrlValue, handleFetchSheetNames]);
-
   const handleOptionChange = (value: string) => {
     const valueAsDbSource = value as DatabaseSource;
     dispatch({
@@ -136,6 +119,7 @@ const Step2DatabaseConfig = () => {
         selectedSheetName: ''
       }
     });
+    setAccessUrlValue('');
   };
 
   const handleDbNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,6 +138,7 @@ const Step2DatabaseConfig = () => {
   };
 
   const selectedDbConfig = allDatabaseOptionsConfig.find(opt => opt.id === databaseOption.type);
+  const isValidUrlForTest = accessUrlValue.startsWith('https://docs.google.com/spreadsheets/d/');
 
   return (
     <div className="w-full animate-fadeIn space-y-6">
@@ -232,19 +217,26 @@ const Step2DatabaseConfig = () => {
                   <Label htmlFor="accessUrlInput" className="text-base">
                     {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
                   </Label>
-                  <div className="relative flex items-center">
+                  <div className="flex items-center gap-2">
                       <Input
                           id="accessUrlInput"
                           type="url"
                           placeholder={selectedDbConfig.accessUrlPlaceholder}
                           value={accessUrlValue}
                           onChange={handleAccessUrlChange}
-                          className="text-base py-6 pr-10"
+                          className="text-base py-6"
                           aria-required={selectedDbConfig.requiresAccessUrlInput}
                           />
-                      {isLoadingSheetNames && (
-                          <Loader2 className="absolute right-3 h-5 w-5 animate-spin text-muted-foreground" />
-                      )}
+                      <Button
+                        type="button"
+                        onClick={() => handleFetchSheetNames(accessUrlValue)}
+                        disabled={!isValidUrlForTest || isLoadingSheetNames}
+                        aria-label="Probar y cargar hojas"
+                      >
+                         {isLoadingSheetNames ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : "Probar"}
+                      </Button>
                   </div>
                   {selectedDbConfig.description && (
                     <p className="text-xs text-muted-foreground flex items-start gap-1.5 pt-1">
