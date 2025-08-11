@@ -16,8 +16,9 @@ async function getSheetsClient() {
     
     let credentials;
     try {
-        // Parseamos las credenciales desde el string JSON de la variable de entorno.
-        credentials = JSON.parse(serviceAccountKey);
+        // Parseamos las credenciales desde el string JSON de la variable de entorno,
+        // asegurándonos de manejar correctamente los saltos de línea en la clave privada.
+        credentials = JSON.parse(serviceAccountKey.replace(/\\n/g, '\n'));
     } catch(e) {
         console.error("Error al parsear las credenciales JSON de la cuenta de servicio:", e);
         throw new Error("La clave de la cuenta de servicio de Google no es un JSON válido.");
