@@ -18,12 +18,10 @@ async function getSheetsClient() {
     }
 
     try {
-        // Trim whitespace from the beginning and end of the string.
         const cleanedJsonString = serviceAccountKeyJson.trim();
-        
         const credentials = JSON.parse(cleanedJsonString);
-
-        // Ensure private_key has correct newlines
+        
+        // This is the crucial part: ensure the private_key has correct newlines.
         const privateKey = credentials.private_key.replace(/\\n/g, '\n');
 
         const auth = new JWT({
