@@ -19,10 +19,8 @@ import { Slider } from '@/components/ui/slider';
 import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2 } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { Button } from '../ui/button';
-import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 import PersonalInfoDialog from './PersonalInfoDialog';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
-import MercadoLibreIcon from '../shared/MercadoLibreIcon';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -130,7 +128,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     ? (CREDIT_PACKAGES.find(p => p.credits === selectedPackageCredits)?.price || 0)
     : customCredits * PRICE_PER_CREDIT;
     
-  const isButtonDisabled = isProcessing || (activeTab === 'packages' && !selectedPackageCredits);
+  const isButtonDisabled = isProcessing || (activeTab === 'packages' && !selectedPackageCredits) || (activeTab === 'custom' && customCredits <= 0);
 
   return (
     <>
@@ -235,7 +233,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                             onClick={handleCreatePreference}
                             disabled={isButtonDisabled}
                             >
-                            {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <MercadoLibreIcon className="mr-2 h-4 w-auto"/>}
+                            {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
                             Pagar con Mercado Pago
                         </Button>
                         <p className="text-center text-xs text-muted-foreground">Paga con SPEI, OXXO, saldo en cuenta y más.</p>

@@ -14,8 +14,6 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
-import MercadoLibreIcon from '@/components/shared/MercadoLibreIcon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,7 +41,7 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
     },
     {
       num: "4",
-      icon: <MercadoLibreIcon className="h-8 w-auto text-primary" />,
+      icon: <Coins size={32} className="text-primary" />,
       title: "Recarga Créditos",
       description: "Añade saldo a tu cuenta de forma segura con Mercado Pago para que tu asistente nunca deje de operar."
     }
@@ -197,8 +195,7 @@ const PayAsYouGoCalculator = () => {
         </div>
         <div className="pt-4 border-t border-border/20 text-center">
           <div className="flex items-center justify-center gap-2">
-            <p className="text-xs text-muted-foreground">Pagos seguros impulsados por</p>
-            <MercadoLibreIcon />
+            <p className="text-xs text-muted-foreground">Pagos seguros a través de Mercado Pago</p>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             Aceptamos tarjetas de crédito, débito, SPEI, OXXO y todos los métodos de pago disponibles a través de Mercado Pago.
