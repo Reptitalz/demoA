@@ -32,7 +32,8 @@ async function getSheetsClient() {
     
     // New, more robust method
     try {
-        const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8');
+        // Decode the private key from Base64 AND ensure newline characters are correctly formatted.
+        const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8').replace(/\\n/g, '\n');
 
         const auth = new JWT({
             email: clientEmail,
