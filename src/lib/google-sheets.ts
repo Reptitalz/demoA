@@ -5,17 +5,17 @@ import { JWT } from 'google-auth-library';
 let sheets: any;
 
 async function getSheetsClient() {
-    // Si ya tenemos un cliente autenticado, lo reutilizamos.
+    // If we already have an authenticated client, reuse it.
     if (sheets) {
         return sheets;
     }
 
-    // Check for essential environment variables for the new method
+    // Check for essential environment variables.
     const projectId = process.env.GOOGLE_PROJECT_ID;
     const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
 
-    // Strict check: if any of the required new environment variables are missing, throw an error.
+    // Strict check: if any of the required environment variables are missing, throw an error.
     if (!projectId || !privateKeyBase64 || !clientEmail) {
       const missingVars = [
         !projectId && "GOOGLE_PROJECT_ID",
@@ -30,7 +30,6 @@ async function getSheetsClient() {
     
     console.log(`Attempting to authenticate with Google Sheets API using project_id: ${projectId} and client_email: ${clientEmail}`);
     
-    // New, more robust method
     try {
         // Decode the private key from Base64 AND ensure newline characters are correctly formatted.
         const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8').replace(/\\n/g, '\n');
@@ -43,7 +42,7 @@ async function getSheetsClient() {
 
         sheets = google.sheets({ version: 'v4', auth });
         
-        console.log("Successfully authenticated with Google Sheets API using new method.");
+        console.log("Successfully authenticated with Google Sheets API.");
         return sheets;
 
     } catch (error: any) {
