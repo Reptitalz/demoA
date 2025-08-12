@@ -10,31 +10,24 @@ async function getSheetsClient() {
         return sheets;
     }
 
-    // Check for essential environment variables.
-    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-    const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
-    
-    // Strict check: if any of the required environment variables are missing, throw an error.
-    if (!clientEmail || !privateKeyBase64) {
-      const missingVars = [
-        !clientEmail && "GOOGLE_CLIENT_EMAIL",
-        !privateKeyBase64 && "GOOGLE_PRIVATE_KEY_BASE64",
-      ].filter(Boolean).join(', ');
-      
-      const errorMessage = `Las credenciales de la cuenta de servicio de Google no están configuradas correctamente. Falta(n) la(s) siguiente(s) variable(s) de entorno: ${missingVars}.`;
-      console.error(errorMessage);
-      throw new Error(errorMessage);
+    const serviceAccountKeyJson = process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON;
+
+    if (!serviceAccountKeyJson) {
+        const errorMessage = `La credencial de la cuenta de servicio de Google no está configurada. Falta la variable de entorno GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON.`;
+        console.error(errorMessage);
+        throw new Error(errorMessage);
     }
-    
-    console.log(`Attempting to authenticate with Google Sheets API using client_email: ${clientEmail}`);
-    
+
     try {
-        // Decode the private key from Base64 AND ensure newline characters are correctly formatted.
-        // This is the most common point of failure.
-        const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8').replace(/\\n/g, '\n');
+        const credentials = JSON.parse(serviceAccountKeyJson);
+
+        // This is the most critical part: ensure the private key has correct newlines
+        const privateKey = credentials.private_key.replace(/\\n/g, '\n');
+
+        console.log(`Attempting to authenticate with Google Sheets API using client_email: ${credentials.client_email}`);
 
         const auth = new JWT({
-            email: clientEmail,
+            email: credentials.client_email,
             key: privateKey,
             scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
         });
