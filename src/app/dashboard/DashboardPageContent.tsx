@@ -9,16 +9,15 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaSignOutAlt, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaKey, FaPalette } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { APP_NAME } from '@/config/appConfig';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User } from 'lucide-react';
+import { Mail, MessageSquare, User } from 'lucide-react';
 import Link from 'next/link';
 
 const DashboardPageContent = () => {
@@ -91,12 +90,25 @@ const DashboardPageContent = () => {
     dispatch({ type: 'RESET_WIZARD' });
     router.push('/app?action=add'); 
   };
-
-  const handleAddNewDatabase = () => {
-    setIsAddDatabaseDialogOpen(true);
-  };
   
   const showAddDatabaseButton = userProfile.assistants.some(a => !a.databaseId);
+  
+  const handleCopyEmail = () => {
+    const email = 'reptitalz@heymanito.com';
+    navigator.clipboard.writeText(email).then(() => {
+        toast({
+            title: 'Correo Copiado',
+            description: 'La dirección de correo de soporte ha sido copiada a tu portapapeles.',
+        });
+    }, (err) => {
+        toast({
+            title: 'Error al Copiar',
+            description: 'No se pudo copiar la dirección de correo.',
+            variant: 'destructive',
+        });
+        console.error('Could not copy text: ', err);
+    });
+  };
 
   if (isLoading || !userProfile.isAuthenticated) {
     return (
@@ -254,26 +266,22 @@ const DashboardPageContent = () => {
               {/* Support Section */}
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <MessageSquare className="h-6 w-6 text-green-500" />
+                  <MessageSquare className="h-6 w-6 text-accent" />
                   <div>
                     <h3 className="font-semibold">Soporte Técnico</h3>
                     <p className="text-sm text-muted-foreground">
-                      ¿Necesitas ayuda? Contáctanos por WhatsApp.
+                      ¿Necesitas ayuda? Copia nuestro correo de soporte.
                     </p>
                   </div>
                 </div>
                 <Button
-                  asChild
+                  onClick={handleCopyEmail}
                   size="sm"
-                  className="shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                  className="shrink-0"
+                  variant="outline"
                 >
-                  <Link
-                    href="https://wa.me/5213344090167"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Contactar
-                  </Link>
+                  <Mail className="mr-2 h-4 w-4"/>
+                  Copiar Correo
                 </Button>
               </div>
             </div>
@@ -322,5 +330,3 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
-
-    

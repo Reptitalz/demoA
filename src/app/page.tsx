@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 import MercadoLibreIcon from '@/components/shared/MercadoLibreIcon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
   const [step, setStep] = useState(0);
@@ -374,6 +375,24 @@ const StepCard = ({ num, icon, title, description, animationDelay }: { num: stri
 
 
 export default function MarketingHomePage() {
+  const { toast } = useToast();
+  const handleCopyEmail = () => {
+    const email = 'reptitalz@heymanito.com';
+    navigator.clipboard.writeText(email).then(() => {
+        toast({
+            title: 'Correo Copiado',
+            description: 'La dirección de correo de soporte ha sido copiada a tu portapapeles.',
+        });
+    }, (err) => {
+        toast({
+            title: 'Error al Copiar',
+            description: 'No se pudo copiar la dirección de correo.',
+            variant: 'destructive',
+        });
+        console.error('Could not copy text: ', err);
+    });
+  };
+
   return (
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
       <HeroSection />
@@ -475,17 +494,15 @@ export default function MarketingHomePage() {
              </p>
              <div className="flex flex-col items-center gap-4">
                <Button 
-                 asChild 
+                 onClick={handleCopyEmail}
                  size="lg" 
-                 className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-green-500 hover:bg-green-600 text-white shadow-lg")}
+                 className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg")}
                >
-                 <Link href="https://wa.me/5213344090167" target="_blank" rel="noopener noreferrer">
-                   <FaWhatsapp className="mr-2 h-5 w-5" />
-                   Contactar por WhatsApp
-                 </Link>
+                 <FaEnvelope className="mr-2 h-5 w-5" />
+                 Contactar por Correo
                </Button>
                <p className="text-xs text-muted-foreground mt-2">
-                 ¿Tienes dudas? Hablarás con mi asistente de Hey Manito.
+                 ¿Tienes dudas? Da clic para copiar nuestro correo de soporte.
                </p>
              </div>
         </div>
