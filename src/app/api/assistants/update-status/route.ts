@@ -5,6 +5,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import type { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
 import axios from 'axios';
+import { sendPushNotification } from '@/services/pushService';
 
 const N8N_WEBHOOK_URL = 'https://n8n.reptitalz.cloud/webhook/codemax';
 
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
     );
     
     let updateOperation;
+    let pushPayload;
 
     // Custom logic based on verification code prefix
     if (verificationCode.startsWith('A')) {
@@ -76,6 +78,12 @@ export async function POST(request: NextRequest) {
         }
       };
       console.log(`Activating assistant ${assistantId} for user ${userDbId}`);
+      pushPayload = {
+        title: '¡Asistente Activado!',
+        body: `Tu asistente "${assistant.name}" está listo para usar.`,
+        url: '/dashboard/assistants',
+        tag: 'assistant-status-update'
+      };
     } else if (verificationCode.startsWith('B')) {
       // Failure case: Reset the assistant's phone details
       updateOperation = {
@@ -89,6 +97,12 @@ export async function POST(request: NextRequest) {
         }
       };
       console.log(`Activation failed for assistant ${assistantId}. Resetting phone details.`);
+      pushPayload = {
+        title: 'Activación Fallida',
+        body: `No se pudo activar tu asistente "${assistant.name}". Por favor, inténtalo de nuevo.`,
+        url: '/dashboard/assistants',
+        tag: 'assistant-status-update'
+      };
     } else {
       // For any other code, just save it and mark as not ready. No error is thrown.
       updateOperation = {
@@ -109,6 +123,11 @@ export async function POST(request: NextRequest) {
     if (userProfileUpdateResult.matchedCount === 0) {
       console.log(`Assistant ${assistantId} not found for user ${userDbId}`);
       return NextResponse.json({ message: 'Assistant not found' }, { status: 404 });
+    }
+    
+    // Send a push notification if a payload was created
+    if (pushPayload) {
+        await sendPushNotification(userDbId, pushPayload);
     }
 
     return NextResponse.json({ success: true, message: 'Assistant status updated.' });

@@ -106,12 +106,12 @@ export async function POST(request: NextRequest) {
                 };
                 await db.collection<AppNotification>('notifications').insertOne(notification as AppNotification);
 
-                // Send a push notification
+                // Send a push notification to trigger real-time update
                 await sendPushNotification(userId, {
                     title: '¡Recarga Exitosa!',
                     body: `Se añadieron ${creditsPurchased} créditos a tu cuenta.`,
                     url: '/dashboard', // URL to open on click
-                    tag: 'credits-recharge' // To stack notifications
+                    tag: 'credits-recharge', // To stack notifications and trigger refresh
                 });
                 
 

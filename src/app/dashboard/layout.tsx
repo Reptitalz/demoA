@@ -11,6 +11,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
+import NotificationsBell from '@/components/notifications/NotificationsBell';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
@@ -25,23 +28,28 @@ export default function DashboardLayout({
 }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { dispatch } = useApp();
     const { toast } = useToast();
 
-    const handleLogout = () => {
-        dispatch({ type: 'LOGOUT_USER' });
-        toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-        router.replace('/login');
+    const handleLogout = async () => {
+        try {
+            await signOut(auth); // Sign out from Firebase
+            toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
+            // The onAuthStateChanged listener in AppProvider will handle state cleanup and redirection
+        } catch (error) {
+            console.error("Logout Error:", error);
+            toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
+        }
     };
     
     return (
         <div className="flex flex-col h-screen bg-muted/30">
              <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
-                    <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+                    <Link href="/dashboard/assistants" className="flex items-center gap-2 font-semibold">
                          <AppIcon className="h-6 w-6" />
                         <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
                     <div className="flex items-center gap-1.5">
+                        <NotificationsBell />
                         <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
                             <FaSignOutAlt size={12} className="mr-1" /> 
                             Cerrar Sesión
