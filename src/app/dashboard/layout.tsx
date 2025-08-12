@@ -11,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
-import NotificationsBell from '@/components/notifications/NotificationsBell';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -49,7 +48,7 @@ export default function DashboardLayout({
                         <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
                     <div className="flex items-center gap-1.5">
-                        <NotificationsBell />
+                        
                         <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
                             <FaSignOutAlt size={12} className="mr-1" /> 
                             Cerrar Sesión
@@ -113,6 +112,9 @@ export default function DashboardLayout({
                     </div>
                 </TooltipProvider>
              </nav>
+             <div className="fixed bottom-2 right-4 text-xs text-muted-foreground/80 z-10">
+                Versión 0.1
+            </div>
         </div>
     );
 }
