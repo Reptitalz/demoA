@@ -11,16 +11,14 @@ async function getSheetsClient() {
     }
 
     // Check for essential environment variables.
-    const projectId = process.env.GOOGLE_PROJECT_ID;
-    const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-
+    const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
+    
     // Strict check: if any of the required environment variables are missing, throw an error.
-    if (!projectId || !privateKeyBase64 || !clientEmail) {
+    if (!clientEmail || !privateKeyBase64) {
       const missingVars = [
-        !projectId && "GOOGLE_PROJECT_ID",
+        !clientEmail && "GOOGLE_CLIENT_EMAIL",
         !privateKeyBase64 && "GOOGLE_PRIVATE_KEY_BASE64",
-        !clientEmail && "GOOGLE_CLIENT_EMAIL"
       ].filter(Boolean).join(', ');
       
       const errorMessage = `Las credenciales de la cuenta de servicio de Google no están configuradas correctamente. Falta(n) la(s) siguiente(s) variable(s) de entorno: ${missingVars}.`;
@@ -28,10 +26,11 @@ async function getSheetsClient() {
       throw new Error(errorMessage);
     }
     
-    console.log(`Attempting to authenticate with Google Sheets API using project_id: ${projectId} and client_email: ${clientEmail}`);
+    console.log(`Attempting to authenticate with Google Sheets API using client_email: ${clientEmail}`);
     
     try {
         // Decode the private key from Base64 AND ensure newline characters are correctly formatted.
+        // This is the most common point of failure.
         const privateKey = Buffer.from(privateKeyBase64, 'base64').toString('utf8').replace(/\\n/g, '\n');
 
         const auth = new JWT({
