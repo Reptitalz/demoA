@@ -15,29 +15,17 @@ async function getSheetsClient() {
     const privateKeyBase64 = process.env.GOOGLE_PRIVATE_KEY_BASE64;
     const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
 
+    // Strict check: if any of the required new environment variables are missing, throw an error.
     if (!projectId || !privateKeyBase64 || !clientEmail) {
-      console.error("Missing required Google service account environment variables (PROJECT_ID, PRIVATE_KEY_BASE64, CLIENT_EMAIL).");
-      // Fallback to the old method if it exists, otherwise throw error.
-      const serviceAccountKey = process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON;
-      if (!serviceAccountKey) {
-        throw new Error("Las credenciales de la cuenta de servicio de Google no están configuradas. Por favor, define las variables de entorno necesarias.");
-      }
-      // Attempt old method
-      try {
-        console.warn("Attempting to use legacy GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON variable.");
-        const credentials = JSON.parse(serviceAccountKey.replace(/\\n/g, '\n'));
-        const auth = new google.auth.GoogleAuth({
-            credentials,
-            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-        });
-        const authClient = await auth.getClient();
-        sheets = google.sheets({ version: 'v4', auth: authClient });
-        console.log("Successfully authenticated with legacy method.");
-        return sheets;
-      } catch (e) {
-         console.error("Failed to authenticate using legacy method.", e);
-         throw new Error("Las credenciales de la cuenta de servicio (legacy) no son un JSON válido o fallaron al autenticar.");
-      }
+      const missingVars = [
+        !projectId && "GOOGLE_PROJECT_ID",
+        !privateKeyBase64 && "GOOGLE_PRIVATE_KEY_BASE64",
+        !clientEmail && "GOOGLE_CLIENT_EMAIL"
+      ].filter(Boolean).join(', ');
+      
+      const errorMessage = `Las credenciales de la cuenta de servicio de Google no están configuradas correctamente. Falta(n) la(s) siguiente(s) variable(s) de entorno: ${missingVars}.`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
     }
     
     console.log(`Attempting to authenticate with Google Sheets API using project_id: ${projectId} and client_email: ${clientEmail}`);
