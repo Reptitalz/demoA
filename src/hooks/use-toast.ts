@@ -17,6 +17,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  copyable?: boolean;
 }
 
 const actionTypes = {

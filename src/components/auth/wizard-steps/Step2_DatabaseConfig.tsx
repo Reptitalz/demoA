@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from "@/providers/AppProvider";
@@ -98,7 +99,7 @@ const Step2DatabaseConfig = () => {
       }
       toast({ title: 'Hojas Cargadas', description: 'Se encontraron las hojas de tu documento.' });
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive', copyable: true });
       dispatch({ type: 'SET_DATABASE_OPTION', payload: { sheetNames: [] } });
     } finally {
       setIsLoadingSheetNames(false);

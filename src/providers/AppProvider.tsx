@@ -287,7 +287,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         })
         .catch((error) => {
           console.error("Failed to save profile, reverting state.", error);
-          toast({ title: "Error al Guardar", description: `No se pudieron guardar los cambios: ${error.message}`, variant: "destructive" });
+          toast({ title: "Error al Guardar", description: `No se pudieron guardar los cambios: ${error.message}`, variant: "destructive", copyable: true });
           // Revert to the previous state on failure
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: previousStateRef.current.userProfile });
         });
