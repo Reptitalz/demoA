@@ -5,7 +5,6 @@ import { JWT } from 'google-auth-library';
 let sheets: any;
 
 async function getSheetsClient() {
-    // If we already have an authenticated client, reuse it.
     if (sheets) {
         return sheets;
     }
@@ -19,12 +18,13 @@ async function getSheetsClient() {
     }
 
     try {
-        const credentials = JSON.parse(serviceAccountKeyJson);
+        // Trim whitespace from the beginning and end of the string.
+        const cleanedJsonString = serviceAccountKeyJson.trim();
+        
+        const credentials = JSON.parse(cleanedJsonString);
 
-        // This is the most critical part: ensure the private key has correct newlines
+        // Ensure private_key has correct newlines
         const privateKey = credentials.private_key.replace(/\\n/g, '\n');
-
-        console.log(`Attempting to authenticate with Google Sheets API using client_email: ${credentials.client_email}`);
 
         const auth = new JWT({
             email: credentials.client_email,
@@ -34,12 +34,16 @@ async function getSheetsClient() {
 
         sheets = google.sheets({ version: 'v4', auth });
         
-        console.log("Successfully authenticated with Google Sheets API.");
+        console.log(`Successfully authenticated with Google Sheets API using client_email: ${credentials.client_email}`);
         return sheets;
 
     } catch (error: any) {
-        console.error("Error during Google Sheets API authentication or client creation:", error.message);
-        throw new Error(`No se pudo autenticar con las credenciales de la cuenta de servicio. Error: ${error.message}`);
+        let errorMessage = `No se pudo autenticar con las credenciales de la cuenta de servicio. Error: ${error.message}`;
+        if (error instanceof SyntaxError) {
+             errorMessage = `Las credenciales de la cuenta de servicio no son un JSON válido. Error: ${error.message}`;
+        }
+        console.error("Error during Google Sheets API authentication or client creation:", errorMessage);
+        throw new Error(errorMessage);
     }
 }
 
@@ -59,7 +63,7 @@ export async function getSheetNames(sheetId: string): Promise<string[]> {
         
         const sheetsData = response.data.sheets;
         if (sheetsData) {
-            return sheetsData.map(sheet => sheet.properties?.title || '').filter(Boolean);
+            return sheetsData.map((sheet: any) => sheet.properties?.title || '').filter(Boolean);
         } else {
             return [];
         }
