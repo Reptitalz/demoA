@@ -10,6 +10,43 @@ import { auth } from '@/lib/firebase';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
+// Mock user profile for guest/testing mode
+export const MOCK_USER_PROFILE: UserProfile = {
+  _id: 'GUEST_USER_ID',
+  isAuthenticated: true,
+  authProvider: 'google',
+  email: 'guest@example.com',
+  firebaseUid: 'GUEST_FIREBASE_UID',
+  firstName: 'Usuario',
+  lastName: 'de Prueba',
+  address: {
+    street_name: "Calle Falsa",
+    street_number: "123",
+    zip_code: "45010",
+    city: "Guadalajara"
+  },
+  assistants: [
+    {
+      id: "asst_guest_1",
+      name: "Asistente de Demostración",
+      prompt: "Eres un asistente de demostración. Tu propósito es saludar a los usuarios y mostrarles cómo funcionas.",
+      isActive: true,
+      messageCount: 150,
+      monthlyMessageLimit: 1000,
+      phoneLinked: "+5213312345678",
+      numberReady: true,
+      purposes: ["notify_clients"],
+      databaseId: null,
+      imageUrl: "https://placehold.co/100x100.png",
+      businessInfo: { vertical: 'Software' },
+    }
+  ],
+  databases: [],
+  ownerPhoneNumberForNotifications: "+5213387654321",
+  credits: 10,
+};
+
+
 const initialWizardState: WizardState = {
   currentStep: 1,
   assistantName: '',
@@ -78,6 +115,7 @@ type Action =
   | { type: 'UPDATE_DATABASE'; payload: DatabaseConfig }
   | { type: 'REMOVE_DATABASE'; payload: string }
   | { type: 'LOGIN_USER'; payload: { user: User, profile: UserProfile } }
+  | { type: 'LOGIN_GUEST' }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
@@ -158,6 +196,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
         isSetupComplete: profile.assistants && profile.assistants.length > 0,
       };
     }
+    case 'LOGIN_GUEST':
+      return {
+        ...state,
+        userProfile: MOCK_USER_PROFILE,
+        isLoading: false,
+        isSetupComplete: true,
+      };
     case 'SYNC_PROFILE_FROM_API': {
         const apiProfile = action.payload;
         const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
@@ -243,6 +288,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
 const queryClient = new QueryClient();
 
 async function saveUserProfile(userProfile: UserProfile): Promise<void> {
+  // Do not save guest profile to the backend
+  if (userProfile._id === 'GUEST_USER_ID') {
+    console.log("Guest profile updated locally. Skipping save to backend.");
+    return;
+  }
+
   if (!userProfile._id) {
     console.error("Cannot save profile without an ID.");
     throw new Error("Cannot save profile without an ID.");
@@ -282,8 +333,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (hasProfileChanged && state.userProfile.isAuthenticated && state.userProfile._id) {
       saveUserProfile(state.userProfile)
         .then(() => {
-           console.log("Profile saved successfully.");
-           toast({ title: "Cambios Guardados", description: "Tus cambios se han guardado exitosamente."});
+            if (state.userProfile._id !== 'GUEST_USER_ID') {
+                console.log("Profile saved successfully.");
+                toast({ title: "Cambios Guardados", description: "Tus cambios se han guardado exitosamente."});
+            }
         })
         .catch((error) => {
           console.error("Failed to save profile, reverting state.", error);
