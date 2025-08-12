@@ -51,11 +51,7 @@ export const PRICE_PER_CREDIT = 65.00; // Precio base por crédito
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
 
-// 10 MXN / 65 MXN per credit
-export const CREDITS_FOR_TEST_PLAN = 10 / PRICE_PER_CREDIT;
-
 export const CREDIT_PACKAGES = [
-  { credits: CREDITS_FOR_TEST_PLAN, price: 10.00, name: "Prueba" },
   { credits: 1, price: 65.00, name: "Básico" },
   { credits: 5, price: 325.00, name: "Estándar" },
   { credits: 10, price: 650.00, name: "Pro" },
