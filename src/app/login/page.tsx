@@ -8,10 +8,9 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { FaSpinner, FaGoogle, FaUserSecret } from 'react-icons/fa';
+import { FaSpinner, FaGoogle } from 'react-icons/fa';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { MOCK_USER_PROFILE } from '@/providers/AppProvider';
 
 const APP_NAME = "Hey Manito";
 
@@ -78,17 +77,6 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  const handleGuestLogin = () => {
-    setIsProcessing(true);
-    dispatch({ type: 'LOGIN_GUEST' });
-    toast({
-        title: "Modo de Prueba Activado",
-        description: "Has entrado como invitado. Algunas funciones pueden estar limitadas."
-    });
-     // The useEffect will catch the state change and redirect
-  };
-
-
   if (state.isLoading || state.userProfile.isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -136,13 +124,6 @@ const LoginPageContent = () => {
           Crear Asistente
         </Button>
         
-        <div className="text-center mt-4">
-            <Button variant="link" onClick={handleGuestLogin} disabled={isProcessing} className="text-xs h-auto p-1 text-muted-foreground">
-                <FaUserSecret className="mr-1.5" />
-                Entrar como invitado para probar
-            </Button>
-        </div>
-
       </div>
     </div>
     <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
