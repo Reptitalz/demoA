@@ -36,7 +36,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages');
-  const [selectedPackageCredits, setSelectedPackageCredits] = useState<number>(CREDIT_PACKAGES[0].credits);
+  const [selectedPackageCredits, setSelectedPackageCredits] = useState<number | null>(null);
   const [customCredits, setCustomCredits] = useState<number>(1);
   const [isPersonalInfoDialogOpen, setIsPersonalInfoDialogOpen] = useState(false);
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
@@ -58,7 +58,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     if (isOpen) {
       setIsProcessing(false);
       setActiveTab('packages');
-      setSelectedPackageCredits(CREDIT_PACKAGES[0].credits);
+      setSelectedPackageCredits(null);
       setCustomCredits(1);
       setPreferenceId(null);
     }
@@ -129,6 +129,8 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
   const purchaseAmount = activeTab === 'packages' 
     ? (CREDIT_PACKAGES.find(p => p.credits === selectedPackageCredits)?.price || 0)
     : customCredits * PRICE_PER_CREDIT;
+    
+  const isButtonDisabled = isProcessing || (activeTab === 'packages' && !selectedPackageCredits);
 
   return (
     <>
@@ -177,7 +179,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         </TabsList>
                         <TabsContent value="packages" className="pt-2">
                             <RadioGroup
-                                value={selectedPackageCredits.toString()}
+                                value={selectedPackageCredits?.toString()}
                                 onValueChange={(value) => setSelectedPackageCredits(Number(value))}
                                 className="mt-2 grid grid-cols-2 gap-3"
                             >
@@ -231,7 +233,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         <Button
                             className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                             onClick={handleCreatePreference}
-                            disabled={isProcessing}
+                            disabled={isButtonDisabled}
                             >
                             {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <MercadoLibreIcon className="mr-2 h-4 w-auto"/>}
                             Pagar con Mercado Pago
@@ -252,5 +254,3 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
 };
 
 export default RechargeCreditsDialog;
-
-    
