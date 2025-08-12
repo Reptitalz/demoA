@@ -26,12 +26,6 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
     description: "El asistente te enviará notificaciones a tu número de WhatsApp personal cuando necesite tu atención.", 
     icon: FaBell 
   },
-  { 
-    id: "notify_clients", 
-    name: "Comunicarse con Clientes", 
-    description: "El asistente usará el número de teléfono principal de la cuenta para interactuar.", 
-    icon: FaUsers 
-  },
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
