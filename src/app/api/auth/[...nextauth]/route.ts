@@ -5,6 +5,8 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/mongodb";
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
+import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
+import type { UserProfile } from '@/types';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -42,19 +44,11 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
      async signIn({ user, account, profile }) {
-      const { db } = await connectToDatabase();
-      const userProfileCollection = db.collection('userProfiles');
-      
-      const existingProfile = await userProfileCollection.findOne({ email: user.email! });
-
-      if (!existingProfile) {
-        // This is a new user signing in for the first time.
-        // We will create their profile after they complete the registration wizard.
-        // For now, we allow the sign-in. The AppProvider will handle redirection.
-        console.log(`New user signing in: ${user.email}. Allowing sign-in, profile to be created later.`);
-      }
-      
-      return true; // Allow the sign-in
+      // This function runs on sign-in.
+      // We will check for the profile existence on the client side in AppProvider.
+      // This callback should just allow the sign-in to proceed.
+      console.log(`User signing in: ${user.email}. Allowing sign-in. Profile will be checked/created client-side.`);
+      return true; // Always allow sign-in
     },
   },
   secret: NEXTAUTH_SECRET,

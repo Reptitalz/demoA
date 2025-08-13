@@ -319,10 +319,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     } else if (status === 'authenticated') {
-        if (session.user?.email && (!state.userProfile.isAuthenticated || state.userProfile.email !== session.user.email)) {
+        if (session.user?.email && !state.userProfile.isAuthenticated) {
             fetchProfileCallback(session.user.email);
-        } else {
-            dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+        } else if (!session.user?.email) {
+             dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
         }
     }
   }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
