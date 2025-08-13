@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -354,8 +355,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
       
-      if (!response.ok) { // This handles 404s and other errors
-        return null;
+      if (response.status === 404) {
+        return null; // Explicitly handle Not Found as a valid case (new user)
+      }
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
       }
       
       const data = await response.json();
@@ -378,18 +382,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const profile = await fetchProfileCallback(user.email);
         
         if (profile) {
-          // User is authenticated and has a profile in our DB.
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: profile });
           dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo!", progress: 100 } });
         } else {
-          // User is authenticated with Firebase, but no profile exists in our DB.
-          // This is a new user who needs to complete registration.
-          // Keep them authenticated at Firebase level but without a full app profile.
-          dispatch({
-            type: 'UPDATE_USER_PROFILE',
-            payload: { isAuthenticated: true, email: user.email, firebaseUid: user.uid },
+          // This case is for a user who authenticated with Firebase but hasn't completed app registration.
+          // We keep them logged in at Firebase level but their app profile remains unauthenticated.
+          // The login/register page logic will handle guiding them.
+          dispatch({ type: 'LOGOUT_USER' }); // Clear any partial state
+          toast({
+            title: 'Registro Incompleto',
+            description: 'Aún no has creado un asistente. Por favor completa el registro.',
+            variant: 'default',
+            duration: 5000,
           });
-          toast({ title: 'Bienvenido/a', description: 'Completa el registro para crear tu primer asistente.' });
         }
       } else {
         // No Firebase user is signed in.

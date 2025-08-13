@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { FaGoogle } from 'react-icons/fa';
-import { signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import LoadingStatus from '@/components/shared/LoadingStatus';
 
@@ -16,28 +17,48 @@ const APP_NAME = "Hey Manito!";
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const { state, dispatch, fetchProfileCallback } = useApp();
   const { toast } = useToast();
 
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
 
   useEffect(() => {
-    // The onAuthStateChanged listener in AppProvider is the source of truth.
-    // If the user is authenticated and has a profile, the redirector page will handle it.
+    // Redirect if the user is already authenticated and the initial load is complete
     if (!state.loadingStatus.active && state.userProfile.isAuthenticated) {
       router.replace('/dashboard');
     }
   }, [state.userProfile.isAuthenticated, state.loadingStatus.active, router]);
-  
+
   const handleGoogleLogin = async () => {
-    // This function's only job is to initiate the redirect.
-    // AppProvider will handle the result.
+    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Abriendo autenticación con Google...', progress: 20 } });
     const provider = new GoogleAuthProvider();
-    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Redirigiendo a Google...', progress: 20 } });
+
     try {
-      await signInWithRedirect(auth, provider);
-      // After this, the user is redirected to Google. The rest of the flow
-      // is handled by onAuthStateChanged in AppProvider when they are redirected back.
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      if (user && user.email) {
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando perfil...', progress: 60 } });
+        
+        const profile = await fetchProfileCallback(user.email);
+        
+        if (profile) {
+          // Profile exists, dispatch sync and redirect via useEffect
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: profile });
+          toast({ title: '¡Bienvenido/a de nuevo!', description: 'Has iniciado sesión correctamente.' });
+          router.push('/dashboard'); // Explicit redirect
+        } else {
+          // User authenticated with Google but has no profile in our DB
+          await auth.signOut(); // Sign out to prevent inconsistent state
+          toast({
+            title: 'Cuenta no encontrada',
+            description: 'No encontramos un perfil asociado a esta cuenta de Google. Por favor, crea un asistente para registrarte.',
+            variant: 'destructive',
+          });
+        }
+      } else {
+         throw new Error('No se pudo obtener la información del usuario de Google.');
+      }
     } catch (error: any) {
       console.error("Login Error:", error);
       let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
@@ -52,7 +73,8 @@ const LoginPageContent = () => {
         description: errorMessage,
         variant: "destructive",
       });
-      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+    } finally {
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     }
   };
 
@@ -61,7 +83,6 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  // Display a loading spinner if the initial auth state check is still running.
   if (state.loadingStatus.active) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
