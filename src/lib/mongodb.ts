@@ -36,20 +36,23 @@ export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db
 
   const options: CustomMongoClientOptions = {};
 
-  const client = new MongoClient(MONGODB_URI, options);
-
   try {
+    const client = new MongoClient(MONGODB_URI, options);
     await client.connect();
-    console.log("Successfully connected to MongoDB.");
+    console.log("Successfully established a new connection to MongoDB.");
+    
+    const db = client.db(MONGODB_DB_NAME);
+
+    cachedClient = client;
+    cachedDb = db;
+
+    return { client, db };
+
   } catch (e) {
     console.error("Failed to connect to MongoDB", e);
+    // Invalidate cache on failure
+    cachedClient = null;
+    cachedDb = null;
     throw e; // Re-throw the error to be caught by the caller
   }
-
-  const db = client.db(MONGODB_DB_NAME);
-
-  cachedClient = client;
-  cachedDb = db;
-
-  return { client, db };
 }
