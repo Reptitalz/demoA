@@ -16,7 +16,7 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { firebaseApp } from '@/lib/firebase';
 import { Input } from '../ui/input';
@@ -201,10 +201,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         
         await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
         
-        // After creating the user, sign them in to establish a session
-        if (!session) {
-            await signIn('credentials', { redirect: false, email, password });
-        }
+        // After creating the user, the AppProvider will handle session state.
         
         dispatch({
             type: 'COMPLETE_SETUP',

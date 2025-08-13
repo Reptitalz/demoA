@@ -312,18 +312,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (status === 'loading') {
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
     } else if (status === 'unauthenticated') {
-        if (state.userProfile.isAuthenticated) {
-            dispatch({ type: 'LOGOUT_USER' });
-        }
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+      if (state.userProfile.isAuthenticated) {
+        dispatch({ type: 'LOGOUT_USER' });
+      }
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     } else if (status === 'authenticated') {
-        if (session.user?.email && !state.userProfile.isAuthenticated) {
-            fetchProfileCallback(session.user.email);
-        } else if (!session.user?.email) {
-             dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
-        }
+      if (session?.user?.email && !state.userProfile.isAuthenticated) {
+        fetchProfileCallback(session.user.email);
+      } else {
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+      }
     }
   }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
 
