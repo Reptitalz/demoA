@@ -16,32 +16,45 @@ const SetupProgressBar = () => {
 
   const dbNeeded = needsDatabaseConfiguration();
   
-  const { effectiveMaxSteps, stepTitleKey } = useMemo(() => {
-    if (isReconfiguring) {
-      // Reconfiguring flow
-      const maxSteps = dbNeeded ? 4 : 3;
-      const keyMap = dbNeeded ? [0, 1, 2, 3, 4] : [0, 1, 2, 4];
-      return { effectiveMaxSteps: maxSteps, stepTitleKey: keyMap[currentStep] };
-    } else {
-      // New user registration flow
-      const maxSteps = dbNeeded ? 4 : 3;
-      const keyMap = dbNeeded ? [0, 1, 2, 3, 4] : [0, 1, 2, 4];
-      return { effectiveMaxSteps: maxSteps, stepTitleKey: keyMap[currentStep] };
+  const { effectiveMaxSteps, stepTitleKey, currentDisplayStep } = useMemo(() => {
+    const totalSteps = dbNeeded ? 5 : 4;
+    let displayStep = currentStep;
+    
+    // Map logical step to a display number, accounting for skips
+    if (currentStep === 4 && !dbNeeded) {
+        displayStep = 3;
     }
-  }, [isReconfiguring, dbNeeded, currentStep]);
+    if (currentStep === 5 && !dbNeeded) {
+        displayStep = 4;
+    }
 
-  const stepTitle = WIZARD_STEP_TITLES[stepTitleKey] || "Progreso";
-  const progressPercentage = (currentStep / effectiveMaxSteps) * 100;
+    const keyMap = {
+        1: 1, // Details
+        2: 2, // Prompt
+        3: dbNeeded ? 3 : 4, // DB or Terms
+        4: dbNeeded ? 4 : 5, // Terms or Auth
+        5: 5 // Auth
+    }
+
+    return { 
+        effectiveMaxSteps: totalSteps, 
+        stepTitleKey: keyMap[currentStep as keyof typeof keyMap],
+        currentDisplayStep: displayStep
+    };
+  }, [dbNeeded, currentStep]);
+
+  const stepTitle = WIZARD_STEP_TITLES[stepTitleKey as keyof typeof WIZARD_STEP_TITLES] || "Progreso";
+  const progressPercentage = (currentDisplayStep / effectiveMaxSteps) * 100;
 
   return (
     <div className="mb-8 space-y-3">
       <div className="flex justify-between items-center">
         <p className="text-sm font-medium text-foreground">
-          Paso {currentStep} <span className="text-muted-foreground">de {effectiveMaxSteps}</span>
+          Paso {currentDisplayStep} <span className="text-muted-foreground">de {effectiveMaxSteps}</span>
         </p>
         <p className="text-sm font-semibold text-primary">{stepTitle}</p>
       </div>
-       <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentStep} de ${effectiveMaxSteps} pasos completados`} className="h-2 [&>div]:bg-brand-gradient" />
+       <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentDisplayStep} de ${effectiveMaxSteps} pasos completados`} className="h-2 [&>div]:bg-brand-gradient" />
     </div>
   );
 };

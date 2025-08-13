@@ -33,7 +33,7 @@ export const WIZARD_STEP_TITLES: { [key: number]: string } = {
   2: "Personalidad (Prompt)",
   3: "Base de Datos",
   4: "Términos y Condiciones",
-  5: "Términos y Condiciones" // Fallback
+  5: "Crear Cuenta"
 };
 
 

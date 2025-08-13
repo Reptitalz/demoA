@@ -34,6 +34,9 @@ const LoginPageContent = () => {
   }, [status, state.userProfile.isAuthenticated, router]);
   
   useEffect(() => {
+    // This effect handles the case where a user signs in with Google but doesn't have a profile yet.
+    // The AppProvider will fetch the profile, and if it's not found (but the session is authenticated),
+    // we guide the user to register by creating their first assistant.
     if (status === 'authenticated' && !state.userProfile.isAuthenticated && !state.loadingStatus.active) {
        toast({
           title: "Cuenta no encontrada",
@@ -61,23 +64,21 @@ const LoginPageContent = () => {
         }
         
         if (result?.error) {
+            // Check for a specific error message from our authorize function
+            if (result.error.includes("Credenciales inválidas")) {
+                 throw new Error("Credenciales inválidas. Por favor, inténtalo de nuevo.");
+            }
             throw new Error(result.error);
         }
 
-        if(result?.url) {
-            // Successful sign-in, Next-Auth will handle the redirect via AppProvider logic
-            // The useEffect hook will catch the new session status
-        }
-
+        // If sign-in is successful but there's no error, Next-Auth will handle the redirect.
+        // The useEffect hooks will manage the session state and redirect to the dashboard or open the register dialog.
+        
     } catch (error: any) {
       console.error("Login Error:", error);
-      let errorMessage = 'No se pudo iniciar sesión. Por favor, intenta de nuevo.';
-       if (error.message.includes("Credenciales inválidas")) {
-        errorMessage = "El correo o la contraseña son incorrectos.";
-      }
       toast({
         title: "Error de inicio de sesión",
-        description: errorMessage,
+        description: error.message || 'No se pudo iniciar sesión. Por favor, intenta de nuevo.',
         variant: "destructive",
       });
     } finally {
@@ -91,13 +92,14 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  if (status === 'loading' || state.loadingStatus.active) {
+  if (status === 'loading' || (state.loadingStatus.active && !isRegisterDialogOpen)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingStatus status={state.loadingStatus} />
       </div>
     );
   }
+
 
   return (
     <>
