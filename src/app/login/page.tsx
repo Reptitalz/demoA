@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -20,25 +19,27 @@ const LoginPageContent = () => {
   const { state, dispatch } = useApp();
   const { toast } = useToast();
 
-  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
 
   useEffect(() => {
-    // The onAuthStateChanged listener in AppProvider is the source of truth for redirection.
-    // If the user is authenticated and has a profile, it will redirect them to the dashboard.
-    if (!state.loadingStatus.active && state.userProfile.isAuthenticated && state.isSetupComplete) {
+    // The onAuthStateChanged listener in AppProvider is the source of truth.
+    // If the user is authenticated and has a profile, the redirector page will handle it.
+    if (!state.loadingStatus.active && state.userProfile.isAuthenticated) {
       router.replace('/dashboard');
     }
-  }, [state.userProfile.isAuthenticated, state.isSetupComplete, state.loadingStatus.active, router]);
+  }, [state.userProfile.isAuthenticated, state.loadingStatus.active, router]);
   
   const handleGoogleLogin = async () => {
-    setIsProcessingAuth(true);
+    // This function's only job is to initiate the redirect.
+    // AppProvider will handle the result.
     const provider = new GoogleAuthProvider();
+    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Redirigiendo a Google...', progress: 20 } });
     try {
-      // Use signInWithRedirect for a more robust flow.
-      // The result is handled by getRedirectResult in the AppProvider.
       await signInWithRedirect(auth, provider);
+      // After this, the user is redirected to Google. The rest of the flow
+      // is handled by onAuthStateChanged in AppProvider when they are redirected back.
     } catch (error: any) {
+      console.error("Login Error:", error);
       let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'El proceso de inicio de sesión fue cancelado.';
@@ -51,7 +52,7 @@ const LoginPageContent = () => {
         description: errorMessage,
         variant: "destructive",
       });
-       setIsProcessingAuth(false); // Only set to false on error, on success it redirects
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     }
   };
 
@@ -60,8 +61,8 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  // Display a loading spinner if the initial auth state check is still running or if we are processing the auth redirect.
-  if (state.loadingStatus.active || isProcessingAuth) {
+  // Display a loading spinner if the initial auth state check is still running.
+  if (state.loadingStatus.active) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingStatus status={state.loadingStatus} />
@@ -81,7 +82,7 @@ const LoginPageContent = () => {
         <div className="space-y-4">
            <Button
             onClick={handleGoogleLogin}
-            disabled={isProcessingAuth}
+            disabled={state.loadingStatus.active}
             className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
           >
             <FaGoogle className="h-5 w-5" />

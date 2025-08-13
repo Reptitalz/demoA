@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ReactNode } from 'react';
@@ -6,7 +5,7 @@ import React, { createContext, useContext, useReducer, useEffect, useState, useC
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { auth, getRedirectResult, GoogleAuthProvider } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -94,7 +93,7 @@ const initialState: AppState = {
 const AppContext = createContext<{ 
   state: AppState; 
   dispatch: React.Dispatch<Action>; 
-  fetchProfileCallback: (email: string) => Promise<void>;
+  fetchProfileCallback: (email: string) => Promise<UserProfile | null>;
 } | undefined>(undefined);
 
 type Action =
@@ -330,7 +329,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const previousStateRef = useRef<AppState>(initialState);
 
   useEffect(() => {
-    // This effect tracks changes to the state and saves the userProfile if it has changed.
+    // This effect tracks changes to the userProfile and saves it automatically.
     const hasProfileChanged = JSON.stringify(previousStateRef.current.userProfile) !== JSON.stringify(state.userProfile);
     
     if (hasProfileChanged && state.userProfile.isAuthenticated && state.userProfile._id) {
@@ -344,7 +343,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         .catch((error) => {
           console.error("Failed to save profile, reverting state.", error);
           toast({ title: "Error al Guardar", description: `No se pudieron guardar los cambios: ${error.message}`, variant: "destructive", copyable: true });
-          // Revert to the previous state on failure
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: previousStateRef.current.userProfile });
         });
     }
@@ -352,13 +350,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     previousStateRef.current = state;
   }, [state.userProfile]);
 
-  const fetchProfileCallback = useCallback(async (email: string) => {
+  const fetchProfileCallback = useCallback(async (email: string): Promise<UserProfile | null> => {
     try {
-      dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "Cargando perfil de usuario...", progress: 50 } });
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
       
-      if (!response.ok) {
-        // This includes 404 Not Found
+      if (!response.ok) { // This handles 404s and other errors
         return null;
       }
       
@@ -373,42 +369,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 10 } });
+    // onAuthStateChanged is the single source of truth for auth state.
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
 
-    const handleAuthChange = async (user: User | null) => {
       if (user && user.email) {
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { message: 'Autenticación exitosa...', progress: 25 } });
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { message: 'Buscando perfil de usuario...', progress: 60 } });
         const profile = await fetchProfileCallback(user.email);
         
         if (profile) {
+          // User is authenticated and has a profile in our DB.
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: profile });
-          dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo! Redirigiendo...", progress: 100 } });
+          dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo!", progress: 100 } });
         } else {
-           // User is authenticated with Firebase, but has no profile in our DB.
-           // This is a valid state for a user who is in the process of registering.
-           // We keep them authenticated but without a profile.
-           dispatch({ 
-             type: 'UPDATE_USER_PROFILE', 
-             payload: { 
-               isAuthenticated: true, 
-               email: user.email, 
-               firebaseUid: user.uid 
-             } 
-           });
-           toast({ title: 'Bienvenido', description: 'Parece que eres nuevo. ¡Crea tu primer asistente para empezar!' });
+          // User is authenticated with Firebase, but no profile exists in our DB.
+          // This is a new user who needs to complete registration.
+          // Keep them authenticated at Firebase level but without a full app profile.
+          dispatch({
+            type: 'UPDATE_USER_PROFILE',
+            payload: { isAuthenticated: true, email: user.email, firebaseUid: user.uid },
+          });
+          toast({ title: 'Bienvenido/a', description: 'Completa el registro para crear tu primer asistente.' });
         }
       } else {
+        // No Firebase user is signed in.
         dispatch({ type: 'LOGOUT_USER' });
       }
-      // Deactivate loading screen once flow is complete
+
+      // Deactivate loading screen once the entire flow is complete.
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
-    };
+    });
 
-    const unsubscribe = onAuthStateChanged(auth, handleAuthChange);
-
+    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [fetchProfileCallback]);
-
 
   return (
     <QueryClientProvider client={queryClient}>
