@@ -88,6 +88,20 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
         <script src="https://sdk.mercadopago.com/js/v2"></script>
+        
+        {/* Google Analytics Script */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-B92V0NVLCC"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-B92V0NVLCC');
+          `}
+        </Script>
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider
