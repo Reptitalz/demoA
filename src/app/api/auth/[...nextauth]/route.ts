@@ -1,3 +1,4 @@
+
 // src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -5,7 +6,6 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/mongodb";
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
-import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
 import type { UserProfile } from '@/types';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -20,7 +20,9 @@ if (!NEXTAUTH_SECRET) {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(connectToDatabase().then(client => client)) as Adapter,
+  adapter: MongoDBAdapter(
+    connectToDatabase().then(conn => conn.client)
+  ) as Adapter,
   providers: [
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
