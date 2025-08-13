@@ -12,7 +12,7 @@ import { FaSpinner, FaGoogle } from 'react-icons/fa';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
-const APP_NAME = "Hey Manito";
+const APP_NAME = "Hey Manito!";
 
 const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
   <FaSpinner className="animate-spin" style={{ width: size, height: size }} />
@@ -39,32 +39,40 @@ const LoginPageContent = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      // The onAuthStateChanged listener in AppProvider will handle fetching the profile
-      // and updating the state. We can show a toast here.
+      // onAuthStateChanged in AppProvider will handle everything else.
+      // We just need to check if the profile exists.
       if (user) {
          const response = await fetch(`/api/user-profile?email=${encodeURIComponent(user.email!)}`);
          if (response.status === 404) {
              toast({
                 title: "Cuenta no encontrada",
-                description: "No tienes un perfil. Por favor, crea un asistente primero.",
+                description: "No tienes un perfil. Por favor, crea un asistente para registrarte.",
                 variant: "destructive"
              });
-             await auth.signOut(); // Sign out the user from firebase as they don't have a profile
+             await auth.signOut(); // Sign out to prevent inconsistent state
          } else if (response.ok) {
             toast({
               title: "¡Bienvenido/a de nuevo!",
               description: "Has iniciado sesión correctamente.",
             });
-            // The AppProvider listener will redirect to /dashboard
+            // The AppProvider's listener will handle the redirect.
          } else {
-            throw new Error('No se pudo verificar el perfil de usuario.');
+            const errorData = await response.json().catch(() => ({message: 'No se pudo verificar el perfil de usuario.'}));
+            throw new Error(errorData.message);
          }
       }
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
+      let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
+      if (error.code === 'auth/popup-closed-by-user' || error.message.includes('popup-closed-by-user')) {
+          errorMessage = 'El proceso de inicio de sesión fue cancelado.';
+      } else if (error.message) {
+          errorMessage = error.message;
+      }
+      
       toast({
         title: "Error de inicio de sesión",
-        description: error.code === 'auth/popup-closed-by-user' ? 'El proceso de inicio de sesión fue cancelado.' : 'No se pudo iniciar sesión con Google. Intenta de nuevo.',
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

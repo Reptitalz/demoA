@@ -168,7 +168,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         onOpenChange(false);
 
     } catch (error: any) {
-        toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
+      let errorMessage = "Ocurrió un error inesperado durante el registro.";
+      if (error.code === 'auth/popup-closed-by-user') {
+          errorMessage = "El proceso de registro fue cancelado.";
+      } else if (error.message) {
+          errorMessage = error.message;
+      }
+      toast({ title: "Error al Registrar", description: errorMessage, variant: "destructive"});
     } finally {
         setIsFinalizingSetup(false);
     }
