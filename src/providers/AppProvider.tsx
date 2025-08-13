@@ -350,7 +350,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [state.userProfile]);
 
   const fetchProfileCallback = useCallback(async (email: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
 
@@ -359,7 +358,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           // This is a valid state for a user who hasn't completed the wizard yet.
           // We just set loading to false and let them proceed to registration.
           dispatch({ type: 'SET_LOADING', payload: false });
-          // We don't dispatch LOGOUT_USER here anymore.
           return;
       }
       
@@ -378,13 +376,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
       dispatch({ type: 'LOGOUT_USER' });
-    } finally {
-        // Redundant setLoading to false is fine.
-        dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, []);
   
   useEffect(() => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.email) {
         // User is signed in, see if they have a profile in our DB
@@ -393,6 +389,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // User is signed out
         dispatch({ type: 'LOGOUT_USER' });
       }
+      dispatch({ type: 'SET_LOADING', payload: false });
     });
 
     // Cleanup subscription on unmount

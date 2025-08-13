@@ -28,12 +28,11 @@ const LoginPageContent = () => {
 
   useEffect(() => {
     // The onAuthStateChanged listener in AppProvider is the source of truth for redirection.
-    // If the user is authenticated, it will redirect them to the dashboard.
-    // This effect ensures that if the user somehow lands here while authenticated, they are moved.
-    if (state.userProfile.isAuthenticated) {
+    // If the user is authenticated and has a profile, it will redirect them to the dashboard.
+    if (state.userProfile.isAuthenticated && state.isSetupComplete) {
       router.replace('/dashboard');
     }
-  }, [state.userProfile.isAuthenticated, router]);
+  }, [state.userProfile.isAuthenticated, state.isSetupComplete, router]);
   
   const handleGoogleLogin = async () => {
     setIsProcessing(true);
