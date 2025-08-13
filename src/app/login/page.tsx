@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { FaSpinner, FaGoogle } from 'react-icons/fa';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 const APP_NAME = "Hey Manito!";
@@ -38,14 +38,10 @@ const LoginPageContent = () => {
     setIsProcessing(true);
     const provider = new GoogleAuthProvider();
     try {
-      // The only responsibility here is to initiate the sign-in.
-      // The onAuthStateChanged listener in AppProvider will handle the profile fetching,
-      // state updates, and redirection. This avoids race conditions.
-      await signInWithPopup(auth, provider);
-      // After a successful popup, the onAuthStateChanged listener in AppProvider
-      // will eventually set isAuthenticated to true, which will trigger the useEffect above.
+      // Use signInWithRedirect for a more robust flow.
+      // The result is handled by getRedirectResult in the AppProvider.
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      // Handle only errors from the popup itself (e.g., closed by user).
       let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'El proceso de inicio de sesión fue cancelado.';
@@ -58,8 +54,7 @@ const LoginPageContent = () => {
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
-      setIsProcessing(false);
+       setIsProcessing(false); // Only set to false on error, on success it redirects
     }
   };
 

@@ -6,7 +6,7 @@ import React, { createContext, useContext, useReducer, useEffect, useState, useC
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { auth } from '@/lib/firebase';
+import { auth, getRedirectResult, GoogleAuthProvider } from '@/lib/firebase';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -381,6 +381,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
+
+    // Handle redirect result first
+    getRedirectResult(auth)
+        .then((result) => {
+            if (result) {
+                // This is the successfully signed-in user.
+                const user = result.user;
+                if (user && user.email) {
+                    fetchProfileCallback(user.email);
+                }
+            }
+            // If result is null, it means the user is not coming from a redirect flow,
+            // so we proceed to the onAuthStateChanged listener.
+        })
+        .catch((error) => {
+            console.error("Error getting redirect result:", error);
+            toast({
+                title: "Error de Inicio de Sesión",
+                description: `No se pudo completar el inicio de sesión: ${error.message}`,
+                variant: "destructive"
+            });
+        });
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.email) {
         // User is signed in, see if they have a profile in our DB
@@ -389,7 +412,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // User is signed out
         dispatch({ type: 'LOGOUT_USER' });
       }
-      dispatch({ type: 'SET_LOADING', payload: false });
+       dispatch({ type: 'SET_LOADING', payload: false });
     });
 
     // Cleanup subscription on unmount
