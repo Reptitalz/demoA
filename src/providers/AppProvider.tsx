@@ -35,7 +35,7 @@ export const MOCK_USER_PROFILE: UserProfile = {
       monthlyMessageLimit: 1000,
       phoneLinked: "+5213312345678",
       numberReady: true,
-      purposes: ["notify_clients"],
+      purposes: [],
       databaseId: null,
       imageUrl: "https://placehold.co/100x100.png",
       businessInfo: { vertical: 'Software' },
