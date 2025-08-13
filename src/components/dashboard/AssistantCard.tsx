@@ -32,7 +32,7 @@ const AssistantCard = ({
   onReconfigure, 
   animationDelay = "0s",
 }: AssistantCardProps) => {
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state, dispatch } = useApp();
   const { toast } = useToast();
   
   const [showAllPurposes, setShowAllPurposes] = useState(false);
@@ -91,7 +91,8 @@ const AssistantCard = ({
             throw new Error(result.message || 'Error al vincular el número.');
         }
         
-        await fetchProfileCallback(state.userProfile.email!);
+        // Let the AppProvider handle the profile update from the backend webhook eventually.
+        // For now, just move to the next step.
 
         toast({ title: "Número Registrado", description: `Ingresa el código de verificación que recibirás.`});
         setIntegrationStep(2);
@@ -133,13 +134,9 @@ const AssistantCard = ({
             })
         });
         
-        if (state.userProfile.email) {
-           await fetchProfileCallback(state.userProfile.email);
-        }
-        
         toast({ 
             title: "Estado del Asistente Actualizado", 
-            description: `Se ha procesado el código. El estado de tu asistente se reflejará en el panel.`,
+            description: `Se ha procesado el código. El estado de tu asistente se reflejará en el panel en breve.`,
             variant: "default"
         });
         

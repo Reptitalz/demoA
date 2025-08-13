@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaPlusCircle, FaDatabase, FaRobot, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,11 +17,11 @@ import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User, BarChart2 } from 'lucide-react';
+import { MessageSquare, User } from 'lucide-react';
 import Link from 'next/link';
 
 const DashboardPageContent = () => {
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state, dispatch } = useApp();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -49,12 +49,12 @@ const DashboardPageContent = () => {
             description: "Tu compra ha sido procesada. Actualizando tu saldo...",
             variant: "default",
           });
-          fetchProfileCallback(userEmail);
+          // The profile fetch is now handled centrally, but we could trigger a manual refetch if needed
+          // fetchProfileCallback(userEmail);
       }
-      // Clean up the URL by removing search params, regardless of status
       router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email, router, pathname]);
+  }, [searchParams, toast, state.userProfile.email, router, pathname]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -319,5 +319,3 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
-
-    

@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { UserPlus, Mail, Key } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
@@ -20,7 +20,7 @@ const LoginPageContent = () => {
   const router = useRouter();
   const { state, dispatch } = useApp();
   const { toast } = useToast();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -28,15 +28,15 @@ const LoginPageContent = () => {
   const [password, setPassword] = useState('');
   
   useEffect(() => {
+    // If NextAuth session is good AND we have a user profile loaded, redirect.
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
       router.replace('/dashboard/assistants');
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
   useEffect(() => {
-    // This effect handles the case where a user signs in with Google but doesn't have a profile yet.
-    // The AppProvider will fetch the profile, and if it's not found (but the session is authenticated),
-    // we guide the user to register by creating their first assistant.
+    // If NextAuth session is good BUT we don't have a user profile (new user),
+    // show the registration dialog.
     if (status === 'authenticated' && !state.userProfile.isAuthenticated && !state.loadingStatus.active) {
        toast({
           title: "Cuenta no encontrada",
@@ -50,35 +50,23 @@ const LoginPageContent = () => {
 
   const handleLogin = async (provider: 'google' | 'credentials') => {
     setIsLoggingIn(true);
-    let result;
     try {
-        if (provider === 'google') {
-            result = await signIn('google', { redirect: false, callbackUrl: '/dashboard' });
-        } else {
-            result = await signIn('credentials', {
-                redirect: false,
-                email,
-                password,
-                callbackUrl: '/dashboard'
-            });
-        }
+        const result = await signIn(provider, {
+            redirect: false,
+            ...(provider === 'credentials' && { email, password }),
+            callbackUrl: '/dashboard'
+        });
         
         if (result?.error) {
-            // Check for a specific error message from our authorize function
-            if (result.error.includes("Credenciales inválidas")) {
-                 throw new Error("Credenciales inválidas. Por favor, inténtalo de nuevo.");
-            }
             throw new Error(result.error);
         }
-
-        // If sign-in is successful but there's no error, Next-Auth will handle the redirect.
-        // The useEffect hooks will manage the session state and redirect to the dashboard or open the register dialog.
-        
+        // On successful sign-in, the useEffect hooks will handle redirection or
+        // opening the registration dialog if the user is new.
     } catch (error: any) {
       console.error("Login Error:", error);
       toast({
         title: "Error de inicio de sesión",
-        description: error.message || 'No se pudo iniciar sesión. Por favor, intenta de nuevo.',
+        description: error.message.includes('CredentialsSignin') ? "Credenciales inválidas." : 'No se pudo iniciar sesión. Por favor, intenta de nuevo.',
         variant: "destructive",
       });
     } finally {
@@ -86,13 +74,13 @@ const LoginPageContent = () => {
     }
   };
 
-
   const handleOpenRegisterDialog = () => {
     dispatch({ type: 'RESET_WIZARD' });
     setIsRegisterDialogOpen(true);
   };
   
-  if (status === 'loading' || (state.loadingStatus.active && !isRegisterDialogOpen)) {
+  // Show loading indicator while session is being determined or profile is being fetched.
+  if (status === 'loading' || state.loadingStatus.active) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingStatus status={state.loadingStatus} />
@@ -100,7 +88,7 @@ const LoginPageContent = () => {
     );
   }
 
-
+  // Once loading is done, and user is not authenticated, show login form.
   return (
     <>
     <div className="flex items-center justify-center min-h-screen bg-background px-4">
@@ -143,11 +131,10 @@ const LoginPageContent = () => {
             disabled={isLoggingIn}
             className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
           >
-            {isLoggingIn ? <FaSpinner className="animate-spin h-5 w-5" /> : <FaGoogle className="h-5 w-5" />}
+            <FaGoogle className="h-5 w-5" />
             Iniciar Sesión con Google
           </Button>
         </div>
-
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">

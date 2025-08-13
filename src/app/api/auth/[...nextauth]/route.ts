@@ -1,4 +1,3 @@
-
 // src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -8,7 +7,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { firebaseApp } from '@/lib/firebase'; // Ensure you have a firebase client initialization
+import { firebaseApp } from '@/lib/firebase';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -18,7 +17,8 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   throw new Error("Missing Google OAuth credentials in .env.local");
 }
 if (!NEXTAUTH_SECRET) {
-    console.warn("⚠️ WARNING: NEXTAUTH_SECRET is not set. It will be auto-generated for development, but you MUST set it for production.");
+    // This is critical for production environments
+    throw new Error("Missing NEXTAUTH_SECRET in .env.local");
 }
 
 export const authOptions: NextAuthOptions = {
@@ -47,7 +47,6 @@ export const authOptions: NextAuthOptions = {
           const firebaseUser = userCredential.user;
 
           if (firebaseUser) {
-            // Find user in our DB to return to next-auth
             const { db } = await connectToDatabase();
             const userInDb = await db.collection('users').findOne({ email: firebaseUser.email });
             
@@ -60,9 +59,8 @@ export const authOptions: NextAuthOptions = {
               };
             }
           }
-           return null; // Should not happen if registration flow is correct
+           return null;
         } catch (error: any) {
-          // Handle Firebase auth errors (e.g., wrong password, user not found)
           console.error("Firebase auth error:", error.code);
           throw new Error("Credenciales inválidas. Por favor, inténtalo de nuevo.");
         }
@@ -75,7 +73,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.sub!; // Use token.sub as the user's ID
+        session.user.id = token.sub!;
       }
       return session;
     },
@@ -85,15 +83,15 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-     async signIn({ user, account, profile }) {
-      console.log(`User signing in: ${user.email}. Allowing sign-in. Profile will be checked/created client-side.`);
+     async signIn({ user }) {
+      console.log(`User signing in: ${user.email}. Allowing sign-in.`);
       return true;
     },
   },
   secret: NEXTAUTH_SECRET,
   pages: {
     signIn: '/login',
-    error: '/login', // Redirect to login page on error
+    error: '/login',
   },
 };
 
