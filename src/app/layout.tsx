@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
   },
   description: `Descubre ${APP_NAME}, la plataforma líder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicación por WhatsApp, integra bases de datos y optimiza procesos.`,
-  keywords: ['asistente virtual', 'IA', 'chatbot', 'WhatsApp', 'automatización', 'CRM', 'inteligencia artificial', APP_NAME, 'gestión de clientes', 'Hey Manito'],
+  keywords: ['asistente virtual', 'IA', 'chatbot', 'WhatsApp', 'automatización', 'CRM', 'inteligencia artificial', APP_NAME, 'gestión de clientes', 'Hey Manito', 'chatbot para WhatsApp', 'automatización para negocios', 'CRM con IA'],
   authors: [{ name: APP_NAME }],
   creator: APP_NAME,
   publisher: APP_NAME,
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${APP_NAME} - Transforma tu Comunicación con IA`,
     description: `Configura asistentes virtuales en minutos con ${APP_NAME}. Integración WhatsApp, bases de datos inteligentes y más.`,
-    creator: '@TuUsuarioTwitter',
+    creator: '@heymanito',
     images: [`${BASE_URL}/icon-512x512.png`],
   },
 

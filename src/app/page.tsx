@@ -402,7 +402,7 @@ export default function MarketingHomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Empieza en 3 Sencillos Pasos</h2>
-            <p className="mt-4 text-muted-foreground">Configurar tu asistente es rápido e intuitivo.</p>
+            <p className="mt-4 text-muted-foreground">Configurar tu asistente de IA para WhatsApp es rápido e intuitivo.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <StepCard
@@ -433,8 +433,8 @@ export default function MarketingHomePage() {
       <section id="features" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Potencia sin Complejidad</h2>
-                <p className="mt-4 text-muted-foreground">Herramientas diseñadas para ser poderosas y fáciles de usar.</p>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Potencia tus Asistentes de IA sin Complejidad</h2>
+                <p className="mt-4 text-muted-foreground">Herramientas diseñadas para ser poderosas y fáciles de usar en WhatsApp.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FeatureCard
@@ -475,7 +475,7 @@ export default function MarketingHomePage() {
       <section id="pricing" className="w-full mt-16 sm:mt-20 scroll-mt-20 py-16 bg-card/50">
         <div className="text-center mb-12 max-w-3xl mx-auto px-4">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Precios Flexibles y Transparentes</h2>
-            <p className="mt-4 text-muted-foreground">Elige un plan que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
+            <p className="mt-4 text-muted-foreground">Elige un plan de créditos que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
         </div>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <PayAsYouGoCalculator />
@@ -485,9 +485,9 @@ export default function MarketingHomePage() {
 
       <section className="w-full mt-20 sm:mt-28 py-16">
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-             <h2 className="text-3xl sm:text-4xl font-bold mb-6">¿Listo para Empezar?</h2>
+             <h2 className="text-3xl sm:text-4xl font-bold mb-6">¿Listo para Empezar a Automatizar?</h2>
              <p className="text-lg text-muted-foreground mb-8">
-               Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas.
+               Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas por WhatsApp.
              </p>
              <div className="flex flex-col items-center gap-4">
                <Button 
@@ -524,7 +524,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
       <p className="text-muted-foreground">{description}</p>
   </div>
 );
-
-    
-
-    
