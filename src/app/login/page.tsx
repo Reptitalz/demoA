@@ -10,68 +10,53 @@ import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { FaGoogle, FaSpinner } from 'react-icons/fa';
 import LoadingStatus from '@/components/shared/LoadingStatus';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from '@/lib/firebase';
+import { signIn, useSession } from 'next-auth/react';
 
 const APP_NAME = "Hey Manito!";
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state, dispatch } = useApp();
   const { toast } = useToast();
+  const { data: session, status } = useSession();
 
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   
-  const auth = getAuth(app);
-  
   useEffect(() => {
-    if (state.userProfile.isAuthenticated) {
+    // Redirect if user is authenticated and profile is loaded
+    if (status === 'authenticated' && state.userProfile.isAuthenticated) {
       router.replace('/dashboard/assistants');
     }
-  }, [state.userProfile.isAuthenticated, router]);
+  }, [status, state.userProfile.isAuthenticated, router]);
   
+  // This handles the case where a user logs in but has no profile
+  useEffect(() => {
+    if (status === 'authenticated' && !state.userProfile.isAuthenticated && !state.loadingStatus.active) {
+       toast({
+          title: "Cuenta no encontrada",
+          description: "Parece que eres nuevo. Por favor, crea tu primer asistente para registrarte.",
+          variant: "default",
+          duration: 6000
+      });
+      handleOpenRegisterDialog();
+    }
+  }, [status, state.userProfile.isAuthenticated, state.loadingStatus.active, toast]);
+
   const handleGoogleLogin = async () => {
     setIsLoggingIn(true);
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      if (user && user.email) {
-          const profileExists = await fetchProfileCallback(user.email);
-          if (profileExists) {
-              toast({
-                  title: "¡Bienvenido/a de nuevo!",
-                  description: "Iniciando sesión...",
-              });
-              router.push('/dashboard/assistants');
-          } else {
-              toast({
-                  title: "Cuenta no encontrada",
-                  description: "Parece que eres nuevo. Por favor, crea tu primer asistente para registrarte.",
-                  variant: "default",
-                  duration: 6000
-              });
-              handleOpenRegisterDialog();
-          }
-      }
+      // Use next-auth signIn, which will redirect to Google
+      // The callback logic in the API route will handle the rest.
+      await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error: any) {
       console.error("Login Error:", error);
-      let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
-      if (error.code === 'auth/account-exists-with-different-credential') {
-          errorMessage = 'Ya existe una cuenta con este correo electrónico. Inicia sesión con el método que usaste originalmente.'
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'La ventana de inicio de sesión fue cerrada. Intenta de nuevo.';
-      }
-      
       toast({
         title: "Error de inicio de sesión",
-        description: errorMessage,
+        description: error.message || 'No se pudo iniciar sesión con Google. Intenta de nuevo.',
         variant: "destructive",
       });
-    } finally {
-        setIsLoggingIn(false);
+      setIsLoggingIn(false);
     }
   };
 
@@ -81,7 +66,8 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  if (state.loadingStatus.active) {
+  // Show loading status if either next-auth or our app provider is loading
+  if (status === 'loading' || state.loadingStatus.active) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingStatus status={state.loadingStatus} />

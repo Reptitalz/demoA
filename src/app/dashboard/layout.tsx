@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
-import { getAuth, signOut } from "firebase/auth";
+import { signOut } from 'next-auth/react';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
@@ -31,14 +31,12 @@ export default function DashboardLayout({
     const router = useRouter();
     const { toast } = useToast();
     const { dispatch } = useApp();
-    const auth = getAuth();
 
     const handleLogout = async () => {
         try {
-            await signOut(auth);
             dispatch({ type: 'LOGOUT_USER' });
+            await signOut({ callbackUrl: '/login' });
             toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-            router.push('/login');
         } catch (error) {
             console.error("Logout Error:", error);
             toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });

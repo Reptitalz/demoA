@@ -1,6 +1,16 @@
 
-
 import { ObjectId } from 'mongodb';
+import type { DefaultSession } from 'next-auth';
+
+// Extend the built-in Session type to include the user's ID
+declare module 'next-auth' {
+  interface Session {
+    user?: {
+      id: string;
+    } & DefaultSession['user'];
+  }
+}
+
 
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
 
@@ -80,7 +90,7 @@ export interface UserAddress {
 
 export interface UserProfile {
   _id?: ObjectId;
-  firebaseUid: string; // Firebase UID is the primary identifier
+  firebaseUid: string; // This will now hold the user's unique ID from next-auth
   isAuthenticated: boolean;
   authProvider: AuthProviderType;
   email: string;

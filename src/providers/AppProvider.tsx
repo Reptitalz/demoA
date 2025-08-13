@@ -6,8 +6,7 @@ import React, { createContext, useContext, useReducer, useEffect, useRef, useCal
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { app } from '@/lib/firebase';
+import { useSession } from 'next-auth/react';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -29,7 +28,7 @@ const initialWizardState: WizardState = {
 const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
   authProvider: 'google',
-  firebaseUid: '',
+  firebaseUid: '', // Will hold next-auth user id
   email: '',
   firstName: undefined,
   lastName: undefined,
@@ -263,15 +262,13 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const previousStateRef = useRef<AppState>(initialState);
-  const auth = getAuth(app);
+  const { data: session, status } = useSession();
 
   const fetchProfileCallback = useCallback(async (email: string): Promise<boolean> => {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil de usuario...', progress: 75 } });
       try {
           const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
           if (response.status === 404) {
-              // This is not an error, it's a valid case for a new user.
-              // We don't log them out, just signal that the profile doesn't exist.
               console.log(`Profile not found for ${email}, user is new.`);
               return false; // Profile not found
           }
@@ -282,7 +279,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
                   return true; // Profile found and synced
               }
           }
-          // If response is not ok and not 404, throw an error
           const errorData = await response.json().catch(() => ({ message: 'Error desconocido al buscar perfil.' }));
           throw new Error(errorData.message);
       } catch (error) {
@@ -315,26 +311,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [state.userProfile]);
 
   useEffect(() => {
-    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
-    
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
-      if (user && user.email) {
-        if (!state.userProfile.isAuthenticated || state.userProfile.email !== user.email) {
-          await fetchProfileCallback(user.email);
-        } else {
-           // User is already logged in and in state, no need to fetch again.
-           dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
-        }
-      } else {
+    if (status === 'loading') {
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
+    } else if (status === 'unauthenticated') {
         if (state.userProfile.isAuthenticated) {
-          dispatch({ type: 'LOGOUT_USER' });
+            dispatch({ type: 'LOGOUT_USER' });
         }
-         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
-      }
-    });
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+    } else if (status === 'authenticated') {
+        if (session.user?.email && (!state.userProfile.isAuthenticated || state.userProfile.email !== session.user.email)) {
+            fetchProfileCallback(session.user.email);
+        } else {
+            dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+        }
+    }
+  }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
 
-    return () => unsubscribe();
-  }, []); // Run only once on mount
 
   return (
     <QueryClientProvider client={queryClient}>

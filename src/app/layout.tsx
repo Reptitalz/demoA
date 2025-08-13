@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
+import NextAuthSessionProvider from '@/providers/SessionProvider';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -103,18 +104,20 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${inter.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AppProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
-          </AppProvider>
-        </ThemeProvider>
+        <NextAuthSessionProvider>
+            <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+            >
+            <AppProvider>
+                <AppLayout>
+                {children}
+                </AppLayout>
+            </AppProvider>
+            </ThemeProvider>
+        </NextAuthSessionProvider>
       </body>
     </html>
   );

@@ -15,9 +15,8 @@ import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { app } from '@/lib/firebase';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
+import { useSession } from 'next-auth/react';
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -29,9 +28,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
+  const { data: session } = useSession();
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
-  const auth = getAuth(app);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -103,16 +102,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         return;
     }
     
+    if (!session?.user?.email || !session?.user?.id) {
+        toast({ title: "Error", description: "No se encontró una sesión de usuario activa. Por favor, inicia sesión de nuevo.", variant: "destructive"});
+        return;
+    }
+
     setIsFinalizingSetup(true);
 
     try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        if (!user || !user.email) {
-            throw new Error("No se pudo obtener la información de usuario de Google.");
-        }
+        const user = session.user;
 
         const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
             id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -138,12 +136,12 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
 
-        const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ['', ''];
+        const [firstName, ...lastNameParts] = user.name?.split(' ') || ['', ''];
         const lastName = lastNameParts.join(' ');
         
         const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-            firebaseUid: user.uid,
-            email: user.email,
+            firebaseUid: user.id, // Using next-auth user.id as firebaseUid
+            email: user.email!,
             firstName: firstName,
             lastName: lastName,
             authProvider: 'google',
@@ -184,13 +182,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
     } catch (error: any) {
         console.error("Registration Error:", error);
-        let errorMessage = error.message || "Ocurrió un error inesperado.";
-        if (error.code === 'auth/popup-closed-by-user') {
-            errorMessage = 'La ventana de inicio de sesión fue cerrada. Inténtalo de nuevo.';
-        } else if (error.code === 'auth/account-exists-with-different-credential') {
-            errorMessage = 'Ya existe una cuenta con este correo. Por favor, inicia sesión normalmente.';
-        }
-        toast({ title: "Error al Registrar", description: errorMessage, variant: "destructive"});
+        toast({ title: "Error al Registrar", description: error.message, variant: "destructive"});
     } finally {
         setIsFinalizingSetup(false);
     }
@@ -251,7 +243,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
               {isFinalizingSetup && <FaSpinner className="animate-spin mr-2 h-4 w-4" />}
               <FaGoogle className="mr-2 h-4 w-4" />
-              Completar con Google
+              Completar Registro
               </Button>
           )}
         </div>
