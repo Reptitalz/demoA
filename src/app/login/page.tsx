@@ -8,10 +8,10 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { FaGoogle } from 'react-icons/fa';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { FaGoogle, FaSpinner } from 'react-icons/fa';
 import LoadingStatus from '@/components/shared/LoadingStatus';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { app } from '@/lib/firebase';
 
 const APP_NAME = "Hey Manito!";
 
@@ -21,51 +21,48 @@ const LoginPageContent = () => {
   const { toast } = useToast();
 
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
-
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
+  const auth = getAuth(app);
+  
   useEffect(() => {
-    // Redirect if the user is already authenticated and the initial load is complete
-    if (!state.loadingStatus.active && state.userProfile.isAuthenticated) {
-      router.replace('/dashboard');
+    if (state.userProfile.isAuthenticated) {
+      router.replace('/dashboard/assistants');
     }
-  }, [state.userProfile.isAuthenticated, state.loadingStatus.active, router]);
-
+  }, [state.userProfile.isAuthenticated, router]);
+  
   const handleGoogleLogin = async () => {
-    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Abriendo autenticación con Google...', progress: 20 } });
+    setIsLoggingIn(true);
     const provider = new GoogleAuthProvider();
-
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
+      
       if (user && user.email) {
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando perfil...', progress: 60 } });
-        
-        const profile = await fetchProfileCallback(user.email);
-        
-        if (profile) {
-          // Profile exists, dispatch sync and redirect via useEffect
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: profile });
-          toast({ title: '¡Bienvenido/a de nuevo!', description: 'Has iniciado sesión correctamente.' });
-          router.push('/dashboard'); // Explicit redirect
-        } else {
-          // User authenticated with Google but has no profile in our DB
-          await auth.signOut(); // Sign out to prevent inconsistent state
-          toast({
-            title: 'Cuenta no encontrada',
-            description: 'No encontramos un perfil asociado a esta cuenta de Google. Por favor, crea un asistente para registrarte.',
-            variant: 'destructive',
-          });
-        }
-      } else {
-         throw new Error('No se pudo obtener la información del usuario de Google.');
+          const profileExists = await fetchProfileCallback(user.email);
+          if (profileExists) {
+              toast({
+                  title: "¡Bienvenido/a de nuevo!",
+                  description: "Iniciando sesión...",
+              });
+              router.push('/dashboard/assistants');
+          } else {
+              toast({
+                  title: "Cuenta no encontrada",
+                  description: "Parece que eres nuevo. Por favor, crea tu primer asistente para registrarte.",
+                  variant: "default",
+                  duration: 6000
+              });
+              handleOpenRegisterDialog();
+          }
       }
     } catch (error: any) {
       console.error("Login Error:", error);
       let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'El proceso de inicio de sesión fue cancelado.';
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = 'Ya existe una cuenta con este correo electrónico pero con un método de inicio de sesión diferente.';
+      if (error.code === 'auth/account-exists-with-different-credential') {
+          errorMessage = 'Ya existe una cuenta con este correo electrónico. Inicia sesión con el método que usaste originalmente.'
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'La ventana de inicio de sesión fue cerrada. Intenta de nuevo.';
       }
       
       toast({
@@ -74,9 +71,10 @@ const LoginPageContent = () => {
         variant: "destructive",
       });
     } finally {
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+        setIsLoggingIn(false);
     }
   };
+
 
   const handleOpenRegisterDialog = () => {
     dispatch({ type: 'RESET_WIZARD' });
@@ -103,10 +101,10 @@ const LoginPageContent = () => {
         <div className="space-y-4">
            <Button
             onClick={handleGoogleLogin}
-            disabled={state.loadingStatus.active}
+            disabled={isLoggingIn}
             className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
           >
-            <FaGoogle className="h-5 w-5" />
+            {isLoggingIn ? <FaSpinner className="animate-spin h-5 w-5" /> : <FaGoogle className="h-5 w-5" />}
             Iniciar Sesión con Google
           </Button>
         </div>

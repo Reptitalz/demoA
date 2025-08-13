@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -13,8 +12,7 @@ import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { getAuth, signOut } from "firebase/auth";
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
@@ -30,12 +28,13 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const router = useRouter();
     const { toast } = useToast();
+    const auth = getAuth();
 
     const handleLogout = async () => {
         try {
-            await signOut(auth); // Sign out from Firebase
+            await signOut(auth);
             toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-            // The onAuthStateChanged listener in AppProvider will handle state cleanup and redirection
+            router.push('/login');
         } catch (error) {
             console.error("Logout Error:", error);
             toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });

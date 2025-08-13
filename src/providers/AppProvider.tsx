@@ -1,51 +1,12 @@
-
 "use client";
 
 import type { ReactNode } from 'react';
-import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { auth } from '@/lib/firebase';
-import type { User } from 'firebase/auth';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-
-// Mock user profile for guest/testing mode
-export const MOCK_USER_PROFILE: UserProfile = {
-  _id: 'GUEST_USER_ID',
-  isAuthenticated: true,
-  authProvider: 'google',
-  email: 'guest@example.com',
-  firebaseUid: 'GUEST_FIREBASE_UID',
-  firstName: 'Usuario',
-  lastName: 'de Prueba',
-  address: {
-    street_name: "Calle Falsa",
-    street_number: "123",
-    zip_code: "45010",
-    city: "Guadalajara"
-  },
-  assistants: [
-    {
-      id: "asst_guest_1",
-      name: "Asistente de Demostración",
-      prompt: "Eres un asistente de demostración. Tu propósito es saludar a los usuarios y mostrarles cómo funcionas.",
-      isActive: true,
-      messageCount: 150,
-      monthlyMessageLimit: 1000,
-      phoneLinked: "+5213312345678",
-      numberReady: true,
-      purposes: [],
-      databaseId: null,
-      imageUrl: "https://placehold.co/100x100.png",
-      businessInfo: { vertical: 'Software' },
-    }
-  ],
-  databases: [],
-  ownerPhoneNumberForNotifications: "+5213387654321",
-  credits: 10,
-};
-
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { app } from '@/lib/firebase';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -67,8 +28,8 @@ const initialWizardState: WizardState = {
 const initialUserProfileState: UserProfile = {
   isAuthenticated: false,
   authProvider: 'google',
-  email: '',
   firebaseUid: '',
+  email: '',
   firstName: undefined,
   lastName: undefined,
   address: undefined,
@@ -93,8 +54,8 @@ const initialState: AppState = {
 
 const AppContext = createContext<{ 
   state: AppState; 
-  dispatch: React.Dispatch<Action>; 
-  fetchProfileCallback: (email: string) => Promise<UserProfile | null>;
+  dispatch: React.Dispatch<Action>;
+  fetchProfileCallback: (email: string) => Promise<boolean>;
 } | undefined>(undefined);
 
 type Action =
@@ -120,8 +81,6 @@ type Action =
   | { type: 'ADD_DATABASE_TO_ASSISTANT'; payload: { assistantId: string, database: DatabaseConfig } }
   | { type: 'UPDATE_DATABASE'; payload: DatabaseConfig }
   | { type: 'REMOVE_DATABASE'; payload: string }
-  | { type: 'LOGIN_USER'; payload: { user: User, profile: UserProfile } }
-  | { type: 'LOGIN_GUEST' }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
@@ -187,25 +146,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return {
         ...state,
         wizard: initialWizardState
-      };
-     case 'LOGIN_USER': {
-      const { user, profile } = action.payload;
-      return {
-        ...state,
-        userProfile: {
-          ...profile,
-          isAuthenticated: true,
-          email: user.email!,
-          firebaseUid: user.uid,
-        },
-        isSetupComplete: profile.assistants && profile.assistants.length > 0,
-      };
-    }
-    case 'LOGIN_GUEST':
-      return {
-        ...state,
-        userProfile: MOCK_USER_PROFILE,
-        isSetupComplete: true,
       };
     case 'SYNC_PROFILE_FROM_API': {
         const apiProfile = action.payload;
@@ -291,12 +231,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
 const queryClient = new QueryClient();
 
 async function saveUserProfile(userProfile: UserProfile): Promise<void> {
-  // Do not save guest profile to the backend
-  if (userProfile._id === 'GUEST_USER_ID') {
-    console.log("Guest profile updated locally. Skipping save to backend.");
-    return;
-  }
-
   if (!userProfile._id) {
     console.error("Cannot save profile without an ID.");
     throw new Error("Cannot save profile without an ID.");
@@ -328,18 +262,43 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const previousStateRef = useRef<AppState>(initialState);
+  const auth = getAuth(app);
+
+  const fetchProfileCallback = useCallback(async (email: string): Promise<boolean> => {
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil de usuario...', progress: 75 } });
+      try {
+          const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
+          if (response.status === 404) {
+              dispatch({ type: 'LOGOUT_USER' }); // Clear any partial state
+              return false; // Profile not found
+          }
+          if (response.ok) {
+              const data = await response.json();
+              if (data.userProfile) {
+                  dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+                  return true;
+              }
+          }
+          // If response is not ok and not 404, throw an error
+          throw new Error('Failed to fetch user profile.');
+      } catch (error) {
+          console.error("Error fetching profile:", error);
+          toast({ title: 'Error de Red', description: 'No se pudo conectar con el servidor para obtener tu perfil.', variant: 'destructive'});
+          dispatch({ type: 'LOGOUT_USER' });
+          return false;
+      } finally {
+          dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
+      }
+  }, [dispatch]);
 
   useEffect(() => {
-    // This effect tracks changes to the userProfile and saves it automatically.
     const hasProfileChanged = JSON.stringify(previousStateRef.current.userProfile) !== JSON.stringify(state.userProfile);
     
     if (hasProfileChanged && state.userProfile.isAuthenticated && state.userProfile._id) {
       saveUserProfile(state.userProfile)
         .then(() => {
-            if (state.userProfile._id !== 'GUEST_USER_ID') {
-                console.log("Profile saved successfully.");
-                toast({ title: "Cambios Guardados", description: "Tus cambios se han guardado exitosamente."});
-            }
+            console.log("Profile saved successfully.");
+            toast({ title: "Cambios Guardados", description: "Tus cambios se han guardado exitosamente."});
         })
         .catch((error) => {
           console.error("Failed to save profile, reverting state.", error);
@@ -351,63 +310,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     previousStateRef.current = state;
   }, [state.userProfile]);
 
-  const fetchProfileCallback = useCallback(async (email: string): Promise<UserProfile | null> => {
-    try {
-      const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
-      
-      if (response.status === 404) {
-        return null; // Explicitly handle Not Found as a valid case (new user)
-      }
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-      
-      const data = await response.json();
-      return data.userProfile || null;
-
-    } catch (error) {
-      console.error("Failed to fetch user profile:", error);
-      toast({ title: "Error de Conexión", description: "No se pudo comunicar con el servidor para obtener el perfil.", variant: "destructive" });
-      return null;
-    }
-  }, []);
-  
   useEffect(() => {
-    // onAuthStateChanged is the single source of truth for auth state.
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
-
+    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
+    
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user && user.email) {
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { message: 'Buscando perfil de usuario...', progress: 60 } });
-        const profile = await fetchProfileCallback(user.email);
-        
-        if (profile) {
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: profile });
-          dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo!", progress: 100 } });
+        if (!state.userProfile.isAuthenticated || state.userProfile.email !== user.email) {
+          await fetchProfileCallback(user.email);
         } else {
-          // This case is for a user who authenticated with Firebase but hasn't completed app registration.
-          // We keep them logged in at Firebase level but their app profile remains unauthenticated.
-          // The login/register page logic will handle guiding them.
-          dispatch({ type: 'LOGOUT_USER' }); // Clear any partial state
-          toast({
-            title: 'Registro Incompleto',
-            description: 'Aún no has creado un asistente. Por favor completa el registro.',
-            variant: 'default',
-            duration: 5000,
-          });
+           // User is already logged in and in state, no need to fetch again.
+           dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
         }
       } else {
-        // No Firebase user is signed in.
-        dispatch({ type: 'LOGOUT_USER' });
+        if (state.userProfile.isAuthenticated) {
+          dispatch({ type: 'LOGOUT_USER' });
+        }
+         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
-
-      // Deactivate loading screen once the entire flow is complete.
-      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [fetchProfileCallback]);
+  }, []); // Run only once on mount
 
   return (
     <QueryClientProvider client={queryClient}>

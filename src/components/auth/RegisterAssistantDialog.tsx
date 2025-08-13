@@ -15,8 +15,12 @@ import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { app } from '@/lib/firebase';
+import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
+import { connectToDatabase } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
+
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -30,6 +34,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
+  const auth = getAuth(app);
 
   const needsDatabaseConfiguration = useCallback(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -103,12 +108,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     setIsFinalizingSetup(true);
 
-    const provider = new GoogleAuthProvider();
     try {
+        const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ["Usuario", "Nuevo"];
-        const lastName = lastNameParts.join(' ');
+
+        if (!user || !user.email) {
+            throw new Error("No se pudo obtener la información de usuario de Google.");
+        }
 
         const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
             id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -133,48 +140,60 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             monthlyMessageLimit: 0,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
+
+        const [firstName, ...lastNameParts] = user.displayName?.split(' ') || ['', ''];
+        const lastName = lastNameParts.join(' ');
         
-        const userProfileForApi: Omit<UserProfile, 'isAuthenticated' | '_id'> = {
-            email: user.email!,
+        const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
             firebaseUid: user.uid,
+            email: user.email,
             firstName: firstName,
             lastName: lastName,
+            authProvider: 'google',
             assistants: [finalAssistantConfig],
             databases: newDbEntry ? [newDbEntry] : [],
             ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
             credits: 0,
-            authProvider: 'google',
         };
         
-        const response = await fetch('/api/user-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userProfile: userProfileForApi }),
-        });
+        const { db } = await connectToDatabase();
+        const collection = db.collection<UserProfile>('userProfiles');
+        const insertResult = await collection.insertOne(finalProfileData as UserProfile);
 
-        const data = await response.json();
-        if (!response.ok) {
-            // If user exists, sign them out from firebase as well to avoid inconsistent state
-            if (response.status === 409) await auth.signOut();
-            throw new Error(data.message || "Failed to create profile.");
+        if (!insertResult.insertedId) {
+            throw new Error("Failed to insert user profile into database.");
         }
+
+        const createdProfile: UserProfile = {
+            ...finalProfileData,
+            _id: insertResult.insertedId,
+            isAuthenticated: true,
+        };
         
-        toast({
-            title: "¡Cuenta Creada y Sesión Iniciada!",
-            description: `Bienvenido/a, ${firstName}.`,
+        await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
+        
+        dispatch({
+            type: 'COMPLETE_SETUP',
+            payload: createdProfile,
         });
 
-        // The onAuthStateChanged listener in AppProvider will handle fetching the created profile and redirecting.
+        toast({
+            title: "¡Cuenta Creada!",
+            description: `Bienvenido/a. Redirigiendo al dashboard...`,
+        });
+
         onOpenChange(false);
+        router.push('/dashboard');
 
     } catch (error: any) {
-      let errorMessage = "Ocurrió un error inesperado durante el registro.";
-      if (error.code === 'auth/popup-closed-by-user') {
-          errorMessage = "El proceso de registro fue cancelado.";
-      } else if (error.message) {
-          errorMessage = error.message;
-      }
-      toast({ title: "Error al Registrar", description: errorMessage, variant: "destructive"});
+        console.error("Registration Error:", error);
+        let errorMessage = error.message || "Ocurrió un error inesperado.";
+        if (error.code === 'auth/popup-closed-by-user') {
+            errorMessage = 'La ventana de inicio de sesión fue cerrada. Inténtalo de nuevo.';
+        } else if (error.code === 'auth/account-exists-with-different-credential') {
+            errorMessage = 'Ya existe una cuenta con este correo. Por favor, inicia sesión normalmente.';
+        }
+        toast({ title: "Error al Registrar", description: errorMessage, variant: "destructive"});
     } finally {
         setIsFinalizingSetup(false);
     }

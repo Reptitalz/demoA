@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -13,8 +12,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import NotificationsBell from '@/components/notifications/NotificationsBell';
+import { getAuth, signOut } from "firebase/auth";
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
@@ -31,12 +30,15 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const router = useRouter();
     const { toast } = useToast();
+    const { dispatch } = useApp();
+    const auth = getAuth();
 
     const handleLogout = async () => {
         try {
-            await signOut(auth); // Sign out from Firebase
+            await signOut(auth);
+            dispatch({ type: 'LOGOUT_USER' });
             toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
-            // The onAuthStateChanged listener in AppProvider will handle state cleanup and redirection
+            router.push('/login');
         } catch (error) {
             console.error("Logout Error:", error);
             toast({ title: "Error", description: "No se pudo cerrar la sesión.", variant: "destructive" });
@@ -51,7 +53,7 @@ export default function DashboardLayout({
                         <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
                     <div className="flex items-center gap-1.5">
-                        
+                        <NotificationsBell />
                         <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
                             <FaSignOutAlt size={12} className="mr-1" /> 
                             Cerrar Sesión
@@ -121,5 +123,3 @@ export default function DashboardLayout({
         </div>
     );
 }
-
-    

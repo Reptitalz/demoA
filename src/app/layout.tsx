@@ -7,7 +7,6 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
-import { Suspense } from 'react';
 
 const inter = Inter({ 
   subsets: ['latin'],
