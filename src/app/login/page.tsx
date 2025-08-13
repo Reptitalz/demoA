@@ -43,7 +43,8 @@ const LoginPageContent = () => {
       // The onAuthStateChanged listener in AppProvider will handle the profile fetching,
       // state updates, and redirection. This avoids race conditions.
       await signInWithPopup(auth, provider);
-      // No need to do anything else here. AppProvider will take over.
+      // After a successful popup, the onAuthStateChanged listener in AppProvider
+      // will eventually set isAuthenticated to true, which will trigger the useEffect above.
     } catch (error: any) {
       // Handle only errors from the popup itself (e.g., closed by user).
       let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';

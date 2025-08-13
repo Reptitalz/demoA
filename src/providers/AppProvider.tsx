@@ -355,8 +355,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
 
       if (response.status === 404) {
-          // User is authenticated with Firebase but has no profile in our DB
-          dispatch({ type: 'LOGOUT_USER' }); // Treat as logged out from our app
+          // User is authenticated with Firebase but has no profile in our DB.
+          // This is a valid state for a user who hasn't completed the wizard yet.
+          // We just set loading to false and let them proceed to registration.
+          dispatch({ type: 'SET_LOADING', payload: false });
+          // We don't dispatch LOGOUT_USER here anymore.
           return;
       }
       
@@ -365,15 +368,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
         } else {
+           // Should not happen if response is ok, but as a safeguard.
            dispatch({ type: 'LOGOUT_USER' });
         }
       } else {
+        // Handle other server errors
         dispatch({ type: 'LOGOUT_USER' });
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
       dispatch({ type: 'LOGOUT_USER' });
     } finally {
+        // Redundant setLoading to false is fine.
         dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, []);
