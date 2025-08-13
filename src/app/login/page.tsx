@@ -20,13 +20,16 @@ const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { state, dispatch } = useApp();
   const { toast } = useToast();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
 
   useEffect(() => {
+    // The onAuthStateChanged listener in AppProvider is the source of truth for redirection.
+    // If the user is authenticated, it will redirect them to the dashboard.
+    // This effect ensures that if the user somehow lands here while authenticated, they are moved.
     if (state.userProfile.isAuthenticated) {
       router.replace('/dashboard');
     }
@@ -36,38 +39,18 @@ const LoginPageContent = () => {
     setIsProcessing(true);
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      // onAuthStateChanged in AppProvider will handle everything else.
-      // We just need to check if the profile exists.
-      if (user) {
-         const response = await fetch(`/api/user-profile?email=${encodeURIComponent(user.email!)}`);
-         if (response.status === 404) {
-             toast({
-                title: "Cuenta no encontrada",
-                description: "No tienes un perfil. Por favor, crea un asistente para registrarte.",
-                variant: "destructive"
-             });
-             await auth.signOut(); // Sign out to prevent inconsistent state
-         } else if (response.ok) {
-            toast({
-              title: "¡Bienvenido/a de nuevo!",
-              description: "Has iniciado sesión correctamente.",
-            });
-            // The AppProvider's listener will handle the redirect.
-         } else {
-            const errorData = await response.json().catch(() => ({message: 'No se pudo verificar el perfil de usuario.'}));
-            throw new Error(errorData.message);
-         }
-      }
+      // The only responsibility here is to initiate the sign-in.
+      // The onAuthStateChanged listener in AppProvider will handle the profile fetching,
+      // state updates, and redirection. This avoids race conditions.
+      await signInWithPopup(auth, provider);
+      // No need to do anything else here. AppProvider will take over.
     } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
+      // Handle only errors from the popup itself (e.g., closed by user).
       let errorMessage = 'No se pudo iniciar sesión con Google. Intenta de nuevo.';
-      if (error.code === 'auth/popup-closed-by-user' || error.message.includes('popup-closed-by-user')) {
-          errorMessage = 'El proceso de inicio de sesión fue cancelado.';
-      } else if (error.message) {
-          errorMessage = error.message;
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'El proceso de inicio de sesión fue cancelado.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'Ya existe una cuenta con este correo electrónico pero con un método de inicio de sesión diferente.';
       }
       
       toast({
@@ -85,7 +68,8 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  if (state.isLoading || state.userProfile.isAuthenticated) {
+  // Display a loading spinner if the initial auth state check is still running.
+  if (state.isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingSpinner size={36} />
