@@ -1,58 +1,59 @@
-
-import { MongoClient, type Db, type MongoClientOptions } from 'mongodb';
+import { MongoClient, Db, MongoClientOptions } from 'mongodb';
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'heyManitoApp'; // Default DB name if not set
+const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'heyManitoApp';
 
 if (!MONGODB_URI) {
-  console.error("CRITICAL: MONGODB_URI environment variable is not set. Database connection will fail.");
-  // Note: We throw an error inside the connectToDatabase function to avoid crashing the server on startup.
+  throw new Error(
+    'Please define the MONGODB_URI environment variable inside .env.local'
+  );
 }
 
-interface CustomMongoClientOptions extends MongoClientOptions {
-  useNewUrlParser?: boolean;
-  useUnifiedTopology?: boolean;
-}
+// Global is used here to maintain a cached connection across hot reloads in development.
+// This prevents connections from growing exponentially during API Route usage.
+let cached: {
+  conn: { client: MongoClient; db: Db } | null;
+  promise: Promise<{ client: MongoClient; db: Db }> | null;
+} = (global as any).mongo;
 
-let cachedClient: MongoClient | null = null;
-let cachedDb: Db | null = null;
+if (!cached) {
+  cached = (global as any).mongo = { conn: null, promise: null };
+}
 
 export async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
-  if (!MONGODB_URI) {
-    throw new Error('Database connection string (MONGODB_URI) is not configured on the server.');
-  }
-
-  if (cachedClient && cachedDb) {
-    // Check if the client is still connected by pinging the admin database
+  if (cached.conn) {
+    // Ping the connection to check if it's still alive
     try {
-      await cachedClient.db('admin').command({ ping: 1 });
-      return { client: cachedClient, db: cachedDb };
+        await cached.conn.client.db("admin").command({ ping: 1 });
+        return cached.conn;
     } catch (e) {
-      console.warn("MongoDB connection lost, creating a new one.");
-      cachedClient = null;
-      cachedDb = null;
+        console.warn("Cached MongoDB connection was stale. Creating a new one.");
+        cached.conn = null;
+        cached.promise = null;
     }
   }
 
-  const options: CustomMongoClientOptions = {};
-
+  if (!cached.promise) {
+    const opts: MongoClientOptions = {};
+    cached.promise = MongoClient.connect(MONGODB_URI!, opts).then((client) => {
+      console.log("New MongoDB connection established.");
+      return {
+        client,
+        db: client.db(MONGODB_DB_NAME),
+      };
+    }).catch(error => {
+      console.error("Failed to connect to MongoDB", error);
+      cached.promise = null; // Reset promise on failure
+      throw error;
+    });
+  }
+  
   try {
-    const client = new MongoClient(MONGODB_URI, options);
-    await client.connect();
-    console.log("Successfully established a new connection to MongoDB.");
-    
-    const db = client.db(MONGODB_DB_NAME);
-
-    cachedClient = client;
-    cachedDb = db;
-
-    return { client, db };
-
-  } catch (e) {
-    console.error("Failed to connect to MongoDB", e);
-    // Invalidate cache on failure
-    cachedClient = null;
-    cachedDb = null;
-    throw e; // Re-throw the error to be caught by the caller
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch(e) {
+    // If the promise was rejected, ensure we clear it so the next call can retry.
+    cached.promise = null;
+    throw e;
   }
 }

@@ -356,64 +356,57 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "Cargando perfil de usuario...", progress: 50 } });
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
-
-      if (response.status === 404) {
-          dispatch({ type: 'LOGOUT_USER' }); // Treat as logged out from app perspective
-          toast({ title: 'Bienvenido', description: 'Crea tu primer asistente para empezar.' });
-          return;
+      
+      if (!response.ok) {
+        // This includes 404 Not Found
+        return null;
       }
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.userProfile) {
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo! Redirigiendo...", progress: 100 } });
-        } else {
-           dispatch({ type: 'LOGOUT_USER' });
-        }
-      } else {
-        dispatch({ type: 'LOGOUT_USER' });
-      }
+      const data = await response.json();
+      return data.userProfile || null;
+
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
-      dispatch({ type: 'LOGOUT_USER' });
+      toast({ title: "Error de Conexión", description: "No se pudo comunicar con el servidor para obtener el perfil.", variant: "destructive" });
+      return null;
     }
   }, []);
   
   useEffect(() => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 10 } });
 
-    // This function will handle all authentication results
-    const processAuth = async (user: User | null) => {
-        if (user && user.email) {
-            dispatch({ type: 'SET_LOADING_STATUS', payload: { message: 'Autenticación exitosa...', progress: 25 } });
-            await fetchProfileCallback(user.email);
+    const handleAuthChange = async (user: User | null) => {
+      if (user && user.email) {
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { message: 'Autenticación exitosa...', progress: 25 } });
+        const profile = await fetchProfileCallback(user.email);
+        
+        if (profile) {
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: profile });
+          dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo! Redirigiendo...", progress: 100 } });
         } else {
-            dispatch({ type: 'LOGOUT_USER' });
+           // User is authenticated with Firebase, but has no profile in our DB.
+           // This is a valid state for a user who is in the process of registering.
+           // We keep them authenticated but without a profile.
+           dispatch({ 
+             type: 'UPDATE_USER_PROFILE', 
+             payload: { 
+               isAuthenticated: true, 
+               email: user.email, 
+               firebaseUid: user.uid 
+             } 
+           });
+           toast({ title: 'Bienvenido', description: 'Parece que eres nuevo. ¡Crea tu primer asistente para empezar!' });
         }
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+      } else {
+        dispatch({ type: 'LOGOUT_USER' });
+      }
+      // Deactivate loading screen once flow is complete
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     };
 
-    // First, check for redirect result.
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result && result.user) {
-           processAuth(result.user);
-        } else {
-           const unsubscribe = onAuthStateChanged(auth, processAuth);
-           return unsubscribe;
-        }
-      })
-      .catch((error) => {
-        console.error("Error getting redirect result:", error);
-        toast({
-            title: "Error de Inicio de Sesión",
-            description: `No se pudo completar el inicio de sesión: ${error.message}`,
-            variant: "destructive"
-        });
-        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
-      });
+    const unsubscribe = onAuthStateChanged(auth, handleAuthChange);
 
+    return () => unsubscribe();
   }, [fetchProfileCallback]);
 
 
