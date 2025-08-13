@@ -356,8 +356,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (response.status === 404) {
           // User is authenticated with Firebase but has no profile in our DB.
           // This is a valid state for a user who hasn't completed the wizard yet.
-          // We just set loading to false and let them proceed to registration.
-          dispatch({ type: 'SET_LOADING', payload: false });
+          dispatch({ type: 'LOGOUT_USER' }); // Treat as logged out from app perspective
           return;
       }
       
@@ -366,11 +365,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
         } else {
-           // Should not happen if response is ok, but as a safeguard.
            dispatch({ type: 'LOGOUT_USER' });
         }
       } else {
-        // Handle other server errors
         dispatch({ type: 'LOGOUT_USER' });
       }
     } catch (error) {
@@ -382,42 +379,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
-    // Handle redirect result first
+    // This function will handle all authentication results
+    const processAuth = async (user: User | null) => {
+        if (user && user.email) {
+            await fetchProfileCallback(user.email);
+        } else {
+            dispatch({ type: 'LOGOUT_USER' });
+        }
+        dispatch({ type: 'SET_LOADING', payload: false });
+    };
+
+    // First, check for redirect result.
     getRedirectResult(auth)
-        .then((result) => {
-            if (result) {
-                // This is the successfully signed-in user.
-                const user = result.user;
-                if (user && user.email) {
-                    fetchProfileCallback(user.email);
-                }
-            }
-            // If result is null, it means the user is not coming from a redirect flow,
-            // so we proceed to the onAuthStateChanged listener.
-        })
-        .catch((error) => {
-            console.error("Error getting redirect result:", error);
-            toast({
-                title: "Error de Inicio de Sesión",
-                description: `No se pudo completar el inicio de sesión: ${error.message}`,
-                variant: "destructive"
-            });
+      .then((result) => {
+        if (result && result.user) {
+           // If we get a result from redirect, process it.
+           processAuth(result.user);
+        } else {
+           // Otherwise, rely on onAuthStateChanged for persistent session.
+           const unsubscribe = onAuthStateChanged(auth, processAuth);
+           return unsubscribe;
+        }
+      })
+      .catch((error) => {
+        console.error("Error getting redirect result:", error);
+        toast({
+            title: "Error de Inicio de Sesión",
+            description: `No se pudo completar el inicio de sesión: ${error.message}`,
+            variant: "destructive"
         });
+        dispatch({ type: 'SET_LOADING', payload: false });
+      });
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user && user.email) {
-        // User is signed in, see if they have a profile in our DB
-        await fetchProfileCallback(user.email);
-      } else {
-        // User is signed out
-        dispatch({ type: 'LOGOUT_USER' });
-      }
-       dispatch({ type: 'SET_LOADING', payload: false });
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
   }, [fetchProfileCallback]);
+
 
   return (
     <QueryClientProvider client={queryClient}>
