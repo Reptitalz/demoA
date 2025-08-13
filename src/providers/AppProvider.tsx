@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -269,22 +270,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
           const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
           if (response.status === 404) {
-              dispatch({ type: 'LOGOUT_USER' }); // Clear any partial state
+              // This is not an error, it's a valid case for a new user.
+              // We don't log them out, just signal that the profile doesn't exist.
+              console.log(`Profile not found for ${email}, user is new.`);
               return false; // Profile not found
           }
           if (response.ok) {
               const data = await response.json();
               if (data.userProfile) {
                   dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-                  return true;
+                  return true; // Profile found and synced
               }
           }
           // If response is not ok and not 404, throw an error
-          throw new Error('Failed to fetch user profile.');
+          const errorData = await response.json().catch(() => ({ message: 'Error desconocido al buscar perfil.' }));
+          throw new Error(errorData.message);
       } catch (error) {
           console.error("Error fetching profile:", error);
           toast({ title: 'Error de Red', description: 'No se pudo conectar con el servidor para obtener tu perfil.', variant: 'destructive'});
-          dispatch({ type: 'LOGOUT_USER' });
+          dispatch({ type: 'LOGOUT_USER' }); // On actual error, logout.
           return false;
       } finally {
           dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
