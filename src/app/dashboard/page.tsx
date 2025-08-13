@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import LoadingStatus from '@/components/shared/LoadingStatus';
 import PageContainer from '@/components/layout/PageContainer';
 import { useApp } from '@/providers/AppProvider';
 
@@ -10,21 +11,21 @@ import { useApp } from '@/providers/AppProvider';
 function DashboardRedirector() {
     const router = useRouter();
     const { state } = useApp();
-    const { isLoading, userProfile } = state;
+    const { userProfile, loadingStatus } = state;
 
     useEffect(() => {
-        if (!isLoading) {
+        if (!loadingStatus.active) {
             if (!userProfile.isAuthenticated) {
                 router.replace('/login');
             } else {
                 router.replace('/dashboard/assistants');
             }
         }
-    }, [isLoading, userProfile.isAuthenticated, router]);
+    }, [loadingStatus.active, userProfile.isAuthenticated, router]);
 
     return (
         <PageContainer className="flex items-center justify-center min-h-screen">
-            <LoadingSpinner size={36} />
+            <LoadingStatus status={loadingStatus} />
         </PageContainer>
     );
 }

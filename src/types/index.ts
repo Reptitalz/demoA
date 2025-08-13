@@ -1,4 +1,5 @@
 
+
 import { ObjectId } from 'mongodb';
 
 export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
@@ -119,11 +120,17 @@ export interface WizardState {
   acceptedTerms: boolean;
 }
 
+export interface LoadingStatus {
+    active: boolean;
+    message: string;
+    progress: number;
+}
+
 export interface AppState {
   wizard: WizardState;
   userProfile: UserProfile;
   isSetupComplete: boolean;
-  isLoading: boolean;
+  loadingStatus: LoadingStatus;
 }
 
 export interface AppNotification {

@@ -8,34 +8,31 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { FaSpinner, FaGoogle } from 'react-icons/fa';
+import { FaGoogle } from 'react-icons/fa';
 import { signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import LoadingStatus from '@/components/shared/LoadingStatus';
 
 const APP_NAME = "Hey Manito!";
-
-const LoadingSpinner = ({ size = 24 }: { size?: number }) => (
-  <FaSpinner className="animate-spin" style={{ width: size, height: size }} />
-);
 
 const LoginPageContent = () => {
   const router = useRouter();
   const { state, dispatch } = useApp();
   const { toast } = useToast();
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
 
   useEffect(() => {
     // The onAuthStateChanged listener in AppProvider is the source of truth for redirection.
     // If the user is authenticated and has a profile, it will redirect them to the dashboard.
-    if (state.userProfile.isAuthenticated && state.isSetupComplete) {
+    if (!state.loadingStatus.active && state.userProfile.isAuthenticated && state.isSetupComplete) {
       router.replace('/dashboard');
     }
-  }, [state.userProfile.isAuthenticated, state.isSetupComplete, router]);
+  }, [state.userProfile.isAuthenticated, state.isSetupComplete, state.loadingStatus.active, router]);
   
   const handleGoogleLogin = async () => {
-    setIsProcessing(true);
+    setIsProcessingAuth(true);
     const provider = new GoogleAuthProvider();
     try {
       // Use signInWithRedirect for a more robust flow.
@@ -54,7 +51,7 @@ const LoginPageContent = () => {
         description: errorMessage,
         variant: "destructive",
       });
-       setIsProcessing(false); // Only set to false on error, on success it redirects
+       setIsProcessingAuth(false); // Only set to false on error, on success it redirects
     }
   };
 
@@ -63,11 +60,11 @@ const LoginPageContent = () => {
     setIsRegisterDialogOpen(true);
   };
   
-  // Display a loading spinner if the initial auth state check is still running.
-  if (state.isLoading) {
+  // Display a loading spinner if the initial auth state check is still running or if we are processing the auth redirect.
+  if (state.loadingStatus.active || isProcessingAuth) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <LoadingSpinner size={36} />
+        <LoadingStatus status={state.loadingStatus} />
       </div>
     );
   }
@@ -84,10 +81,10 @@ const LoginPageContent = () => {
         <div className="space-y-4">
            <Button
             onClick={handleGoogleLogin}
-            disabled={isProcessing}
+            disabled={isProcessingAuth}
             className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
           >
-            {isProcessing ? <LoadingSpinner size={20} /> : <FaGoogle className="h-5 w-5" />}
+            <FaGoogle className="h-5 w-5" />
             Iniciar Sesión con Google
           </Button>
         </div>

@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { auth, getRedirectResult, GoogleAuthProvider } from '@/lib/firebase';
@@ -78,11 +78,17 @@ const initialUserProfileState: UserProfile = {
   credits: 0,
 };
 
+const initialLoadingStatus: LoadingStatus = {
+    active: true,
+    message: 'Iniciando aplicación...',
+    progress: 10,
+};
+
 const initialState: AppState = {
   wizard: initialWizardState,
   userProfile: initialUserProfileState,
   isSetupComplete: false,
-  isLoading: true, // Start as true to check for session
+  loadingStatus: initialLoadingStatus,
 };
 
 const AppContext = createContext<{ 
@@ -92,7 +98,7 @@ const AppContext = createContext<{
 } | undefined>(undefined);
 
 type Action =
-  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_LOADING_STATUS'; payload: Partial<LoadingStatus> }
   | { type: 'NEXT_WIZARD_STEP' }
   | { type: 'PREVIOUS_WIZARD_STEP' }
   | { type: 'SET_WIZARD_STEP'; payload: number }
@@ -123,8 +129,8 @@ type Action =
 
 const appReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, isLoading: action.payload };
+    case 'SET_LOADING_STATUS':
+      return { ...state, loadingStatus: { ...state.loadingStatus, ...action.payload } };
     case 'NEXT_WIZARD_STEP': {
       return { ...state, wizard: { ...state.wizard, currentStep: state.wizard.currentStep + 1 } };
     }
@@ -192,7 +198,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
           email: user.email!,
           firebaseUid: user.uid,
         },
-        isLoading: false,
         isSetupComplete: profile.assistants && profile.assistants.length > 0,
       };
     }
@@ -200,7 +205,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return {
         ...state,
         userProfile: MOCK_USER_PROFILE,
-        isLoading: false,
         isSetupComplete: true,
       };
     case 'SYNC_PROFILE_FROM_API': {
@@ -218,7 +222,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
             ...state,
             userProfile: freshUserProfile,
             isSetupComplete: newIsSetupComplete,
-            isLoading: false,
         };
     }
     case 'UPDATE_USER_PROFILE': {
@@ -227,7 +230,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       if (payload.assistants) {
         payload.assistants = payload.assistants.map(a => ({
           ...a,
-          purposes: Array.isArray(a.purposes) ? a.purposes : []
+          purposes: Array.isArray(a.purposes) ? a.purposes : [],
         }))
       }
       return { ...state, userProfile: { ...state.userProfile, ...payload }};
@@ -274,7 +277,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'LOGOUT_USER':
       return {
         ...initialState,
-        isLoading: false,
+        loadingStatus: { active: false, message: '', progress: 0 },
       };
     case 'SET_IS_RECONFIGURING':
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
@@ -351,12 +354,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchProfileCallback = useCallback(async (email: string) => {
     try {
+      dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "Cargando perfil de usuario...", progress: 50 } });
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
 
       if (response.status === 404) {
-          // User is authenticated with Firebase but has no profile in our DB.
-          // This is a valid state for a user who hasn't completed the wizard yet.
           dispatch({ type: 'LOGOUT_USER' }); // Treat as logged out from app perspective
+          toast({ title: 'Bienvenido', description: 'Crea tu primer asistente para empezar.' });
           return;
       }
       
@@ -364,6 +367,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+          dispatch({ type: 'SET_LOADING_STATUS', payload: { message: "¡Listo! Redirigiendo...", progress: 100 } });
         } else {
            dispatch({ type: 'LOGOUT_USER' });
         }
@@ -377,26 +381,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   useEffect(() => {
-    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 10 } });
 
     // This function will handle all authentication results
     const processAuth = async (user: User | null) => {
         if (user && user.email) {
+            dispatch({ type: 'SET_LOADING_STATUS', payload: { message: 'Autenticación exitosa...', progress: 25 } });
             await fetchProfileCallback(user.email);
         } else {
             dispatch({ type: 'LOGOUT_USER' });
         }
-        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     };
 
     // First, check for redirect result.
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
-           // If we get a result from redirect, process it.
            processAuth(result.user);
         } else {
-           // Otherwise, rely on onAuthStateChanged for persistent session.
            const unsubscribe = onAuthStateChanged(auth, processAuth);
            return unsubscribe;
         }
@@ -408,7 +411,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             description: `No se pudo completar el inicio de sesión: ${error.message}`,
             variant: "destructive"
         });
-        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       });
 
   }, [fetchProfileCallback]);
