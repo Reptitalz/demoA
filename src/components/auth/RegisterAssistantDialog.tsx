@@ -18,9 +18,6 @@ import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { connectToDatabase } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
-
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -156,19 +153,19 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             credits: 0,
         };
         
-        const { db } = await connectToDatabase();
-        const collection = db.collection<UserProfile>('userProfiles');
-        const insertResult = await collection.insertOne(finalProfileData as UserProfile);
+        // Call the new API endpoint to create the profile
+        const response = await fetch('/api/create-user-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalProfileData),
+        });
 
-        if (!insertResult.insertedId) {
-            throw new Error("Failed to insert user profile into database.");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "No se pudo crear el perfil de usuario.");
         }
 
-        const createdProfile: UserProfile = {
-            ...finalProfileData,
-            _id: insertResult.insertedId,
-            isAuthenticated: true,
-        };
+        const { userProfile: createdProfile } = await response.json();
         
         await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
         
