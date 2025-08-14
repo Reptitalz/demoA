@@ -16,6 +16,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
   const [step, setStep] = useState(0);
@@ -355,20 +356,66 @@ const HeroSection = () => {
   )
 }
 
-const StepCard = ({ num, icon, title, description, animationDelay }: { num: string, icon: React.ReactNode, title: string, description: string, animationDelay: string }) => (
-    <div className="relative p-6 rounded-lg border border-border/10 transition-all duration-300 animate-fadeIn glow-card" style={{ animationDelay }}>
+const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children }: { num: string, icon: React.ReactNode, title: string, description: string, imageUrl: string, imageHint: string, children?: React.ReactNode }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        rootMargin: '0px',
+        threshold: 0.1
+      }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card opacity-0",
+        isVisible && "animate-scroll-in"
+      )}
+    >
         <div className="absolute -top-5 -left-5 bg-primary text-primary-foreground h-12 w-12 flex items-center justify-center rounded-full text-2xl font-bold shadow-lg z-10">
             {num}
         </div>
-        <div className="relative z-10 pl-8">
+        <div className="relative z-10 pl-8 space-y-4">
             <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
                 {icon}
+            </div>
+             <div className="aspect-video w-full rounded-md overflow-hidden border">
+              <Image
+                src={imageUrl}
+                alt={title}
+                width={300}
+                height={169}
+                className="w-full h-full object-cover"
+                data-ai-hint={imageHint}
+              />
             </div>
             <h3 className="text-xl font-semibold mb-2">{title}</h3>
             <p className="text-muted-foreground">{description}</p>
         </div>
     </div>
-);
+  );
+};
 
 
 export default function MarketingHomePage() {
@@ -419,21 +466,24 @@ export default function MarketingHomePage() {
               icon={<UserCog size={28} className="text-primary" />}
               title="Crea tu Asistente"
               description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
-              animationDelay="0.2s"
+              imageUrl="https://placehold.co/600x400.png"
+              imageHint="AI assistant setup"
             />
             <StepCard
               num="2"
               icon={<FaSimCard size={28} className="text-primary" />}
               title="Vincula un Número"
               description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
-              animationDelay="0.4s"
+              imageUrl="https://placehold.co/600x400.png"
+              imageHint="SIM card linking"
             />
             <StepCard
               num="3"
               icon={<FaCheckCircle size={28} className="text-primary" />}
               title="Activa y Disfruta"
               description="Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
-              animationDelay="0.6s"
+              imageUrl="https://placehold.co/600x400.png"
+              imageHint="success activation"
             />
           </div>
         </div>
@@ -524,8 +574,43 @@ interface FeatureCardProps {
   description: string;
 }
 
-const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card">
+const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        rootMargin: '0px',
+        threshold: 0.1
+      }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+  
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card opacity-0",
+        isVisible && "animate-scroll-in"
+      )}
+    >
       <div className="relative z-10">
         <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
           {icon}
@@ -533,6 +618,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
         <p className="text-muted-foreground">{description}</p>
       </div>
-  </div>
-);
+    </div>
+  );
+};
     
