@@ -393,14 +393,14 @@ const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children
         isVisible && "animate-scroll-in"
       )}
     >
-        <div className="absolute -top-5 -left-5 bg-primary text-primary-foreground h-12 w-12 flex items-center justify-center rounded-full text-2xl font-bold shadow-lg z-10">
-            {num}
-        </div>
-        <div className="relative z-10 pl-8 space-y-4">
+        <div className="relative space-y-4">
             <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
                 {icon}
             </div>
-             <div className="aspect-video w-full rounded-md overflow-hidden border">
+             <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+              <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-1 rounded-full z-10">
+                Paso {num}
+              </div>
               <Image
                 src={imageUrl}
                 alt={title}
@@ -410,7 +410,7 @@ const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children
                 data-ai-hint={imageHint}
               />
             </div>
-            <h3 className="text-xl font-semibold mb-2">{title}</h3>
+            <h3 className="text-xl font-semibold mb-2 pt-2">{title}</h3>
             <p className="text-muted-foreground">{description}</p>
         </div>
     </div>
