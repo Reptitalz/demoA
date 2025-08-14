@@ -149,6 +149,45 @@ body {
       box-shadow: 0 0 0 10px hsla(var(--primary), 0);
     }
   }
+
+  .shiny-border {
+    position: relative;
+    overflow: hidden;
+  }
+  .shiny-border::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(115deg, transparent 40%, hsl(var(--primary) / 0.5), transparent 60%);
+    background-size: 200% 100%;
+    animation: shiny-border-anim 3s linear infinite;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  @keyframes shiny-border-anim {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .glow-card {
+      position: relative;
+      overflow: hidden;
+      background-color: hsl(var(--card));
+  }
+  .glow-card:hover::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), hsl(var(--primary) / 0.06), transparent 40%);
+      z-index: 0;
+  }
 }
 
 

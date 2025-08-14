@@ -151,7 +151,7 @@ const PayAsYouGoCalculator = () => {
   };
 
   return (
-    <Card className="bg-card/80 backdrop-blur-sm border border-border/20 shadow-xl hover:shadow-primary/20 transition-all duration-300 text-left p-6 sm:p-8">
+    <Card className="bg-card/80 backdrop-blur-sm border border-border/20 shadow-xl hover:shadow-primary/20 transition-all duration-300 text-left p-6 sm:p-8 glow-card">
       <CardHeader className="p-0 mb-6">
         <CardTitle className="text-2xl sm:text-3xl">Paga Solo Por Lo Que Usas</CardTitle>
         <CardDescription className="text-sm sm:text-base pt-2 text-muted-foreground">
@@ -356,11 +356,11 @@ const HeroSection = () => {
 }
 
 const StepCard = ({ num, icon, title, description, animationDelay }: { num: string, icon: React.ReactNode, title: string, description: string, animationDelay: string }) => (
-    <div className="relative bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-border/10 transition-all duration-300 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 animate-fadeIn" style={{ animationDelay }}>
-        <div className="absolute -top-5 -left-5 bg-primary text-primary-foreground h-12 w-12 flex items-center justify-center rounded-full text-2xl font-bold shadow-lg">
+    <div className="relative p-6 rounded-lg border border-border/10 transition-all duration-300 animate-fadeIn glow-card" style={{ animationDelay }}>
+        <div className="absolute -top-5 -left-5 bg-primary text-primary-foreground h-12 w-12 flex items-center justify-center rounded-full text-2xl font-bold shadow-lg z-10">
             {num}
         </div>
-        <div className="pl-8">
+        <div className="relative z-10 pl-8">
             <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
                 {icon}
             </div>
@@ -389,6 +389,15 @@ export default function MarketingHomePage() {
         console.error('Could not copy text: ', err);
     });
   };
+  
+  const setupMouseEvent = (e: React.MouseEvent<HTMLElement>) => {
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    target.style.setProperty("--mouse-x", `${x}px`);
+    target.style.setProperty("--mouse-y", `${y}px`);
+  };
 
   return (
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
@@ -404,7 +413,7 @@ export default function MarketingHomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Empieza en 3 Sencillos Pasos</h2>
             <p className="mt-4 text-muted-foreground">Configurar tu asistente de IA para WhatsApp es rápido e intuitivo.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12" onMouseMove={setupMouseEvent}>
             <StepCard
               num="1"
               icon={<UserCog size={28} className="text-primary" />}
@@ -436,7 +445,7 @@ export default function MarketingHomePage() {
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Potencia tus Asistentes de IA sin Complejidad</h2>
                 <p className="mt-4 text-muted-foreground">Herramientas diseñadas para ser poderosas y fáciles de usar en WhatsApp.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" onMouseMove={setupMouseEvent}>
               <FeatureCard
                 icon={<FaCogs size={24} className="text-primary" />}
                 title="Configuración Intuitiva"
@@ -477,7 +486,7 @@ export default function MarketingHomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Precios Flexibles y Transparentes</h2>
             <p className="mt-4 text-muted-foreground">Elige un plan de créditos que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
         </div>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8" onMouseMove={setupMouseEvent}>
             <PayAsYouGoCalculator />
         </div>
       </section>
@@ -516,13 +525,14 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
-  <div className="bg-card/50 backdrop-blur-sm p-6 rounded-lg border border-border/10 transition-all duration-300 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10">
-      <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
-        {icon}
+  <div className="relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card">
+      <div className="relative z-10">
+        <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
+          {icon}
+        </div>
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
       </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
   </div>
 );
-
     
