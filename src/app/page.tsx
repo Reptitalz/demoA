@@ -474,7 +474,7 @@ export default function MarketingHomePage() {
               icon={<FaSimCard size={28} className="text-primary" />}
               title="Vincula un Número"
               description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
-              imageUrl="https://placehold.co/600x400.png"
+              imageUrl="https://i.imgur.com/8Q8B5Zg.gif"
               imageHint="SIM card linking"
             />
             <StepCard
