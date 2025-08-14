@@ -260,42 +260,58 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const previousStateRef = useRef<AppState>(initialState);
   const { data: session, status } = useSession();
 
-  // This useCallback is now only for explicit fetches, like after a payment.
   const fetchProfile = useCallback(async (email: string) => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
-      if (response.ok) {
+      
+      if (response.status === 404) {
+          console.log(`Profile not found for ${email}. New user flow will be triggered.`);
+          const wizardState = state.wizard;
+          // Trigger profile creation if user came from registration dialog
+          if (wizardState.assistantName) {
+            const { displayName, email: firebaseEmail, uid } = session!.user as any;
+             const [fName, ...lNameParts] = wizardState.firstName ? [wizardState.firstName, wizardState.lastName] : (displayName?.split(' ') || []);
+
+            const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+              firebaseUid: session!.user!.id!,
+              email: firebaseEmail || wizardState.email,
+              firstName: fName,
+              lastName: lNameParts.join(' '),
+              authProvider: 'google',
+              assistants: [], // Will be added by the wizard logic
+              databases: [],
+              credits: 0
+            };
+             dispatch({ type: 'COMPLETE_SETUP', payload: finalProfileData as UserProfile });
+          } else {
+             // User exists in NextAuth but not our DB, and didn't come from wizard. Prompt to create.
+             toast({
+                title: "Completa tu registro",
+                description: "Parece que eres nuevo. Crea tu primer asistente para continuar.",
+                variant: 'default',
+                duration: 8000,
+             });
+             // Effectively, they are "authenticated" but have no profile. Login page handles this state.
+             dispatch({ type: 'LOGOUT_USER' }); // Reset to a clean slate to show login page correctly.
+          }
+      } else if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          return;
         }
+      } else {
+        throw new Error('Failed to fetch profile.');
       }
-      // Handle cases where profile not found (user exists in next-auth but not our DB)
-      if (response.status === 404) {
-        console.log(`Profile not found for ${email}. New user flow will be triggered.`);
-        // Mark as authenticated in session, but profile is empty. Login page will handle this.
-        dispatch({
-          type: 'UPDATE_USER_PROFILE',
-          payload: {
-            ...initialUserProfileState,
-            isAuthenticated: true,
-            email: session?.user?.email || '',
-            firebaseUid: session?.user?.id || '',
-          },
-        });
-        return;
-      }
-      throw new Error('Failed to fetch profile.');
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching/handling profile:", error);
       toast({ title: 'Error de Red', description: 'No se pudo conectar para obtener tu perfil.', variant: 'destructive' });
       dispatch({ type: 'LOGOUT_USER' });
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [dispatch, session]);
+  }, [dispatch, session, state.wizard]);
+
 
   useEffect(() => {
     const hasProfileChanged = JSON.stringify(previousStateRef.current.userProfile) !== JSON.stringify(state.userProfile);
@@ -320,20 +336,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
     } else if (status === 'unauthenticated') {
       dispatch({ type: 'LOGOUT_USER' });
-      dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
     } else if (status === 'authenticated') {
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
         fetchProfile(session.user.email);
       } else {
-        // Already authenticated and profile likely loaded
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
     }
   }, [status, session, state.userProfile.isAuthenticated, fetchProfile]);
 
+  const memoizedContextValue = {
+    state,
+    dispatch,
+    fetchProfileCallback: fetchProfile,
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch }}>
+        <AppContext.Provider value={memoizedContextValue as any}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>
@@ -345,15 +365,9 @@ export const useApp = () => {
   if (context === undefined) {
     throw new Error('useApp debe ser usado dentro de un AppProvider');
   }
-  return {
-    ...context,
-    // Provide a callback for explicit refetching if needed elsewhere
-    fetchProfileCallback: (email: string) => {
-        const { state: { userProfile } } = context;
-        if (!userProfile.isAuthenticated || userProfile.email !== email) {
-            const { fetchProfile } = (context as any); // A bit of a hack to get the function
-            if (fetchProfile) fetchProfile(email);
-        }
-    }
+  return context as {
+    state: AppState;
+    dispatch: React.Dispatch<Action>;
+    fetchProfileCallback: (email: string) => Promise<void>;
   };
 };

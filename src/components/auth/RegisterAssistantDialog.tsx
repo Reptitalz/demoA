@@ -16,10 +16,11 @@ import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { firebaseApp } from '@/lib/firebase';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { signIn } from 'next-auth/react';
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -115,78 +116,79 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
   };
   
-  const createProfileAndFinalize = async (firebaseUser: any, authProvider: 'google' | 'email') => {
-      let userFirstName = '', userLastName = '', userEmail = '';
-      
-      if (authProvider === 'google') {
-        const [fName, ...lNameParts] = firebaseUser.displayName?.split(' ') || [];
-        userFirstName = fName;
-        userLastName = lNameParts.join(' ');
-        userEmail = firebaseUser.email!;
-      } else {
-        userFirstName = firstName;
-        userLastName = lastName;
-        userEmail = email;
-      }
-      
-      if (!firebaseUser.uid || !userEmail) {
-          throw new Error("No se pudieron obtener los datos de autenticación.");
-      }
-
-      const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
-            id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: databaseOption.name!,
-            source: databaseOption.type!,
-            details: databaseOption.name,
-            accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
-            sheetName: databaseOption.type === 'google_sheets' ? databaseOption.selectedSheetName : undefined,
-            selectedColumns: databaseOption.selectedColumns,
-            relevantColumnsDescription: databaseOption.relevantColumnsDescription,
-        } : undefined;
-
-        const finalAssistantConfig: AssistantConfig = {
-            id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: assistantName,
-            prompt: assistantPrompt,
-            purposes: Array.from(selectedPurposes),
-            databaseId: newDbEntry?.id,
-            imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-            isActive: false,
-            messageCount: 0,
-            monthlyMessageLimit: 0,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        };
+  const createProfileAndFinalize = async (firebaseUser: any) => {
+      setIsFinalizingSetup(true);
+      try {
+        const { displayName, email: firebaseEmail, uid } = firebaseUser;
+        const [fName, ...lNameParts] = displayName?.split(' ') || [firstName, lastName];
+        const userFirstName = fName;
+        const userLastName = lNameParts.join(' ');
+        const userEmail = firebaseEmail || email;
         
-        const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-            firebaseUid: firebaseUser.uid,
-            email: userEmail,
-            firstName: userFirstName,
-            lastName: userLastName,
-            authProvider: 'google', // Hardcode to google for now
-            assistants: [finalAssistantConfig],
-            databases: newDbEntry ? [newDbEntry] : [],
-            ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
-            credits: 0,
-        };
-
-        const response = await fetch('/api/create-user-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalProfileData),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "No se pudo crear el perfil de usuario.");
+        if (!uid || !userEmail) {
+            throw new Error("No se pudieron obtener los datos de autenticación.");
         }
 
-        const { userProfile: createdProfile } = await response.json();
-        await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
-        dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
+        const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
+              id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              name: databaseOption.name!,
+              source: databaseOption.type!,
+              details: databaseOption.name,
+              accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
+              sheetName: databaseOption.type === 'google_sheets' ? databaseOption.selectedSheetName : undefined,
+              selectedColumns: databaseOption.selectedColumns,
+              relevantColumnsDescription: databaseOption.relevantColumnsDescription,
+          } : undefined;
 
-        toast({ title: "¡Cuenta Creada!", description: `Bienvenido/a. Redirigiendo al dashboard...` });
-        onOpenChange(false);
-        router.push('/dashboard');
+          const finalAssistantConfig: AssistantConfig = {
+              id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              name: assistantName,
+              prompt: assistantPrompt,
+              purposes: Array.from(selectedPurposes),
+              databaseId: newDbEntry?.id,
+              imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+              isActive: false,
+              messageCount: 0,
+              monthlyMessageLimit: 0,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          };
+          
+          const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+              firebaseUid: uid,
+              email: userEmail,
+              firstName: userFirstName,
+              lastName: userLastName,
+              authProvider: 'google', // Defaulting to google, can be changed based on provider
+              assistants: [finalAssistantConfig],
+              databases: newDbEntry ? [newDbEntry] : [],
+              ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
+              credits: 0,
+          };
+
+          const response = await fetch('/api/create-user-profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(finalProfileData),
+          });
+
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || "No se pudo crear el perfil de usuario.");
+          }
+
+          const { userProfile: createdProfile } = await response.json();
+          await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
+          dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
+
+          toast({ title: "¡Cuenta Creada!", description: `Bienvenido/a. Redirigiendo al dashboard...` });
+          onOpenChange(false);
+          router.push('/dashboard');
+      } catch (error: any) {
+          console.error("Profile creation error:", error);
+          toast({ title: "Error al crear perfil", description: error.message, variant: "destructive" });
+      } finally {
+        setIsFinalizingSetup(false);
+      }
   }
 
   const handleAuth = async (provider: 'google' | 'email') => {
@@ -194,25 +196,26 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       const auth = getAuth(firebaseApp);
       try {
           if (provider === 'google') {
-              const googleProvider = new GoogleAuthProvider();
-              const result = await signInWithPopup(auth, googleProvider);
-              await createProfileAndFinalize(result.user, 'google');
+            // We just need to trigger the next-auth flow for Google
+            await signIn('google');
           } else {
               // Email/Password flow
               if (!email || !password || !firstName || !lastName) {
                   throw new Error("Por favor, completa todos los campos del formulario.");
               }
               const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-              await createProfileAndFinalize(userCredential.user, 'email');
+              // After creating user in Firebase, create profile in our DB
+              await createProfileAndFinalize(userCredential.user);
           }
       } catch(error: any) {
           console.error("Authentication/Registration Error:", error);
-          let errorMessage = error.message;
+          let errorMessage = "Ocurrió un error inesperado.";
           if (error.code === 'auth/email-already-in-use') {
               errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
+          } else if (error.message) {
+              errorMessage = error.message;
           }
           toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
-      } finally {
           setIsFinalizingSetup(false);
       }
   };

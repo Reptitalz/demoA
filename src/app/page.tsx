@@ -466,7 +466,7 @@ export default function MarketingHomePage() {
               icon={<UserCog size={28} className="text-primary" />}
               title="Crea tu Asistente"
               description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
-              imageUrl="https://i.imgur.com/8Q8B5Zg.gif"
+              imageUrl="/1.jpeg"
               imageHint="AI assistant setup"
             />
             <StepCard
@@ -474,7 +474,7 @@ export default function MarketingHomePage() {
               icon={<FaSimCard size={28} className="text-primary" />}
               title="Vincula un Número"
               description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
-              imageUrl="https://i.imgur.com/8Q8B5Zg.gif"
+              imageUrl="/2.jpeg"
               imageHint="SIM card linking"
             />
             <StepCard
@@ -482,7 +482,7 @@ export default function MarketingHomePage() {
               icon={<FaCheckCircle size={28} className="text-primary" />}
               title="Activa y Disfruta"
               description="Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
-              imageUrl="https://placehold.co/600x400.png"
+              imageUrl="/3.jpeg"
               imageHint="success activation"
             />
           </div>

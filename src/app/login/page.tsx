@@ -34,34 +34,19 @@ const LoginPageContent = () => {
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
-  useEffect(() => {
-    // If NextAuth session is good BUT we don't have a user profile (new user),
-    // show the registration dialog.
-    if (status === 'authenticated' && !state.userProfile.isAuthenticated && !state.loadingStatus.active) {
-       toast({
-          title: "Cuenta no encontrada",
-          description: "Parece que eres nuevo. Por favor, crea tu primer asistente para registrarte.",
-          variant: "default",
-          duration: 6000
-      });
-      handleOpenRegisterDialog();
-    }
-  }, [status, state.userProfile.isAuthenticated, state.loadingStatus.active, toast]);
-
   const handleLogin = async (provider: 'google' | 'credentials') => {
     setIsLoggingIn(true);
     try {
         const result = await signIn(provider, {
             redirect: false,
             ...(provider === 'credentials' && { email, password }),
-            callbackUrl: '/dashboard'
         });
         
         if (result?.error) {
             throw new Error(result.error);
         }
-        // On successful sign-in, the useEffect hooks will handle redirection or
-        // opening the registration dialog if the user is new.
+        // On successful sign-in, the AppProvider's useEffect will handle redirection
+        // or opening the registration dialog if the user is new.
     } catch (error: any) {
       console.error("Login Error:", error);
       toast({
