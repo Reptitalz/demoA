@@ -421,7 +421,7 @@ const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children
 export default function MarketingHomePage() {
   const { toast } = useToast();
   const handleCopyEmail = () => {
-    const email = 'reptitalz@heymanito.com';
+    const email = 'contacto@heymanito.com';
     navigator.clipboard.writeText(email).then(() => {
         toast({
             title: 'Correo Copiado',
@@ -621,4 +621,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     </div>
   );
 };
+    
+
     
