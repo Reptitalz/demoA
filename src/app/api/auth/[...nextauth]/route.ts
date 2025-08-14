@@ -49,20 +49,24 @@ export const authOptions: NextAuthOptions = {
 
           if (firebaseUser) {
             const { db } = await connectToDatabase();
-            const userInDb = await db.collection('users').findOne({ email: firebaseUser.email });
+            // Match user from our userProfiles collection now
+            const userInDb = await db.collection('userProfiles').findOne({ email: firebaseUser.email });
             
             if (userInDb) {
               return {
-                id: userInDb._id.toString(),
-                name: userInDb.name,
+                id: userInDb.firebaseUid, // Use firebaseUid to match JWT sub
+                name: userInDb.firstName,
                 email: userInDb.email,
-                image: userInDb.image,
+                image: userInDb.assistants?.[0]?.imageUrl,
               };
+            } else {
+               throw new Error("Usuario no encontrado en nuestra base de datos.");
             }
           }
-           return null;
+           throw new Error("No se pudo autenticar con Firebase.");
         } catch (error: any) {
-          console.error("Firebase auth error:", error.code);
+          console.error("Firebase auth error:", error.code, error.message);
+          // Always throw an error to be handled by next-auth client
           throw new Error("Credenciales inválidas. Por favor, inténtalo de nuevo.");
         }
       }
@@ -72,17 +76,18 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.sub!;
-      }
-      return session;
-    },
     async jwt({ token, user }) {
+      // The user object is only passed on the first sign-in
       if (user) {
-        token.id = user.id;
+        token.sub = user.id; // Persist the user's ID to the token
       }
       return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub!; // Add the user ID to the session object
+      }
+      return session;
     },
      async signIn({ user }) {
       console.log(`User signing in: ${user.email}. Allowing sign-in.`);
@@ -92,7 +97,7 @@ export const authOptions: NextAuthOptions = {
   secret: NEXTAUTH_SECRET,
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/login', // Redirect to login on error, error message will be in URL query
   },
 };
 
