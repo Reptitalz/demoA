@@ -45,13 +45,21 @@ const LoginPageContent = () => {
         if (result?.error) {
             throw new Error(result.error);
         }
-        // On successful sign-in, the AppProvider's useEffect will handle redirection
-        // or opening the registration dialog if the user is new.
+        // On successful sign-in, the AppProvider's useEffect will handle fetching profile
+        // and subsequent redirection.
+        toast({ title: "Iniciando sesión...", description: "Verificando tus datos."});
+
     } catch (error: any) {
       console.error("Login Error:", error);
+      let errorMessage = 'No se pudo iniciar sesión. Por favor, intenta de nuevo.';
+      if (error.message.includes('CredentialsSignin')) {
+          errorMessage = "Correo electrónico o contraseña incorrectos.";
+      } else if (error.message) {
+          errorMessage = error.message;
+      }
       toast({
         title: "Error de inicio de sesión",
-        description: error.message.includes('CredentialsSignin') ? "Credenciales inválidas." : 'No se pudo iniciar sesión. Por favor, intenta de nuevo.',
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -85,7 +93,7 @@ const LoginPageContent = () => {
 
         <form onSubmit={(e) => { e.preventDefault(); handleLogin('credentials'); }} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="sr-only">Correo Electrónico</Label>
+              <Label htmlFor="email">Correo Electrónico</Label>
               <Input id="email" type="email" placeholder="Correo Electrónico" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
              <div>
@@ -153,3 +161,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+    

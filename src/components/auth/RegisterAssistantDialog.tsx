@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -20,7 +20,7 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { firebaseApp } from '@/lib/firebase';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -29,26 +29,25 @@ interface RegisterAssistantDialogProps {
 
 const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDialogProps) => {
   const { state, dispatch } = useApp();
+  const { data: session } = useSession();
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
-  // State for email/password form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
-  const needsDatabaseConfiguration = useCallback(() => {
+  const dbNeeded = useMemo(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
   }, [selectedPurposes]);
 
-  const dbNeeded = needsDatabaseConfiguration();
-  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 5 : 4), [dbNeeded]); // Added one step for auth
+  const effectiveMaxSteps = useMemo(() => (dbNeeded ? 5 : 4), [dbNeeded]);
 
-  const getValidationMessage = (): string | null => {
-    switch (currentStep) {
+  const getValidationMessageForStep = useCallback((step: number): string | null => {
+    switch (step) {
         case 1:
             if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
             if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
@@ -58,50 +57,49 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
             return null;
         case 3:
-            if (!dbNeeded) return getValidationMessageForStep(4); // Skip to terms
+            if (!dbNeeded) return null; // Skip validation if not needed
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
             if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
             if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Proporciona una URL válida de Hoja de Google.";
             if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
             return null;
         case 4:
-             if (!dbNeeded) return getValidationMessageForStep(5); // Skip to auth
             if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
             return null;
         case 5:
-            if (dbNeeded && !acceptedTerms) return "Debes aceptar los términos y condiciones.";
-            return null; // Auth step has its own validation
-        default:
+            // This is the auth step, validation happens on submit
             return null;
+        default:
+            return "Paso inválido";
     }
-  };
-
-  const getValidationMessageForStep = (step: number) => {
-      // Helper function to avoid repetition
-      switch(step) {
-          case 4: return !acceptedTerms ? "Debes aceptar los términos y condiciones." : null;
-          case 5: return null;
-          default: return "Paso desconocido";
-      }
-  }
+  }, [assistantName, selectedPurposes, ownerPhoneNumberForNotifications, assistantPrompt, dbNeeded, databaseOption, acceptedTerms]);
   
-  const isStepValid = (): boolean => {
+  const isStepValid = useMemo((): boolean => {
     if (isFinalizingSetup) return false;
-    return getValidationMessage() === null;
-  };
+    // For step 4 (Auth), the button is the submit action, so it's always "valid" to click
+    if (!dbNeeded && currentStep === 4) return true;
+    if (dbNeeded && currentStep === 5) return true;
+
+    return getValidationMessageForStep(currentStep) === null;
+  }, [currentStep, getValidationMessageForStep, isFinalizingSetup, dbNeeded]);
+
 
   const handleNext = () => {
-    const validationError = getValidationMessage();
-    if (validationError) {
-      toast({ title: "Error de Validación", description: validationError, variant: "destructive" });
-      return;
-    }
-    if (currentStep < effectiveMaxSteps) {
-        let nextStep = currentStep + 1;
-        // Skip DB config step if not needed
-        if (nextStep === 3 && !dbNeeded) {
-            nextStep++;
+    if (!isStepValid) {
+        const error = getValidationMessageForStep(currentStep);
+        if (error) {
+            toast({ title: "Error de Validación", description: error, variant: "destructive" });
         }
+        return;
+    }
+    
+    let nextStep = currentStep + 1;
+    // If we are on step 2 and DB is not needed, skip to step 4 (Terms)
+    if (currentStep === 2 && !dbNeeded) {
+        nextStep = 4;
+    }
+    
+    if (nextStep <= effectiveMaxSteps) {
         dispatch({ type: 'SET_WIZARD_STEP', payload: nextStep });
     }
   };
@@ -109,21 +107,23 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const handlePrevious = () => {
     if (currentStep > 1) {
         let prevStep = currentStep - 1;
-        if (prevStep === 3 && !dbNeeded) {
-            prevStep--;
+        // If we are on step 4 (Terms) and DB was not needed, go back to step 2 (Prompt)
+        if (currentStep === 4 && !dbNeeded) {
+            prevStep = 2;
         }
         dispatch({ type: 'SET_WIZARD_STEP', payload: prevStep });
     }
   };
   
-  const createProfileAndFinalize = async (firebaseUser: any) => {
+  const createProfileAndFinalize = async (firebaseUser: any, authProvider: 'google' | 'email' = 'google') => {
       setIsFinalizingSetup(true);
       try {
-        const { displayName, email: firebaseEmail, uid } = firebaseUser;
-        const [fName, ...lNameParts] = displayName?.split(' ') || [firstName, lastName];
-        const userFirstName = fName;
-        const userLastName = lNameParts.join(' ');
-        const userEmail = firebaseEmail || email;
+        const userEmail = firebaseUser.email;
+        const uid = firebaseUser.uid;
+        
+        // Determine name from either form or Google profile
+        const userFirstName = authProvider === 'email' ? firstName : (firebaseUser.name?.split(' ')[0] || '');
+        const userLastName = authProvider === 'email' ? lastName : (firebaseUser.name?.split(' ').slice(1).join(' ') || '');
         
         if (!uid || !userEmail) {
             throw new Error("No se pudieron obtener los datos de autenticación.");
@@ -158,7 +158,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               email: userEmail,
               firstName: userFirstName,
               lastName: userLastName,
-              authProvider: 'google', // Defaulting to google, can be changed based on provider
+              authProvider,
               assistants: [finalAssistantConfig],
               databases: newDbEntry ? [newDbEntry] : [],
               ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
@@ -171,18 +171,29 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               body: JSON.stringify(finalProfileData),
           });
 
-          if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.message || "No se pudo crear el perfil de usuario.");
+          const { userProfile: createdProfile, message } = await response.json();
+
+          if (!response.ok && response.status !== 200) { // Allow 200 for existing user
+              throw new Error(message || "No se pudo crear el perfil de usuario.");
+          }
+          
+          if (response.status === 201) { // Only send webhook for new creations
+            await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
           }
 
-          const { userProfile: createdProfile } = await response.json();
-          await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
+          // This will either create a new session or sign in the existing user
+          await signIn('credentials', {
+              redirect: false,
+              email: userEmail,
+              password: password, // This will be empty for Google auth, which is fine. The backend won't use it.
+          });
+          
+          // The AppProvider's session check will handle the rest
           dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
-
           toast({ title: "¡Cuenta Creada!", description: `Bienvenido/a. Redirigiendo al dashboard...` });
           onOpenChange(false);
-          router.push('/dashboard');
+          router.push('/dashboard/assistants');
+
       } catch (error: any) {
           console.error("Profile creation error:", error);
           toast({ title: "Error al crear perfil", description: error.message, variant: "destructive" });
@@ -191,51 +202,60 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       }
   }
 
+  // Effect to handle Google Sign-in completion
+  useEffect(() => {
+    if (session?.user && isOpen && !state.userProfile.isAuthenticated) {
+        // If session is active, user came from Google popup, and we are in the dialog
+        // and there's no profile loaded yet, it's time to create the profile.
+        const firebaseUser = {
+            uid: session.user.id,
+            email: session.user.email,
+            name: session.user.name,
+        };
+        createProfileAndFinalize(firebaseUser, 'google');
+    }
+  }, [session, isOpen, state.userProfile.isAuthenticated]);
+
   const handleAuth = async (provider: 'google' | 'email') => {
-      setIsFinalizingSetup(true);
-      const auth = getAuth(firebaseApp);
-      try {
-          if (provider === 'google') {
-            // We just need to trigger the next-auth flow for Google
-            await signIn('google');
-          } else {
-              // Email/Password flow
-              if (!email || !password || !firstName || !lastName) {
-                  throw new Error("Por favor, completa todos los campos del formulario.");
+      if (provider === 'google') {
+        // Just trigger the sign-in, the useEffect will handle the rest
+        await signIn('google');
+      } else {
+          // Email/Password flow
+          if (!email || !password || !firstName || !lastName) {
+              toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
+              return;
+          }
+          setIsFinalizingSetup(true);
+          const auth = getAuth(firebaseApp);
+          try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await createProfileAndFinalize(userCredential.user, 'email');
+          } catch (error: any) {
+              console.error("Authentication/Registration Error:", error);
+              let errorMessage = "Ocurrió un error inesperado.";
+              if (error.code === 'auth/email-already-in-use') {
+                  errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
+              } else if (error.message) {
+                  errorMessage = error.message;
               }
-              const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-              // After creating user in Firebase, create profile in our DB
-              await createProfileAndFinalize(userCredential.user);
+              toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
+          } finally {
+              setIsFinalizingSetup(false);
           }
-      } catch(error: any) {
-          console.error("Authentication/Registration Error:", error);
-          let errorMessage = "Ocurrió un error inesperado.";
-          if (error.code === 'auth/email-already-in-use') {
-              errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
-          } else if (error.message) {
-              errorMessage = error.message;
-          }
-          toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
-          setIsFinalizingSetup(false);
       }
   };
 
 
   const renderStepContent = () => {
-    let steps: Record<number, React.ReactNode> = {
-        1: <Step1AssistantDetails />,
-        2: <Step2AssistantPrompt />,
-    };
-
-    if (dbNeeded) {
-        steps[3] = <Step2DatabaseConfig />;
-        steps[4] = <Step5TermsAndConditions />;
-        steps[5] = <AuthStep />;
-    } else {
-        steps[3] = <Step5TermsAndConditions />;
-        steps[4] = <AuthStep />;
+    switch(currentStep) {
+        case 1: return <Step1AssistantDetails />;
+        case 2: return <Step2AssistantPrompt />;
+        case 3: return dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />;
+        case 4: return dbNeeded ? <Step5TermsAndConditions /> : <AuthStep />;
+        case 5: return <AuthStep />;
+        default: return null;
     }
-    return steps[currentStep] || null;
   };
   
   const AuthStep = () => (
@@ -322,7 +342,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
           </Button>
 
           {currentStep < effectiveMaxSteps ? (
-              <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid() || isFinalizingSetup}>
+              <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
                 Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
               </Button>
           ) : (
@@ -335,3 +355,5 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
+
+    

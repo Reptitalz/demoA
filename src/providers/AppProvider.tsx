@@ -6,7 +6,7 @@ import React, { createContext, useContext, useReducer, useEffect, useRef, useCal
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -260,41 +260,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const previousStateRef = useRef<AppState>(initialState);
   const { data: session, status } = useSession();
 
-  const fetchProfile = useCallback(async (email: string) => {
+  const fetchProfileCallback = useCallback(async (email: string) => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
       
       if (response.status === 404) {
-          console.log(`Profile not found for ${email}. New user flow will be triggered.`);
-          const wizardState = state.wizard;
-          // Trigger profile creation if user came from registration dialog
-          if (wizardState.assistantName) {
-            const { displayName, email: firebaseEmail, uid } = session!.user as any;
-             const [fName, ...lNameParts] = wizardState.firstName ? [wizardState.firstName, wizardState.lastName] : (displayName?.split(' ') || []);
+          console.log(`Profile not found for ${email}. This might be a new user from Google sign-in.`);
+          // This case is now handled in RegisterAssistantDialog.
+          // If a user with a valid session lands here without a profile, they will be stuck in a loop.
+          // The correct flow is to direct them to create an assistant.
+          // We clear the loading state and let the UI decide (e.g., login page will show "Create Assistant").
+          dispatch({ type: 'LOGOUT_USER' }); // Reset state to force user to login/register page.
+          toast({
+              title: "Bienvenido/a a " + process.env.NEXT_PUBLIC_APP_NAME,
+              description: "Parece que eres nuevo. ¡Crea tu primer asistente para empezar!",
+              duration: 6000,
+          });
 
-            const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-              firebaseUid: session!.user!.id!,
-              email: firebaseEmail || wizardState.email,
-              firstName: fName,
-              lastName: lNameParts.join(' '),
-              authProvider: 'google',
-              assistants: [], // Will be added by the wizard logic
-              databases: [],
-              credits: 0
-            };
-             dispatch({ type: 'COMPLETE_SETUP', payload: finalProfileData as UserProfile });
-          } else {
-             // User exists in NextAuth but not our DB, and didn't come from wizard. Prompt to create.
-             toast({
-                title: "Completa tu registro",
-                description: "Parece que eres nuevo. Crea tu primer asistente para continuar.",
-                variant: 'default',
-                duration: 8000,
-             });
-             // Effectively, they are "authenticated" but have no profile. Login page handles this state.
-             dispatch({ type: 'LOGOUT_USER' }); // Reset to a clean slate to show login page correctly.
-          }
       } else if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
@@ -310,7 +293,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [dispatch, session, state.wizard]);
+  }, [dispatch]);
 
 
   useEffect(() => {
@@ -338,22 +321,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       dispatch({ type: 'LOGOUT_USER' });
     } else if (status === 'authenticated') {
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
-        fetchProfile(session.user.email);
+        fetchProfileCallback(session.user.email);
       } else {
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
     }
-  }, [status, session, state.userProfile.isAuthenticated, fetchProfile]);
-
-  const memoizedContextValue = {
-    state,
-    dispatch,
-    fetchProfileCallback: fetchProfile,
-  };
+  }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
 
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={memoizedContextValue as any}>
+        <AppContext.Provider value={{ state, dispatch }}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>
@@ -365,9 +342,7 @@ export const useApp = () => {
   if (context === undefined) {
     throw new Error('useApp debe ser usado dentro de un AppProvider');
   }
-  return context as {
-    state: AppState;
-    dispatch: React.Dispatch<Action>;
-    fetchProfileCallback: (email: string) => Promise<void>;
-  };
+  return context;
 };
+
+    
