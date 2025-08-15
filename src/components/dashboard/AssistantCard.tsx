@@ -200,8 +200,8 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isAssistantActive = assistant.isActive;
-  const isWaitingForCode = !!assistant.phoneLinked && !assistant.numberReady;
+  const isAssistantActive = !!assistant.verificationCode && assistant.verificationCode.startsWith('A-');
+  const isActivating = !!assistant.phoneLinked && !isAssistantActive;
   
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
@@ -209,7 +209,7 @@ const AssistantCard = ({
   if (isAssistantActive) {
       badgeText = "Activo";
       badgeVariant = "default";
-  } else if (isWaitingForCode) {
+  } else if (isActivating) {
       badgeText = "Activando";
       badgeVariant = "outline";
   }
@@ -218,9 +218,9 @@ const AssistantCard = ({
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
       isAssistantActive && "bg-brand-gradient text-primary-foreground",
-      isWaitingForCode && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      isActivating && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
-      {isWaitingForCode && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+      {isActivating && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
       {badgeText}
     </Badge>
   );
@@ -271,7 +271,7 @@ const AssistantCard = ({
                           <span>Chatear</span>
                       </a>
                     </CardDescription>
-                ) : isWaitingForCode ? (
+                ) : isActivating ? (
                    <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
                     <FaSpinner className="animate-spin h-4 w-4 text-primary" />
                     <span>Esperando código para {assistant.phoneLinked}...</span>
@@ -441,7 +441,7 @@ const AssistantCard = ({
                                 Compartir
                             </Button>
                         </div>
-                    ) : isWaitingForCode ? (
+                    ) : isActivating ? (
                         <div className="space-y-3 animate-fadeIn p-2">
                             <p className="text-xs text-muted-foreground text-center">Ingresa el código de verificación para {assistant.phoneLinked}.</p>
                             <Input
