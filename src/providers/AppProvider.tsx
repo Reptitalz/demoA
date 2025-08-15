@@ -77,6 +77,7 @@ type Action =
   | { type: 'ADD_ASSISTANT'; payload: AssistantConfig }
   | { type: 'UPDATE_ASSISTANT'; payload: AssistantConfig }
   | { type: 'REMOVE_ASSISTANT'; payload: string }
+  | { type: 'REASSIGN_ASSISTANT_PHONE'; payload: string } // Assistant ID
   | { type: 'ADD_DATABASE_TO_ASSISTANT'; payload: { assistantId: string, database: DatabaseConfig } }
   | { type: 'UPDATE_DATABASE'; payload: DatabaseConfig }
   | { type: 'REMOVE_DATABASE'; payload: string }
@@ -179,6 +180,28 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.map(a => a.id === action.payload.id ? action.payload : a) }};
     case 'REMOVE_ASSISTANT':
       return { ...state, userProfile: { ...state.userProfile, assistants: state.userProfile.assistants.filter(a => a.id !== action.payload) }};
+    case 'REASSIGN_ASSISTANT_PHONE': {
+      const assistantIdToReassign = action.payload;
+      const updatedAssistants = state.userProfile.assistants.map(asst => {
+        if (asst.id === assistantIdToReassign) {
+          return {
+            ...asst,
+            phoneLinked: undefined,
+            isActive: false,
+            numberReady: false,
+            verificationCode: undefined,
+          };
+        }
+        return asst;
+      });
+      return {
+        ...state,
+        userProfile: {
+          ...state.userProfile,
+          assistants: updatedAssistants,
+        },
+      };
+    }
     case 'ADD_DATABASE_TO_ASSISTANT': {
       const { assistantId, database } = action.payload;
       const updatedAssistants = state.userProfile.assistants.map(a => 
@@ -344,5 +367,3 @@ export const useApp = () => {
   }
   return context;
 };
-
-    

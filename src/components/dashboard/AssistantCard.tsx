@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ import { useApp } from "@/providers/AppProvider";
 import MessageLimitDialog from './MessageLimitDialog';
 import { Progress } from "../ui/progress";
 import { MessagesSquare } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -39,6 +40,7 @@ const AssistantCard = ({
   const [imageError, setImageError] = useState(false);
   const [isBusinessInfoDialogOpen, setIsBusinessInfoDialogOpen] = useState(false);
   const [isMessageLimitDialogOpen, setIsMessageLimitDialogOpen] = useState(false);
+  const [isReassignAlertOpen, setIsReassignAlertOpen] = useState(false);
 
   // Local state for the phone integration flow
   const [isIntegrating, setIsIntegrating] = useState(false);
@@ -178,6 +180,15 @@ const AssistantCard = ({
       }
     }
   };
+
+  const handleReassignPhoneNumber = () => {
+    dispatch({ type: 'REASSIGN_ASSISTANT_PHONE', payload: assistant.id });
+    toast({
+      title: 'Número Desvinculado',
+      description: `El número de ${assistant.name} ha sido desvinculado. Ahora puedes integrar uno nuevo.`
+    });
+    setIsReassignAlertOpen(false);
+  }
 
 
   const allPurposes = assistant.purposes.map(pid =>
@@ -376,29 +387,55 @@ const AssistantCard = ({
             ) : (
                 <>
                     {isAssistantActive ? (
-                        <div className="grid grid-cols-2 gap-2">
-                            <Button
+                        <div className="grid grid-cols-3 gap-2">
+                             <Button
                                 size="sm"
                                 onClick={() => setIsBusinessInfoDialogOpen(true)}
                                 variant="secondary"
                                 className="transition-transform transform hover:scale-105 w-full text-xs"
+                                title="Información de Negocio"
                             >
                                 <FaInfoCircle size={14} />
-                                Info. de Negocio
                             </Button>
                              <Button
                                 size="sm"
                                 onClick={() => setIsMessageLimitDialogOpen(true)}
                                 variant="secondary"
                                 className="transition-transform transform hover:scale-105 w-full text-xs"
+                                title="Asignar Límite de Mensajes"
                             >
                                 <MessagesSquare size={14} />
-                                Asignar Límite
                             </Button>
+                            <AlertDialog open={isReassignAlertOpen} onOpenChange={setIsReassignAlertOpen}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="transition-transform transform hover:scale-105 w-full text-xs"
+                                  title="Reasignar Número"
+                                >
+                                  <FaExchangeAlt size={14} />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Reasignar número de teléfono?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción desvinculará el número actual de este asistente. Tendrás que integrar y verificar un nuevo número. El número anterior quedará libre. ¿Estás seguro?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleReassignPhoneNumber} className="bg-destructive hover:bg-destructive/90">
+                                    Sí, reasignar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                             <Button
                                 size="sm"
                                 onClick={handleShareOnWhatsApp}
-                                className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs col-span-2"
+                                className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs col-span-3"
                             >
                                 <FaShareAlt size={14} />
                                 Compartir
