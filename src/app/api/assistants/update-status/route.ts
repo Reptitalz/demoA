@@ -1,4 +1,3 @@
-
 // src/app/api/assistants/update-status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -57,24 +56,18 @@ export async function POST(request: NextRequest) {
        console.warn("Could not send activation webhook because user email or assistant name is missing.");
     }
     
-
-    // Always set the verification code that was attempted
-    await userProfileCollection.updateOne(
-        { _id: new ObjectId(userDbId), "assistants.id": assistantId },
-        { $set: { "assistants.$.verificationCode": verificationCode } }
-    );
-    
     let updateOperation;
     let pushPayload;
 
     // Custom logic based on verification code prefix
-    if (verificationCode.startsWith('A')) {
+    if (verificationCode.startsWith('A-')) {
       // Success case: Activate the assistant
       updateOperation = {
         $set: { 
           "assistants.$.numberReady": true,
           "assistants.$.isActive": true, // Also set the primary status flag
           "assistants.$.phoneLinked": phoneNumber, // ensure phone is set
+          "assistants.$.verificationCode": verificationCode, // Save the successful code
         }
       };
       console.log(`Activating assistant ${assistantId} for user ${userDbId}`);
@@ -88,7 +81,7 @@ export async function POST(request: NextRequest) {
       // Failure case: Reset the assistant's phone details
       updateOperation = {
         $set: {
-            "assistants.$.numberReady": false, // explicitly set to false
+            "assistants.$.numberReady": false,
             "assistants.$.isActive": false,
         },
         $unset: { 
