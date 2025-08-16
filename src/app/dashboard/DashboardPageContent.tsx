@@ -21,7 +21,7 @@ import { MessageSquare, User } from 'lucide-react';
 import Link from 'next/link';
 
 const DashboardPageContent = () => {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, fetchProfileCallback } = useApp();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -50,11 +50,12 @@ const DashboardPageContent = () => {
             variant: "default",
           });
           // The profile fetch is now handled centrally, but we could trigger a manual refetch if needed
-          // fetchProfileCallback(userEmail);
+          fetchProfileCallback(userEmail);
       }
+      // Clean up the URL by removing search params, regardless of status
       router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, toast, state.userProfile.email, router, pathname]);
+  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email, router, pathname]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
     const assistant = userProfile.assistants.find(a => a.id === assistantId);

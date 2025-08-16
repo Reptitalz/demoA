@@ -55,6 +55,7 @@ const initialState: AppState = {
 const AppContext = createContext<{ 
   state: AppState; 
   dispatch: React.Dispatch<Action>;
+  fetchProfileCallback: (email: string) => Promise<void>;
 } | undefined>(undefined);
 
 type Action =
@@ -316,7 +317,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [dispatch]);
+  }, []);
 
 
   useEffect(() => {
@@ -353,7 +354,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch }}>
+        <AppContext.Provider value={{ state, dispatch, fetchProfileCallback }}>
             {children}
         </AppContext.Provider>
     </QueryClientProvider>
