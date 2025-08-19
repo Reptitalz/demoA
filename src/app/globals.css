@@ -177,7 +177,7 @@ body {
     left: 0;
     width: 200%;
     height: 100%;
-    background: linear-gradient(115deg, transparent 40%, hsl(var(--primary) / 0.5), transparent 60%);
+    background: linear-gradient(115deg, transparent 40%, hsla(0, 0%, 100%, 0.5), transparent 60%);
     background-size: 200% 100%;
     animation: shiny-border-anim 3s linear infinite;
     z-index: 1;
