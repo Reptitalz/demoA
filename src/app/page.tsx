@@ -512,7 +512,7 @@ export default function MarketingHomePage() {
               icon={<UserCog size={28} className="text-primary" />}
               title="Crea tu Asistente"
               description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
-              imageUrl="https://i.imgur.com/8Q8B5Zg.gif"
+              imageUrl="/2.jpeg"
               imageHint="AI assistant setup"
             />
             <StepCard
