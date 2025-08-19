@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { signIn } from 'next-auth/react';
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
   const [step, setStep] = useState(0);
@@ -301,6 +302,33 @@ const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const particlesContainerRef = useRef<HTMLDivElement>(null);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { toast } = useToast();
+
+  const handleTestLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: 'test@heymanito.com',
+        password: 'password123',
+      });
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      toast({ title: '¡Bienvenido/a!', description: 'Explora la aplicación con nuestra cuenta de prueba.' });
+      window.location.href = '/dashboard/assistants';
+    } catch (error: any) {
+      console.error("Test Login Error:", error);
+      toast({
+        title: "Error de inicio de sesión de prueba",
+        description: 'No se pudo iniciar sesión. Por favor, intenta de nuevo más tarde.',
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -378,12 +406,23 @@ const HeroSection = () => {
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-fadeIn" style={{animationDelay: '0.2s'}}>
                Automatiza conversaciones, gestiona datos y optimiza tus procesos de negocio con asistentes inteligentes directamente en la app de mensajería más popular.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
-                <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg")}>
-                    <Link href="/login">Empezar Ahora <ArrowRight className="ml-2"/></Link>
-                </Button>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
-                    Cómo Funciona
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+                    <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg")}>
+                        <Link href="/login">Empezar Ahora <ArrowRight className="ml-2"/></Link>
+                    </Button>
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
+                        Cómo Funciona
+                    </Button>
+                </div>
+                 <Button
+                    variant="link"
+                    onClick={handleTestLogin}
+                    disabled={isLoggingIn}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                    {isLoggingIn ? <FaSpinner className="animate-spin mr-2" /> : null}
+                    o ver la aplicación con una cuenta de prueba
                 </Button>
             </div>
              <div className="mt-8 animate-fadeIn" style={{animationDelay: '0.4s'}}>
