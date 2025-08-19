@@ -302,34 +302,7 @@ const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const particlesContainerRef = useRef<HTMLDivElement>(null);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { toast } = useToast();
-
-  const handleTestLogin = async () => {
-    setIsLoggingIn(true);
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: 'test@heymanito.com',
-        password: 'password123',
-      });
-      if (result?.error) {
-        throw new Error(result.error);
-      }
-      toast({ title: '¡Bienvenido/a!', description: 'Explora la aplicación con nuestra cuenta de prueba.' });
-      window.location.href = '/dashboard/assistants';
-    } catch (error: any) {
-      console.error("Test Login Error:", error);
-      toast({
-        title: "Error de inicio de sesión de prueba",
-        description: 'No se pudo iniciar sesión. Por favor, intenta de nuevo más tarde.',
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
+  
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -415,15 +388,6 @@ const HeroSection = () => {
                         Cómo Funciona
                     </Button>
                 </div>
-                 <Button
-                    variant="link"
-                    onClick={handleTestLogin}
-                    disabled={isLoggingIn}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                    {isLoggingIn ? <FaSpinner className="animate-spin mr-2" /> : null}
-                    o ver la aplicación con una cuenta de prueba
-                </Button>
             </div>
              <div className="mt-8 animate-fadeIn" style={{animationDelay: '0.4s'}}>
                 <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
@@ -711,3 +675,4 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
