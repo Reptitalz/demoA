@@ -512,7 +512,7 @@ export default function MarketingHomePage() {
               icon={<UserCog size={28} className="text-primary" />}
               title="Crea tu Asistente"
               description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
-              imageUrl="/2.jpeg"
+              imageUrl="/1.jpeg"
               imageHint="AI assistant setup"
             />
             <StepCard
@@ -520,7 +520,7 @@ export default function MarketingHomePage() {
               icon={<FaSimCard size={28} className="text-primary" />}
               title="Vincula un Número"
               description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
-              imageUrl="https://i.imgur.com/Yh32T9j.png"
+              imageUrl="https://i.imgur.com/gGI22pM.png"
               imageHint="SIM card linking"
             />
             <StepCard
@@ -667,6 +667,8 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     </div>
   );
 };
+    
+
     
 
     
