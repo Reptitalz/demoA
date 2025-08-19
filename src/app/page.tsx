@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
