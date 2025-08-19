@@ -299,13 +299,15 @@ const PhoneChatMockup = () => {
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const particlesContainerRef = useRef<HTMLDivElement>(null);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     const handleMouseMove = (e: MouseEvent) => {
-      const container = containerRef.current;
-      if (!container) return;
-      const { left, top, width, height } = container.getBoundingClientRect();
+      const { left, top } = container.getBoundingClientRect();
       const x = e.clientX - left;
       const y = e.clientY - top;
       container.style.setProperty('--mouse-x', `${x}px`);
@@ -313,6 +315,25 @@ const HeroSection = () => {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+
+    // Create particles
+    const particlesContainer = particlesContainerRef.current;
+    if (particlesContainer) {
+        const numberOfParticles = 20;
+        for (let i = 0; i < numberOfParticles; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'light-particle';
+            const size = Math.random() * 3 + 1;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.animationDuration = `${Math.random() * 5 + 5}s`; // 5-10 seconds
+            particle.style.animationDelay = `${Math.random() * 5}s`;
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
@@ -325,6 +346,20 @@ const HeroSection = () => {
             background: 'radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), hsla(var(--primary), 0.15), transparent 80%)'
           }}
         />
+        <div
+          className="absolute bottom-0 left-0 w-full h-1/2 z-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 80% 50% at 50% 100%, hsla(var(--primary), 0.2), transparent 80%)',
+             maskImage: 'linear-gradient(to top, black 20%, transparent 100%)',
+             transform: 'scaleX(1.5)',
+             opacity: 0.7
+          }}
+        />
+        <div
+            ref={particlesContainerRef}
+            className="absolute inset-0 z-0 pointer-events-none"
+        />
+
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground animate-fadeIn" style={{animationDelay: '0.1s'}}>
                 Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp</span>
