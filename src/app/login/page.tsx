@@ -8,7 +8,8 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { FaGoogle, FaSpinner } from 'react-icons/fa';
+import { FaSpinner } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import LoadingStatus from '@/components/shared/LoadingStatus';
 import { signIn, useSession } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
@@ -47,7 +48,7 @@ const LoginPageContent = () => {
         if (result?.error) {
             throw new Error(result.error);
         }
-        // On successful sign-in, the AppProvider's useEffect will handle fetching profile
+        // On successful sign-in, the AppProvider's session check will handle fetching profile
         // and subsequent redirection.
         toast({ title: "Iniciando sesión...", description: "Verificando tus datos."});
 
@@ -125,9 +126,10 @@ const LoginPageContent = () => {
            <Button
             onClick={() => handleLogin('google')}
             disabled={isLoggingIn}
-            className="w-full bg-brand-gradient text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex justify-center items-center gap-2"
+            variant="outline"
+            className="w-full font-semibold py-3 rounded-lg hover:bg-muted transition-all duration-300 flex justify-center items-center gap-2"
           >
-            <FaGoogle className="h-5 w-5" />
+            <FcGoogle className="h-5 w-5" />
             Iniciar Sesión con Google
           </Button>
         </div>
