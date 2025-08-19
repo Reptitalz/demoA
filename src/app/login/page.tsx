@@ -8,7 +8,7 @@ import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { FaSpinner } from 'react-icons/fa';
+import { FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import LoadingStatus from '@/components/shared/LoadingStatus';
 import { signIn, useSession } from 'next-auth/react';
@@ -29,6 +29,7 @@ const LoginPageContent = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   useEffect(() => {
     // If NextAuth session is good AND we have a user profile loaded, redirect.
@@ -101,9 +102,17 @@ const LoginPageContent = () => {
                   <Label htmlFor="email">Correo Electrónico</Label>
                   <Input id="email" type="email" placeholder="Correo Electrónico" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
-                 <div>
+                 <div className="relative">
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input id="password" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required />
+                  <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required />
+                   <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 top-6 flex items-center pr-3 text-muted-foreground hover:text-primary"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 <Button
                   type="submit"
