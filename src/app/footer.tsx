@@ -2,7 +2,7 @@
 import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { FaFacebook } from 'react-icons/fa';
+import { FaFacebook, FaTiktok } from 'react-icons/fa';
 
 interface FooterProps {
   fullWidth?: boolean;
@@ -18,6 +18,9 @@ const Footer = ({ fullWidth = false }: FooterProps) => {
         <div className="flex justify-center items-center gap-4 mb-2">
             <a href="https://www.facebook.com/share/1MF3DaQi6M/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <FaFacebook size={20} />
+            </a>
+            <a href="https://www.tiktok.com/@hey.manito?_t=ZS-8z0tVEG5w3O&_r=1" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <FaTiktok size={20} />
             </a>
         </div>
         <p>&copy; {new Date().getFullYear()} {APP_NAME}. Todos los derechos reservados.</p>
