@@ -14,6 +14,7 @@ import { signIn, useSession } from 'next-auth/react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppIcon from '@/components/shared/AppIcon';
+import { cn } from '@/lib/utils';
 
 const APP_NAME = "Hey Manito!";
 
@@ -141,12 +142,15 @@ const LoginPageContent = () => {
         </div>
 
         <Button
-          onClick={handleOpenRegisterDialog}
-          variant="outline"
-          className="w-full font-semibold py-3 rounded-lg hover:bg-muted transition-all duration-300 flex justify-center items-center gap-2"
-        >
-          <UserPlus className="h-5 w-5" />
-          Crear Asistente
+            onClick={handleOpenRegisterDialog}
+            className={cn(
+                "w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2",
+                "bg-brand-gradient text-primary-foreground hover:opacity-90",
+                "animate-pulse-border shiny-border"
+            )}
+            >
+            <UserPlus className="h-5 w-5" />
+            Crear Asistente
         </Button>
         
       </div>
