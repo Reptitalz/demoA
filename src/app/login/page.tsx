@@ -95,34 +95,25 @@ const LoginPageContent = () => {
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); handleLogin('credentials'); }} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Correo Electrónico</Label>
-              <Input id="email" type="email" placeholder="Correo Electrónico" value={email} onChange={e => setEmail(e.target.value)} required />
-            </div>
-             <div>
-              <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required />
-            </div>
-            <Button
-              type="submit"
-              disabled={isLoggingIn}
-              className="w-full font-semibold py-3 rounded-lg shadow-md transition-all duration-300 disabled:opacity-50"
-            >
-              {isLoggingIn ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Iniciar Sesión'}
-            </Button>
-        </form>
-        
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">O</span>
-          </div>
-        </div>
-        
         <div className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin('credentials'); }} className="space-y-4">
+                <div>
+                  <Label htmlFor="email">Correo Electrónico</Label>
+                  <Input id="email" type="email" placeholder="Correo Electrónico" value={email} onChange={e => setEmail(e.target.value)} required />
+                </div>
+                 <div>
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Input id="password" type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} required />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full font-semibold py-3 rounded-lg shadow-md transition-all duration-300 disabled:opacity-50"
+                >
+                  {isLoggingIn ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Iniciar Sesión'}
+                </Button>
+            </form>
+            
            <Button
             onClick={() => handleLogin('google')}
             disabled={isLoggingIn}
