@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -319,7 +319,16 @@ const HeroSection = () => {
     // Create particles
     const particlesContainer = particlesContainerRef.current;
     if (particlesContainer) {
+        // Clear existing particles before creating new ones
+        particlesContainer.innerHTML = '';
         const numberOfParticles = 20;
+        
+        // Get colors from CSS variables
+        const rootStyle = getComputedStyle(document.documentElement);
+        const primaryColor = `hsl(${rootStyle.getPropertyValue('--primary').trim()})`;
+        const accentColor = `hsl(${rootStyle.getPropertyValue('--accent').trim()})`;
+        const themeColors = [primaryColor, accentColor];
+
         for (let i = 0; i < numberOfParticles; i++) {
             const particle = document.createElement('div');
             particle.className = 'light-particle';
@@ -329,6 +338,8 @@ const HeroSection = () => {
             particle.style.left = `${Math.random() * 100}%`;
             particle.style.animationDuration = `${Math.random() * 5 + 5}s`; // 5-10 seconds
             particle.style.animationDelay = `${Math.random() * 5}s`;
+            // Randomly assign a theme color
+            particle.style.backgroundColor = themeColors[Math.floor(Math.random() * themeColors.length)];
             particlesContainer.appendChild(particle);
         }
     }
@@ -509,7 +520,7 @@ export default function MarketingHomePage() {
               icon={<FaSimCard size={28} className="text-primary" />}
               title="Vincula un Número"
               description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
-              imageUrl="https://i.imgur.com/wVUMjTj.jpeg"
+              imageUrl="https://i.imgur.com/Yh32T9j.png"
               imageHint="SIM card linking"
             />
             <StepCard

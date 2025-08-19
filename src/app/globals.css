@@ -208,7 +208,6 @@ body {
   .light-particle {
     position: absolute;
     bottom: 0;
-    background-color: white;
     border-radius: 50%;
     opacity: 0;
     animation: float-up linear infinite;
