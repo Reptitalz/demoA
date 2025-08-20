@@ -96,19 +96,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                <DropdownMenuItem asChild>
                 <Link href="/login">Empezar Ahora</Link>
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <span>Productos</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem asChild>
-                    <Link href="/">WhatsApp Asistente</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuItem>
-                <span>Colaboradores</span>
-              </DropdownMenuItem>
               {showInstallButton && (
                 <>
                   <DropdownMenuSeparator />
