@@ -87,10 +87,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/login">Empezar Ahora</Link>
-              </DropdownMenuItem>
-
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <span>Productos</span>
@@ -105,7 +101,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </DropdownMenuSub>
               
                <DropdownMenuItem asChild>
-                <Link href="/colaboradores">Colaboradores/aliados</Link>
+                <Link href="/colaboradores" >Colaboradores/aliados</Link>
               </DropdownMenuItem>
 
               {showInstallButton && (
