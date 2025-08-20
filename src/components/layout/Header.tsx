@@ -16,8 +16,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
-import { FaBars } from 'react-icons/fa';
+import { FaBars, FaChevronRight } from 'react-icons/fa';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -76,6 +80,46 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <FaBars />
+                <span className="sr-only">Abrir menú de navegación</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/login">Empezar Ahora</Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <span>Productos</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem asChild>
+                       <Link href="/">WhatsApp Asistente</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+              
+               <DropdownMenuItem asChild>
+                <Link href="#">Colaboradores</Link>
+              </DropdownMenuItem>
+
+              {showInstallButton && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleInstallClick}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Instalar App
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
