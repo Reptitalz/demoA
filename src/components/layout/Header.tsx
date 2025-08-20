@@ -15,9 +15,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { FaBars } from 'react-icons/fa';
@@ -33,38 +30,31 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if the app is running in standalone mode (already installed)
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsStandalone(true);
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the browser's default install prompt
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Clean up the event listener when the component unmounts
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    // If we have a deferred prompt, show it
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         toast({ title: "¡Aplicación Instalada!", description: "La aplicación se ha instalado en tu dispositivo." });
       } else {
         console.log('User dismissed the A2HS prompt');
       }
-      // We can only use the prompt once, so clear it.
       setDeferredPrompt(null);
     }
   };
@@ -86,27 +76,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <FaBars />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-               <DropdownMenuItem asChild>
-                <Link href="/login">Empezar Ahora</Link>
-              </DropdownMenuItem>
-              {showInstallButton && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleInstallClick}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Instalar App
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>
