@@ -63,7 +63,7 @@ const CollaboratorsPage = () => {
                     Conviértete en Aliado de {APP_NAME}
                 </h1>
                 <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                    Únete a nuestro programa de colaboradores y genera ingresos ayudando a negocios a automatizar su comunicación con IA en WhatsApp.
+                    Únete a nuestro programa de colaboradores y genera ingresos ayudando a negocios a automatizar su comunicación con IA en WhatsApp. Gana una comisión cada vez que tus clientes hagan una recarga.
                 </p>
                 <Button 
                     size="lg" 
