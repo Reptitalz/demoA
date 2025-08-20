@@ -105,7 +105,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </DropdownMenuSub>
               
                <DropdownMenuItem asChild>
-                <Link href="/colaboradores/login" target="_blank">Colaboradores/aliados</Link>
+                <Link href="/colaboradores/login">Colaboradores/aliados</Link>
               </DropdownMenuItem>
 
               {showInstallButton && (
