@@ -1,4 +1,3 @@
-
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -88,6 +87,19 @@ export interface UserAddress {
   state?: string;
 }
 
+export interface CollaboratorProfile {
+  _id?: ObjectId;
+  firebaseUid: string;
+  isAuthenticated: boolean;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  referralCode: string;
+  referredUsers: ObjectId[]; // Array of UserProfile IDs
+  totalEarnings: number;
+  conversionRate: number;
+}
+
 export interface UserProfile {
   _id?: ObjectId;
   firebaseUid: string; // This will now hold the user's unique ID from next-auth
@@ -102,6 +114,7 @@ export interface UserProfile {
   ownerPhoneNumberForNotifications?: string;
   credits: number;
   pushSubscriptions?: any[];
+  referredBy?: ObjectId; // Link to CollaboratorProfile
 }
 
 export interface WizardState {

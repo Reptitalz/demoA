@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -29,7 +28,7 @@ const CollaboratorLoginPage = () => {
   useEffect(() => {
     // If NextAuth session is good AND we have a user profile loaded, redirect.
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
-      router.replace('/dashboard/assistants');
+      router.replace('/colaboradores/dashboard');
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
