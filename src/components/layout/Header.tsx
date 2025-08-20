@@ -106,6 +106,9 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              <DropdownMenuItem>
+                <span>Colaboradores</span>
+              </DropdownMenuItem>
               {showInstallButton && (
                 <>
                   <DropdownMenuSeparator />
