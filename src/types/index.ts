@@ -1,3 +1,4 @@
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -77,7 +78,7 @@ export interface AssistantConfig {
   timezone?: string;
 }
 
-export type AuthProviderType = "google" | "phone";
+export type AuthProviderType = "google" | "phone" | "email";
 
 export interface UserAddress {
   street_name?: string;
