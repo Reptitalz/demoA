@@ -9,6 +9,7 @@ import { FaUserPlus, FaWhatsapp, FaRocket, FaHandshake, FaBullseye, FaChartLine 
 import { ArrowRight, CircleDollarSign, Target } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 const CollaboratorsPage = () => {
     const router = useRouter();
@@ -66,7 +67,11 @@ const CollaboratorsPage = () => {
                 </p>
                 <Button 
                     size="lg" 
-                    className="mt-8 text-lg"
+                    className={cn(
+                        "mt-8 text-lg",
+                        "bg-brand-gradient text-primary-foreground hover:opacity-90",
+                        "shiny-border"
+                    )}
                     onClick={() => router.push('/colaboradores/login')}
                 >
                     Acceder al Portal de Aliados <ArrowRight className="ml-2" />
