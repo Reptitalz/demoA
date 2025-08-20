@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -106,7 +105,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </DropdownMenuSub>
               
                <DropdownMenuItem asChild>
-                <Link href="#">Colaboradores</Link>
+                <Link href="#">Colaboradores/aliados</Link>
               </DropdownMenuItem>
 
               {showInstallButton && (
