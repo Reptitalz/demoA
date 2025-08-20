@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FaUserPlus, FaWhatsapp, FaRocket, FaHandshake, FaBullseye, FaChartLine } from 'react-icons/fa';
 import { ArrowRight, CircleDollarSign, Target } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
+import Image from 'next/image';
 
 const CollaboratorsPage = () => {
     const router = useRouter();
@@ -17,17 +18,23 @@ const CollaboratorsPage = () => {
         {
             icon: <FaUserPlus className="h-8 w-8 text-primary" />,
             title: "1. Registra a tu Cliente",
-            description: "Usa tu enlace de referido único para que tus clientes creen su primer asistente. ¡Es el primer paso para empezar a ganar!"
+            description: "Usa tu enlace de referido único para que tus clientes creen su primer asistente. ¡Es el primer paso para empezar a ganar!",
+            imageUrl: "https://placehold.co/600x400.png",
+            imageHint: "client registration"
         },
         {
             icon: <FaWhatsapp className="h-8 w-8 text-green-500" />,
             title: "2. Ayúdalos a Activar",
-            description: "Guía a tus clientes en la vinculación de un número de WhatsApp nuevo. Es crucial para que el asistente funcione."
+            description: "Guía a tus clientes en la vinculación de un número de WhatsApp nuevo. Es crucial para que el asistente funcione.",
+            imageUrl: "https://placehold.co/600x400.png",
+            imageHint: "whatsapp activation"
         },
         {
             icon: <FaRocket className="h-8 w-8 text-accent" />,
             title: "3. Impulsa sus Recargas",
-            description: "Cada vez que tus clientes recarguen créditos para sus asistentes, tú ganas una comisión. ¡Tu éxito es nuestro éxito!"
+            description: "Cada vez que tus clientes recarguen créditos para sus asistentes, tú ganas una comisión. ¡Tu éxito es nuestro éxito!",
+            imageUrl: "https://placehold.co/600x400.png",
+            imageHint: "earnings commission"
         }
     ];
 
@@ -74,7 +81,17 @@ const CollaboratorsPage = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {steps.map((step, index) => (
-                        <Card key={index} className="text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow">
+                        <Card key={index} className="text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow overflow-hidden">
+                             <div className="relative aspect-video mb-4 rounded-md overflow-hidden">
+                                <Image
+                                    src={step.imageUrl}
+                                    alt={step.title}
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-full object-cover transition-transform hover:scale-105"
+                                    data-ai-hint={step.imageHint}
+                                />
+                            </div>
                             <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full">
                                 {step.icon}
                             </div>
