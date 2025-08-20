@@ -6,10 +6,21 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Menu as MenuIcon } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from '@/providers/AppProvider';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FaBars } from 'react-icons/fa';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -74,17 +85,38 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <div className="flex items-center gap-2">
-          {showInstallButton && (
-            <Button 
-              size="sm" 
-              className="hidden md:flex bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105"
-              onClick={handleInstallClick}
-            >
-              <Download className="mr-1.5 h-4 w-4" />
-              Instalar App
-            </Button>
-          )}
           <ThemeToggle />
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <FaBars />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+               <DropdownMenuItem asChild>
+                <Link href="/login">Empezar Ahora</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <span>Productos</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem asChild>
+                    <Link href="/">WhatsApp Asistente</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              {showInstallButton && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleInstallClick}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Instalar App
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
