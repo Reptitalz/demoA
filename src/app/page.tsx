@@ -381,7 +381,7 @@ const HeroSection = () => {
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-                    <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg")}>
+                    <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg", "shiny-border")}>
                         <Link href="/login">Empezar Ahora <ArrowRight className="ml-2"/></Link>
                     </Button>
                     <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
@@ -675,4 +675,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
-
