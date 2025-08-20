@@ -31,6 +31,9 @@ const Footer = ({ fullWidth = false }: FooterProps) => {
           <Link href="/terms" className="hover:text-primary hover:underline">
             Términos y Condiciones
           </Link>
+           <Link href="/colaboradores" className="hover:text-primary hover:underline">
+            Colaboradores
+          </Link>
         </div>
       </div>
     </footer>
