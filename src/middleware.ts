@@ -14,14 +14,17 @@ export async function middleware(req: NextRequest) {
   // Define protected routes
   const isProtectedRoute = 
       pathname.startsWith('/dashboard') || 
-      pathname.startsWith('/app');
+      pathname.startsWith('/app') ||
+      pathname.startsWith('/colaboradores/dashboard');
 
   if (isProtectedRoute) {
     const token = await getToken({ req, secret, raw: true });
 
     if (!token) {
       // If no token, redirect to the relevant login page
-      const loginUrl = new URL('/login', req.url);
+      const loginUrl = pathname.startsWith('/colaboradores') 
+        ? new URL('/colaboradores/login', req.url)
+        : new URL('/login', req.url);
         
       loginUrl.searchParams.set('callbackUrl', req.url);
       return NextResponse.redirect(loginUrl);
