@@ -72,7 +72,7 @@ const CollaboratorsPage = () => {
                         "bg-brand-gradient text-primary-foreground hover:opacity-90",
                         "shiny-border"
                     )}
-                    onClick={() => router.push('/colaboradores/login')}
+                    onClick={() => router.push('/login')}
                 >
                     Acceder al Portal de Aliados <ArrowRight className="ml-2" />
                 </Button>
