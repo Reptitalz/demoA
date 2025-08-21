@@ -139,7 +139,10 @@ const DashboardPageContent = () => {
   }
   
   const renderContentForRoute = () => {
-    if (pathname.startsWith('/dashboard/assistants')) {
+    // Default to assistants view for demo mode on the main dashboard page
+    const effectivePathname = isDemoMode && pathname === '/dashboard' ? '/dashboard/assistants' : pathname;
+
+    if (effectivePathname.startsWith('/dashboard/assistants')) {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
@@ -179,7 +182,7 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (pathname.startsWith('/dashboard/databases')) {
+    if (effectivePathname.startsWith('/dashboard/databases')) {
       return (
         <div className="space-y-4">
             <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
@@ -218,7 +221,7 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (pathname.startsWith('/dashboard/profile')) {
+    if (effectivePathname.startsWith('/dashboard/profile')) {
       return (
          <Card
           className="animate-fadeIn transition-all hover:shadow-lg"
@@ -333,6 +336,7 @@ const DashboardPageContent = () => {
               {pathname.startsWith('/dashboard/databases') && 'Bases de Datos'}
               {pathname.startsWith('/app/consumption') && 'Consumo'}
               {pathname.startsWith('/dashboard/profile') && 'Perfil y Soporte'}
+              {pathname === '/dashboard' && (isDemoMode ? 'Panel de Demostración' : 'Panel Principal')}
             </h2>
             {isDemoMode && (
                 <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
@@ -343,6 +347,7 @@ const DashboardPageContent = () => {
              {pathname.startsWith('/dashboard/databases') && 'Administra las fuentes de datos conectadas a tus asistentes.'}
              {pathname.startsWith('/app/consumption') && 'Revisa el uso y los límites de tus asistentes.'}
              {pathname.startsWith('/dashboard/profile') && 'Administra tu información, apariencia y obtén ayuda.'}
+             {pathname === '/dashboard' && (isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.')}
           </p>
         </div>
         
