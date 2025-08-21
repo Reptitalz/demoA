@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
@@ -18,6 +18,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
   const [step, setStep] = useState(0);
@@ -577,6 +584,57 @@ const FeaturesCarousel = () => {
   );
 };
 
+const faqItems = [
+    {
+        question: "¿Qué necesito para empezar a usar mi asistente?",
+        answer: "¡Es muy sencillo! Solo necesitas una nueva tarjeta SIM (chip) que nunca se haya registrado en WhatsApp y una cuenta de correo electrónico para crear tu perfil. Nuestra guía de configuración te llevará paso a paso."
+    },
+    {
+        question: "¿Puedo usar mi número de WhatsApp personal o de negocio actual?",
+        answer: "No. Para garantizar una integración correcta y cumplir con las políticas de WhatsApp, es indispensable usar un número de teléfono completamente nuevo. Esto asegura que tu asistente tenga una línea dedicada y estable para operar sin conflictos."
+    },
+    {
+        question: "¿Cómo funcionan los créditos y el conteo de mensajes?",
+        answer: "Funciona con un sistema de pago por uso. Compras créditos, y cada crédito te otorga una cantidad de mensajes (ej. 1,000). Se cuenta como 'un mensaje' cada interacción, tanto los mensajes que tu asistente envía como los que recibe y procesa. Así, solo pagas por el uso real."
+    },
+    {
+        question: "¿Es segura la información de mi negocio y mis clientes?",
+        answer: "La seguridad es nuestra prioridad. Nosotros no almacenamos el contenido de tus conversaciones. La información de tu negocio (como productos o servicios) que vinculas a través de Hojas de Google permanece bajo tu control y se rige por las políticas de seguridad de Google."
+    },
+    {
+        question: "¿Qué pasa si mi asistente no sabe cómo responder algo?",
+        answer: "Puedes configurar tu asistente para que, en caso de no saber una respuesta o cuando un cliente necesite atención especializada, te notifique directamente a tu número personal de WhatsApp para que puedas intervenir en la conversación."
+    },
+     {
+        question: "¿Puedo personalizar la personalidad de mi asistente?",
+        answer: "¡Totalmente! El corazón de tu asistente es el 'prompt' que tú defines. Puedes instruirlo para que sea formal, amigable, divertido o muy técnico, y darle reglas específicas sobre cómo debe interactuar, qué información puede dar y cómo debe manejar diferentes situaciones."
+    },
+];
+
+const FaqSection = () => {
+    return (
+        <section id="faq" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Preguntas Frecuentes</h2>
+                    <p className="mt-4 text-muted-foreground">Aquí resolvemos tus dudas más comunes.</p>
+                </div>
+                <Accordion type="single" collapsible className="w-full">
+                    {faqItems.map((item, index) => (
+                        <AccordionItem value={`item-${index}`} key={index}>
+                            <AccordionTrigger className="text-left text-base">{item.question}</AccordionTrigger>
+                            <AccordionContent className="text-muted-foreground">
+                                {item.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
+        </section>
+    );
+};
+
+
 export default function MarketingHomePage() {
   const { toast } = useToast();
   const handleCopyEmail = () => {
@@ -669,6 +727,7 @@ export default function MarketingHomePage() {
         </div>
       </section>
 
+      <FaqSection />
 
       <section className="w-full mt-20 sm:mt-28 py-16">
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -731,5 +790,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
 
+
+    
 
     
