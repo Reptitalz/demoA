@@ -15,7 +15,7 @@ const CollaboratorDashboardPage = () => {
     const { state } = useApp();
     const router = useRouter();
     const { toast } = useToast();
-    const { userProfile, isLoading } = state;
+    const { userProfile, loadingStatus } = state; // Changed from isLoading
 
     const isDemoMode = !userProfile.isAuthenticated;
 
@@ -57,7 +57,7 @@ const CollaboratorDashboardPage = () => {
         });
     };
 
-    if (isLoading && !isDemoMode) {
+    if (loadingStatus.active && !isDemoMode) {
         return (
             <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
                 <LoadingSpinner size={36} />

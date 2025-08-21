@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
 
   // Define protected routes
   const isProtectedRoute = 
-      pathname.startsWith('/dashboard') || 
+      pathname.startsWith('/dashboard/') || // Note the trailing slash to protect sub-routes
       pathname.startsWith('/app') ||
       pathname.startsWith('/colaboradores/dashboard');
 
@@ -23,26 +23,16 @@ export async function middleware(req: NextRequest) {
 
     if (!token) {
       // If no token, redirect to the relevant login page
-      let loginUrl;
-      if (pathname.startsWith('/colaboradores')) {
-          loginUrl = new URL('/colaboradores/login', req.url);
-      } else if (pathname.startsWith('/dashboard') || pathname.startsWith('/app')) {
-          // Allow access to root /dashboard for demo, but protect sub-routes
-          // A user without a token trying to access /dashboard/assistants will be redirected.
-          // A user without a token accessing /dashboard will be handled by the page component.
-          if (pathname === '/dashboard') {
-              return NextResponse.next();
-          }
-          loginUrl = new URL('/login', req.url);
-      } else {
-          loginUrl = new URL('/login', req.url);
-      }
+      const loginUrl = pathname.startsWith('/colaboradores') 
+        ? new URL('/colaboradores/login', req.url)
+        : new URL('/login', req.url);
         
       loginUrl.searchParams.set('callbackUrl', req.url);
       return NextResponse.redirect(loginUrl);
     }
   }
 
+  // Allow access to the root /dashboard page for the demo mode logic to handle it.
   return NextResponse.next();
 }
 

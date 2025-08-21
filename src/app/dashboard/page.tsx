@@ -12,7 +12,7 @@ import DashboardPageContent from './DashboardPageContent';
 function DashboardRedirector() {
     const router = useRouter();
     const { state } = useApp();
-    const { userProfile, loadingStatus, isSetupComplete } = state;
+    const { userProfile, loadingStatus } = state;
 
     useEffect(() => {
         // This effect runs once the initial loading is complete.
@@ -24,9 +24,9 @@ function DashboardRedirector() {
             }
             // If the user is NOT authenticated, they can stay on this page to view the demo.
         }
-    }, [loadingStatus.active, userProfile.isAuthenticated, isSetupComplete, router]);
+    }, [loadingStatus.active, userProfile.isAuthenticated, router]);
 
-    // While loading, show a spinner.
+    // While loading, show a spinner. This covers the session check time.
     if (loadingStatus.active) {
         return (
             <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
@@ -36,7 +36,7 @@ function DashboardRedirector() {
     }
     
     // If loading is finished and the user is NOT authenticated, render the DashboardPageContent
-    // which will be in demo mode.
+    // which will be in demo mode. The Suspense boundary is good practice.
     if (!userProfile.isAuthenticated) {
         return (
              <Suspense fallback={
@@ -49,7 +49,7 @@ function DashboardRedirector() {
         )
     }
 
-    // If authenticated, show a loading spinner while redirecting.
+    // If authenticated, we are likely in a redirect state, so show a spinner.
     return (
         <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
             <LoadingSpinner size={36} />
