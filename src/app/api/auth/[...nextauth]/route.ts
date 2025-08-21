@@ -9,6 +9,7 @@ import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { firebaseApp } from '@/lib/firebase';
+import type { UserProfile, CollaboratorProfile } from '@/types';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -35,32 +36,51 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        // Add a hidden field to distinguish user types
+        userType: { label: "User Type", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Se requieren correo electrónico y contraseña.");
+        if (!credentials?.email || !credentials?.password || !credentials?.userType) {
+          throw new Error("Se requieren correo electrónico, contraseña y tipo de usuario.");
         }
         
         const auth = getAuth(firebaseApp);
+        const { email, password, userType } = credentials;
+
         try {
-          const userCredential = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
           const firebaseUser = userCredential.user;
 
           if (firebaseUser) {
             const { db } = await connectToDatabase();
-            // Match user from our userProfiles collection now
-            const userInDb = await db.collection('userProfiles').findOne({ email: firebaseUser.email });
             
-            if (userInDb) {
-              return {
-                id: userInDb.firebaseUid, // Use firebaseUid to match JWT sub
-                name: userInDb.firstName,
-                email: userInDb.email,
-                image: userInDb.assistants?.[0]?.imageUrl,
-              };
+            if (userType === 'collaborator') {
+              // --- Collaborator Login Logic ---
+              const collaborator = await db.collection<CollaboratorProfile>('collaboratorProfiles').findOne({ email: firebaseUser.email });
+              if (collaborator) {
+                return {
+                  id: collaborator.firebaseUid,
+                  name: collaborator.firstName,
+                  email: collaborator.email,
+                  image: null, // Collaborators don't have images for now
+                };
+              } else {
+                throw new Error("Colaborador no encontrado en nuestra base de datos.");
+              }
             } else {
-               throw new Error("Usuario no encontrado en nuestra base de datos.");
+              // --- Regular User Login Logic ---
+              const userInDb = await db.collection<UserProfile>('userProfiles').findOne({ email: firebaseUser.email });
+              if (userInDb) {
+                return {
+                  id: userInDb.firebaseUid,
+                  name: userInDb.firstName,
+                  email: userInDb.email,
+                  image: userInDb.assistants?.[0]?.imageUrl,
+                };
+              } else {
+                 throw new Error("Usuario no encontrado en nuestra base de datos.");
+              }
             }
           }
            throw new Error("No se pudo autenticar con Firebase.");
