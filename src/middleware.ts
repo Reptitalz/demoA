@@ -41,6 +41,6 @@ export const config = {
   matcher: [
     '/dashboard/:path*', 
     '/app/:path*',
-    '/colaboradores/dashboard/:path*'
-],
+    '/colaboradores/dashboard' // Protect only the main collaborator dashboard page
+  ],
 };

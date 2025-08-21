@@ -15,7 +15,7 @@ const CollaboratorDashboardPage = () => {
     const { state } = useApp();
     const router = useRouter();
     const { toast } = useToast();
-    const { userProfile, loadingStatus } = state; // Changed from isLoading
+    const { userProfile, loadingStatus } = state;
 
     const isDemoMode = !userProfile.isAuthenticated;
 
@@ -33,7 +33,7 @@ const CollaboratorDashboardPage = () => {
         firstName: userProfile.firstName || 'Colaborador'
     };
 
-    const referralLink = `${process.env.NEXT_PUBLIC_BASE_URL}/login?ref=${collaboratorProfile.referralCode}`;
+    const referralLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/login?ref=${collaboratorProfile.referralCode}`;
 
     const handleCopyLink = () => {
         if (isDemoMode) {
