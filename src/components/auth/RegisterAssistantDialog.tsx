@@ -21,6 +21,7 @@ import { firebaseApp } from '@/lib/firebase';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { signIn, useSession } from 'next-auth/react';
+import { FcGoogle } from 'react-icons/fc';
 
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
@@ -182,11 +183,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
           }
 
           // This will either create a new session or sign in the existing user
-          await signIn('credentials', {
-              redirect: false,
-              email: userEmail,
-              password: password, // This will be empty for Google auth, which is fine. The backend won't use it.
-          });
+          // For google, session is already active. For email, we sign in.
+          if (authProvider === 'email') {
+             await signIn('credentials', {
+                redirect: false,
+                email: userEmail,
+                password: password,
+            });
+          }
           
           // The AppProvider's session check will handle the rest
           dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
@@ -204,7 +208,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   // Effect to handle Google Sign-in completion
   useEffect(() => {
-    if (session?.user && isOpen && !state.userProfile.isAuthenticated) {
+    if (session?.user && isOpen && !state.userProfile.isAuthenticated && currentStep >= effectiveMaxSteps) {
         // If session is active, user came from Google popup, and we are in the dialog
         // and there's no profile loaded yet, it's time to create the profile.
         const firebaseUser = {
@@ -214,9 +218,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         };
         createProfileAndFinalize(firebaseUser, 'google');
     }
-  }, [session, isOpen, state.userProfile.isAuthenticated]);
+  }, [session, isOpen, state.userProfile.isAuthenticated, currentStep, effectiveMaxSteps]);
 
-  const handleAuth = async () => {
+  const handleEmailPasswordAuth = async () => {
     // Email/Password flow
     if (!email || !password || !firstName || !lastName) {
         toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
@@ -258,30 +262,53 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
           <div className="text-center">
                 <h3 className="text-xl font-semibold">Último Paso: Crea tu Cuenta</h3>
                 <p className="text-sm text-muted-foreground">
-                Crea una cuenta para guardar tu asistente y acceder a tu panel de control.
+                Elige cómo quieres registrarte para guardar tu asistente y acceder a tu panel.
                 </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                  <Label htmlFor="firstNameReg">Nombre</Label>
-                  <Input id="firstNameReg" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Tu nombre" required />
+          
+          <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                      <Label htmlFor="firstNameReg">Nombre</Label>
+                      <Input id="firstNameReg" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Tu nombre" required />
+                  </div>
+                  <div>
+                      <Label htmlFor="lastNameReg">Apellido</Label>
+                      <Input id="lastNameReg" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tu apellido" required />
+                  </div>
               </div>
               <div>
-                  <Label htmlFor="lastNameReg">Apellido</Label>
-                  <Input id="lastNameReg" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tu apellido" required />
+                  <Label htmlFor="emailReg">Correo Electrónico</Label>
+                  <Input id="emailReg" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
               </div>
+              <div>
+                  <Label htmlFor="passwordReg">Contraseña</Label>
+                  <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
+              </div>
+              <Button onClick={handleEmailPasswordAuth} disabled={isFinalizingSetup} className="w-full">
+                {isFinalizingSetup ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
+              </Button>
           </div>
-          <div>
-              <Label htmlFor="emailReg">Correo Electrónico</Label>
-              <Input id="emailReg" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
+
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">O</span>
+            </div>
           </div>
-          <div>
-              <Label htmlFor="passwordReg">Contraseña</Label>
-              <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
-          </div>
-          <Button onClick={handleAuth} disabled={isFinalizingSetup} className="w-full">
-            {isFinalizingSetup ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
+
+          <Button
+            onClick={() => signIn('google')}
+            disabled={isFinalizingSetup}
+            variant="outline"
+            className="w-full"
+           >
+            <FcGoogle className="mr-2 h-5 w-5" />
+            Continuar con Google
           </Button>
+
       </div>
   );
 
@@ -338,3 +365,5 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
+
+    
