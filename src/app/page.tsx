@@ -466,6 +466,83 @@ const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children
   );
 };
 
+const features = [
+  {
+    icon: <FaCogs size={24} className="text-primary" />,
+    title: "Configuración Intuitiva",
+    description: "Lanza tus asistentes en minutos con nuestro asistente guiado paso a paso. Sin necesidad de código."
+  },
+  {
+    icon: <FaBrain size={24} className="text-primary" />,
+    title: "Conexión de Datos Flexible",
+    description: "Vincula Hojas de Google o crea bases de datos inteligentes que la IA gestiona por ti."
+  },
+  {
+    icon: <FaWhatsapp size={24} className="text-primary" />,
+    title: "Automatización en WhatsApp",
+    description: "Despliega tus asistentes directamente en WhatsApp para interactuar con clientes y recibir notificaciones."
+  },
+  {
+    icon: <FaSitemap size={24} className="text-primary" />,
+    title: "Gestión Centralizada",
+    description: "Crea y administra múltiples asistentes para diferentes propósitos desde un único panel de control."
+  },
+  {
+    icon: <FaShieldAlt size={24} className="text-primary" />,
+    title: "Seguridad y Confianza",
+    description: "Construido con la seguridad como prioridad para proteger tus datos y los de tus clientes."
+  },
+  {
+    icon: <FaMoneyBillWave size={24} className="text-primary" />,
+    title: "Paga por lo que Usas",
+    description: "Sin suscripciones ni sorpresas. Nuestro modelo de créditos te da control total sobre tus costos."
+  }
+];
+
+const FeaturesCarousel = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % features.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + features.length) % features.length);
+  };
+
+  const currentFeature = features[currentIndex];
+
+  return (
+    <div className="relative w-full max-w-2xl mx-auto">
+      <div className="overflow-hidden relative h-64">
+        <div className="animate-fadeIn" key={currentIndex}>
+          <FeatureCard {...currentFeature} />
+        </div>
+      </div>
+      <div className="flex justify-center items-center mt-4 gap-4">
+        <Button onClick={handlePrev} variant="outline" size="icon">
+          <FaArrowLeft />
+        </Button>
+        <div className="flex gap-2">
+          {features.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={cn(
+                "w-2 h-2 rounded-full transition-all",
+                currentIndex === index ? "bg-primary p-1" : "bg-muted-foreground/50"
+              )}
+              aria-label={`Ir a la característica ${index + 1}`}
+            />
+          ))}
+        </div>
+        <Button onClick={handleNext} variant="outline" size="icon">
+          <FaArrowRight />
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 export default function MarketingHomePage() {
   const { toast } = useToast();
@@ -540,42 +617,11 @@ export default function MarketingHomePage() {
 
       <section id="features" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Potencia tus Asistentes de IA sin Complejidad</h2>
-                <p className="mt-4 text-muted-foreground">Herramientas diseñadas para ser poderosas y fáciles de usar en WhatsApp.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" onMouseMove={setupMouseEvent}>
-              <FeatureCard
-                icon={<FaCogs size={24} className="text-primary" />}
-                title="Configuración Intuitiva"
-                description="Lanza tus asistentes en minutos con nuestro asistente guiado paso a paso. Sin necesidad de código."
-              />
-              <FeatureCard
-                icon={<FaBrain size={24} className="text-primary" />}
-                title="Conexión de Datos Flexible"
-                description="Vincula Hojas de Google o crea bases de datos inteligentes que la IA gestiona por ti."
-              />
-              <FeatureCard
-                icon={<FaWhatsapp size={24} className="text-primary" />}
-                title="Automatización en WhatsApp"
-                description="Despliega tus asistentes directamente en WhatsApp para interactuar con clientes y recibir notificaciones."
-              />
-              <FeatureCard
-                icon={<FaSitemap size={24} className="text-primary" />}
-                title="Gestión Centralizada"
-                description="Crea y administra múltiples asistentes para diferentes propósitos desde un único panel de control."
-              />
-              <FeatureCard
-                icon={<FaShieldAlt size={24} className="text-primary" />}
-                title="Seguridad y Confianza"
-                description="Construido con la seguridad como prioridad para proteger tus datos y los de tus clientes."
-              />
-               <FeatureCard
-                icon={<FaMoneyBillWave size={24} className="text-primary" />}
-                title="Paga por lo que Usas"
-                description="Sin suscripciones ni sorpresas. Nuestro modelo de créditos te da control total sobre tus costos."
-              />
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">¿Qué puede hacer tu asistente?</h2>
+            <p className="mt-4 text-muted-foreground">Herramientas diseñadas para ser poderosas y fáciles de usar en WhatsApp.</p>
+          </div>
+          <FeaturesCarousel />
         </div>
       </section>
 
@@ -625,39 +671,14 @@ interface FeatureCardProps {
 
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // Always visible in carousel
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      {
-        rootMargin: '0px',
-        threshold: 0.1
-      }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, []);
-  
   return (
     <div
       ref={ref}
       className={cn(
-        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card opacity-0",
-        isVisible && "animate-scroll-in"
+        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card text-center",
+        isVisible ? "opacity-100" : "opacity-0"
       )}
     >
       <div className="relative z-10">
@@ -675,3 +696,4 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
