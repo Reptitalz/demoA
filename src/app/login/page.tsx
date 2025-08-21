@@ -4,11 +4,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { UserPlus, FaSignInAlt } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-import { FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaSpinner, FaEye, FaEyeSlash, FaSignInAlt } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import LoadingStatus from '@/components/shared/LoadingStatus';
 import { signIn, useSession } from 'next-auth/react';
