@@ -1,3 +1,4 @@
+
 "use client";
 
 import PageContainer from "@/components/layout/PageContainer";
@@ -8,23 +9,40 @@ import { FaUsers, FaDollarSign, FaChartLine, FaClipboard } from "react-icons/fa"
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from "@/config/appConfig";
+import { useRouter } from "next/navigation";
 
 const CollaboratorDashboardPage = () => {
     const { state } = useApp();
+    const router = useRouter();
     const { toast } = useToast();
     const { userProfile, isLoading } = state;
 
-    // This would eventually be the collaborator's profile
-    const collaboratorProfile = {
+    const isDemoMode = !userProfile.isAuthenticated;
+
+    const collaboratorProfile = isDemoMode ? {
+        referralCode: 'DEMO12345',
+        referredUsers: 15,
+        totalEarnings: 750.50,
+        conversionRate: 5.2,
+        firstName: 'Colaborador Demo'
+    } : {
         referralCode: userProfile.firebaseUid ? userProfile.firebaseUid.substring(0, 8) : 'ABC12345',
         referredUsers: 0,
         totalEarnings: 0,
         conversionRate: 0,
-    }
+        firstName: userProfile.firstName || 'Colaborador'
+    };
 
     const referralLink = `${process.env.NEXT_PUBLIC_BASE_URL}/login?ref=${collaboratorProfile.referralCode}`;
 
     const handleCopyLink = () => {
+        if (isDemoMode) {
+            toast({
+                title: "Modo Demostración",
+                description: "La copia del enlace está deshabilitada en el modo de demostración.",
+            });
+            return;
+        }
         navigator.clipboard.writeText(referralLink).then(() => {
             toast({
                 title: "Enlace Copiado",
@@ -39,7 +57,7 @@ const CollaboratorDashboardPage = () => {
         });
     };
 
-    if (isLoading || !userProfile.isAuthenticated) {
+    if (isLoading && !isDemoMode) {
         return (
             <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
                 <LoadingSpinner size={36} />
@@ -49,13 +67,20 @@ const CollaboratorDashboardPage = () => {
 
     return (
         <PageContainer className="space-y-6">
-            <div className="animate-fadeIn">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                    Panel de Colaborador
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                    Bienvenido, {userProfile.firstName || 'Colaborador'}. Aquí puedes seguir tu progreso.
-                </p>
+            <div className="animate-fadeIn flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                        Panel de Colaborador
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                        Bienvenido, {collaboratorProfile.firstName}. Aquí puedes seguir tu progreso.
+                    </p>
+                </div>
+                 {isDemoMode && (
+                    <Button onClick={() => router.push('/colaboradores/login')}>
+                        Iniciar Sesión / Registrarse
+                    </Button>
+                )}
             </div>
 
             {/* Summary Cards */}
