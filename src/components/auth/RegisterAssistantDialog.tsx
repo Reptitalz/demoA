@@ -23,6 +23,89 @@ import { Label } from '../ui/label';
 import { signIn, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 
+interface AuthStepContentProps {
+  onFinalize: (authProvider: 'google' | 'email', authData: any) => Promise<void>;
+  isProcessing: boolean;
+}
+
+// Separate component for the Auth Step to manage its own form state locally
+const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepContentProps) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const { toast } = useToast();
+
+  const handleEmailPasswordAuth = async () => {
+    if (!email || !password || !firstName || !lastName) {
+      toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
+      return;
+    }
+    await onFinalize('email', { email, password, firstName, lastName });
+  };
+  
+  const handleGoogleAuth = () => {
+    signIn('google');
+  }
+
+  return (
+    <div className="animate-fadeIn space-y-6">
+        <div className="text-center">
+              <h3 className="text-xl font-semibold">Último Paso: Crea tu Cuenta</h3>
+              <p className="text-sm text-muted-foreground">
+              Elige cómo quieres registrarte para guardar tu asistente y acceder a tu panel.
+              </p>
+        </div>
+        
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="firstNameReg">Nombre</Label>
+                    <Input id="firstNameReg" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Tu nombre" required />
+                </div>
+                <div>
+                    <Label htmlFor="lastNameReg">Apellido</Label>
+                    <Input id="lastNameReg" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tu apellido" required />
+                </div>
+            </div>
+            <div>
+                <Label htmlFor="emailReg">Correo Electrónico</Label>
+                <Input id="emailReg" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
+            </div>
+            <div>
+                <Label htmlFor="passwordReg">Contraseña</Label>
+                <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
+            </div>
+            <Button onClick={handleEmailPasswordAuth} disabled={isProcessing} className="w-full">
+              {isProcessing ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
+            </Button>
+        </div>
+
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">O</span>
+          </div>
+        </div>
+
+        <Button
+          onClick={handleGoogleAuth}
+          disabled={isProcessing}
+          variant="outline"
+          className="w-full"
+         >
+          <FcGoogle className="mr-2 h-5 w-5" />
+          Continuar con Google
+        </Button>
+
+    </div>
+  );
+});
+AuthStepContent.displayName = 'AuthStepContent';
+
+
 interface RegisterAssistantDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,10 +119,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
 
   const dbNeeded = useMemo(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -65,10 +144,12 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
             return null;
         case 4:
-            if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+            if (dbNeeded && !acceptedTerms) return "Debes aceptar los términos y condiciones.";
+            if (!dbNeeded && !acceptedTerms) return "Debes aceptar los términos y condiciones.";
             return null;
         case 5:
             // This is the auth step, validation happens on submit
+            if (dbNeeded && !acceptedTerms) return "Debes aceptar los términos y condiciones.";
             return null;
         default:
             return "Paso inválido";
@@ -77,7 +158,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   
   const isStepValid = useMemo((): boolean => {
     if (isFinalizingSetup) return false;
-    // For step 4 (Auth), the button is the submit action, so it's always "valid" to click
+    // For the Auth step, the validation is handled inside the component
     if (!dbNeeded && currentStep === 4) return true;
     if (dbNeeded && currentStep === 5) return true;
 
@@ -86,11 +167,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
 
   const handleNext = () => {
-    if (!isStepValid) {
-        const error = getValidationMessageForStep(currentStep);
-        if (error) {
-            toast({ title: "Error de Validación", description: error, variant: "destructive" });
-        }
+    const error = getValidationMessageForStep(currentStep);
+    if (error) {
+        toast({ title: "Error de Validación", description: error, variant: "destructive" });
         return;
     }
     
@@ -116,15 +195,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
   };
   
-  const createProfileAndFinalize = async (firebaseUser: any, authProvider: 'google' | 'email' = 'email') => {
+  const createProfileAndFinalize = useCallback(async (firebaseUser: any, authProvider: 'google' | 'email', formData?: any) => {
       setIsFinalizingSetup(true);
       try {
         const userEmail = firebaseUser.email;
         const uid = firebaseUser.uid;
         
         // Determine name from either form or Google profile
-        const userFirstName = authProvider === 'email' ? firstName : (firebaseUser.name?.split(' ')[0] || '');
-        const userLastName = authProvider === 'email' ? lastName : (firebaseUser.name?.split(' ').slice(1).join(' ') || '');
+        const userFirstName = authProvider === 'email' ? formData.firstName : (firebaseUser.name?.split(' ')[0] || '');
+        const userLastName = authProvider === 'email' ? formData.lastName : (firebaseUser.name?.split(' ').slice(1).join(' ') || '');
         
         if (!uid || !userEmail) {
             throw new Error("No se pudieron obtener los datos de autenticación.");
@@ -182,17 +261,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
           }
 
-          // This will either create a new session or sign in the existing user
-          // For google, session is already active. For email, we sign in.
           if (authProvider === 'email') {
              await signIn('credentials', {
                 redirect: false,
                 email: userEmail,
-                password: password,
+                password: formData.password,
             });
           }
           
-          // The AppProvider's session check will handle the rest
           dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
           toast({ title: "¡Cuenta Creada!", description: `Bienvenido/a. Redirigiendo al dashboard...` });
           onOpenChange(false);
@@ -204,13 +280,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       } finally {
         setIsFinalizingSetup(false);
       }
-  }
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, ownerPhoneNumberForNotifications, toast, router, onOpenChange, dispatch]);
 
   // Effect to handle Google Sign-in completion
   useEffect(() => {
     if (session?.user && isOpen && !state.userProfile.isAuthenticated && currentStep >= effectiveMaxSteps) {
-        // If session is active, user came from Google popup, and we are in the dialog
-        // and there's no profile loaded yet, it's time to create the profile.
         const firebaseUser = {
             uid: session.user.id,
             email: session.user.email,
@@ -218,100 +292,46 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         };
         createProfileAndFinalize(firebaseUser, 'google');
     }
-  }, [session, isOpen, state.userProfile.isAuthenticated, currentStep, effectiveMaxSteps]);
-
-  const handleEmailPasswordAuth = async () => {
-    // Email/Password flow
-    if (!email || !password || !firstName || !lastName) {
-        toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
-        return;
+  }, [session, isOpen, state.userProfile.isAuthenticated, currentStep, effectiveMaxSteps, createProfileAndFinalize]);
+  
+  const handleFinalize = useCallback(async (authProvider: 'google' | 'email', authData: any) => {
+    if (authProvider === 'email') {
+      setIsFinalizingSetup(true);
+      const auth = getAuth(firebaseApp);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, authData.email, authData.password);
+        await createProfileAndFinalize(userCredential.user, 'email', authData);
+      } catch (error: any) {
+          console.error("Authentication/Registration Error:", error);
+          let errorMessage = "Ocurrió un error inesperado.";
+          if (error.code === 'auth/email-already-in-use') {
+              errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
+          } else if (error.message) {
+              errorMessage = error.message;
+          }
+          toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
+          setIsFinalizingSetup(false);
+      }
+    } else { // Google
+       signIn('google');
     }
-    setIsFinalizingSetup(true);
-    const auth = getAuth(firebaseApp);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await createProfileAndFinalize(userCredential.user, 'email');
-    } catch (error: any) {
-        console.error("Authentication/Registration Error:", error);
-        let errorMessage = "Ocurrió un error inesperado.";
-        if (error.code === 'auth/email-already-in-use') {
-            errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-        toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
-    } finally {
-        setIsFinalizingSetup(false);
-    }
-  };
-
+  }, [createProfileAndFinalize, toast]);
 
   const renderStepContent = () => {
+    const finalAuthStep = dbNeeded ? 5 : 4;
+    if (currentStep === finalAuthStep) {
+        return <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />;
+    }
+
     switch(currentStep) {
         case 1: return <Step1AssistantDetails />;
         case 2: return <Step2AssistantPrompt />;
         case 3: return dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />;
-        case 4: return dbNeeded ? <Step5TermsAndConditions /> : <AuthStep />;
-        case 5: return <AuthStep />;
+        case 4: return dbNeeded ? <Step5TermsAndConditions /> : null; // Auth is now final step
         default: return null;
     }
   };
   
-  const AuthStep = () => (
-      <div className="animate-fadeIn space-y-6">
-          <div className="text-center">
-                <h3 className="text-xl font-semibold">Último Paso: Crea tu Cuenta</h3>
-                <p className="text-sm text-muted-foreground">
-                Elige cómo quieres registrarte para guardar tu asistente y acceder a tu panel.
-                </p>
-          </div>
-          
-          <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                      <Label htmlFor="firstNameReg">Nombre</Label>
-                      <Input id="firstNameReg" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Tu nombre" required />
-                  </div>
-                  <div>
-                      <Label htmlFor="lastNameReg">Apellido</Label>
-                      <Input id="lastNameReg" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tu apellido" required />
-                  </div>
-              </div>
-              <div>
-                  <Label htmlFor="emailReg">Correo Electrónico</Label>
-                  <Input id="emailReg" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
-              </div>
-              <div>
-                  <Label htmlFor="passwordReg">Contraseña</Label>
-                  <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
-              </div>
-              <Button onClick={handleEmailPasswordAuth} disabled={isFinalizingSetup} className="w-full">
-                {isFinalizingSetup ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
-              </Button>
-          </div>
-
-          <div className="relative my-2">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">O</span>
-            </div>
-          </div>
-
-          <Button
-            onClick={() => signIn('google')}
-            disabled={isFinalizingSetup}
-            variant="outline"
-            className="w-full"
-           >
-            <FcGoogle className="mr-2 h-5 w-5" />
-            Continuar con Google
-          </Button>
-
-      </div>
-  );
-
   const handleDialogClose = (open: boolean) => {
     if (!isFinalizingSetup) {
         onOpenChange(open);
@@ -365,3 +385,5 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
+
+    
