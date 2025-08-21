@@ -11,10 +11,8 @@ export async function middleware(req: NextRequest) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 
-  // Define protected routes
+  // Define protected routes - dashboard is now unprotected for demo purposes
   const isProtectedRoute = 
-      pathname.startsWith('/dashboard') || 
-      pathname.startsWith('/app') ||
       pathname.startsWith('/colaboradores/dashboard');
 
   if (isProtectedRoute) {
@@ -37,8 +35,8 @@ export async function middleware(req: NextRequest) {
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
-    '/dashboard/:path*', 
-    '/app/:path*',
+    // '/dashboard/:path*', // Temporarily removed for demo access
+    // '/app/:path*',       // Temporarily removed for demo access
     '/colaboradores/dashboard/:path*'
 ],
 };

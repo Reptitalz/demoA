@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, FaSignInAlt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
@@ -155,6 +155,16 @@ const LoginPageContent = () => {
             Crear Asistente
         </Button>
         
+        <div className="mt-4 pt-4 border-t">
+            <Button
+            variant="secondary"
+            onClick={() => router.push('/dashboard/assistants')}
+            className="w-full font-semibold py-2 rounded-lg transition-all duration-300 flex justify-center items-center gap-2 text-xs"
+            >
+            <FaSignInAlt className="h-4 w-4" />
+            Entrar al Dashboard (Demo)
+        </Button>
+        </div>
       </div>
     </div>
     <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
