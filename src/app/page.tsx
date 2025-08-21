@@ -377,7 +377,7 @@ const HeroSection = () => {
                 Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-fadeIn" style={{animationDelay: '0.2s'}}>
-               Automatiza tu comunicación por WhatsApp con asistentes de IA. Responde al instante, gestiona datos y optimiza tus ventas sin esfuerzo.
+               Automatiza tus ventas y atención al cliente en WhatsApp con asistentes de IA que trabajan para ti 24/7.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
