@@ -152,7 +152,7 @@ const LoginPageContent = () => {
             )}
             >
             <UserPlus className="h-5 w-5" />
-            Crear Asistente
+            Registrarse
         </Button>
         
       </div>
