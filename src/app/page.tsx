@@ -736,16 +736,11 @@ export default function MarketingHomePage() {
                Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas por WhatsApp.
              </p>
              <div className="flex flex-col items-center gap-4">
-               <Button 
-                 onClick={handleCopyEmail}
-                 size="lg" 
-                 className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg")}
-               >
-                 <FaEnvelope className="mr-2 h-5 w-5" />
-                 Contactar por Correo
-               </Button>
+                 <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg", "shiny-border")}>
+                    <Link href="/login">Empezar Ahora <ArrowRight className="ml-2"/></Link>
+                </Button>
                <p className="text-xs text-muted-foreground mt-2">
-                 ¿Tienes dudas? Da clic para copiar nuestro correo de soporte.
+                 Crea tu cuenta y configura tu primer asistente en minutos.
                </p>
              </div>
         </div>
