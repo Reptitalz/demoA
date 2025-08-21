@@ -137,9 +137,12 @@ const CollaboratorLoginPage = () => {
 
           <Button
               onClick={() => setIsRegisterDialogOpen(true)}
-              variant="outline"
-              className="w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2"
-              >
+              className={cn(
+                "w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2",
+                "bg-brand-gradient text-primary-foreground hover:opacity-90",
+                "shiny-border"
+              )}
+            >
               <UserPlus className="h-5 w-5" />
               Registrarse como Colaborador
           </Button>
