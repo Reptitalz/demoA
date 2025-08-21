@@ -510,16 +510,49 @@ const FeaturesCarousel = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + features.length) % features.length);
   };
 
-  const currentFeature = features[currentIndex];
-
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      <div className="overflow-hidden relative h-64">
-        <div className="animate-fadeIn" key={currentIndex}>
-          <FeatureCard {...currentFeature} />
-        </div>
+    <div className="relative w-full max-w-4xl mx-auto">
+      <div className="relative h-72 overflow-hidden">
+        {features.map((feature, index) => {
+          const offset = index - currentIndex;
+          let style = {
+            transform: `translateX(${offset * 100}%) scale(0.8)`,
+            opacity: 0.4,
+            zIndex: features.length - Math.abs(offset),
+            transition: 'transform 0.4s ease-out, opacity 0.4s ease-out',
+          };
+          if (offset === 0) {
+            style = {
+              ...style,
+              transform: 'translateX(0) scale(1)',
+              opacity: 1,
+            };
+          } else if (offset === 1) {
+             style = {
+              ...style,
+              transform: 'translateX(50%) scale(0.85)',
+              opacity: 0.6
+            }
+          } else if (offset === -1) {
+             style = {
+              ...style,
+              transform: 'translateX(-50%) scale(0.85)',
+              opacity: 0.6
+            }
+          }
+
+          return (
+            <div
+              key={index}
+              className="absolute top-0 left-0 w-full h-full p-4"
+              style={style}
+            >
+              <FeatureCard {...feature} />
+            </div>
+          );
+        })}
       </div>
-      <div className="flex justify-center items-center mt-4 gap-4">
+      <div className="flex justify-center items-center mt-6 gap-4">
         <Button onClick={handlePrev} variant="outline" size="icon">
           <FaArrowLeft />
         </Button>
@@ -529,8 +562,8 @@ const FeaturesCarousel = () => {
               key={index}
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                "w-2 h-2 rounded-full transition-all",
-                currentIndex === index ? "bg-primary p-1" : "bg-muted-foreground/50"
+                "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                currentIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/50 hover:bg-muted-foreground"
               )}
               aria-label={`Ir a la característica ${index + 1}`}
             />
@@ -677,7 +710,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     <div
       ref={ref}
       className={cn(
-        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card text-center",
+        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card text-center h-full flex flex-col justify-center items-center",
         isVisible ? "opacity-100" : "opacity-0"
       )}
     >
@@ -697,3 +730,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
     
 
+
+
+    
