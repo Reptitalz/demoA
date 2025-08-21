@@ -115,7 +115,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
   };
   
-  const createProfileAndFinalize = async (firebaseUser: any, authProvider: 'google' | 'email' = 'google') => {
+  const createProfileAndFinalize = async (firebaseUser: any, authProvider: 'google' | 'email' = 'email') => {
       setIsFinalizingSetup(true);
       try {
         const userEmail = firebaseUser.email;
@@ -216,34 +216,29 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
   }, [session, isOpen, state.userProfile.isAuthenticated]);
 
-  const handleAuth = async (provider: 'google' | 'email') => {
-      if (provider === 'google') {
-        // Just trigger the sign-in, the useEffect will handle the rest
-        await signIn('google');
-      } else {
-          // Email/Password flow
-          if (!email || !password || !firstName || !lastName) {
-              toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
-              return;
-          }
-          setIsFinalizingSetup(true);
-          const auth = getAuth(firebaseApp);
-          try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await createProfileAndFinalize(userCredential.user, 'email');
-          } catch (error: any) {
-              console.error("Authentication/Registration Error:", error);
-              let errorMessage = "Ocurrió un error inesperado.";
-              if (error.code === 'auth/email-already-in-use') {
-                  errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
-              } else if (error.message) {
-                  errorMessage = error.message;
-              }
-              toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
-          } finally {
-              setIsFinalizingSetup(false);
-          }
-      }
+  const handleAuth = async () => {
+    // Email/Password flow
+    if (!email || !password || !firstName || !lastName) {
+        toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
+        return;
+    }
+    setIsFinalizingSetup(true);
+    const auth = getAuth(firebaseApp);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await createProfileAndFinalize(userCredential.user, 'email');
+    } catch (error: any) {
+        console.error("Authentication/Registration Error:", error);
+        let errorMessage = "Ocurrió un error inesperado.";
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
+    } finally {
+        setIsFinalizingSetup(false);
+    }
   };
 
 
@@ -284,20 +279,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               <Label htmlFor="passwordReg">Contraseña</Label>
               <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
           </div>
-          <Button onClick={() => handleAuth('email')} disabled={isFinalizingSetup} className="w-full">
+          <Button onClick={handleAuth} disabled={isFinalizingSetup} className="w-full">
             {isFinalizingSetup ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
-          </Button>
-          <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">O</span>
-              </div>
-          </div>
-          <Button onClick={() => handleAuth('google')} variant="outline" disabled={isFinalizingSetup} className="w-full flex items-center gap-2">
-            {isFinalizingSetup ? <FaSpinner className="animate-spin h-5 w-5" /> : <FaGoogle />}
-            Continuar con Google
           </Button>
       </div>
   );
@@ -355,5 +338,3 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
-
-    
