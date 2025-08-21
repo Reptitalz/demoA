@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -142,17 +143,6 @@ const CollaboratorLoginPage = () => {
               <UserPlus className="h-5 w-5" />
               Registrarse como Colaborador
           </Button>
-
-          <div className="mt-4 pt-4 border-t">
-             <Button
-                variant="secondary"
-                onClick={() => router.push('/colaboradores/dashboard')}
-                className="w-full font-semibold py-2 rounded-lg transition-all duration-300 flex justify-center items-center gap-2 text-xs"
-                >
-                <FaSignInAlt className="h-4 w-4" />
-                Entrar al Dashboard (Demo)
-            </Button>
-          </div>
 
         </div>
       </div>

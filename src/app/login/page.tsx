@@ -155,16 +155,6 @@ const LoginPageContent = () => {
             Crear Asistente
         </Button>
         
-        <div className="mt-4 pt-4 border-t">
-            <Button
-            variant="secondary"
-            onClick={() => router.push('/dashboard/assistants')}
-            className="w-full font-semibold py-2 rounded-lg transition-all duration-300 flex justify-center items-center gap-2 text-xs"
-            >
-            <FaSignInAlt className="h-4 w-4" />
-            Entrar al Dashboard (Demo)
-        </Button>
-        </div>
       </div>
     </div>
     <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
