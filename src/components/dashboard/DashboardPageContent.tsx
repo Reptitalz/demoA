@@ -26,21 +26,51 @@ const DashboardPageContent = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { userProfile, isLoading } = state;
+  const { userProfile, isLoading, isSetupComplete } = state;
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
+  
+  const isDemoMode = !userProfile.isAuthenticated;
 
-  // Handle session and payment status logic
+  const demoProfile = {
+      assistants: [{
+          id: 'demo-asst-1',
+          name: 'Asistente de Ventas (Demo)',
+          isActive: true,
+          numberReady: true,
+          phoneLinked: '+15551234567',
+          messageCount: 1250,
+          monthlyMessageLimit: 5000,
+          purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
+          databaseId: 'demo-db-1'
+      }],
+      databases: [{
+          id: 'demo-db-1',
+          name: 'Inventario de Productos (Demo)',
+          source: 'google_sheets' as const,
+          accessUrl: '#'
+      }],
+      credits: 5
+  }
+
+  const profileToRender = isDemoMode ? demoProfile : userProfile;
+
+  // Handle session and payment status logic for authenticated users
   useEffect(() => {
-    if (!isLoading && !state.userProfile.isAuthenticated) {
+    if (isLoading && !isDemoMode) {
+        return;
+    }
+    if (!isLoading && !isDemoMode && !userProfile.isAuthenticated) {
         router.replace('/login');
     }
-  }, [isLoading, state.userProfile.isAuthenticated, router]);
+  }, [isLoading, isDemoMode, userProfile.isAuthenticated, router]);
   
   useEffect(() => {
+    if(isDemoMode) return;
+
     const paymentStatus = searchParams.get('payment_status');
-    const userEmail = state.userProfile.email;
+    const userEmail = userProfile.email;
 
     if (paymentStatus && userEmail) {
       if (paymentStatus === 'success') {
@@ -51,12 +81,15 @@ const DashboardPageContent = () => {
           });
           fetchProfileCallback(userEmail);
       }
-      // Clean up the URL by removing search params, regardless of status
       router.replace(pathname, { scroll: false });
     }
-  }, [searchParams, fetchProfileCallback, toast, state.userProfile.email, router, pathname]);
+  }, [searchParams, fetchProfileCallback, toast, userProfile.email, router, pathname, isDemoMode]);
 
   const handleReconfigureAssistant = (assistantId: string) => {
+    if (isDemoMode) {
+      toast({ title: "Modo Demo", description: "La reconfiguración está deshabilitada en modo demo." });
+      return;
+    }
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
     if (assistant) {
         dispatch({ type: 'RESET_WIZARD' }); 
@@ -65,10 +98,16 @@ const DashboardPageContent = () => {
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
         dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
         
-        const purposesArray = Array.isArray(assistant.purposes) ? assistant.purposes : [];
-
-        purposesArray.forEach(purpose => {
-            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose });
+        assistant.purposes.forEach(purpose => {
+            const purposeId = purpose.split(' ')[0];
+            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId as any });
+            
+            if (purpose.startsWith('notify_owner')) {
+                const phone = purpose.split(' ')[1];
+                if (phone) {
+                    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
+                }
+            }
         });
 
         if(assistant.databaseId) {
@@ -87,13 +126,18 @@ const DashboardPageContent = () => {
   };
 
   const handleAddNewAssistant = () => {
+    if (isDemoMode) {
+      toast({ title: "Modo Demo", description: "Para añadir un asistente, por favor regístrate o inicia sesión." });
+      router.push('/login');
+      return;
+    }
     dispatch({ type: 'RESET_WIZARD' });
     router.push('/app?action=add'); 
   };
   
-  const showAddDatabaseButton = userProfile.assistants.some(a => !a.databaseId);
+  const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId);
 
-  if (isLoading || !userProfile.isAuthenticated) {
+  if (isLoading && !isDemoMode) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <LoadingSpinner size={28} /> 
@@ -102,7 +146,10 @@ const DashboardPageContent = () => {
   }
   
   const renderContentForRoute = () => {
-    if (pathname.startsWith('/dashboard/assistants')) {
+    // Default to assistants view for demo mode on the main dashboard page
+    const effectivePathname = isDemoMode && pathname === '/dashboard' ? '/dashboard/assistants' : pathname;
+
+    if (effectivePathname.startsWith('/dashboard/assistants')) {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
@@ -115,9 +162,9 @@ const DashboardPageContent = () => {
                 Añadir Asistente
             </Button>
             </div>
-            {userProfile.assistants.length > 0 ? (
+            {profileToRender.assistants.length > 0 ? (
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"> 
-                {userProfile.assistants.map((assistant, index) => (
+                {profileToRender.assistants.map((assistant, index) => (
                 <AssistantCard 
                     key={assistant.id} 
                     assistant={assistant} 
@@ -142,7 +189,7 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (pathname.startsWith('/dashboard/databases')) {
+    if (effectivePathname.startsWith('/dashboard/databases')) {
       return (
         <div className="space-y-4">
             <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
@@ -157,9 +204,9 @@ const DashboardPageContent = () => {
                     </Button>
                 )}
             </div>
-            {userProfile.databases.length > 0 ? (
+            {profileToRender.databases.length > 0 ? (
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                    {userProfile.databases.map((db, index) => (
+                    {profileToRender.databases.map((db, index) => (
                         <DatabaseInfoCard key={db.id} database={db} animationDelay={`${0.2 + index * 0.1}s`} />
                     ))}
                 </div>
@@ -181,7 +228,7 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (pathname.startsWith('/dashboard/profile')) {
+    if (effectivePathname.startsWith('/dashboard/profile')) {
       return (
          <Card
           className="animate-fadeIn transition-all hover:shadow-lg"
@@ -202,7 +249,13 @@ const DashboardPageContent = () => {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => setIsPersonalInfoOpen(true)}
+                  onClick={() => {
+                    if (isDemoMode) {
+                        toast({ title: "Modo Demo", description: "Para editar tu perfil, regístrate o inicia sesión."});
+                        return;
+                    }
+                    setIsPersonalInfoOpen(true)}
+                  }
                   className="shrink-0"
                 >
                   Editar
@@ -217,7 +270,7 @@ const DashboardPageContent = () => {
                   <div>
                     <h3 className="font-semibold">Seguridad</h3>
                     <p className="text-sm text-muted-foreground">
-                      Tu cuenta está segura con Google.
+                      {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con Google."}
                     </p>
                   </div>
                 </div>
@@ -226,7 +279,7 @@ const DashboardPageContent = () => {
                   variant="secondary"
                   disabled
                 >
-                  Gestionado por Google
+                 {isDemoMode ? "Modo Demo" : "Gestionado por Google"}
                 </Button>
               </div>
               <Separator />
@@ -288,13 +341,20 @@ const DashboardPageContent = () => {
             <h2 className="text-xl font-bold tracking-tight text-foreground">
               {pathname.startsWith('/dashboard/assistants') && 'Panel de Asistentes'}
               {pathname.startsWith('/dashboard/databases') && 'Bases de Datos'}
+              {pathname.startsWith('/app/consumption') && 'Consumo'}
               {pathname.startsWith('/dashboard/profile') && 'Perfil y Soporte'}
-            </h2> 
+              {pathname === '/dashboard' && (isDemoMode ? 'Panel de Demostración' : 'Panel Principal')}
+            </h2>
+            {isDemoMode && (
+                <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
              {pathname.startsWith('/dashboard/assistants') && 'Gestiona todos tus asistentes de IA desde aquí.'}
              {pathname.startsWith('/dashboard/databases') && 'Administra las fuentes de datos conectadas a tus asistentes.'}
+             {pathname.startsWith('/app/consumption') && 'Revisa el uso y los límites de tus asistentes.'}
              {pathname.startsWith('/dashboard/profile') && 'Administra tu información, apariencia y obtén ayuda.'}
+             {pathname === '/dashboard' && (isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.')}
           </p>
         </div>
         
