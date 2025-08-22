@@ -150,18 +150,11 @@ const AppSetupPageContent = () => {
 
     const assistantToUpdate = state.userProfile.assistants.find(a => a.id === state.wizard.editingAssistantId)!;
     
-    const finalPurposes: string[] = Array.from(selectedPurposes).map(p => {
-        if (p === 'notify_owner' && ownerPhoneNumberForNotifications) {
-            return `notify_owner ${ownerPhoneNumberForNotifications}`;
-        }
-        return p;
-    });
-
     const finalAssistantConfig: AssistantConfig = {
         ...assistantToUpdate,
         name: assistantName,
         prompt: assistantPrompt,
-        purposes: finalPurposes,
+        purposes: Array.from(selectedPurposes),
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
@@ -290,3 +283,5 @@ const AppSetupPage = () => {
 }
 
 export default AppSetupPage;
+
+    

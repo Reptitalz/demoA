@@ -15,23 +15,14 @@ import React, { useEffect } from "react";
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
   const { assistantName, selectedPurposes, ownerPhoneNumberForNotifications } = state.wizard;
-  const { assistants, isReconfiguring, editingAssistantId } = state.wizard;
+  const { isReconfiguring } = state.wizard;
 
   // Effect to populate phone number when reconfiguring
   useEffect(() => {
-    if (isReconfiguring && editingAssistantId) {
-      const assistant = state.userProfile.assistants.find(a => a.id === editingAssistantId);
-      if (assistant) {
-        const notifyOwnerPurpose = assistant.purposes.find(p => p.startsWith('notify_owner '));
-        if (notifyOwnerPurpose) {
-          const phone = notifyOwnerPurpose.split(' ')[1];
-          if (phone) {
-            dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
-          }
-        }
-      }
+    if (isReconfiguring && state.userProfile.ownerPhoneNumberForNotifications) {
+      dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: state.userProfile.ownerPhoneNumberForNotifications });
     }
-  }, [isReconfiguring, editingAssistantId, state.userProfile.assistants, dispatch]);
+  }, [isReconfiguring, state.userProfile.ownerPhoneNumberForNotifications, dispatch]);
 
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,3 +123,5 @@ const Step1AssistantDetails = () => {
 };
 
 export default Step1AssistantDetails;
+
+    

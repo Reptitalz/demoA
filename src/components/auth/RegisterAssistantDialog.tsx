@@ -140,7 +140,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             if (!dbNeeded) return null; // Skip validation if not needed
             if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
             if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/'))) return "Proporciona una URL válida de Hoja de Google.";
+            if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/d/'))) return "Proporciona una URL válida de Hoja de Google.";
             if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
             return null;
         case 4:
@@ -220,18 +220,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               relevantColumnsDescription: databaseOption.relevantColumnsDescription,
           } : undefined;
           
-          const finalPurposes: string[] = Array.from(selectedPurposes).map(p => {
-              if (p === 'notify_owner' && ownerPhoneNumberForNotifications) {
-                  return `notify_owner ${ownerPhoneNumberForNotifications}`;
-              }
-              return p;
-          });
-
           const finalAssistantConfig: AssistantConfig = {
               id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
               name: assistantName,
               prompt: assistantPrompt,
-              purposes: finalPurposes,
+              purposes: Array.from(selectedPurposes),
               databaseId: newDbEntry?.id,
               imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
               isActive: false,
@@ -393,3 +386,5 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
+
+    

@@ -68,7 +68,7 @@ export interface AssistantConfig {
   phoneLinked?: string;
   webhookPath?: string;
   imageUrl?: string;
-  purposes: string[]; // Changed from AssistantPurposeType[] to string[]
+  purposes: AssistantPurposeType[];
   databaseId?: string | null;
   verificationCode?: string;
   numberReady?: boolean;
@@ -182,3 +182,5 @@ export interface Transaction {
     phone: string;
   };
 }
+
+    
