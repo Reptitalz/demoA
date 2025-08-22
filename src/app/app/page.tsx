@@ -156,6 +156,7 @@ const AppSetupPageContent = () => {
         prompt: assistantPrompt,
         purposes: Array.from(selectedPurposes),
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
+        ownerPhoneNumberForNotifications: selectedPurposes.has('notify_owner') ? ownerPhoneNumberForNotifications : undefined,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     
@@ -178,7 +179,6 @@ const AppSetupPageContent = () => {
     const finalUserProfile: Partial<UserProfile> = {
         assistants: updatedAssistantsArray,
         databases: updatedDatabasesArray,
-        ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
     };
     
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: finalUserProfile });
@@ -283,5 +283,3 @@ const AppSetupPage = () => {
 }
 
 export default AppSetupPage;
-
-    

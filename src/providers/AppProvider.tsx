@@ -35,7 +35,6 @@ const initialUserProfileState: UserProfile = {
   address: undefined,
   assistants: [],
   databases: [],
-  ownerPhoneNumberForNotifications: undefined,
   credits: 0,
 };
 

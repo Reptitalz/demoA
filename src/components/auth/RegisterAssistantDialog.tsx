@@ -231,6 +231,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               messageCount: 0,
               monthlyMessageLimit: 0,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              ownerPhoneNumberForNotifications: selectedPurposes.has('notify_owner') ? ownerPhoneNumberForNotifications : undefined,
           };
           
           const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
@@ -241,7 +242,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               authProvider,
               assistants: [finalAssistantConfig],
               databases: newDbEntry ? [newDbEntry] : [],
-              ownerPhoneNumberForNotifications: ownerPhoneNumberForNotifications,
               credits: 0,
           };
 
@@ -386,5 +386,3 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
-
-    

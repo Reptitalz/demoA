@@ -76,6 +76,7 @@ export interface AssistantConfig {
   gupshupConfig?: GupshupConfig;
   tools?: AssistantTools;
   timezone?: string;
+  ownerPhoneNumberForNotifications?: string; // Moved here
 }
 
 export type AuthProviderType = "google" | "phone" | "email";
@@ -112,7 +113,6 @@ export interface UserProfile {
   address?: UserAddress;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  ownerPhoneNumberForNotifications?: string;
   credits: number;
   pushSubscriptions?: any[];
   referredBy?: ObjectId; // Link to CollaboratorProfile
