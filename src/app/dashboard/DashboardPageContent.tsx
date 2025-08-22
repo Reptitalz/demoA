@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaDatabase, FaRobot, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -98,9 +98,20 @@ const DashboardPageContent = () => {
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
         dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
         
-        const purposesArray = Array.isArray(assistant.purposes) ? assistant.purposes : [];
-        purposesArray.forEach(purpose => {
-            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose });
+        // Handle the new purpose format
+        const notifyOwnerPurpose = assistant.purposes.find(p => p.startsWith('notify_owner'));
+        if (notifyOwnerPurpose) {
+          dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: 'notify_owner' });
+          const phone = notifyOwnerPurpose.split(' ')[1];
+          if (phone) {
+            dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
+          }
+        }
+        
+        assistant.purposes.forEach(purpose => {
+            if (!purpose.startsWith('notify_owner')) {
+               dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose as any });
+            }
         });
 
         if(assistant.databaseId) {

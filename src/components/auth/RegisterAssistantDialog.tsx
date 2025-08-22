@@ -219,12 +219,19 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               selectedColumns: databaseOption.selectedColumns,
               relevantColumnsDescription: databaseOption.relevantColumnsDescription,
           } : undefined;
+          
+          const finalPurposes: string[] = Array.from(selectedPurposes).map(p => {
+              if (p === 'notify_owner' && ownerPhoneNumberForNotifications) {
+                  return `notify_owner ${ownerPhoneNumberForNotifications}`;
+              }
+              return p;
+          });
 
           const finalAssistantConfig: AssistantConfig = {
               id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
               name: assistantName,
               prompt: assistantPrompt,
-              purposes: Array.from(selectedPurposes),
+              purposes: finalPurposes,
               databaseId: newDbEntry?.id,
               imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
               isActive: false,
@@ -266,6 +273,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
                 redirect: false,
                 email: userEmail,
                 password: formData.password,
+                userType: 'user'
             });
           }
           
@@ -385,5 +393,3 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 };
 
 export default RegisterAssistantDialog;
-
-    

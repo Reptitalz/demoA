@@ -10,10 +10,29 @@ import { FaWhatsapp, FaCheckCircle, FaRegCircle } from "react-icons/fa";
 import { PhoneInput } from "@/components/ui/phone-input";
 import type { E164Number } from "react-phone-number-input";
 import { cn } from "@/lib/utils";
+import React, { useEffect } from "react";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
   const { assistantName, selectedPurposes, ownerPhoneNumberForNotifications } = state.wizard;
+  const { assistants, isReconfiguring, editingAssistantId } = state.wizard;
+
+  // Effect to populate phone number when reconfiguring
+  useEffect(() => {
+    if (isReconfiguring && editingAssistantId) {
+      const assistant = state.userProfile.assistants.find(a => a.id === editingAssistantId);
+      if (assistant) {
+        const notifyOwnerPurpose = assistant.purposes.find(p => p.startsWith('notify_owner '));
+        if (notifyOwnerPurpose) {
+          const phone = notifyOwnerPurpose.split(' ')[1];
+          if (phone) {
+            dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
+          }
+        }
+      }
+    }
+  }, [isReconfiguring, editingAssistantId, state.userProfile.assistants, dispatch]);
+
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
