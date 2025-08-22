@@ -150,13 +150,20 @@ const AppSetupPageContent = () => {
 
     const assistantToUpdate = state.userProfile.assistants.find(a => a.id === state.wizard.editingAssistantId)!;
     
+    // Construct purposes array with concatenated phone number if needed
+    const finalPurposes = Array.from(selectedPurposes).map(purpose => {
+      if (purpose === 'notify_owner' && ownerPhoneNumberForNotifications) {
+        return `notify_owner ${ownerPhoneNumberForNotifications}`;
+      }
+      return purpose;
+    });
+    
     const finalAssistantConfig: AssistantConfig = {
         ...assistantToUpdate,
         name: assistantName,
         prompt: assistantPrompt,
-        purposes: Array.from(selectedPurposes),
+        purposes: finalPurposes,
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
-        ownerPhoneNumberForNotifications: selectedPurposes.has('notify_owner') ? ownerPhoneNumberForNotifications : undefined,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     

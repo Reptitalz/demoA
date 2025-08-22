@@ -21,8 +21,14 @@ const Step1AssistantDetails = () => {
   useEffect(() => {
     if (isReconfiguring && editingAssistantId) {
       const assistant = state.userProfile.assistants.find(a => a.id === editingAssistantId);
-      if (assistant?.ownerPhoneNumberForNotifications) {
-          dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: assistant.ownerPhoneNumberForNotifications });
+      if (assistant) {
+        const notifyOwnerPurpose = assistant.purposes.find(p => p.startsWith('notify_owner'));
+        if (notifyOwnerPurpose) {
+          const phone = notifyOwnerPurpose.split(' ')[1];
+          if (phone) {
+            dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
+          }
+        }
       }
     }
   }, [isReconfiguring, state.userProfile.assistants, editingAssistantId, dispatch]);

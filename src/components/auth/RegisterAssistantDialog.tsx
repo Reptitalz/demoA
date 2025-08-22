@@ -220,18 +220,24 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               relevantColumnsDescription: databaseOption.relevantColumnsDescription,
           } : undefined;
           
+          const finalPurposes = Array.from(selectedPurposes).map(purpose => {
+              if (purpose === 'notify_owner' && ownerPhoneNumberForNotifications) {
+                  return `notify_owner ${ownerPhoneNumberForNotifications}`;
+              }
+              return purpose;
+          });
+
           const finalAssistantConfig: AssistantConfig = {
               id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
               name: assistantName,
               prompt: assistantPrompt,
-              purposes: Array.from(selectedPurposes),
+              purposes: finalPurposes,
               databaseId: newDbEntry?.id,
               imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
               isActive: false,
               messageCount: 0,
               monthlyMessageLimit: 0,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              ownerPhoneNumberForNotifications: selectedPurposes.has('notify_owner') ? ownerPhoneNumberForNotifications : undefined,
           };
           
           const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {

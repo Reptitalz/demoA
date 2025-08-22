@@ -68,7 +68,7 @@ export interface AssistantConfig {
   phoneLinked?: string;
   webhookPath?: string;
   imageUrl?: string;
-  purposes: AssistantPurposeType[];
+  purposes: string[];
   databaseId?: string | null;
   verificationCode?: string;
   numberReady?: boolean;
@@ -76,7 +76,6 @@ export interface AssistantConfig {
   gupshupConfig?: GupshupConfig;
   tools?: AssistantTools;
   timezone?: string;
-  ownerPhoneNumberForNotifications?: string; // Moved here
 }
 
 export type AuthProviderType = "google" | "phone" | "email";
@@ -182,5 +181,3 @@ export interface Transaction {
     phone: string;
   };
 }
-
-    

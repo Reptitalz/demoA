@@ -165,14 +165,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
         };
     }
     case 'UPDATE_USER_PROFILE': {
-      const payload = action.payload;
-      if (payload.assistants) {
-        payload.assistants = payload.assistants.map(a => ({
-          ...a,
-          purposes: Array.isArray(a.purposes) ? a.purposes : [],
-        }))
-      }
-      return { ...state, userProfile: { ...state.userProfile, ...payload }};
+      return { ...state, userProfile: { ...state.userProfile, ...action.payload }};
     }
     case 'ADD_ASSISTANT':
       return { ...state, userProfile: { ...state.userProfile, assistants: [...state.userProfile.assistants, action.payload] }};
@@ -257,10 +250,6 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
   try {
     const profileToSave = {
       ...userProfile,
-      assistants: userProfile.assistants.map(a => ({
-        ...a,
-        purposes: Array.isArray(a.purposes) ? a.purposes : [],
-      }))
     }
     const response = await fetch('/api/user-profile', {
       method: 'PUT',
