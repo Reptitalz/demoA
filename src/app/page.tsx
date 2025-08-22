@@ -508,6 +508,9 @@ const features = [
 
 const FeaturesCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const swipeHandled = useRef(false);
 
   const handleNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % features.length);
@@ -517,9 +520,40 @@ const FeaturesCarousel = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + features.length) % features.length);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    swipeHandled.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeHandled.current) return;
+    
+    const swipeDistance = touchStartX.current - touchEndX.current;
+    
+    // Check for significant swipe
+    if (Math.abs(swipeDistance) > 50) { 
+      if (swipeDistance > 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+      swipeHandled.current = true;
+    }
+  };
+
+
   return (
     <div className="relative w-full max-w-4xl mx-auto">
-      <div className="relative h-72 overflow-hidden">
+      <div 
+        className="relative h-72 overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {features.map((feature, index) => {
           const offset = index - currentIndex;
           let style = {
@@ -534,13 +568,13 @@ const FeaturesCarousel = () => {
               transform: 'translateX(0) scale(1)',
               opacity: 1,
             };
-          } else if (offset === 1) {
+          } else if (offset === 1 || (offset < -1 && offset + features.length === 1) ) {
              style = {
               ...style,
               transform: 'translateX(50%) scale(0.85)',
               opacity: 0.6
             }
-          } else if (offset === -1) {
+          } else if (offset === -1 || (offset > 1 && offset - features.length === -1)) {
              style = {
               ...style,
               transform: 'translateX(-50%) scale(0.85)',
