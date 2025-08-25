@@ -16,6 +16,7 @@ import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
 import { signIn } from 'next-auth/react';
 import RegisterCollaboratorDialog from '@/components/auth/RegisterCollaboratorDialog';
+import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -144,6 +145,7 @@ const BeginPage = () => {
     }
 
     const handleGoogleSignIn = () => {
+        if (!selectedOption) return;
         const callbackUrl = `/dashboard?newUserFlow=${selectedOption}`;
         signIn('google', { callbackUrl });
     }
@@ -162,8 +164,9 @@ const BeginPage = () => {
         <>
         <PageContainer className="flex flex-col h-[calc(100vh-80px)]">
             <div className="text-center">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-gradient">
-                    Comienza para Conseguir tu Asistente
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+                    Comienza para Conseguir tu{' '}
+                    <span className="text-brand-gradient animate-text-glow">Asistente</span>
                 </h1>
             </div>
 
@@ -367,7 +370,7 @@ const BeginPage = () => {
             </p>
         </PageContainer>
         <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
-        <RegisterCollaboratorDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
+        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
         </>
     );
 };
