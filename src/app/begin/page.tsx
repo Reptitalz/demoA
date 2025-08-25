@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -166,7 +165,7 @@ const BeginPage = () => {
             <div className="text-center">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                     Comienza para Conseguir tu{' '}
-                    <span className="text-brand-gradient animate-text-glow">Asistente</span>
+                    <span className="text-brand-gradient">Asistente</span>
                 </h1>
             </div>
 
