@@ -200,16 +200,14 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  const isAssistantActive = !!assistant.verificationCode && assistant.verificationCode.startsWith('A-');
-  const isActivating = !!assistant.phoneLinked && !isAssistantActive;
-  
+  // Status logic refined
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
 
-  if (isAssistantActive) {
+  if (assistant.isActive) {
       badgeText = "Activo";
       badgeVariant = "default";
-  } else if (isActivating) {
+  } else if (assistant.phoneLinked && !assistant.isActive) {
       badgeText = "Activando";
       badgeVariant = "outline";
   }
@@ -217,10 +215,10 @@ const AssistantCard = ({
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      isAssistantActive && "bg-brand-gradient text-primary-foreground",
-      isActivating && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      assistant.isActive && "bg-brand-gradient text-primary-foreground",
+      badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
-      {isActivating && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+      {badgeText === "Activando" && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
       {badgeText}
     </Badge>
   );
@@ -267,28 +265,30 @@ const AssistantCard = ({
                  <div className="flex items-center gap-2 pt-1">
                   {typeBadge}
                 </div>
-                {isAssistantActive ? (
+                {assistant.isActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
-                          <FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}
+                          {assistant.type === 'whatsapp' && <FaPhoneAlt size={12} className="text-muted-foreground" />} {assistant.type === 'whatsapp' ? assistant.phoneLinked : 'Activo en la web'}
                       </div>
-                      <a
-                          href={whatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cn(
-                          "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
-                          "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
-                          "bg-brand-gradient"
-                          )}
-                          aria-label="Iniciar chat de WhatsApp"
-                          title="Iniciar chat de WhatsApp"
-                      >
-                          <FaWhatsapp size={14} />
-                          <span>Chatear</span>
-                      </a>
+                      {assistant.type === 'whatsapp' &&
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                            "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
+                            "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
+                            "bg-brand-gradient"
+                            )}
+                            aria-label="Iniciar chat de WhatsApp"
+                            title="Iniciar chat de WhatsApp"
+                        >
+                            <FaWhatsapp size={14} />
+                            <span>Chatear</span>
+                        </a>
+                      }
                     </CardDescription>
-                ) : isActivating ? (
+                ) : badgeText === "Activando" ? (
                    <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
                     <FaSpinner className="animate-spin h-4 w-4 text-primary" />
                     <span>Esperando código para {assistant.phoneLinked}...</span>
@@ -403,7 +403,7 @@ const AssistantCard = ({
                 </div>
             ) : (
                 <>
-                    {isAssistantActive ? (
+                    {assistant.isActive && assistant.type === 'whatsapp' ? (
                         <div className="grid grid-cols-3 gap-2">
                              <Button
                                 size="sm"
@@ -458,7 +458,7 @@ const AssistantCard = ({
                                 Compartir
                             </Button>
                         </div>
-                    ) : isActivating ? (
+                    ) : badgeText === "Activando" ? (
                         <div className="space-y-3 animate-fadeIn p-2">
                             <p className="text-xs text-muted-foreground text-center">Ingresa el código de verificación para {assistant.phoneLinked}.</p>
                             <Input
@@ -478,7 +478,7 @@ const AssistantCard = ({
                                 Verificar y Activar
                             </Button>
                         </div>
-                    ) : (
+                    ) : assistant.type === 'whatsapp' ? (
                          <Button
                             size="sm"
                             onClick={() => setIsIntegrating(true)}
@@ -487,7 +487,7 @@ const AssistantCard = ({
                             <FaPhoneAlt size={13} />
                             Integrar número de teléfono
                         </Button>
-                    )}
+                    ) : null }
                     <Button
                         variant="outline"
                         size="sm"

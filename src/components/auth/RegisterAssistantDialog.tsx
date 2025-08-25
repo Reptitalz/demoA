@@ -212,38 +212,34 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         if (!uid || !userEmail) {
             throw new Error("No se pudieron obtener los datos de autenticación.");
         }
+        
+        const isDesktopAssistant = assistantType === 'desktop';
 
-        const newDbEntry: DatabaseConfig | undefined = (dbNeeded && databaseOption.type) ? {
-              id: `db_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-              name: databaseOption.name!,
-              source: databaseOption.type!,
-              details: databaseOption.name,
-              accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
-              sheetName: databaseOption.type === 'google_sheets' ? databaseOption.selectedSheetName : undefined,
-              selectedColumns: databaseOption.selectedColumns,
-              relevantColumnsDescription: databaseOption.relevantColumnsDescription,
-          } : undefined;
-          
-          const finalPurposes = Array.from(selectedPurposes).map(purpose => {
-              if (purpose === 'notify_owner' && ownerPhoneNumberForNotifications) {
-                  return `notify_owner ${ownerPhoneNumberForNotifications}`;
-              }
-              return purpose;
-          });
+        const finalAssistantConfig: AssistantConfig = {
+            id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            name: isDesktopAssistant ? "Mi Asistente de Escritorio" : (assistantName || "Mi Asistente"),
+            type: assistantType || 'desktop',
+            prompt: isDesktopAssistant ? "Eres un asistente amigable y servicial." : (assistantPrompt || "Eres un asistente amigable."),
+            purposes: isDesktopAssistant ? [] : Array.from(selectedPurposes),
+            databaseId: isDesktopAssistant ? null : (dbNeeded && databaseOption.type ? `db_${Date.now()}` : undefined),
+            imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+            isActive: isDesktopAssistant, // Active only if desktop
+            numberReady: isDesktopAssistant, // Ready only if desktop
+            messageCount: 0,
+            monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        };
 
-          const finalAssistantConfig: AssistantConfig = {
-              id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-              type: assistantType || 'desktop',
-              name: assistantName,
-              prompt: assistantPrompt,
-              purposes: finalPurposes,
-              databaseId: newDbEntry?.id,
-              imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-              isActive: false,
-              messageCount: 0,
-              monthlyMessageLimit: 0,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          };
+        const newDbEntry: DatabaseConfig | undefined = !isDesktopAssistant && dbNeeded && databaseOption.type ? {
+            id: finalAssistantConfig.databaseId!,
+            name: databaseOption.name!,
+            source: databaseOption.type!,
+            details: databaseOption.name,
+            accessUrl: databaseOption.type === 'google_sheets' ? databaseOption.accessUrl : undefined,
+            sheetName: databaseOption.type === 'google_sheets' ? databaseOption.selectedSheetName : undefined,
+            selectedColumns: databaseOption.selectedColumns,
+            relevantColumnsDescription: databaseOption.relevantColumnsDescription,
+        } : undefined;
           
           const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
               firebaseUid: uid,
@@ -253,7 +249,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               authProvider,
               assistants: [finalAssistantConfig],
               databases: newDbEntry ? [newDbEntry] : [],
-              credits: 0,
+              credits: isDesktopAssistant ? 1 : 0, // 1 free credit for desktop users
           };
 
           const response = await fetch('/api/create-user-profile', {
@@ -292,7 +288,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       } finally {
         setIsFinalizingSetup(false);
       }
-  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, ownerPhoneNumberForNotifications, toast, router, onOpenChange, dispatch, assistantType]);
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, assistantType]);
 
   // Effect to handle Google Sign-in completion
   useEffect(() => {
