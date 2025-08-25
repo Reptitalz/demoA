@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -12,22 +13,22 @@ import { APP_NAME } from '@/config/appConfig';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
-        { icon: <BotMessageSquare />, label: "Elige tu Asistente" },
-        { icon: <WalletCards />, label: "Créditos y Pago" },
-        { icon: <UserPlus />, label: "Regístrate" }
+        { icon: <BotMessageSquare size={18} />, label: "Elige" },
+        { icon: <WalletCards size={18} />, label: "Entiende" },
+        { icon: <UserPlus size={18} />, label: "Regístrate" }
     ];
 
     return (
-        <div className="flex items-center justify-center w-full max-w-md mx-auto my-8">
+        <div className="flex items-center justify-center w-full max-w-sm mx-auto my-6">
             {steps.map((step, index) => (
                 <React.Fragment key={index}>
                     <div className="flex flex-col items-center text-center">
                         <div className={cn(
-                            "h-12 w-12 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                            "h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                             currentStep > index ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-muted-foreground",
                             currentStep === index + 1 && "border-primary scale-110 shadow-lg"
                         )}>
-                            {currentStep > index ? <Check /> : step.icon}
+                            {currentStep > index ? <Check /> : React.cloneElement(step.icon, { size: currentStep === index + 1 ? 20 : 18})}
                         </div>
                         <p className={cn(
                             "text-xs mt-2 transition-colors",
@@ -70,21 +71,21 @@ const BeginPage = () => {
 
     return (
         <PageContainer>
-            <div className="text-center mb-4">
-                <h1 className="text-3xl font-extrabold text-brand-gradient">
+            <div className="text-center mb-2">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-gradient">
                     Comienza para Conseguir tu Asistente
                 </h1>
             </div>
 
             <StepIndicator currentStep={step} />
 
-            <div className="relative min-h-[450px]">
+            <div className="relative min-h-[400px]">
                 {/* Step 1: Choose Assistant Type */}
                 <div className={cn(
                     "transition-opacity duration-300 absolute w-full",
                     step === 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 )}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                         <Card 
                             onClick={() => setSelectedOption('browser')}
                             className={cn(
@@ -92,8 +93,8 @@ const BeginPage = () => {
                                 selectedOption === 'browser' && "border-primary ring-2 ring-primary shadow-lg"
                             )}
                         >
-                            <CardHeader>
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-4 border">
+                            <CardHeader className="p-4">
+                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                                     <Image
                                         src="https://picsum.photos/600/400"
                                         alt="Asistente en navegador"
@@ -106,8 +107,8 @@ const BeginPage = () => {
                                         30 DÍAS GRATIS
                                     </div>
                                 </div>
-                                <CardTitle className="flex items-center gap-2"><BotMessageSquare /> Asistente en Chat de Navegador</CardTitle>
-                                <CardDescription>Después, $65 MXN por 1,000 mensajes.</CardDescription>
+                                <CardTitle className="flex items-center gap-2 text-base"><BotMessageSquare size={18}/> Asistente en Navegador</CardTitle>
+                                <CardDescription className="text-xs">Después, $65 MXN por 1,000 mensajes.</CardDescription>
                             </CardHeader>
                         </Card>
 
@@ -118,8 +119,8 @@ const BeginPage = () => {
                                 selectedOption === 'whatsapp' && "border-primary ring-2 ring-primary shadow-lg"
                             )}
                         >
-                            <CardHeader>
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-4 border">
+                            <CardHeader className="p-4">
+                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                                      <Image
                                         src="https://picsum.photos/600/400"
                                         alt="Asistente en WhatsApp"
@@ -132,12 +133,12 @@ const BeginPage = () => {
                                         $65 MXN / 1000 Mensajes
                                     </div>
                                 </div>
-                                <CardTitle className="flex items-center gap-2"><Smartphone /> Asistente en WhatsApp</CardTitle>
-                                <CardDescription>Requiere un número de teléfono sin cuenta de WhatsApp (normal o Business) activa.</CardDescription>
+                                <CardTitle className="flex items-center gap-2 text-base"><Smartphone size={18}/> Asistente en WhatsApp</CardTitle>
+                                <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
                             </CardHeader>
                         </Card>
                     </div>
-                     <div className="text-center mt-8 text-sm text-muted-foreground max-w-2xl mx-auto bg-muted/50 p-4 rounded-lg">
+                     <div className="text-center mt-4 text-xs text-muted-foreground max-w-2xl mx-auto bg-muted/50 p-3 rounded-lg">
                         <p>No te preocupes, podrás cambiar de opción o usar ambas más adelante. Los créditos son acumulables y se comparten entre todos tus asistentes.</p>
                     </div>
                 </div>
@@ -147,19 +148,19 @@ const BeginPage = () => {
                     "transition-opacity duration-300 absolute w-full",
                     step === 2 ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 )}>
-                    <Card className="text-center p-8">
+                    <Card className="text-center p-6">
                         <CardHeader>
                             <CardTitle>Información de Pagos y Créditos</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>Aquí irá la información sobre cómo funcionan los créditos y los métodos de pago.</p>
-                            <p className="font-bold text-primary mt-4">(Paso informativo, en construcción)</p>
+                            <p className="text-sm">Aquí irá la información sobre cómo funcionan los créditos y los métodos de pago.</p>
+                            <p className="font-bold text-primary mt-2 text-sm">(Paso informativo, en construcción)</p>
                         </CardContent>
                     </Card>
                 </div>
             </div>
 
-            <div className="flex justify-between items-center mt-8 pt-4 border-t">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t">
                 <Button variant="outline" onClick={handleBack} disabled={step === 1}>
                     <ArrowLeft className="mr-2" />
                     Volver
