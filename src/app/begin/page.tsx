@@ -19,7 +19,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     ];
 
     return (
-        <div className="flex items-center justify-center w-full max-w-sm mx-auto my-6">
+        <div className="flex items-center justify-center w-full max-w-sm mx-auto my-4">
             {steps.map((step, index) => (
                 <React.Fragment key={index}>
                     <div className="flex flex-col items-center text-center">
