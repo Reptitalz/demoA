@@ -24,11 +24,11 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
                 <React.Fragment key={index}>
                     <div className="flex flex-col items-center text-center">
                         <div className={cn(
-                            "h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                            "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                             currentStep > index ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-muted-foreground",
                             currentStep === index + 1 && "border-primary scale-110 shadow-lg"
                         )}>
-                            {currentStep > index ? <Check size={18} /> : React.cloneElement(step.icon, { size: currentStep === index + 1 ? 18 : 16})}
+                            {currentStep > index ? <Check size={16} /> : React.cloneElement(step.icon, { size: currentStep === index + 1 ? 16 : 14})}
                         </div>
                         <p className={cn(
                             "text-xs mt-1 transition-colors",
@@ -70,7 +70,7 @@ const BeginPage = () => {
     }
 
     return (
-        <PageContainer>
+        <PageContainer className="flex flex-col h-[calc(100vh-80px)]">
             <div className="text-center mb-2">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-gradient">
                     Comienza para Conseguir tu Asistente
@@ -79,7 +79,7 @@ const BeginPage = () => {
 
             <StepIndicator currentStep={step} />
 
-            <div className="relative min-h-[400px]">
+            <div className="relative flex-grow overflow-y-auto mt-4 p-1">
                 {/* Step 1: Choose Assistant Type */}
                 <div className={cn(
                     "transition-opacity duration-300 absolute w-full",
@@ -160,7 +160,7 @@ const BeginPage = () => {
                 </div>
             </div>
 
-            <div className="flex justify-between items-center mt-6 pt-4 border-t">
+            <div className="flex justify-between items-center mt-auto pt-4 border-t">
                 <Button variant="outline" onClick={handleBack} disabled={step === 1}>
                     <ArrowLeft className="mr-2" />
                     Volver
@@ -170,7 +170,7 @@ const BeginPage = () => {
                     <ArrowRight className="ml-2" />
                 </Button>
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-4">
+            <p className="text-center text-xs text-muted-foreground mt-2">
                &copy; {new Date().getFullYear()} {APP_NAME}
             </p>
         </PageContainer>
