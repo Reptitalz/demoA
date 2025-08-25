@@ -84,7 +84,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "No se pudo crear el perfil de colaborador.");
+        throw new Error(errorData.message || "No se pudo crear el perfil.");
       }
       
       // 3. Sign in the new user with NextAuth
@@ -104,7 +104,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       router.push('/dashboard');
 
     } catch (error: any) {
-      console.error("Collaborator registration error:", error);
+      console.error("User registration error:", error);
       let errorMessage = "Ocurrió un error inesperado durante el registro.";
       if (error.code === 'auth/email-already-in-use') {
           errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
