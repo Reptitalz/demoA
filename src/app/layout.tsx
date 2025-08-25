@@ -24,7 +24,43 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
   },
   description: `Descubre ${APP_NAME}, la plataforma líder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicación por WhatsApp, integra bases de datos y optimiza procesos.`,
-  keywords: ['asistente virtual', 'IA', 'chatbot', 'WhatsApp', 'automatización', 'CRM', 'inteligencia artificial', APP_NAME, 'gestión de clientes', 'Hey Manito', 'chatbot para WhatsApp', 'automatización para negocios', 'CRM con IA'],
+  keywords: [
+    // Existing keywords
+    'asistente virtual', 
+    'IA', 
+    'chatbot', 
+    'WhatsApp', 
+    'automatización', 
+    'CRM', 
+    'inteligencia artificial', 
+    APP_NAME, 
+    'gestión de clientes', 
+    'Hey Manito', 
+    'chatbot para WhatsApp', 
+    'automatización para negocios', 
+    'CRM con IA',
+    // New high-volume keywords
+    'virtual assistant',
+    'ai assistant',
+    'digital assistant',
+    'va assistant',
+    // New WhatsApp specific keywords
+    'WhatsApp virtual assistant',
+    'AI assistant for WhatsApp',
+    'Asistente inteligente WhatsApp para negocios',
+    // New long-tail commercial keywords
+    'WhatsApp assistant for customer support',
+    'WhatsApp AI assistant pricing',
+    'automatización de mensajes WhatsApp',
+    'virtual assistant for small business',
+    // New local keywords
+    'asistente virtual WhatsApp México',
+    'asistente virtual WhatsApp Tepic',
+    'asistente inteligente WhatsApp Nayarit',
+    // New voice-search oriented keywords
+    'cómo funciona un asistente virtual en WhatsApp',
+    'asistente inteligente para WhatsApp qué hace'
+  ],
   authors: [{ name: APP_NAME }],
   creator: APP_NAME,
   publisher: APP_NAME,
