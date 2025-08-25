@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, BotMessageSquare, Smartphone, WalletCards, UserPlus, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, BotMessageSquare, WalletCards, UserPlus, ArrowRight, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -13,25 +13,25 @@ import { APP_NAME } from '@/config/appConfig';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
-        { icon: <BotMessageSquare size={18} />, label: "Elige" },
-        { icon: <WalletCards size={18} />, label: "Entiende" },
-        { icon: <UserPlus size={18} />, label: "Regístrate" }
+        { icon: <BotMessageSquare size={16} />, label: "Elige" },
+        { icon: <WalletCards size={16} />, label: "Entiende" },
+        { icon: <UserPlus size={16} />, label: "Regístrate" }
     ];
 
     return (
-        <div className="flex items-center justify-center w-full max-w-sm mx-auto my-4">
+        <div className="flex items-center justify-center w-full max-w-xs mx-auto my-2">
             {steps.map((step, index) => (
                 <React.Fragment key={index}>
                     <div className="flex flex-col items-center text-center">
                         <div className={cn(
-                            "h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                            "h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                             currentStep > index ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-muted-foreground",
                             currentStep === index + 1 && "border-primary scale-110 shadow-lg"
                         )}>
-                            {currentStep > index ? <Check /> : React.cloneElement(step.icon, { size: currentStep === index + 1 ? 20 : 18})}
+                            {currentStep > index ? <Check size={18} /> : React.cloneElement(step.icon, { size: currentStep === index + 1 ? 18 : 16})}
                         </div>
                         <p className={cn(
-                            "text-xs mt-2 transition-colors",
+                            "text-xs mt-1 transition-colors",
                             currentStep >= index + 1 ? "font-semibold text-primary" : "text-muted-foreground"
                         )}>
                             {step.label}
@@ -133,7 +133,7 @@ const BeginPage = () => {
                                         $65 MXN / 1000 Mensajes
                                     </div>
                                 </div>
-                                <CardTitle className="flex items-center gap-2 text-base"><Smartphone size={18}/> Asistente en WhatsApp</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-base"><WalletCards size={18}/> Asistente en WhatsApp</CardTitle>
                                 <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
                             </CardHeader>
                         </Card>
