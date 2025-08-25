@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
 import { signIn } from 'next-auth/react';
-import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
+import RegisterCollaboratorDialog from '@/components/auth/RegisterCollaboratorDialog';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -367,7 +367,7 @@ const BeginPage = () => {
             </p>
         </PageContainer>
         <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
-        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
+        <RegisterCollaboratorDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
         </>
     );
 };

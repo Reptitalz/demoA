@@ -50,17 +50,18 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
         throw new Error("No se pudo crear el usuario en Firebase.");
       }
 
-      // 2. Create User Profile via API with a pre-configured assistant
+      // 2. Create User Profile via API with a pre-configured assistant based on selection
+      const isDesktopAssistant = assistantType === 'desktop';
        const newAssistant: AssistantConfig = {
           id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-          name: "Mi Primer Asistente",
+          name: isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp",
           type: assistantType || 'desktop',
           prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
           purposes: [],
-          isActive: true,
-          numberReady: true,
+          isActive: isDesktopAssistant, // Active only if desktop
+          numberReady: isDesktopAssistant, // Ready only if desktop
           messageCount: 0,
-          monthlyMessageLimit: 1000,
+          monthlyMessageLimit: isDesktopAssistant ? 1000 : 0, // Free tier limit for desktop
           imageUrl: DEFAULT_ASSISTANT_IMAGE_URL
       };
 
@@ -72,7 +73,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
         authProvider: 'email',
         assistants: [newAssistant],
         databases: [],
-        credits: 1, // Start with 1 free credit
+        credits: isDesktopAssistant ? 1 : 0, // 1 free credit for desktop users
       };
       
       const response = await fetch('/api/create-user-profile', {
