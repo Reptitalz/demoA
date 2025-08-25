@@ -56,7 +56,7 @@ const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; o
     const details = {
         browser: {
             title: "Asistente en Navegador",
-            description: "Ideal para pruebas rápidas, desarrollo y uso interno. Tu asistente vivirá en una página web y podrás interactuar con él directamente.",
+            description: "Ideal para pruebas rápidas, desarrollo y uso interno. Tu asistente vivirá en una página web, accesible a través de un enlace único, donde podrás interactuar con él directamente.",
             points: [
                 "Perfecto para probar prompts y lógica sin costo inicial.",
                 "No requiere vincular un número de teléfono.",
