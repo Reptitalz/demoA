@@ -306,7 +306,7 @@ const BeginPage = () => {
                                 <CardDescription className="text-xs">La forma más rápida y segura de crear tu cuenta.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
-                                <Button size="sm" className="w-full">
+                                <Button size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
                                     Continuar con Google <ArrowRight className="ml-2" size={14} />
                                 </Button>
                             </CardContent>
