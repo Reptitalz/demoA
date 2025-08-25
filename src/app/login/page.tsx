@@ -88,15 +88,15 @@ const LoginPageContent = () => {
   // Once loading is done, and user is not authenticated, show login form.
   return (
     <>
-    <div className="flex items-center justify-center min-h-screen bg-background px-4">
-      <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn animate-float">
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <div className="w-full max-w-md space-y-6 animate-fadeIn">
         <div className="text-center mb-6 flex flex-col items-center">
-          <AppIcon className="h-12 w-12 mb-2" />
+          <AppIcon className="h-14 w-14 mb-3" />
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 p-6 sm:p-8 rounded-2xl bg-card/60 backdrop-blur-md border border-border/20 shadow-xl">
             <form onSubmit={(e) => { e.preventDefault(); handleLogin('credentials'); }} className="space-y-4">
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
@@ -134,12 +134,12 @@ const LoginPageContent = () => {
           </Button>
         </div>
 
-        <div className="relative my-6">
+        <div className="relative my-2">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+            <span className="w-full border-t border-border/30" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">O si eres nuevo</span>
+            <span className="bg-background px-2 text-muted-foreground">O si eres nuevo</span>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ const LoginPageContent = () => {
             className={cn(
                 "w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2",
                 "bg-brand-gradient text-primary-foreground hover:opacity-90",
-                "animate-pulse-border shiny-border"
+                "shiny-border"
             )}
             >
             <UserPlus className="h-5 w-5" />
