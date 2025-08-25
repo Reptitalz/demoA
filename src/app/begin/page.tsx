@@ -5,14 +5,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, Info, AppWindow } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, Info, AppWindow, Mail, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -125,8 +125,6 @@ const BeginPage = () => {
         if (step < 3) {
             if (step === 1 && !selectedOption) return;
             setStep(s => s + 1);
-        } else {
-             router.push('/login');
         }
     };
     
@@ -287,6 +285,50 @@ const BeginPage = () => {
                         </CardContent>
                     </Card>
                 </div>
+
+                 {/* Step 3: Register */}
+                <div className={cn(
+                    "transition-opacity duration-300 absolute w-full",
+                    step === 3 ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                )}>
+                    <div className="space-y-4">
+                        <Card 
+                            onClick={() => router.push('/login')}
+                            className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
+                        >
+                            <CardHeader className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2 text-sm"><FaGoogle size={16} /> Regístrate con Google</CardTitle>
+                                    <div className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                                        RECOMENDADO
+                                    </div>
+                                </div>
+                                <CardDescription className="text-xs">La forma más rápida y segura de crear tu cuenta.</CardDescription>
+                            </CardHeader>
+                             <CardContent className="p-4 pt-0">
+                                <Button size="sm" className="w-full">
+                                    Continuar con Google <ArrowRight className="ml-2" size={14} />
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                         <Card 
+                            onClick={() => router.push('/login')}
+                            className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
+                        >
+                            <CardHeader className="p-4">
+                                <CardTitle className="flex items-center gap-2 text-sm"><Mail size={16} /> Regístrate con Correo</CardTitle>
+                                <CardDescription className="text-xs">Usa tu correo electrónico y una contraseña para registrarte.</CardDescription>
+                            </CardHeader>
+                             <CardContent className="p-4 pt-0">
+                                 <Button size="sm" variant="secondary" className="w-full">
+                                    Continuar con Correo <ArrowRight className="ml-2" size={14} />
+                                 </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+
             </div>
 
             <div className="flex justify-between items-center mt-auto pt-2 border-t">
@@ -294,10 +336,12 @@ const BeginPage = () => {
                     <ArrowLeft className="mr-2" size={16} />
                     Volver
                 </Button>
-                <Button onClick={handleNext} disabled={step === 1 && !selectedOption}>
-                    {step === 2 ? "Siguiente" : "Siguiente"}
-                    <ArrowRight className="ml-2" size={16} />
-                </Button>
+                {step < 3 && (
+                    <Button onClick={handleNext} disabled={step === 1 && !selectedOption}>
+                        Siguiente
+                        <ArrowRight className="ml-2" size={16} />
+                    </Button>
+                )}
             </div>
             <p className="text-center text-xs text-muted-foreground mt-1">
                &copy; {new Date().getFullYear()} {APP_NAME}
