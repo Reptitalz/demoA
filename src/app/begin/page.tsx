@@ -122,10 +122,11 @@ const BeginPage = () => {
     }, [step]);
 
     const handleNext = () => {
-        if (step === 1 && selectedOption) {
-            setStep(2);
-        } else if (step === 2) {
-            router.push('/login');
+        if (step < 3) {
+            if (step === 1 && !selectedOption) return;
+            setStep(s => s + 1);
+        } else {
+             router.push('/login');
         }
     };
     
@@ -294,7 +295,7 @@ const BeginPage = () => {
                     Volver
                 </Button>
                 <Button onClick={handleNext} disabled={step === 1 && !selectedOption}>
-                    {step === 2 ? "Finalizar y Registrarse" : "Siguiente"}
+                    {step === 2 ? "Siguiente" : "Siguiente"}
                     <ArrowRight className="ml-2" size={16} />
                 </Button>
             </div>
