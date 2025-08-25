@@ -29,14 +29,18 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
   const [isProcessing, setIsProcessing] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleRegister = async () => {
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !confirmPassword) {
       toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos.", variant: "destructive" });
       return;
     }
+    if (password !== confirmPassword) {
+      toast({ title: "Las contraseñas no coinciden", description: "Por favor, verifica que ambas contraseñas sean iguales.", variant: "destructive" });
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
@@ -68,8 +72,8 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       const profileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
         firebaseUid: firebaseUser.uid,
         email,
-        firstName,
-        lastName,
+        firstName: '', // User can fill this in later
+        lastName: '', // User can fill this in later
         authProvider: 'email',
         assistants: [newAssistant],
         databases: [],
@@ -97,7 +101,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       
       toast({
         title: "¡Registro Exitoso!",
-        description: `Bienvenido/a, ${firstName}. Serás redirigido a tu panel.`,
+        description: `Bienvenido/a. Serás redirigido a tu panel.`,
       });
       
       onOpenChange(false);
@@ -127,16 +131,6 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstNameRegCollab">Nombre</Label>
-              <Input id="firstNameRegCollab" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Tu nombre" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastNameRegCollab">Apellido</Label>
-              <Input id="lastNameRegCollab" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tu apellido" required />
-            </div>
-          </div>
           <div className="space-y-2">
             <Label htmlFor="emailRegCollab">Correo Electrónico</Label>
             <Input id="emailRegCollab" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
@@ -144,6 +138,10 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
           <div className="space-y-2">
             <Label htmlFor="passwordRegCollab">Contraseña</Label>
             <Input id="passwordRegCollab" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPasswordRegCollab">Verificar Contraseña</Label>
+            <Input id="confirmPasswordRegCollab" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repite tu contraseña" required />
           </div>
         </div>
         <DialogFooter>
