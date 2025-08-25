@@ -42,7 +42,7 @@ const DashboardPageContent = () => {
           phoneLinked: '+15551234567',
           messageCount: 1250,
           monthlyMessageLimit: 5000,
-          purposes: ['import_spreadsheet', 'notify_owner'],
+          purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
           databaseId: 'demo-db-1'
       }],
       databases: [{
@@ -98,19 +98,15 @@ const DashboardPageContent = () => {
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
         dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
         
-        // Handle the new purpose format
-        const notifyOwnerPurpose = assistant.purposes.find(p => p.startsWith('notify_owner'));
-        if (notifyOwnerPurpose) {
-          dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: 'notify_owner' });
-          const phone = notifyOwnerPurpose.split(' ')[1];
-          if (phone) {
-            dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
-          }
-        }
-        
         assistant.purposes.forEach(purpose => {
-            if (!purpose.startsWith('notify_owner')) {
-               dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purpose as any });
+            const purposeId = purpose.split(' ')[0];
+            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId as any });
+            
+            if (purpose.startsWith('notify_owner')) {
+                const phone = purpose.split(' ')[1];
+                if (phone) {
+                    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: phone });
+                }
             }
         });
 
@@ -345,7 +341,6 @@ const DashboardPageContent = () => {
             <h2 className="text-xl font-bold tracking-tight text-foreground">
               {pathname.startsWith('/dashboard/assistants') && 'Panel de Asistentes'}
               {pathname.startsWith('/dashboard/databases') && 'Bases de Datos'}
-              {pathname.startsWith('/app/consumption') && 'Consumo'}
               {pathname.startsWith('/dashboard/profile') && 'Perfil y Soporte'}
               {pathname === '/dashboard' && (isDemoMode ? 'Panel de Demostración' : 'Panel Principal')}
             </h2>
@@ -356,7 +351,6 @@ const DashboardPageContent = () => {
           <p className="text-xs text-muted-foreground">
              {pathname.startsWith('/dashboard/assistants') && 'Gestiona todos tus asistentes de IA desde aquí.'}
              {pathname.startsWith('/dashboard/databases') && 'Administra las fuentes de datos conectadas a tus asistentes.'}
-             {pathname.startsWith('/app/consumption') && 'Revisa el uso y los límites de tus asistentes.'}
              {pathname.startsWith('/dashboard/profile') && 'Administra tu información, apariencia y obtén ayuda.'}
              {pathname === '/dashboard' && (isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.')}
           </p>

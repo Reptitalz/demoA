@@ -4,7 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { FaRobot, FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
-import { BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +17,6 @@ import { signOut } from 'next-auth/react';
 const menuItems = [
     { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
     { path: '/dashboard/databases', icon: FaDatabase, label: 'Bases de Datos' },
-    { path: '/app/consumption', icon: BarChart2, label: 'Consumo' },
     { path: '/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
 
