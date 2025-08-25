@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -173,7 +174,15 @@ const BeginPage = () => {
                                 <CardDescription className="text-xs">Después, ${PRICE_PER_CREDIT.toFixed(2)} MXN por {MESSAGES_PER_CREDIT.toLocaleString()} mensajes.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
-                                <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); showDetails('browser'); }}>
+                                <Button 
+                                    size="sm" 
+                                    className={cn(
+                                        "w-full",
+                                        "bg-brand-gradient text-primary-foreground hover:opacity-90",
+                                        "shiny-border"
+                                    )} 
+                                    onClick={(e) => { e.stopPropagation(); showDetails('browser'); }}
+                                >
                                     <Info className="mr-2" size={14} /> Ver detalles
                                 </Button>
                             </CardContent>
@@ -204,7 +213,15 @@ const BeginPage = () => {
                                 <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
-                                <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); showDetails('whatsapp'); }}>
+                                <Button 
+                                    size="sm" 
+                                    className={cn(
+                                        "w-full",
+                                        "bg-brand-gradient text-primary-foreground hover:opacity-90",
+                                        "shiny-border"
+                                    )} 
+                                    onClick={(e) => { e.stopPropagation(); showDetails('whatsapp'); }}
+                                >
                                     <Info className="mr-2" size={14} /> Ver detalles
                                 </Button>
                             </CardContent>
