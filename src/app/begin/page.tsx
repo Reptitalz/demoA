@@ -5,18 +5,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, BotMessageSquare, WalletCards, UserPlus, ArrowRight, ArrowLeft, Info } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, Info, AppWindow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
-        { icon: <BotMessageSquare size={14} />, label: "Elige" },
-        { icon: <WalletCards size={14} />, label: "Entiende" },
+        { icon: <AppWindow size={14} />, label: "Elige" },
+        { icon: <Check size={14} />, label: "Entiende" },
         { icon: <UserPlus size={14} />, label: "Regístrate" }
     ];
 
@@ -178,7 +179,7 @@ const BeginPage = () => {
                                         30 DÍAS GRATIS
                                     </div>
                                 </div>
-                                <CardTitle className="flex items-center gap-2 text-sm"><BotMessageSquare size={16}/> Asistente en Navegador</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-sm"><AppWindow size={16}/> Asistente en Navegador</CardTitle>
                                 <CardDescription className="text-xs">Después, ${PRICE_PER_CREDIT.toFixed(2)} MXN por {MESSAGES_PER_CREDIT.toLocaleString()} mensajes.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
@@ -217,7 +218,7 @@ const BeginPage = () => {
                                         ${PRICE_PER_CREDIT.toFixed(2)} MXN / {MESSAGES_PER_CREDIT.toLocaleString()} Mensajes
                                     </div>
                                 </div>
-                                <CardTitle className="flex items-center gap-2 text-sm"><WalletCards size={16}/> Asistente en WhatsApp</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-sm"><FaWhatsapp size={16}/> Asistente en WhatsApp</CardTitle>
                                 <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
