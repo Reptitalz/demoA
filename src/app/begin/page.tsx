@@ -1,11 +1,10 @@
-
 "use client";
 
 import React, { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, BotMessageSquare, WalletCards, UserPlus, ArrowRight, ArrowLeft, InfoCircle } from 'lucide-react';
+import { Check, BotMessageSquare, WalletCards, UserPlus, ArrowRight, ArrowLeft, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -175,7 +174,7 @@ const BeginPage = () => {
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
                                 <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); showDetails('browser'); }}>
-                                    <InfoCircle className="mr-2" size={14} /> Ver detalles
+                                    <Info className="mr-2" size={14} /> Ver detalles
                                 </Button>
                             </CardContent>
                         </Card>
@@ -206,7 +205,7 @@ const BeginPage = () => {
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
                                 <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); showDetails('whatsapp'); }}>
-                                    <InfoCircle className="mr-2" size={14} /> Ver detalles
+                                    <Info className="mr-2" size={14} /> Ver detalles
                                 </Button>
                             </CardContent>
                         </Card>
