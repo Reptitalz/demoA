@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,6 +111,14 @@ const BeginPage = () => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
     const router = useRouter();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Reset scroll position when step changes
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0;
+        }
+    }, [step]);
 
     const handleNext = () => {
         if (step === 1 && selectedOption) {
@@ -142,7 +150,7 @@ const BeginPage = () => {
 
             <StepIndicator currentStep={step} />
 
-            <div className="relative flex-grow overflow-y-auto mt-2 p-1">
+            <div ref={scrollContainerRef} className="relative flex-grow overflow-y-auto mt-2 p-1">
                 {/* Step 1: Choose Assistant Type */}
                 <div className={cn(
                     "transition-opacity duration-300 absolute w-full",
