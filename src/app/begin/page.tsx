@@ -5,12 +5,13 @@ import React, { useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, BotMessageSquare, WalletCards, UserPlus, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, BotMessageSquare, WalletCards, UserPlus, ArrowRight, ArrowLeft, InfoCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -50,10 +51,65 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     );
 };
 
+const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; onOpenChange: (open: boolean) => void; type: 'browser' | 'whatsapp' | null }) => {
+    if (!type) return null;
+
+    const details = {
+        browser: {
+            title: "Asistente en Navegador",
+            description: "Ideal para pruebas rápidas, desarrollo y uso interno. Tu asistente vivirá en una página web y podrás interactuar con él directamente.",
+            points: [
+                "Perfecto para probar prompts y lógica sin costo inicial.",
+                "No requiere vincular un número de teléfono.",
+                "Acceso inmediato después del registro.",
+                "Incluye 30 días de prueba con créditos para que experimentes."
+            ]
+        },
+        whatsapp: {
+            title: "Asistente en WhatsApp",
+            description: "La solución completa para automatizar la comunicación con tus clientes directamente en la plataforma que más usan.",
+            points: [
+                "Interactúa con tus clientes 24/7.",
+                "Requiere un número de teléfono nuevo (sin WhatsApp previo).",
+                "Se integra con la API oficial de WhatsApp para máxima estabilidad.",
+                "Ideal para ventas, soporte, agendamiento y más."
+            ]
+        }
+    };
+
+    const currentDetails = details[type];
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{currentDetails.title}</DialogTitle>
+                    <DialogDescription>{currentDetails.description}</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <ul className="space-y-2">
+                        {currentDetails.points.map((point, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-green-500 mt-1 shrink-0" />
+                                <span className="text-sm text-muted-foreground">{point}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <DialogFooter>
+                    <Button onClick={() => onOpenChange(false)}>Entendido</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 
 const BeginPage = () => {
     const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
     const router = useRouter();
 
     const handleNext = () => {
@@ -70,7 +126,13 @@ const BeginPage = () => {
         }
     }
 
+    const showDetails = (type: 'browser' | 'whatsapp') => {
+        setDetailsType(type);
+        setIsDetailsOpen(true);
+    };
+
     return (
+        <>
         <PageContainer className="flex flex-col h-[calc(100vh-80px)]">
             <div className="text-center">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-gradient">
@@ -111,6 +173,11 @@ const BeginPage = () => {
                                 <CardTitle className="flex items-center gap-2 text-sm"><BotMessageSquare size={16}/> Asistente en Navegador</CardTitle>
                                 <CardDescription className="text-xs">Después, ${PRICE_PER_CREDIT.toFixed(2)} MXN por {MESSAGES_PER_CREDIT.toLocaleString()} mensajes.</CardDescription>
                             </CardHeader>
+                             <CardContent className="p-4 pt-0">
+                                <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); showDetails('browser'); }}>
+                                    <InfoCircle className="mr-2" size={14} /> Ver detalles
+                                </Button>
+                            </CardContent>
                         </Card>
 
                         <Card 
@@ -137,6 +204,11 @@ const BeginPage = () => {
                                 <CardTitle className="flex items-center gap-2 text-sm"><WalletCards size={16}/> Asistente en WhatsApp</CardTitle>
                                 <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
                             </CardHeader>
+                             <CardContent className="p-4 pt-0">
+                                <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); showDetails('whatsapp'); }}>
+                                    <InfoCircle className="mr-2" size={14} /> Ver detalles
+                                </Button>
+                            </CardContent>
                         </Card>
                     </div>
                      <div className="text-center mt-3 text-xs text-muted-foreground max-w-2xl mx-auto bg-muted/50 p-2 rounded-lg">
@@ -205,6 +277,8 @@ const BeginPage = () => {
                &copy; {new Date().getFullYear()} {APP_NAME}
             </p>
         </PageContainer>
+        <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
+        </>
     );
 };
 
