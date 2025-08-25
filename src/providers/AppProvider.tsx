@@ -7,7 +7,7 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSession, signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -277,6 +277,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   const previousStateRef = useRef<AppState>(initialState);
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const fetchProfileCallback = useCallback(async (email: string, newUserFlow?: 'desktop' | 'whatsapp') => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
@@ -317,6 +318,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
           const { userProfile: createdProfile } = await createResponse.json();
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: createdProfile });
           toast({ title: "¡Bienvenido/a!", description: "Hemos creado tu primer asistente. ¡Ya puedes empezar!" });
+          router.replace('/dashboard/assistants'); // Go to dashboard after creation
 
       } else if (response.status === 404) { // Handles new WhatsApp users or any other new user
           dispatch({ type: 'LOGOUT_USER' }); 
@@ -325,12 +327,18 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
               description: "Parece que eres nuevo/a. Por favor, crea tu primer asistente.",
               duration: 6000,
           });
-          window.location.href = '/login'; // Redirect to login to start full wizard
+          // For WhatsApp users, redirect them to the full wizard
+          if (newUserFlow === 'whatsapp') {
+              router.replace('/begin?step=1&type=whatsapp');
+          } else {
+              router.replace('/login');
+          }
 
       } else if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+          router.replace('/dashboard/assistants'); // Redirect existing users to dashboard
         }
       } else {
         throw new Error('Failed to fetch profile.');
@@ -342,7 +350,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [session]);
+  }, [session, router]);
 
 
   useEffect(() => {
