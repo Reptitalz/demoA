@@ -11,6 +11,7 @@ import { useSession, signIn } from 'next-auth/react';
 const initialWizardState: WizardState = {
   currentStep: 1,
   assistantName: '',
+  assistantType: 'desktop',
   assistantPrompt: '',
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '', sheetNames: [], selectedSheetName: '', selectedColumns: [], relevantColumnsDescription: '' },
@@ -63,6 +64,7 @@ type Action =
   | { type: 'PREVIOUS_WIZARD_STEP' }
   | { type: 'SET_WIZARD_STEP'; payload: number }
   | { type: 'UPDATE_ASSISTANT_NAME'; payload: string }
+  | { type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' | 'whatsapp' }
   | { type: 'UPDATE_ASSISTANT_PROMPT'; payload: string }
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
@@ -102,6 +104,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, currentStep: action.payload } };
     case 'UPDATE_ASSISTANT_NAME':
       return { ...state, wizard: { ...state.wizard, assistantName: action.payload } };
+    case 'UPDATE_ASSISTANT_TYPE':
+        return { ...state, wizard: { ...state.wizard, assistantType: action.payload } };
     case 'UPDATE_ASSISTANT_PROMPT':
       return { ...state, wizard: { ...state.wizard, assistantPrompt: action.payload } };
     case 'TOGGLE_ASSISTANT_PURPOSE': {

@@ -116,7 +116,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { data: session } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, assistantType } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
 
@@ -129,6 +129,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const getValidationMessageForStep = useCallback((step: number): string | null => {
     switch (step) {
         case 1:
+            if (!assistantType) return "Por favor, selecciona un tipo de asistente en la página anterior.";
             if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
             if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
             if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu WhatsApp para notificaciones.";
@@ -154,7 +155,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         default:
             return "Paso inválido";
     }
-  }, [assistantName, selectedPurposes, ownerPhoneNumberForNotifications, assistantPrompt, dbNeeded, databaseOption, acceptedTerms]);
+  }, [assistantName, selectedPurposes, ownerPhoneNumberForNotifications, assistantPrompt, dbNeeded, databaseOption, acceptedTerms, assistantType]);
   
   const isStepValid = useMemo((): boolean => {
     if (isFinalizingSetup) return false;
@@ -229,6 +230,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
           const finalAssistantConfig: AssistantConfig = {
               id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              type: assistantType || 'desktop',
               name: assistantName,
               prompt: assistantPrompt,
               purposes: finalPurposes,
@@ -287,7 +289,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       } finally {
         setIsFinalizingSetup(false);
       }
-  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, ownerPhoneNumberForNotifications, toast, router, onOpenChange, dispatch]);
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, ownerPhoneNumberForNotifications, toast, router, onOpenChange, dispatch, assistantType]);
 
   // Effect to handle Google Sign-in completion
   useEffect(() => {

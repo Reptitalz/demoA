@@ -61,6 +61,7 @@ export interface AssistantTools {
 export interface AssistantConfig {
   id: string;
   name: string;
+  type: 'desktop' | 'whatsapp';
   prompt?: string;
   isActive: boolean;
   messageCount: number;
@@ -120,6 +121,7 @@ export interface UserProfile {
 export interface WizardState {
   currentStep: number;
   assistantName: string;
+  assistantType: 'desktop' | 'whatsapp';
   assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {

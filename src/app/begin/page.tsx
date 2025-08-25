@@ -13,6 +13,7 @@ import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
+import { useApp } from '@/providers/AppProvider';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -107,8 +108,9 @@ const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; o
 
 
 const BeginPage = () => {
+    const { state, dispatch } = useApp();
     const [step, setStep] = useState(1);
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
     const router = useRouter();
@@ -120,6 +122,11 @@ const BeginPage = () => {
             scrollContainerRef.current.scrollTop = 0;
         }
     }, [step]);
+    
+    const handleSelectOption = (option: 'desktop' | 'whatsapp') => {
+        setSelectedOption(option);
+        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
+    }
 
     const handleNext = () => {
         if (step < 3) {
@@ -158,10 +165,10 @@ const BeginPage = () => {
                 )}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Card 
-                            onClick={() => setSelectedOption('browser')}
+                            onClick={() => handleSelectOption('desktop')}
                             className={cn(
                                 "cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80",
-                                selectedOption === 'browser' && "border-primary ring-2 ring-primary shadow-lg"
+                                selectedOption === 'desktop' && "border-primary ring-2 ring-primary shadow-lg"
                             )}
                         >
                             <CardHeader className="p-4">
@@ -197,7 +204,7 @@ const BeginPage = () => {
                         </Card>
 
                         <Card 
-                            onClick={() => setSelectedOption('whatsapp')}
+                            onClick={() => handleSelectOption('whatsapp')}
                             className={cn(
                                 "cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80",
                                 selectedOption === 'whatsapp' && "border-primary ring-2 ring-primary shadow-lg"
