@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, Info, AppWindow, Mail, Bot } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, Info, AppWindow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
 import { signIn } from 'next-auth/react';
+import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -109,16 +110,16 @@ const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; o
 
 
 const BeginPage = () => {
-    const { state, dispatch } = useApp();
+    const { dispatch } = useApp();
     const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
     const router = useRouter();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Reset scroll position when step changes
         if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = 0;
         }
@@ -146,6 +147,12 @@ const BeginPage = () => {
         const callbackUrl = `/dashboard?newUserFlow=${selectedOption}`;
         signIn('google', { callbackUrl });
     }
+    
+    const handleEmailRegister = () => {
+        if (!selectedOption) return;
+        dispatch({ type: 'SET_WIZARD_STEP', payload: 1 });
+        setIsRegisterOpen(true);
+    };
 
     const showDetails = (type: 'browser' | 'whatsapp') => {
         setDetailsType(type);
@@ -326,11 +333,11 @@ const BeginPage = () => {
                         </Card>
 
                          <Card 
-                            onClick={() => router.push('/login')}
+                            onClick={handleEmailRegister}
                             className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
                         >
                             <CardHeader className="p-4">
-                                <CardTitle className="flex items-center gap-2 text-sm"><Mail size={16} /> Regístrate con Correo</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-sm"><UserPlus size={16} /> Regístrate con Correo</CardTitle>
                                 <CardDescription className="text-xs">Usa tu correo electrónico y una contraseña para registrarte.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
@@ -361,6 +368,7 @@ const BeginPage = () => {
             </p>
         </PageContainer>
         <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
+        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
         </>
     );
 };

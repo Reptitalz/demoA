@@ -22,6 +22,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { signIn, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
+import { UserPlus } from 'lucide-react';
 
 interface AuthStepContentProps {
   onFinalize: (authProvider: 'google' | 'email', authData: any) => Promise<void>;
@@ -36,7 +37,8 @@ const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepConten
   const [lastName, setLastName] = useState('');
   const { toast } = useToast();
 
-  const handleEmailPasswordAuth = async () => {
+  const handleEmailPasswordAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!email || !password || !firstName || !lastName) {
       toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
       return;
@@ -45,7 +47,7 @@ const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepConten
   };
   
   const handleGoogleAuth = () => {
-    signIn('google');
+    onFinalize('google', {});
   }
 
   return (
@@ -57,7 +59,7 @@ const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepConten
               </p>
         </div>
         
-        <div className="space-y-4">
+        <form onSubmit={handleEmailPasswordAuth} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <Label htmlFor="firstNameReg">Nombre</Label>
@@ -76,10 +78,10 @@ const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepConten
                 <Label htmlFor="passwordReg">Contraseña</Label>
                 <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
             </div>
-            <Button onClick={handleEmailPasswordAuth} disabled={isProcessing} className="w-full">
+            <Button type="submit" disabled={isProcessing} className="w-full">
               {isProcessing ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
             </Button>
-        </div>
+        </form>
 
         <div className="relative my-2">
           <div className="absolute inset-0 flex items-center">
@@ -95,6 +97,7 @@ const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepConten
           disabled={isProcessing}
           variant="outline"
           className="w-full"
+          type="button"
          >
           <FcGoogle className="mr-2 h-5 w-5" />
           Continuar con Google
@@ -322,9 +325,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
           setIsFinalizingSetup(false);
       }
     } else { // Google
-       signIn('google');
+       signIn('google', {
+         callbackUrl: `/dashboard?newUserFlow=${state.wizard.assistantType}`
+       });
     }
-  }, [createProfileAndFinalize, toast]);
+  }, [createProfileAndFinalize, toast, state.wizard.assistantType]);
 
   const renderStepContent = () => {
     const finalAuthStep = dbNeeded ? 5 : 4;
@@ -354,7 +359,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         onInteractOutside={(e) => { if (isFinalizingSetup) e.preventDefault(); }}>
         
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-2xl font-bold text-center text-brand-gradient">Crear un Nuevo Asistente</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center text-brand-gradient flex items-center justify-center gap-2">
+            <UserPlus /> Crear un Nuevo Asistente
+          </DialogTitle>
           <DialogDescription className="text-center">
             Sigue los pasos para configurar tu primer asistente inteligente.
           </DialogDescription>
