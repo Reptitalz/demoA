@@ -12,6 +12,9 @@ import { FaSpinner } from 'react-icons/fa';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { firebaseApp } from '@/lib/firebase';
 import { signIn } from 'next-auth/react';
+import { useApp } from '@/providers/AppProvider';
+import type { AssistantConfig, UserProfile } from '@/types';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 interface RegisterCollaboratorDialogProps {
   isOpen: boolean;
@@ -19,6 +22,7 @@ interface RegisterCollaboratorDialogProps {
 }
 
 const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaboratorDialogProps) => {
+  const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -36,7 +40,8 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
     setIsProcessing(true);
     
     try {
-      // 1. Create Firebase user (this is just for auth, profile is separate)
+      const { assistantType } = state.wizard;
+      // 1. Create Firebase user
       const auth = getAuth(firebaseApp);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
@@ -45,15 +50,32 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
         throw new Error("No se pudo crear el usuario en Firebase.");
       }
 
-      // 2. Create Collaborator Profile via API
-      const profileData = {
+      // 2. Create User Profile via API with a pre-configured assistant
+       const newAssistant: AssistantConfig = {
+          id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          name: "Mi Primer Asistente",
+          type: assistantType || 'desktop',
+          prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
+          purposes: [],
+          isActive: true,
+          numberReady: true,
+          messageCount: 0,
+          monthlyMessageLimit: 1000,
+          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL
+      };
+
+      const profileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
         firebaseUid: firebaseUser.uid,
         email,
         firstName,
         lastName,
+        authProvider: 'email',
+        assistants: [newAssistant],
+        databases: [],
+        credits: 1, // Start with 1 free credit
       };
       
-      const response = await fetch('/api/create-collaborator-profile', {
+      const response = await fetch('/api/create-user-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
@@ -69,6 +91,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
         redirect: false,
         email,
         password,
+        userType: 'user'
       });
       
       toast({
@@ -77,7 +100,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       });
       
       onOpenChange(false);
-      router.push('/colaboradores/dashboard'); // Redirect to collaborator dashboard
+      router.push('/dashboard');
 
     } catch (error: any) {
       console.error("Collaborator registration error:", error);
@@ -97,9 +120,9 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
-          <DialogTitle>Registro de Colaborador</DialogTitle>
+          <DialogTitle>Registro con Correo</DialogTitle>
           <DialogDescription>
-            Crea tu cuenta de aliado para empezar a referir clientes y ganar comisiones.
+            Crea tu cuenta para guardar tu progreso y empezar a usar tu asistente.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -126,7 +149,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cancelar</Button>
           <Button onClick={handleRegister} disabled={isProcessing}>
             {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
-            Registrarse
+            Crear Cuenta
           </Button>
         </DialogFooter>
       </DialogContent>
