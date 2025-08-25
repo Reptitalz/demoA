@@ -17,7 +17,7 @@ import { E164Number, isValidPhoneNumber } from "react-phone-number-input";
 import { useApp } from "@/providers/AppProvider";
 import MessageLimitDialog from './MessageLimitDialog';
 import { Progress } from "../ui/progress";
-import { MessagesSquare } from "lucide-react";
+import { MessagesSquare, AppWindow } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface AssistantCardProps {
@@ -229,6 +229,20 @@ const AssistantCard = ({
     ? Math.min(((assistant.messageCount || 0) / assistant.monthlyMessageLimit) * 100, 100)
     : 0;
 
+  const typeBadge = (
+    <Badge 
+      variant="outline" 
+      className={cn(
+        "flex items-center gap-1 text-xs",
+        assistant.type === 'whatsapp' ? 'border-green-500 text-green-600 dark:text-green-400' : 'border-blue-500 text-blue-600 dark:text-blue-400'
+      )}
+    >
+      {assistant.type === 'whatsapp' ? <FaWhatsapp /> : <AppWindow size={12} />}
+      {assistant.type === 'whatsapp' ? 'WhatsApp' : 'Desktop'}
+    </Badge>
+  );
+
+
   return (
     <>
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col animate-fadeIn relative" style={{animationDelay}}>
@@ -250,6 +264,9 @@ const AssistantCard = ({
               </div>
               <div className="flex-grow">
                 <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
+                 <div className="flex items-center gap-2 pt-1">
+                  {typeBadge}
+                </div>
                 {isAssistantActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">

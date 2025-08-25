@@ -1,4 +1,5 @@
 
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -116,6 +117,7 @@ export interface UserProfile {
   credits: number;
   pushSubscriptions?: any[];
   referredBy?: ObjectId; // Link to CollaboratorProfile
+  ownerPhoneNumberForNotifications?: string;
 }
 
 export interface WizardState {

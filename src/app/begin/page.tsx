@@ -142,6 +142,11 @@ const BeginPage = () => {
         }
     }
 
+    const handleGoogleSignIn = () => {
+        const callbackUrl = `/dashboard?newUserFlow=${selectedOption}`;
+        signIn('google', { callbackUrl });
+    }
+
     const showDetails = (type: 'browser' | 'whatsapp') => {
         setDetailsType(type);
         setIsDetailsOpen(true);
@@ -301,7 +306,7 @@ const BeginPage = () => {
                 )}>
                     <div className="space-y-4">
                         <Card 
-                            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+                            onClick={handleGoogleSignIn}
                             className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
                         >
                             <CardHeader className="p-4">
@@ -314,7 +319,7 @@ const BeginPage = () => {
                                 <CardDescription className="text-xs">La forma más rápida y segura de crear tu cuenta.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
-                                <Button size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                                <Button size="sm" className={cn("w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
                                     Continuar con Google <ArrowRight className="ml-2" size={14} />
                                 </Button>
                             </CardContent>

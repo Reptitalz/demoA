@@ -7,6 +7,7 @@ import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProv
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSession, signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -55,7 +56,7 @@ const initialState: AppState = {
 const AppContext = createContext<{ 
   state: AppState; 
   dispatch: React.Dispatch<Action>;
-  fetchProfileCallback: (email: string) => Promise<void>;
+  fetchProfileCallback: (email: string, newUserFlow?: 'desktop' | 'whatsapp') => Promise<void>;
 } | undefined>(undefined);
 
 type Action =
@@ -271,28 +272,60 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
   }
 }
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const previousStateRef = useRef<AppState>(initialState);
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
 
-  const fetchProfileCallback = useCallback(async (email: string) => {
+  const fetchProfileCallback = useCallback(async (email: string, newUserFlow?: 'desktop' | 'whatsapp') => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
       
-      if (response.status === 404) {
-          console.log(`Profile not found for ${email}. This might be a new user from Google sign-in.`);
-          // This case is now handled in RegisterAssistantDialog.
-          // If a user with a valid session lands here without a profile, they will be stuck in a loop.
-          // The correct flow is to direct them to create an assistant.
-          // We clear the loading state and let the UI decide (e.g., login page will show "Create Assistant").
-          dispatch({ type: 'LOGOUT_USER' }); // Reset state to force user to login/register page.
+      if (response.status === 404 && newUserFlow === 'desktop') {
+          console.log(`Profile not found for ${email}, creating new profile with desktop assistant.`);
+          
+          const newAssistant: AssistantConfig = {
+              id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              name: "Mi Primer Asistente",
+              type: 'desktop',
+              prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
+              purposes: [],
+              isActive: true, // Desktop assistants are active by default
+              numberReady: true, // No number needed
+              messageCount: 0,
+              monthlyMessageLimit: 1000, // Free tier limit
+          };
+
+          const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+              firebaseUid: session?.user?.id || '',
+              email: session?.user?.email || '',
+              firstName: session?.user?.name?.split(' ')[0] || 'Nuevo',
+              lastName: session?.user?.name?.split(' ').slice(1).join(' ') || 'Usuario',
+              authProvider: 'google',
+              assistants: [newAssistant],
+              databases: [],
+              credits: 1, // 1 free credit
+          };
+
+          const createResponse = await fetch('/api/create-user-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newUserProfile),
+          });
+          const { userProfile: createdProfile } = await createResponse.json();
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: createdProfile });
+          toast({ title: "¡Bienvenido/a!", description: "Hemos creado tu primer asistente. ¡Ya puedes empezar!" });
+
+      } else if (response.status === 404) { // Handles new WhatsApp users or any other new user
+          dispatch({ type: 'LOGOUT_USER' }); 
           toast({
-              title: "Bienvenido/a a " + process.env.NEXT_PUBLIC_APP_NAME,
-              description: "Parece que eres nuevo. ¡Crea tu primer asistente para empezar!",
+              title: "Bienvenido/a",
+              description: "Parece que eres nuevo/a. Por favor, crea tu primer asistente.",
               duration: 6000,
           });
+          window.location.href = '/login'; // Redirect to login to start full wizard
 
       } else if (response.ok) {
         const data = await response.json();
@@ -309,7 +342,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, []);
+  }, [session]);
 
 
   useEffect(() => {
@@ -331,27 +364,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [state.userProfile]);
 
   useEffect(() => {
+    const newUserFlow = searchParams.get('newUserFlow') as 'desktop' | 'whatsapp' | null;
+
     if (status === 'loading') {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
     } else if (status === 'unauthenticated') {
       dispatch({ type: 'LOGOUT_USER' });
     } else if (status === 'authenticated') {
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
-        fetchProfileCallback(session.user.email);
+        fetchProfileCallback(session.user.email, newUserFlow || undefined);
       } else {
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
     }
-  }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
+  }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback, searchParams]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-        <AppContext.Provider value={{ state, dispatch, fetchProfileCallback }}>
-            {children}
-        </AppContext.Provider>
-    </QueryClientProvider>
+    <AppContext.Provider value={{ state, dispatch, fetchProfileCallback }}>
+        {children}
+    </AppContext.Provider>
   );
 };
+
+
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <AppProviderInternal>{children}</AppProviderInternal>
+        </QueryClientProvider>
+    )
+}
 
 export const useApp = () => {
   const context = useContext(AppContext);
