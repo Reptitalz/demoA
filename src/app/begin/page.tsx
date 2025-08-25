@@ -14,6 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
+import { signIn } from 'next-auth/react';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -300,7 +301,7 @@ const BeginPage = () => {
                 )}>
                     <div className="space-y-4">
                         <Card 
-                            onClick={() => router.push('/login')}
+                            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
                             className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
                         >
                             <CardHeader className="p-4">
