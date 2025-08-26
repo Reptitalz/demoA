@@ -118,3 +118,5 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
 };
 
 export default RegisterCollaboratorDialog;
+
+    
