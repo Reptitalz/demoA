@@ -62,6 +62,9 @@ const AssistantCard = ({
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
+  const desktopChatUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/chat/${assistant.id}`;
+  const shareUrl = assistant.type === 'whatsapp' ? whatsappUrl : desktopChatUrl;
+
 
   const handleReconfigureClick = () => {
     onReconfigure(assistant.id);
@@ -153,29 +156,29 @@ const AssistantCard = ({
   };
 
 
-  const handleShareOnWhatsApp = async () => {
-    if (!cleanedPhoneNumberForWhatsApp) {
-        toast({ title: "Error", description: "Número de WhatsApp no disponible para este asistente.", variant: "destructive"});
+  const handleShare = async () => {
+    if (!assistant.isActive) {
+        toast({ title: "Error", description: "El asistente debe estar activo para compartirlo.", variant: "destructive"});
         return;
     }
-
+    
     const shareData = {
       title: `Chatea con ${assistant.name}`,
-      text: `Inicia una conversación con ${assistant.name} en WhatsApp.`,
-      url: whatsappUrl,
+      text: `Inicia una conversación con ${assistant.name}.`,
+      url: shareUrl,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
-        toast({ title: "Compartido Exitosamente", description: "El enlace de WhatsApp ha sido compartido." });
+        toast({ title: "Compartido Exitosamente", description: "El enlace de chat ha sido compartido." });
       } else {
         throw new Error("navigator.share no está disponible");
       }
     } catch (err) {
       try {
-        await navigator.clipboard.writeText(whatsappUrl);
-        toast({ title: "Enlace Copiado", description: "Enlace de WhatsApp copiado al portapapeles." });
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Enlace Copiado", description: "Enlace de chat copiado al portapapeles." });
       } catch (copyError) {
         toast({ title: "Error al Copiar", description: "No se pudo copiar el enlace.", variant: "destructive" });
       }
@@ -404,7 +407,7 @@ const AssistantCard = ({
                 </div>
             ) : (
                 <>
-                    {assistant.isActive && assistant.type === 'whatsapp' ? (
+                    {assistant.isActive ? (
                         <div className="grid grid-cols-3 gap-2">
                              <Button
                                 size="sm"
@@ -424,35 +427,42 @@ const AssistantCard = ({
                             >
                                 <MessagesSquare size={14} />
                             </Button>
-                            <AlertDialog open={isReassignAlertOpen} onOpenChange={setIsReassignAlertOpen}>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="transition-transform transform hover:scale-105 w-full text-xs"
-                                  title="Reasignar Número"
-                                >
-                                  <FaExchangeAlt size={14} />
+                            {assistant.type === 'whatsapp' ? (
+                                <AlertDialog open={isReassignAlertOpen} onOpenChange={setIsReassignAlertOpen}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="transition-transform transform hover:scale-105 w-full text-xs"
+                                      title="Reasignar Número"
+                                    >
+                                      <FaExchangeAlt size={14} />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>¿Reasignar número de teléfono?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta acción desvinculará el número actual de este asistente. Tendrás que integrar y verificar un nuevo número. El número anterior quedará libre. ¿Estás seguro?
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction onClick={handleReassignPhoneNumber} className="bg-destructive hover:bg-destructive/90">
+                                        Sí, reasignar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                            ) : (
+                                <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
+                                   <Link href={`/chat/${assistant.id}`}><Bot size={14} /> Chatear</Link>
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>¿Reasignar número de teléfono?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Esta acción desvinculará el número actual de este asistente. Tendrás que integrar y verificar un nuevo número. El número anterior quedará libre. ¿Estás seguro?
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleReassignPhoneNumber} className="bg-destructive hover:bg-destructive/90">
-                                    Sí, reasignar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            )}
+
                             <Button
                                 size="sm"
-                                onClick={handleShareOnWhatsApp}
+                                onClick={handleShare}
                                 className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs col-span-3"
                             >
                                 <FaShareAlt size={14} />
@@ -489,16 +499,6 @@ const AssistantCard = ({
                             Integrar número de teléfono
                         </Button>
                     ) : null }
-                     {assistant.type === 'desktop' && assistant.isActive && (
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
-                           <Link href={`/chat/${assistant.id}`}><Bot size={14} /> Chatear con Asistente</Link>
-                        </Button>
-                        <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
-                           <Link href={`/chat/${assistant.id}/conversations`}><MessageCircle size={14} /> Ver Conversaciones</Link>
-                        </Button>
-                      </div>
-                    )}
                     <Button
                         variant="outline"
                         size="sm"
