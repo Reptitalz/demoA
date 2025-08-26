@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,8 @@ const APP_NAME = "Hey Manito!";
 
 const LoginPageContent = () => {
   const router = useRouter();
-  const { state, dispatch } = useApp();
+  const searchParams = useSearchParams();
+  const { state } = useApp();
   const { toast } = useToast();
   const { status } = useSession();
 
@@ -33,49 +34,48 @@ const LoginPageContent = () => {
   const [showPassword, setShowPassword] = useState(false);
   
   useEffect(() => {
-    // If NextAuth session is good AND we have a user profile loaded, redirect.
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
       router.replace('/dashboard/assistants');
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
+  useEffect(() => {
+      const error = searchParams.get('error');
+      if (error === 'CredentialsSignin') {
+          toast({
+              title: "Error de inicio de sesión",
+              description: "Correo electrónico o contraseña incorrectos.",
+              variant: "destructive",
+          });
+          // Remove error from URL without reloading
+          router.replace('/login', {scroll: false});
+      }
+  }, [searchParams, toast, router]);
+
   const handleLogin = async (provider: 'google' | 'credentials') => {
     setIsLoggingIn(true);
-    try {
-        const result = await signIn(provider, {
-            redirect: false,
-            ...(provider === 'credentials' && { email, password, userType: 'user' }),
+    
+    let result;
+    if (provider === 'credentials') {
+        result = await signIn('credentials', {
+            email,
+            password,
+            userType: 'user',
             callbackUrl: '/dashboard/assistants'
         });
-        
-        if (result?.error) {
-            throw new Error(result.error);
-        }
-        if (result?.ok && result?.url) {
-            router.push(result.url);
-        } else if (result?.ok) {
-            router.push('/dashboard/assistants');
-        }
-
-    } catch (error: any) {
-      console.error("Login Error:", error);
-      let errorMessage = 'No se pudo iniciar sesión. Por favor, intenta de nuevo.';
-      if (error.message.includes('CredentialsSignin')) {
-          errorMessage = "Correo electrónico o contraseña incorrectos.";
-      } else if (error.message) {
-          errorMessage = error.message;
-      }
-      toast({
-        title: "Error de inicio de sesión",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
+    } else {
+        result = await signIn('google', {
+            callbackUrl: '/dashboard/assistants'
+        });
+    }
+    
+    // The redirect is now handled by NextAuth, but we'll stop the spinner if it fails client-side.
+    if (result?.error) {
         setIsLoggingIn(false);
+        // The useEffect above will handle showing the toast based on the URL query param.
     }
   };
   
-  // Show loading indicator while session is being determined or profile is being fetched.
   if (status === 'loading' || state.loadingStatus.active) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -84,7 +84,6 @@ const LoginPageContent = () => {
     );
   }
 
-  // Once loading is done, and user is not authenticated, show login form.
   return (
     <>
     <div className="flex items-center justify-center min-h-screen px-4">
