@@ -19,10 +19,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const isDashboardPage = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
   const isDashboardDemoPage = pathname.startsWith('/dashboarddemo');
   const isLoginPage = pathname.startsWith('/login') || pathname.startsWith('/colaboradores/login');
+  const isChatPage = pathname.startsWith('/chat');
   
   const layoutShouldBeFullWidth = pathname === '/';
   const showCanvas = isMarketingPage || isLoginPage;
-  const showHeaderAndFooter = !isDashboardPage && !isDashboardDemoPage && !isLoginPage;
+  const showHeaderAndFooter = !isDashboardPage && !isDashboardDemoPage && !isLoginPage && !isChatPage;
   
   return (
     <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
