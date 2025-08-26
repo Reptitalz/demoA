@@ -38,6 +38,7 @@ const DashboardPageContent = () => {
           id: 'demo-asst-1',
           name: 'Asistente de Ventas (Demo)',
           isActive: true,
+          type: 'whatsapp' as const,
           numberReady: true,
           phoneLinked: '+15551234567',
           messageCount: 1250,

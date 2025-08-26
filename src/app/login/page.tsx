@@ -171,6 +171,12 @@ const LoginPageContent = () => {
             Registrarse
         </Button>
         
+        {process.env.NODE_ENV === 'development' && (
+            <Button variant="secondary" onClick={() => router.push('/dashboard')} className="w-full mt-4">
+              Modo Demo (Dashboard)
+            </Button>
+        )}
+        
       </div>
     </div>
     <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
@@ -185,5 +191,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-    
