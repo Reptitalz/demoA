@@ -107,8 +107,8 @@ const DesktopChatPage = () => {
   }
   
   return (
-    <div className="h-screen w-screen bg-muted/50 dark:bg-slate-800 flex items-center justify-center p-4">
-      <div className="w-full h-full max-w-4xl mx-auto flex shadow-2xl rounded-lg overflow-hidden">
+    <div className="h-screen w-screen bg-muted/50 dark:bg-slate-800 flex items-center justify-center">
+      <div className="w-full h-full flex">
         {/* Sidebar (Chat List Mockup) */}
         <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
             <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
