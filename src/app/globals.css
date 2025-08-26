@@ -208,7 +208,7 @@ body {
       overflow: hidden;
       background-color: hsl(var(--card));
   }
-  .glow-card:hover::before {
+  .glow-card::before {
       content: "";
       position: absolute;
       left: 0;
@@ -217,6 +217,12 @@ body {
       height: 100%;
       background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), hsl(var(--primary) / 0.06), transparent 40%);
       z-index: 0;
+      transition: opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+  }
+  .glow-card:hover::before {
+      opacity: 1;
   }
 
   .light-particle {

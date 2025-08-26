@@ -15,7 +15,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
 import { signIn } from 'next-auth/react';
-import RegisterCollaboratorDialog from '@/components/auth/RegisterCollaboratorDialog';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
@@ -126,6 +125,25 @@ const BeginPage = () => {
         }
     }, [step]);
     
+    // Add mouse move listener for glow effect
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            const cards = document.querySelectorAll('.glow-card');
+            cards.forEach(card => {
+                const rect = (card as HTMLElement).getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
+                (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
+            });
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, []);
+
     const handleSelectOption = (option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
@@ -182,8 +200,8 @@ const BeginPage = () => {
                         <Card 
                             onClick={() => handleSelectOption('desktop')}
                             className={cn(
-                                "cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80",
-                                selectedOption === 'desktop' && "border-primary ring-2 ring-primary shadow-lg"
+                                "cursor-pointer transition-all border-2 border-transparent glow-card",
+                                selectedOption === 'desktop' && "border-primary shadow-lg"
                             )}
                         >
                             <CardHeader className="p-4">
@@ -221,8 +239,8 @@ const BeginPage = () => {
                         <Card 
                             onClick={() => handleSelectOption('whatsapp')}
                             className={cn(
-                                "cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80",
-                                selectedOption === 'whatsapp' && "border-primary ring-2 ring-primary shadow-lg"
+                                "cursor-pointer transition-all border-2 border-transparent glow-card",
+                                selectedOption === 'whatsapp' && "border-primary shadow-lg"
                             )}
                         >
                             <CardHeader className="p-4">
@@ -370,7 +388,7 @@ const BeginPage = () => {
             </p>
         </PageContainer>
         <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
-        <RegisterCollaboratorDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
+        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
         </>
     );
 };
