@@ -10,6 +10,7 @@ import type { Adapter } from "next-auth/adapters";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { firebaseApp } from '@/lib/firebase';
 import type { UserProfile, CollaboratorProfile } from '@/types';
+import bcrypt from 'bcryptjs';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -45,48 +46,44 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Se requieren correo electrónico, contraseña y tipo de usuario.");
         }
         
-        const auth = getAuth(firebaseApp);
         const { email, password, userType } = credentials;
+        const { db } = await connectToDatabase();
 
         try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          const firebaseUser = userCredential.user;
-
-          if (firebaseUser) {
-            const { db } = await connectToDatabase();
-            
-            if (userType === 'collaborator') {
-              // --- Collaborator Login Logic ---
-              const collaborator = await db.collection<CollaboratorProfile>('collaboratorProfiles').findOne({ email: firebaseUser.email });
-              if (collaborator) {
-                return {
-                  id: collaborator.firebaseUid,
-                  name: collaborator.firstName,
-                  email: collaborator.email,
-                  image: null, // Collaborators don't have images for now
-                };
-              } else {
-                throw new Error("Colaborador no encontrado en nuestra base de datos.");
-              }
-            } else {
-              // --- Regular User Login Logic ---
-              const userInDb = await db.collection<UserProfile>('userProfiles').findOne({ email: firebaseUser.email });
-              if (userInDb) {
-                return {
-                  id: userInDb.firebaseUid,
-                  name: userInDb.firstName,
-                  email: userInDb.email,
-                  image: userInDb.assistants?.[0]?.imageUrl,
-                };
-              } else {
-                 throw new Error("Usuario no encontrado en nuestra base de datos.");
-              }
+          if (userType === 'collaborator') {
+            const collaborator = await db.collection<CollaboratorProfile>('collaboratorProfiles').findOne({ email });
+            if (!collaborator || !collaborator.password) {
+              throw new Error("Colaborador no encontrado o no tiene contraseña.");
             }
+            const passwordsMatch = await bcrypt.compare(password, collaborator.password);
+            if (!passwordsMatch) {
+              throw new Error("Credenciales inválidas.");
+            }
+            return {
+              id: collaborator._id.toString(),
+              name: collaborator.firstName,
+              email: collaborator.email,
+              image: null,
+            };
+          } else {
+             // --- Regular User Login Logic ---
+             const userInDb = await db.collection<UserProfile>('userProfiles').findOne({ email });
+             if (!userInDb || !userInDb.password) {
+                 throw new Error("Usuario no encontrado o no tiene contraseña.");
+             }
+             const passwordsMatch = await bcrypt.compare(password, userInDb.password);
+             if (!passwordsMatch) {
+                throw new Error("Credenciales inválidas.");
+             }
+             return {
+                id: userInDb._id.toString(),
+                name: userInDb.firstName,
+                email: userInDb.email,
+                image: userInDb.assistants?.[0]?.imageUrl,
+              };
           }
-           throw new Error("No se pudo autenticar con Firebase.");
         } catch (error: any) {
-          console.error("Firebase auth error:", error.code, error.message);
-          // Always throw an error to be handled by next-auth client
+          console.error("Authentication error:", error.message);
           throw new Error("Credenciales inválidas. Por favor, inténtalo de nuevo.");
         }
       }

@@ -9,12 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 import { FaSpinner } from 'react-icons/fa';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { firebaseApp } from '@/lib/firebase';
 import { signIn } from 'next-auth/react';
 import { useApp } from '@/providers/AppProvider';
-import type { AssistantConfig, UserProfile } from '@/types';
-import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 interface RegisterCollaboratorDialogProps {
   isOpen: boolean;
@@ -22,7 +18,7 @@ interface RegisterCollaboratorDialogProps {
 }
 
 const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaboratorDialogProps) => {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -45,59 +41,30 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
     
     try {
       const { assistantType } = state.wizard;
-      // 1. Create Firebase user
-      const auth = getAuth(firebaseApp);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
-
-      if (!firebaseUser) {
-        throw new Error("No se pudo crear el usuario en Firebase.");
-      }
-
-      // 2. Create User Profile via API with a pre-configured assistant based on selection
-      const isDesktopAssistant = assistantType === 'desktop';
-       const newAssistant: AssistantConfig = {
-          id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-          name: isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp",
-          type: assistantType || 'desktop',
-          prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
-          purposes: [],
-          isActive: isDesktopAssistant, // Active only if desktop
-          numberReady: isDesktopAssistant, // Ready only if desktop
-          messageCount: 0,
-          monthlyMessageLimit: isDesktopAssistant ? 1000 : 0, // Free tier limit for desktop
-          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL
-      };
-
-      const profileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-        firebaseUid: firebaseUser.uid,
-        email,
-        firstName: '', // User can fill this in later
-        lastName: '', // User can fill this in later
-        authProvider: 'email',
-        assistants: [newAssistant],
-        databases: [],
-        credits: isDesktopAssistant ? 1 : 0, // 1 free credit for desktop users
-      };
       
-      const response = await fetch('/api/create-user-profile', {
+      // 1. Create user directly in our DB via API
+      const registerResponse = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify({ email, password, assistantType }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "No se pudo crear el perfil.");
+      if (!registerResponse.ok) {
+        const errorData = await registerResponse.json();
+        throw new Error(errorData.message || 'No se pudo crear el perfil.');
       }
       
-      // 3. Sign in the new user with NextAuth
-      await signIn('credentials', {
+      // 2. Sign in the new user with NextAuth using credentials
+      const signInResult = await signIn('credentials', {
         redirect: false,
         email,
         password,
         userType: 'user'
       });
+
+      if (signInResult?.error) {
+        throw new Error(signInResult.error);
+      }
       
       toast({
         title: "¡Registro Exitoso!",
@@ -105,17 +72,11 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       });
       
       onOpenChange(false);
-      router.push('/dashboard');
+      router.push('/dashboard/assistants');
 
     } catch (error: any) {
       console.error("User registration error:", error);
-      let errorMessage = "Ocurrió un error inesperado durante el registro.";
-      if (error.code === 'auth/email-already-in-use') {
-          errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
-      } else if (error.message) {
-          errorMessage = error.message;
-      }
-      toast({ title: "Error de Registro", description: errorMessage, variant: "destructive" });
+      toast({ title: "Error de Registro", description: error.message, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }

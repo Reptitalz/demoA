@@ -95,6 +95,7 @@ export interface CollaboratorProfile {
   firebaseUid: string;
   isAuthenticated: boolean;
   email: string;
+  password?: string;
   firstName?: string;
   lastName?: string;
   referralCode: string;
@@ -109,6 +110,7 @@ export interface UserProfile {
   isAuthenticated: boolean;
   authProvider: AuthProviderType;
   email: string;
+  password?: string;
   firstName?: string;
   lastName?: string;
   address?: UserAddress;
