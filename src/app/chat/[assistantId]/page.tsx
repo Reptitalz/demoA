@@ -53,14 +53,22 @@ const DesktopChatPage = () => {
         })
         .then(data => {
           setAssistant(data.assistant);
-          // Add a welcome message from the assistant
           setMessages([{
             text: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
             isUser: false,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
         })
-        .catch(err => setError(err.message))
+        .catch(err => {
+            setError(err.message);
+            // Even with an error, set a default state to render the chat UI
+            setAssistant({ name: "Asistente no encontrado" });
+             setMessages([{
+                text: `Error: ${err.message}. No se pudo cargar el asistente.`,
+                isUser: false,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+             }]);
+        })
         .finally(() => setIsLoading(false));
     }
   }, [assistantId]);
@@ -71,7 +79,7 @@ const DesktopChatPage = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentMessage.trim() || isSending) return;
+    if (!currentMessage.trim() || isSending || error) return;
 
     const userMessage = {
       text: currentMessage,
@@ -99,19 +107,7 @@ const DesktopChatPage = () => {
   if (isLoading) {
     return <div className="h-screen w-screen flex items-center justify-center bg-muted"><LoadingSpinner size={40} /></div>;
   }
-
-  if (error) {
-    return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-muted text-center p-4">
-        <h2 className="text-2xl font-bold text-destructive mb-4">Error</h2>
-        <p className="text-muted-foreground mb-6">{error}</p>
-        <Button asChild>
-          <Link href="/dashboard/assistants">Volver al Dashboard</Link>
-        </Button>
-      </div>
-    );
-  }
-
+  
   return (
     <div className="flex flex-col h-screen w-screen bg-muted/50 dark:bg-slate-800">
       <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2rem] h-[calc(100%-2rem)] w-full max-w-lg shadow-xl my-4">
@@ -131,7 +127,7 @@ const DesktopChatPage = () => {
                 </Avatar>
                 <div>
                   <h3 className="font-semibold text-base">{assistant?.name || 'Asistente'}</h3>
-                  <p className="text-xs opacity-80">en línea</p>
+                  <p className="text-xs opacity-80">{error ? 'no disponible' : 'en línea'}</p>
                 </div>
               </header>
               <main className="flex-1 p-4 overflow-y-auto">
@@ -155,13 +151,14 @@ const DesktopChatPage = () => {
                 <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
                   <Input
                     type="text"
-                    placeholder="Escribe un mensaje..."
+                    placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     className="bg-white dark:bg-slate-700 rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                     autoComplete="off"
+                    disabled={!!error || isSending}
                   />
-                  <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim()}>
+                  <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
                     <FaPaperPlane className="h-5 w-5" />
                   </Button>
                 </form>
