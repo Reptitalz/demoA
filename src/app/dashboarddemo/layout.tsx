@@ -35,10 +35,6 @@ export default function DashboardDemoLayout({
                     </Link>
                     <div className="flex items-center gap-1.5">
                         <ThemeToggle />
-                         <Button variant="secondary" size="sm" onClick={() => router.push('/dashboard')} className="text-xs px-2 py-1"> 
-                            <FaTachometerAlt size={12} className="mr-1" /> 
-                            Dashboard Real
-                        </Button>
                         <Button variant="outline" size="sm" onClick={() => router.push('/login')} className="text-xs px-2 py-1"> 
                             <FaSignInAlt size={12} className="mr-1" /> 
                             Iniciar Sesión
