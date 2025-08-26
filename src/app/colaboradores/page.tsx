@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -59,8 +60,9 @@ const CollaboratorsPage = () => {
     return (
         <PageContainer className="animate-fadeIn">
             <div className="text-center py-12">
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-gradient">
-                    Conviértete en Aliado de {APP_NAME}
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground">
+                    Conviértete en Aliado de{' '}
+                    <span className="text-brand-gradient">{APP_NAME}</span>
                 </h1>
                 <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
                     Genera ingresos pasivos. Gana comisiones recurrentes ayudando a negocios a automatizar su WhatsApp con IA.
