@@ -69,6 +69,7 @@ export interface AssistantConfig {
   monthlyMessageLimit: number;
   phoneLinked?: string;
   webhookPath?: string;
+  chatPath?: string; // New field for desktop assistant chat path
   imageUrl?: string;
   purposes: string[];
   databaseId?: string | null;

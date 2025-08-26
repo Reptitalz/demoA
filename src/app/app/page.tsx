@@ -17,6 +17,18 @@ import { useToast } from "@/hooks/use-toast";
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
+function generateChatPath(assistantName: string): string {
+  const slug = assistantName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  
+  return `/chat/${slug}`;
+}
+
 const AppSetupPageContent = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
@@ -165,6 +177,7 @@ const AppSetupPageContent = () => {
         purposes: finalPurposes,
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        chatPath: assistantToUpdate.type === 'desktop' ? generateChatPath(assistantName) : undefined,
     };
     
     let updatedAssistantsArray = state.userProfile.assistants.map(a => a.id === state.wizard.editingAssistantId ? finalAssistantConfig : a);

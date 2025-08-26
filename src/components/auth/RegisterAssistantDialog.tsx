@@ -30,6 +30,22 @@ interface AuthStepContentProps {
   isProcessing: boolean;
 }
 
+function generateChatPath(assistantName: string): string {
+  const slug = assistantName
+    .toLowerCase()
+    // remove accents, swap ñ for n, etc
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    // remove invalid chars
+    .replace(/[^a-z0-9 -]/g, '')
+    // collapse whitespace and replace by -
+    .replace(/\s+/g, '-')
+    // collapse dashes
+    .replace(/-+/g, '-');
+  
+  return `/chat/${slug}`;
+}
+
 // Separate component for the Auth Step to manage its own form state locally
 const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepContentProps) => {
   const [email, setEmail] = useState('');
@@ -249,6 +265,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             messageCount: 0,
             monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
         };
 
         const newDbEntry: DatabaseConfig | undefined = dbNeeded && databaseOption.type ? {

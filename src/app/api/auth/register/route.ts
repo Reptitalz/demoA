@@ -6,6 +6,23 @@ import type { UserProfile, AssistantConfig } from '@/types';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import bcrypt from 'bcryptjs';
 
+function generateChatPath(assistantName: string): string {
+  const slug = assistantName
+    .toLowerCase()
+    // remove accents, swap ñ for n, etc
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    // remove invalid chars
+    .replace(/[^a-z0-9 -]/g, '')
+    // collapse whitespace and replace by -
+    .replace(/\s+/g, '-')
+    // collapse dashes
+    .replace(/-+/g, '-');
+  
+  return `/chat/${slug}`;
+}
+
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password, assistantType } = await request.json();
@@ -27,9 +44,11 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const isDesktopAssistant = assistantType === 'desktop';
+    const assistantName = isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp";
+
     const newAssistant: AssistantConfig = {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        name: isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp",
+        name: assistantName,
         type: assistantType,
         prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
         purposes: [],
@@ -37,7 +56,8 @@ export async function POST(request: NextRequest) {
         numberReady: isDesktopAssistant,
         messageCount: 0,
         monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
-        imageUrl: DEFAULT_ASSISTANT_IMAGE_URL
+        imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+        chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
     };
     
     const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
