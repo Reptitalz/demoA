@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { signIn } from 'next-auth/react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -109,6 +110,27 @@ const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; o
     );
 };
 
+const PasswordStrengthMeter = ({ strength }: { strength: number }) => {
+    const strengthLevels = [
+        { text: "Muy Débil", color: "bg-red-500" },
+        { text: "Débil", color: "bg-orange-500" },
+        { text: "Regular", color: "bg-yellow-500" },
+        { text: "Fuerte", color: "bg-green-500" },
+        { text: "Muy Fuerte", color: "bg-emerald-500" }
+    ];
+
+    const currentStrength = strengthLevels[strength] || strengthLevels[0];
+
+    return (
+        <div className="space-y-1">
+            <Progress value={(strength + 1) * 20} className="h-1.5" />
+            <p className={`text-xs font-medium`} style={{ color: `var(--${currentStrength.color.replace('bg-', '')}-500)` }}>
+                {currentStrength.text}
+            </p>
+        </div>
+    );
+};
+
 
 const BeginPage = () => {
     const { state, dispatch } = useApp();
@@ -118,11 +140,11 @@ const BeginPage = () => {
     const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [formState, setFormState] = useState({
-        firstName: '',
-        lastName: '',
         email: '',
         password: '',
+        confirmPassword: ''
     });
+    const [passwordStrength, setPasswordStrength] = useState(0);
     const router = useRouter();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
@@ -151,14 +173,23 @@ const BeginPage = () => {
         };
     }, []);
 
-    const handleSelectOption = (option: 'desktop' | 'whatsapp') => {
-        setSelectedOption(option);
-        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
-    }
+    const calculateStrength = (password: string): number => {
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        return Math.max(0, score - 1);
+    };
     
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormState(prev => ({...prev, [name]: value}));
+
+        if (name === 'password') {
+            setPasswordStrength(calculateStrength(value));
+        }
     }
 
     const handleNext = () => {
@@ -188,10 +219,15 @@ const BeginPage = () => {
             return;
         };
 
-        const { firstName, lastName, email, password } = formState;
+        const { email, password, confirmPassword } = formState;
 
-        if (!firstName || !lastName || !email || !password) {
+        if (!email || !password) {
             toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive" });
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            toast({ title: "Las contraseñas no coinciden", description: "Por favor, verifica que ambas contraseñas sean iguales.", variant: "destructive" });
             return;
         }
 
@@ -201,7 +237,7 @@ const BeginPage = () => {
           const registerResponse = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, assistantType: selectedOption, firstName, lastName }),
+            body: JSON.stringify({ email, password, assistantType: selectedOption }),
           });
     
           if (!registerResponse.ok) {
@@ -269,7 +305,7 @@ const BeginPage = () => {
                             <CardHeader className="p-4">
                                 <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                                     <Image
-                                        src="https://picsum.photos/600/400"
+                                        src="/1.jpeg"
                                         alt="Asistente en navegador"
                                         width={600}
                                         height={400}
@@ -421,16 +457,6 @@ const BeginPage = () => {
                                     <CardDescription className="text-xs">Usa tu correo electrónico y una contraseña para registrarte.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-4 pt-0 space-y-3">
-                                     <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <Label htmlFor="firstName">Nombre</Label>
-                                            <Input id="firstName" name="firstName" value={formState.firstName} onChange={handleFormChange} required />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="lastName">Apellido</Label>
-                                            <Input id="lastName" name="lastName" value={formState.lastName} onChange={handleFormChange} required />
-                                        </div>
-                                     </div>
                                      <div>
                                         <Label htmlFor="email">Correo Electrónico</Label>
                                         <Input id="email" name="email" type="email" value={formState.email} onChange={handleFormChange} required />
@@ -438,6 +464,11 @@ const BeginPage = () => {
                                      <div>
                                         <Label htmlFor="password">Contraseña</Label>
                                         <Input id="password" name="password" type="password" value={formState.password} onChange={handleFormChange} required />
+                                        {formState.password && <PasswordStrengthMeter strength={passwordStrength} />}
+                                     </div>
+                                     <div>
+                                        <Label htmlFor="confirmPassword">Verificar Contraseña</Label>
+                                        <Input id="confirmPassword" name="confirmPassword" type="password" value={formState.confirmPassword} onChange={handleFormChange} required />
                                      </div>
                                      <Button type="submit" size="sm" variant="secondary" className="w-full" disabled={isProcessing}>
                                         {isProcessing ? <FaSpinner className="animate-spin" /> : 'Crear Cuenta y Finalizar'}
