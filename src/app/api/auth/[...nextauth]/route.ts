@@ -1,3 +1,4 @@
+
 // src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -11,14 +12,23 @@ import bcrypt from 'bcryptjs';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+let NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   throw new Error("Missing Google OAuth credentials in .env.local");
 }
+
 if (!NEXTAUTH_SECRET) {
-    // This is critical for production environments
-    throw new Error("Missing NEXTAUTH_SECRET in .env.local");
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error("Missing NEXTAUTH_SECRET in .env for production");
+    } else {
+        // Use a default secret for development, but warn the user.
+        NEXTAUTH_SECRET = "super-secret-development-key-heymanito";
+        console.warn("**********************************************************************************");
+        console.warn("WARNING: NEXTAUTH_SECRET is not set in .env.local. Using a default for development.");
+        console.warn("For production, you MUST set a secure secret in your environment variables.");
+        console.warn("**********************************************************************************");
+    }
 }
 
 export const authOptions: NextAuthOptions = {
