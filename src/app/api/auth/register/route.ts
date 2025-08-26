@@ -1,3 +1,4 @@
+
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -55,16 +56,7 @@ export async function POST(request: NextRequest) {
       throw new Error("No se pudo registrar al usuario en la base de datos.");
     }
     
-    const createdProfile: UserProfile = {
-        ...newUserProfile,
-        _id: insertResult.insertedId,
-        isAuthenticated: true,
-    };
-    
-    // Don't return password hash
-    delete (createdProfile as Partial<UserProfile>).password;
-
-    return NextResponse.json({ userProfile: createdProfile }, { status: 201 });
+    return NextResponse.json({ message: "Usuario registrado exitosamente." }, { status: 201 });
 
   } catch (error) {
     console.error("API Error (register):", error);
@@ -72,5 +64,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
-
-    
