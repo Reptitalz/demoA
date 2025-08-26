@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
 
   // Define protected routes
   const isProtectedRoute = 
-      pathname.startsWith('/dashboard/') || // Note the trailing slash to protect sub-routes
+      pathname.startsWith('/dashboard') || 
       pathname.startsWith('/app') ||
       pathname.startsWith('/colaboradores/dashboard');
 
@@ -32,7 +32,6 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Allow access to the root /dashboard page for the demo mode logic to handle it.
   return NextResponse.next();
 }
 
@@ -40,7 +39,8 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*', 
+    '/dashboard',
     '/app/:path*',
-    '/colaboradores/dashboard' // Protect only the main collaborator dashboard page
-  ],
+    '/colaboradores/dashboard/:path*'
+],
 };
