@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -191,6 +192,11 @@ const BeginPage = () => {
             setPasswordStrength(calculateStrength(value));
         }
     }
+
+    const handleSelectOption = (option: 'desktop' | 'whatsapp') => {
+        setSelectedOption(option);
+        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
+    };
 
     const handleNext = () => {
         if (step < 3) {
@@ -503,5 +509,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
