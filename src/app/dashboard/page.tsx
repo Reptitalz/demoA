@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, Suspense } from 'react';
@@ -27,7 +26,7 @@ function DashboardRedirector() {
     }, [loadingStatus.active, userProfile.isAuthenticated, router]);
 
     // While loading, show a spinner. This covers the session check time.
-    if (loadingStatus.active) {
+    if (loadingStatus.active && !userProfile.isAuthenticated) {
         return (
             <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
                 <LoadingSpinner size={36} />

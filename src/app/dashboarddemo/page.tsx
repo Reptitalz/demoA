@@ -1,29 +1,20 @@
-
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { Suspense } from 'react';
+import DashboardPageContent from './DashboardDemoPageContent';
 import PageContainer from '@/components/layout/PageContainer';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
-function DashboardDemoRedirector() {
-    const router = useRouter();
-
-    useEffect(() => {
-        // This page now just redirects to the main dashboard, which handles demo mode.
-        router.replace('/dashboard');
-    }, [router]);
-
-    return (
+function DashboardDemoPage() {
+  return (
+     <Suspense fallback={
         <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
             <LoadingSpinner size={36} />
-            <p className="ml-4">Cargando modo de demostración...</p>
         </PageContainer>
-    );
-}
-
-export default function DashboardDemoPage() {
-  return (
-      <DashboardDemoRedirector />
+    }>
+        <DashboardPageContent />
+    </Suspense>
   );
 }
+
+export default DashboardDemoPage;
