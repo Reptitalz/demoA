@@ -284,73 +284,52 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
       
-      if (response.status === 404 && newUserFlow === 'desktop') {
-          console.log(`Profile not found for ${email}, creating new profile with desktop assistant.`);
-          
-          const newAssistant: AssistantConfig = {
-              id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-              name: "Mi Primer Asistente",
-              type: 'desktop',
-              prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
-              purposes: [],
-              isActive: true, // Desktop assistants are active by default
-              numberReady: true, // No number needed
-              messageCount: 0,
-              monthlyMessageLimit: 1000, // Free tier limit
-          };
+      if (response.status === 404 && newUserFlow) {
+          // This path is for new users coming from Google Sign-In, who don't have a profile yet.
+          // Since the registration dialog handles profile creation for email/pass users,
+          // we create a profile for Google users here.
+          console.log(`Profile not found for ${email}, creating new profile with ${newUserFlow} assistant.`);
 
-          const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-              firebaseUid: session?.user?.id || '',
-              email: session?.user?.email || '',
-              firstName: session?.user?.name?.split(' ')[0] || 'Nuevo',
-              lastName: session?.user?.name?.split(' ').slice(1).join(' ') || 'Usuario',
-              authProvider: 'google',
-              assistants: [newAssistant],
-              databases: [],
-              credits: 1, // 1 free credit
-          };
-
-          const createResponse = await fetch('/api/create-user-profile', {
+          const createResponse = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newUserProfile),
+            body: JSON.stringify({ 
+              email: email, 
+              password: `google-user-${Date.now()}`, // Dummy password for schema compliance
+              assistantType: newUserFlow
+            }),
           });
-          const { userProfile: createdProfile } = await createResponse.json();
+          
+          const { userProfile: createdProfile, message } = await createResponse.json();
+          if(!createResponse.ok) {
+            throw new Error(message || "Could not create profile for new Google user.");
+          }
+
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: createdProfile });
           toast({ title: "¡Bienvenido/a!", description: "Hemos creado tu primer asistente. ¡Ya puedes empezar!" });
-          router.replace('/dashboard/assistants'); // Go to dashboard after creation
-
-      } else if (response.status === 404) { // Handles new WhatsApp users or any other new user
-          dispatch({ type: 'LOGOUT_USER' }); 
-          toast({
-              title: "Bienvenido/a",
-              description: "Parece que eres nuevo/a. Por favor, crea tu primer asistente.",
-              duration: 6000,
-          });
-          // For WhatsApp users, redirect them to the full wizard
-          if (newUserFlow === 'whatsapp') {
-              router.replace('/begin?step=1&type=whatsapp');
-          } else {
-              router.replace('/login');
-          }
+          router.replace('/dashboard/assistants');
 
       } else if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
           router.replace('/dashboard/assistants'); // Redirect existing users to dashboard
+        } else {
+           // This case can happen if API returns 200 but no profile (shouldn't happen with 404 handling)
+           throw new Error('Perfil no encontrado, pero la respuesta fue exitosa.');
         }
       } else {
-        throw new Error('Failed to fetch profile.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error del servidor: ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching/handling profile:", error);
-      toast({ title: 'Error de Red', description: 'No se pudo conectar para obtener tu perfil.', variant: 'destructive' });
-      dispatch({ type: 'LOGOUT_USER' });
+      toast({ title: 'Error de Red', description: `No se pudo obtener tu perfil: ${error.message}`, variant: 'destructive' });
+      // Don't log out, let them retry.
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [session, router]);
+  }, [router]);
 
 
   useEffect(() => {
