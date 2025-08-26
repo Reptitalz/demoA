@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -99,7 +98,7 @@ export default function DashboardDemoLayout({
                 </TooltipProvider>
              </nav>
              <div className="fixed bottom-2 right-4 text-xs text-muted-foreground/80 z-10">
-                Versión 0.1
+                Versión 1.0
             </div>
         </div>
     );
