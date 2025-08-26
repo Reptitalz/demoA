@@ -394,3 +394,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
