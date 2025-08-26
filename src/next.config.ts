@@ -40,6 +40,7 @@ const securityHeaders = [
 
 const nextConfig = {
   env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -108,5 +109,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-
-    

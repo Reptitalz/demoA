@@ -13,6 +13,8 @@ import bcrypt from 'bcryptjs';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 let NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+const NEXTAUTH_URL = process.env.NEXTAUTH_URL;
+
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   throw new Error("Missing Google OAuth credentials in .env.local");
@@ -123,6 +125,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     error: '/login', // Redirect to login on error, error message will be in URL query
   },
+  url: NEXTAUTH_URL,
 };
 
 const handler = NextAuth(authOptions);
