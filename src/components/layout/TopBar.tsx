@@ -1,0 +1,76 @@
+// src/components/layout/TopBar.tsx
+"use client";
+
+import React from 'react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FaUserCircle } from 'react-icons/fa';
+
+const FlagMX = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" className="h-4 w-4 mr-2">
+    <path fill="#006847" d="M0 0h1v2H0z"/>
+    <path fill="#fff" d="M1 0h1v2H1z"/>
+    <path fill="#ce1126" d="M2 0h1v2H2z"/>
+  </svg>
+);
+
+const FlagUS = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 400" className="h-4 w-4 mr-2">
+    <path fill="#b22234" d="M0 0h780v400H0z"/>
+    <path fill="#fff" d="M0 40h780v40H0zm0 80h780v40H0zm0 80h780v40H0zm0 80h780v40H0zM0 320h780v40H0z"/>
+    <path fill="#3c3b6e" d="M0 0h312v200H0z"/>
+  </svg>
+);
+
+
+interface TopBarProps {
+  fullWidth?: boolean;
+}
+
+const TopBar = ({ fullWidth = false }: TopBarProps) => {
+  return (
+    <div className="bg-muted text-muted-foreground text-xs border-b">
+      <div className={cn(
+        "container mx-auto px-4 py-1.5 flex items-center justify-between",
+        !fullWidth && "max-w-7xl"
+      )}>
+        <div className="flex items-center gap-4">
+           <Link href="/login" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <FaUserCircle />
+            <span>Acceder</span>
+          </Link>
+        </div>
+        <div>
+          <Select defaultValue="mxn">
+            <SelectTrigger className="h-auto w-auto bg-transparent border-none focus:ring-0 text-xs gap-1.5">
+              <SelectValue placeholder="Idioma" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mxn">
+                <div className="flex items-center">
+                  <FlagMX />
+                  <span>Español (MXN)</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="usd" disabled>
+                 <div className="flex items-center">
+                  <FlagUS />
+                  <span>English (USD)</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TopBar;

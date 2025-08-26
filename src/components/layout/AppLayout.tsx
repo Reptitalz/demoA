@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/app/footer';
+import TopBar from '@/components/layout/TopBar'; // Importar TopBar
 import { Toaster } from "@/components/ui/toaster";
 import { usePathname } from 'next/navigation'; 
 import { cn } from '@/lib/utils';
@@ -13,22 +14,24 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
-  const isMarketingPage = pathname === '/'; 
-  const isDashboardPage = pathname.startsWith('/dashboard');
-  const isLoginPage = pathname === '/login';
+  const isMarketingPage = ['/', '/begin', '/terms', '/privacy', '/colaboradores'].includes(pathname);
+  const isDashboardPage = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
+  const isLoginPage = pathname.startsWith('/login') || pathname.startsWith('/colaboradores/login');
   
-  const layoutShouldBeFullWidth = isMarketingPage;
+  const layoutShouldBeFullWidth = pathname === '/';
   const showCanvas = isMarketingPage || isLoginPage;
+  const showHeaderAndFooter = !isDashboardPage && !isLoginPage;
   
   return (
     <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
       {showCanvas && <DynamicCanvasBackground />}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {!isDashboardPage && <Header fullWidth={layoutShouldBeFullWidth} />}
+        {showHeaderAndFooter && <TopBar fullWidth={layoutShouldBeFullWidth} />}
+        {showHeaderAndFooter && <Header fullWidth={layoutShouldBeFullWidth} />}
         <div className={cn("flex-grow w-full")}>
           {children}
         </div>
-        {!isDashboardPage && <Footer fullWidth={layoutShouldBeFullWidth} />}
+        {showHeaderAndFooter && <Footer fullWidth={layoutShouldBeFullWidth} />}
       </div>
       <Toaster />
     </div>

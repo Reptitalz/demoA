@@ -33,7 +33,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
       setIsStandalone(true);
     }
 
@@ -65,7 +65,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   const showInstallButton = !!deferredPrompt && !isStandalone;
 
   return (
-    <header className="bg-card shadow-md sticky top-0 z-50">
+    <header className="bg-card shadow-sm sticky top-0 z-50">
       <div className={cn(
         "container mx-auto px-4 py-3 flex items-center justify-between",
         !fullWidth && "max-w-7xl"
