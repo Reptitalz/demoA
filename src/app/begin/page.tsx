@@ -350,7 +350,7 @@ const BeginPage = () => {
                             <CardHeader className="p-4">
                                 <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                                      <Image
-                                        src="https://picsum.photos/600/400"
+                                        src="/1.jpeg"
                                         alt="Asistente en WhatsApp"
                                         width={600}
                                         height={400}
