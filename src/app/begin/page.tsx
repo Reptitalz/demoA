@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
 import { signIn } from 'next-auth/react';
-import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
+import RegisterCollaboratorDialog from '@/components/auth/RegisterCollaboratorDialog';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -200,8 +200,8 @@ const BeginPage = () => {
                         <Card 
                             onClick={() => handleSelectOption('desktop')}
                             className={cn(
-                                "cursor-pointer transition-all border-2 border-transparent glow-card",
-                                selectedOption === 'desktop' && "border-primary shadow-lg"
+                                "cursor-pointer transition-all border-2 glow-card",
+                                selectedOption === 'desktop' ? "border-primary shadow-lg" : "border-transparent"
                             )}
                         >
                             <CardHeader className="p-4">
@@ -239,8 +239,8 @@ const BeginPage = () => {
                         <Card 
                             onClick={() => handleSelectOption('whatsapp')}
                             className={cn(
-                                "cursor-pointer transition-all border-2 border-transparent glow-card",
-                                selectedOption === 'whatsapp' && "border-primary shadow-lg"
+                                "cursor-pointer transition-all border-2 glow-card",
+                                selectedOption === 'whatsapp' ? "border-primary shadow-lg" : "border-transparent"
                             )}
                         >
                             <CardHeader className="p-4">
@@ -388,7 +388,7 @@ const BeginPage = () => {
             </p>
         </PageContainer>
         <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
-        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
+        <RegisterCollaboratorDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
         </>
     );
 };
