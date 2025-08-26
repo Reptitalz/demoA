@@ -1,4 +1,3 @@
-
 // src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -7,8 +6,6 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/mongodb";
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { firebaseApp } from '@/lib/firebase';
 import type { UserProfile, CollaboratorProfile } from '@/types';
 import bcrypt from 'bcryptjs';
 
