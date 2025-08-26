@@ -29,11 +29,12 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
-  1: "Detalles del Asistente",
-  2: "Personalidad (Prompt)",
-  3: "Base de Datos",
-  4: "Términos y Condiciones",
-  5: "Crear Cuenta"
+  1: "Tipo de Asistente",
+  2: "Detalles del Asistente",
+  3: "Personalidad (Prompt)",
+  4: "Base de Datos",
+  5: "Términos y Condiciones",
+  6: "Crear Cuenta"
 };
 
 
