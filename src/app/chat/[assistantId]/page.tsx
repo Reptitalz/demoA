@@ -107,7 +107,7 @@ const DesktopChatPage = () => {
   }
   
   return (
-    <div className="h-screen w-screen bg-muted/50 dark:bg-slate-800 flex items-center justify-center">
+    <div className="h-screen w-screen flex items-center justify-center">
       <div className="w-full h-full flex">
         {/* Sidebar (Chat List Mockup) */}
         <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
@@ -132,8 +132,7 @@ const DesktopChatPage = () => {
         {/* Main Chat Window */}
         <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800">
            <div
-            className="w-full h-full bg-repeat bg-center"
-            style={{ backgroundImage: "url('/whatsapp_bg.png')" }}
+            className="w-full h-full chat-background"
           >
             <div className="h-full flex flex-col backdrop-blur-sm bg-black/10">
               <header className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0">

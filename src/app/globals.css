@@ -243,6 +243,22 @@ body {
       opacity: 0;
     }
   }
+  
+  .chat-background {
+    background-color: #f0ebe3; /* Beige color */
+    background-image:
+        radial-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px),
+        radial-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+  }
+
+  .dark .chat-background {
+    background-color: #2c2a27; /* Darker beige for dark mode */
+    background-image:
+        radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px),
+        radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px);
+  }
 }
 
 
