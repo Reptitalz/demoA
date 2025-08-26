@@ -113,7 +113,7 @@ const DashboardPageContent = () => {
 
   const handleReconfigureAssistant = (assistantId: string) => {
     if (isDemoMode) {
-      handleActionInDemo('Reconfigurar Asistente');
+      handleActionInDemo('Configurar Asistente');
       return;
     }
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -145,7 +145,7 @@ const DashboardPageContent = () => {
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
         router.push('/app');
-        toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
+        toast({ title: "Configurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
     }

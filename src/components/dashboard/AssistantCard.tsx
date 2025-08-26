@@ -506,7 +506,7 @@ const AssistantCard = ({
                         className="transition-transform transform hover:scale-105 w-full text-xs"
                     >
                         <FaCog size={14} />
-                        Reconfigurar
+                        Configurar
                     </Button>
                 </>
             )}
