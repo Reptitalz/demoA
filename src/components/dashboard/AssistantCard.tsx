@@ -17,8 +17,9 @@ import { E164Number, isValidPhoneNumber } from "react-phone-number-input";
 import { useApp } from "@/providers/AppProvider";
 import MessageLimitDialog from './MessageLimitDialog';
 import { Progress } from "../ui/progress";
-import { MessagesSquare, AppWindow } from "lucide-react";
+import { MessagesSquare, AppWindow, Bot, MessageCircle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -488,6 +489,16 @@ const AssistantCard = ({
                             Integrar número de teléfono
                         </Button>
                     ) : null }
+                     {assistant.type === 'desktop' && assistant.isActive && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
+                           <Link href={`/chat/${assistant.id}`}><Bot size={14} /> Chatear con Asistente</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
+                           <Link href={`/chat/${assistant.id}/conversations`}><MessageCircle size={14} /> Ver Conversaciones</Link>
+                        </Button>
+                      </div>
+                    )}
                     <Button
                         variant="outline"
                         size="sm"
