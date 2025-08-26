@@ -61,7 +61,6 @@ const DesktopChatPage = () => {
         })
         .catch(err => {
             setError(err.message);
-            // Even with an error, set a default state to render the chat UI
             setAssistant({ name: "Asistente no encontrado" });
              setMessages([{
                 text: `Error: ${err.message}. No se pudo cargar el asistente.`,
@@ -91,7 +90,6 @@ const DesktopChatPage = () => {
     setCurrentMessage('');
     setIsSending(true);
 
-    // Placeholder for AI response
     setTimeout(() => {
       const aiResponse = {
         text: "Esta es una respuesta simulada del asistente. La lógica de IA real se implementará aquí.",
@@ -109,14 +107,35 @@ const DesktopChatPage = () => {
   }
   
   return (
-    <div className="flex flex-col h-screen w-screen bg-muted/50 dark:bg-slate-800">
-      <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2rem] h-[calc(100%-2rem)] w-full max-w-lg shadow-xl my-4">
-        <div className="rounded-[1.5rem] overflow-hidden w-full h-full bg-[#ECE5DD] dark:bg-slate-900">
-          <div
-            className="bg-repeat bg-center h-full"
+    <div className="h-screen w-screen bg-muted/50 dark:bg-slate-800 flex items-center justify-center p-4">
+      <div className="w-full h-full max-w-4xl mx-auto flex shadow-2xl rounded-lg overflow-hidden">
+        {/* Sidebar (Chat List Mockup) */}
+        <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
+            <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                <Input placeholder="Buscar o empezar un chat nuevo" className="bg-white dark:bg-slate-700"/>
+            </header>
+            <div className="flex-grow overflow-y-auto">
+                {/* Mock chat item */}
+                <div className="flex items-center gap-3 p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-800/50">
+                    <Avatar className="h-12 w-12">
+                        <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
+                        <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow overflow-hidden">
+                        <p className="font-semibold truncate">{assistant?.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">Typing...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Main Chat Window */}
+        <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800">
+           <div
+            className="w-full h-full bg-repeat bg-center"
             style={{ backgroundImage: "url('/whatsapp_bg.png')" }}
           >
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col backdrop-blur-sm bg-black/10">
               <header className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0">
                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
                    <Link href="/dashboard/assistants"><FaArrowLeft /></Link>
@@ -147,7 +166,7 @@ const DesktopChatPage = () => {
                  )}
                 <div ref={chatEndRef} />
               </main>
-              <footer className="p-3 bg-transparent flex items-center gap-3 shrink-0 border-t border-black/10">
+              <footer className="p-3 bg-slate-200 dark:bg-slate-800 flex items-center gap-3 shrink-0 border-t border-black/10">
                 <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
                   <Input
                     type="text"
