@@ -1,3 +1,4 @@
+
 // src/app/chat/[assistantId]/page.tsx
 "use client";
 
