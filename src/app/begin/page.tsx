@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -12,10 +11,12 @@ import { useRouter } from 'next/navigation';
 import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { FaWhatsapp, FaGoogle } from 'react-icons/fa';
+import { FaWhatsapp, FaGoogle, FaSpinner } from 'react-icons/fa';
 import { useApp } from '@/providers/AppProvider';
 import { signIn } from 'next-auth/react';
-import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -110,14 +111,21 @@ const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; o
 
 
 const BeginPage = () => {
-    const { dispatch } = useApp();
+    const { state, dispatch } = useApp();
     const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [formState, setFormState] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+    });
     const router = useRouter();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (scrollContainerRef.current) {
@@ -125,7 +133,6 @@ const BeginPage = () => {
         }
     }, [step]);
     
-    // Add mouse move listener for glow effect
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             const cards = document.querySelectorAll('.glow-card');
@@ -148,6 +155,11 @@ const BeginPage = () => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
     }
+    
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormState(prev => ({...prev, [name]: value}));
+    }
 
     const handleNext = () => {
         if (step < 3) {
@@ -168,9 +180,59 @@ const BeginPage = () => {
         signIn('google', { callbackUrl });
     }
     
-    const handleEmailRegister = () => {
-        if (!selectedOption) return;
-        setIsRegisterOpen(true);
+    const handleEmailRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedOption) {
+            toast({ title: "Error", description: "Por favor, selecciona un tipo de asistente en el paso 1.", variant: "destructive" });
+            setStep(1);
+            return;
+        };
+
+        const { firstName, lastName, email, password } = formState;
+
+        if (!firstName || !lastName || !email || !password) {
+            toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive" });
+            return;
+        }
+
+        setIsProcessing(true);
+
+        try {
+          const registerResponse = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, assistantType: selectedOption, firstName, lastName }),
+          });
+    
+          if (!registerResponse.ok) {
+            const errorData = await registerResponse.json();
+            throw new Error(errorData.message || 'No se pudo crear el perfil.');
+          }
+          
+          const signInResult = await signIn('credentials', {
+            redirect: false,
+            email,
+            password,
+            userType: 'user'
+          });
+    
+          if (signInResult?.error) {
+            throw new Error(signInResult.error);
+          }
+          
+          toast({
+            title: "¡Registro Exitoso!",
+            description: `Bienvenido/a. Serás redirigido a tu panel.`,
+          });
+          
+          router.push('/dashboard/assistants');
+    
+        } catch (error: any) {
+          console.error("User registration error:", error);
+          toast({ title: "Error de Registro", description: error.message, variant: "destructive" });
+        } finally {
+          setIsProcessing(false);
+        }
     };
 
     const showDetails = (type: 'browser' | 'whatsapp') => {
@@ -351,20 +413,37 @@ const BeginPage = () => {
                                 </Button>
                             </CardContent>
                         </Card>
-
-                         <Card 
-                            onClick={handleEmailRegister}
-                            className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
-                        >
-                            <CardHeader className="p-4">
-                                <CardTitle className="flex items-center gap-2 text-sm"><UserPlus size={16} /> Regístrate con Correo</CardTitle>
-                                <CardDescription className="text-xs">Usa tu correo electrónico y una contraseña para registrarte.</CardDescription>
-                            </CardHeader>
-                             <CardContent className="p-4 pt-0">
-                                 <Button size="sm" variant="secondary" className="w-full">
-                                    Continuar con Correo <ArrowRight className="ml-2" size={14} />
-                                 </Button>
-                            </CardContent>
+                        
+                         <Card>
+                            <form onSubmit={handleEmailRegister}>
+                                <CardHeader className="p-4">
+                                    <CardTitle className="flex items-center gap-2 text-sm"><UserPlus size={16} /> Regístrate con Correo</CardTitle>
+                                    <CardDescription className="text-xs">Usa tu correo electrónico y una contraseña para registrarte.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0 space-y-3">
+                                     <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <Label htmlFor="firstName">Nombre</Label>
+                                            <Input id="firstName" name="firstName" value={formState.firstName} onChange={handleFormChange} required />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="lastName">Apellido</Label>
+                                            <Input id="lastName" name="lastName" value={formState.lastName} onChange={handleFormChange} required />
+                                        </div>
+                                     </div>
+                                     <div>
+                                        <Label htmlFor="email">Correo Electrónico</Label>
+                                        <Input id="email" name="email" type="email" value={formState.email} onChange={handleFormChange} required />
+                                     </div>
+                                     <div>
+                                        <Label htmlFor="password">Contraseña</Label>
+                                        <Input id="password" name="password" type="password" value={formState.password} onChange={handleFormChange} required />
+                                     </div>
+                                     <Button type="submit" size="sm" variant="secondary" className="w-full" disabled={isProcessing}>
+                                        {isProcessing ? <FaSpinner className="animate-spin" /> : 'Crear Cuenta y Finalizar'}
+                                     </Button>
+                                </CardContent>
+                            </form>
                         </Card>
                     </div>
                 </div>
@@ -388,7 +467,6 @@ const BeginPage = () => {
             </p>
         </PageContainer>
         <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
-        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
         </>
     );
 };
