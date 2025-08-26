@@ -1,21 +1,24 @@
 
 "use client";
 
-import { Suspense } from 'react';
-import PageContainer from '@/components/layout/PageContainer';
+import { useEffect, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import DashboardDemoPageContent from '@/app/dashboarddemo/DashboardDemoPageContent';
+import PageContainer from '@/components/layout/PageContainer';
+import DashboardPageContent from '@/app/dashboard/DashboardPageContent';
 
 export default function DemoProfilePage() {
+    const router = useRouter();
+    
+    // Redirect to the unified dashboard
+    useEffect(() => {
+        router.replace('/dashboard/profile');
+    }, [router]);
+
   return (
-    <Suspense
-      fallback={
-        <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
-          <LoadingSpinner size={36} />
-        </PageContainer>
-      }
-    >
-      <DashboardDemoPageContent />
-    </Suspense>
+    <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+      <LoadingSpinner size={36} />
+      <p className="ml-4">Redirigiendo...</p>
+    </PageContainer>
   );
 }

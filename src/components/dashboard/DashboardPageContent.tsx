@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaSitemap, FaDatabase, FaRobot, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User } from 'lucide-react';
+import { MessageSquare, User, Bot, Database } from 'lucide-react';
 import Link from 'next/link';
 
 const DashboardPageContent = () => {
@@ -26,33 +26,52 @@ const DashboardPageContent = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { userProfile, isLoading, isSetupComplete } = state;
+  const { userProfile, isLoading } = state;
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
   
   const isDemoMode = !userProfile.isAuthenticated;
 
+  // This is the single source of truth for demo data.
   const demoProfile = {
       assistants: [{
           id: 'demo-asst-1',
           name: 'Asistente de Ventas (Demo)',
           isActive: true,
+          type: 'whatsapp' as const,
           numberReady: true,
           phoneLinked: '+15551234567',
           messageCount: 1250,
           monthlyMessageLimit: 5000,
           purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
           databaseId: 'demo-db-1'
+      },
+      {
+          id: 'demo-asst-2',
+          name: 'Asistente de Soporte (Demo)',
+          isActive: true,
+          type: 'desktop' as const,
+          numberReady: true,
+          messageCount: 300,
+          monthlyMessageLimit: 1000,
+          purposes: ['create_smart_db'],
+          databaseId: 'demo-db-2'
       }],
       databases: [{
           id: 'demo-db-1',
           name: 'Inventario de Productos (Demo)',
           source: 'google_sheets' as const,
           accessUrl: '#'
+      },
+      {
+          id: 'demo-db-2',
+          name: 'Base de Conocimiento (Demo)',
+          source: 'smart_db' as const,
+          storageSize: 15 * 1024 * 1024, // 15MB
       }],
       credits: 5
-  }
+  };
 
   const profileToRender = isDemoMode ? demoProfile : userProfile;
 
@@ -85,9 +104,16 @@ const DashboardPageContent = () => {
     }
   }, [searchParams, fetchProfileCallback, toast, userProfile.email, router, pathname, isDemoMode]);
 
+  const handleActionInDemo = (action: string) => {
+    toast({
+        title: "Modo de Demostración",
+        description: `La acción de "${action}" no está disponible en este modo.`,
+    });
+  };
+
   const handleReconfigureAssistant = (assistantId: string) => {
     if (isDemoMode) {
-      toast({ title: "Modo Demo", description: "La reconfiguración está deshabilitada en modo demo." });
+      handleActionInDemo('Reconfigurar Asistente');
       return;
     }
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -127,7 +153,6 @@ const DashboardPageContent = () => {
 
   const handleAddNewAssistant = () => {
     if (isDemoMode) {
-      toast({ title: "Modo Demo", description: "Para añadir un asistente, por favor regístrate o inicia sesión." });
       router.push('/login');
       return;
     }
@@ -146,15 +171,14 @@ const DashboardPageContent = () => {
   }
   
   const renderContentForRoute = () => {
-    // Default to assistants view for demo mode on the main dashboard page
-    const effectivePathname = isDemoMode && pathname === '/dashboard' ? '/dashboard/assistants' : pathname;
+    const effectivePathname = pathname || '/dashboard/assistants';
 
     if (effectivePathname.startsWith('/dashboard/assistants')) {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
             <h3 className="text-lg font-semibold flex items-center gap-2"> 
-                <FaRobot size={18} className="text-primary" /> 
+                <Bot size={18} className="text-primary" /> 
                 Tus Asistentes
             </h3>
             <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
@@ -167,7 +191,7 @@ const DashboardPageContent = () => {
                 {profileToRender.assistants.map((assistant, index) => (
                 <AssistantCard 
                     key={assistant.id} 
-                    assistant={assistant} 
+                    assistant={assistant as any} 
                     onReconfigure={handleReconfigureAssistant}
                     animationDelay={`${0.4 + index * 0.1}s`}
                 />
@@ -176,7 +200,7 @@ const DashboardPageContent = () => {
             ) : (
             <Card className="text-center py-10 animate-fadeIn" style={{animationDelay: "0.4s"}}> 
                 <CardContent className="flex flex-col items-center gap-3"> 
-                <FaRobot size={40} className="text-muted-foreground" /> 
+                <Bot size={40} className="text-muted-foreground" /> 
                 <h3 className="text-lg font-semibold">No has creado ningún asistente</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                     Los asistentes son agentes de IA que puedes personalizar para realizar tareas como responder preguntas, agendar citas o gestionar datos.
@@ -194,11 +218,11 @@ const DashboardPageContent = () => {
         <div className="space-y-4">
             <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <FaDatabase size={18} className="text-primary" />
+                    <Database size={18} className="text-primary" />
                     Bases de Datos Vinculadas
                 </h3>
                 {showAddDatabaseButton && (
-                    <Button onClick={() => setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
+                    <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
                         <FaPlusCircle size={13} className="mr-1" />
                         Añadir Base de Datos
                     </Button>
@@ -207,19 +231,19 @@ const DashboardPageContent = () => {
             {profileToRender.databases.length > 0 ? (
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                     {profileToRender.databases.map((db, index) => (
-                        <DatabaseInfoCard key={db.id} database={db} animationDelay={`${0.2 + index * 0.1}s`} />
+                        <DatabaseInfoCard key={db.id} database={db as any} animationDelay={`${0.2 + index * 0.1}s`} />
                     ))}
                 </div>
             ) : (
                 <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                     <CardContent className="flex flex-col items-center gap-3">
-                        <FaDatabase size={40} className="text-muted-foreground" />
+                        <Database size={40} className="text-muted-foreground" />
                         <h3 className="text-lg font-semibold">No tienes bases de datos</h3>
                         <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                             Conecta una Hoja de Google o crea una Base de Datos Inteligente para darle a tus asistentes el conocimiento que necesitan para operar.
                         </p>
                         {showAddDatabaseButton && (
-                            <Button onClick={() => setIsAddDatabaseDialogOpen(true)} size="sm" className="text-sm px-4 py-2 mt-2">Añadir Base de Datos</Button>
+                            <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="text-sm px-4 py-2 mt-2">Añadir Base de Datos</Button>
                         )}
                     </CardContent>
                 </Card>
@@ -251,14 +275,14 @@ const DashboardPageContent = () => {
                   size="sm"
                   onClick={() => {
                     if (isDemoMode) {
-                        toast({ title: "Modo Demo", description: "Para editar tu perfil, regístrate o inicia sesión."});
+                        router.push('/login');
                         return;
                     }
                     setIsPersonalInfoOpen(true)}
                   }
                   className="shrink-0"
                 >
-                  Editar
+                  {isDemoMode ? 'Iniciar Sesión' : 'Editar'}
                 </Button>
               </div>
               <Separator />
@@ -270,7 +294,7 @@ const DashboardPageContent = () => {
                   <div>
                     <h3 className="font-semibold">Seguridad</h3>
                     <p className="text-sm text-muted-foreground">
-                      {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con Google."}
+                      {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con tu proveedor."}
                     </p>
                   </div>
                 </div>
@@ -279,7 +303,7 @@ const DashboardPageContent = () => {
                   variant="secondary"
                   disabled
                 >
-                 {isDemoMode ? "Modo Demo" : "Gestionado por Google"}
+                 {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
                 </Button>
               </div>
               <Separator />
@@ -341,7 +365,6 @@ const DashboardPageContent = () => {
             <h2 className="text-xl font-bold tracking-tight text-foreground">
               {pathname.startsWith('/dashboard/assistants') && 'Panel de Asistentes'}
               {pathname.startsWith('/dashboard/databases') && 'Bases de Datos'}
-              {pathname.startsWith('/app/consumption') && 'Consumo'}
               {pathname.startsWith('/dashboard/profile') && 'Perfil y Soporte'}
               {pathname === '/dashboard' && (isDemoMode ? 'Panel de Demostración' : 'Panel Principal')}
             </h2>
@@ -350,9 +373,8 @@ const DashboardPageContent = () => {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-             {pathname.startsWith('/dashboard/assistants') && 'Gestiona todos tus asistentes de IA desde aquí.'}
-             {pathname.startsWith('/dashboard/databases') && 'Administra las fuentes de datos conectadas a tus asistentes.'}
-             {pathname.startsWith('/app/consumption') && 'Revisa el uso y los límites de tus asistentes.'}
+             {pathname.startsWith('/dashboard/assistants') && (isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.')}
+             {pathname.startsWith('/dashboard/databases') && (isDemoMode ? 'Explora bases de datos de ejemplo.' : 'Administra las fuentes de datos conectadas.')}
              {pathname.startsWith('/dashboard/profile') && 'Administra tu información, apariencia y obtén ayuda.'}
              {pathname === '/dashboard' && (isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.')}
           </p>

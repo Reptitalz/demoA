@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -13,9 +14,10 @@ import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
 import { signOut } from 'next-auth/react';
+import { Bot } from 'lucide-react';
 
 const menuItems = [
-    { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
+    { path: '/dashboard/assistants', icon: Bot, label: 'Asistentes' },
     { path: '/dashboard/databases', icon: FaDatabase, label: 'Bases de Datos' },
     { path: '/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
@@ -28,7 +30,10 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const router = useRouter();
     const { toast } = useToast();
-    const { dispatch } = useApp();
+    const { state, dispatch } = useApp();
+    const { userProfile } = state;
+    const isDemoMode = !userProfile.isAuthenticated;
+
 
     const handleLogout = async () => {
         try {
@@ -49,7 +54,7 @@ export default function DashboardLayout({
                         <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
                     <div className="flex items-center gap-1.5">
-                        <NotificationsBell />
+                        {!isDemoMode && <NotificationsBell />}
                         <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
                             <FaSignOutAlt size={12} className="mr-1" /> 
                             Cerrar Sesión

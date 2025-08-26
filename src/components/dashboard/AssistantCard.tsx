@@ -17,7 +17,7 @@ import { E164Number, isValidPhoneNumber } from "react-phone-number-input";
 import { useApp } from "@/providers/AppProvider";
 import MessageLimitDialog from './MessageLimitDialog';
 import { Progress } from "../ui/progress";
-import { MessagesSquare, AppWindow, Bot, MessageCircle } from "lucide-react";
+import { MessagesSquare, AppWindow, Bot } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 

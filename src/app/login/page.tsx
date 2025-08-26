@@ -92,7 +92,7 @@ const LoginPageContent = () => {
     // No need for an explicit router.push here.
   };
   
-  if (status === 'loading' || state.loadingStatus.active) {
+  if (status === 'loading' || (status === 'authenticated' && !state.userProfile.isAuthenticated)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <LoadingStatus status={state.loadingStatus} />
@@ -172,7 +172,7 @@ const LoginPageContent = () => {
         </Button>
         
         {process.env.NODE_ENV === 'development' && (
-            <Button variant="secondary" onClick={() => router.push('/dashboarddemo')} className="w-full mt-4">
+            <Button variant="secondary" onClick={() => router.push('/dashboard')} className="w-full mt-4">
               Modo Demo (Dashboard)
             </Button>
         )}
