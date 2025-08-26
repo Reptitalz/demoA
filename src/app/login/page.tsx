@@ -41,10 +41,12 @@ const LoginPageContent = () => {
   
   useEffect(() => {
       const error = searchParams.get('error');
-      if (error === 'CredentialsSignin') {
+      if (error) {
           toast({
               title: "Error de inicio de sesión",
-              description: "Correo electrónico o contraseña incorrectos.",
+              description: error === 'CredentialsSignin' 
+                ? "Correo electrónico o contraseña incorrectos."
+                : "Ha ocurrido un error. Por favor, intenta de nuevo.",
               variant: "destructive",
           });
           // Remove error from URL without reloading
@@ -58,22 +60,26 @@ const LoginPageContent = () => {
     let result;
     if (provider === 'credentials') {
         result = await signIn('credentials', {
+            redirect: false,
             email,
             password,
             userType: 'user',
-            callbackUrl: '/dashboard/assistants'
         });
     } else {
         result = await signIn('google', {
-            callbackUrl: '/dashboard/assistants'
+            redirect: false,
         });
     }
     
-    // The redirect is now handled by NextAuth, but we'll stop the spinner if it fails client-side.
     if (result?.error) {
         setIsLoggingIn(false);
-        // The useEffect above will handle showing the toast based on the URL query param.
+         toast({
+              title: "Error de inicio de sesión",
+              description: "Correo electrónico o contraseña incorrectos.",
+              variant: "destructive",
+          });
     }
+    // If successful, the AppProvider's useEffect will handle the profile fetch and redirect.
   };
   
   if (status === 'loading' || state.loadingStatus.active) {

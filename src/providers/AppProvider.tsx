@@ -6,8 +6,8 @@ import React, { createContext, useContext, useReducer, useEffect, useRef, useCal
 import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useSession, signIn } from 'next-auth/react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -276,7 +276,6 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const previousStateRef = useRef<AppState>(initialState);
   const { data: session, status } = useSession();
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   const fetchProfileCallback = useCallback(async (email: string) => {
@@ -298,7 +297,9 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error("Error fetching/handling profile:", error);
       toast({ title: 'Error de Red', description: `No se pudo obtener tu perfil: ${error.message}`, variant: 'destructive' });
-      // Don't log out, let them retry.
+      // If fetching fails, log them out to be safe
+      signOut({ callbackUrl: '/login' });
+      dispatch({ type: 'LOGOUT_USER' });
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
@@ -329,13 +330,22 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } else if (status === 'unauthenticated') {
       dispatch({ type: 'LOGOUT_USER' });
     } else if (status === 'authenticated') {
+      // If session is authenticated but our local state is not, fetch the profile
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
         fetchProfileCallback(session.user.email);
-      } else {
+      } else if (state.userProfile.isAuthenticated) {
+        // If both are authenticated, we're good. Stop loading.
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
     }
-  }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback, searchParams]);
+  }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
+
+  // Redirect logic after profile is loaded
+  useEffect(() => {
+    if (!state.loadingStatus.active && state.userProfile.isAuthenticated) {
+        router.replace('/dashboard/assistants');
+    }
+  }, [state.loadingStatus.active, state.userProfile.isAuthenticated, router]);
 
   return (
     <AppContext.Provider value={{ state, dispatch, fetchProfileCallback }}>
