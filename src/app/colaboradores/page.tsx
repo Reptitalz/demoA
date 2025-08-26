@@ -1,16 +1,62 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaUserPlus, FaWhatsapp, FaRocket, FaHandshake, FaBullseye, FaChartLine } from 'react-icons/fa';
-import { ArrowRight, CircleDollarSign, Target } from 'lucide-react';
+import { FaUserPlus, FaWhatsapp, FaRocket, FaHandshake, FaBullseye, FaChartLine, FaUsers } from 'react-icons/fa';
+import { ArrowRight, CircleDollarSign, Target, Coins } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Slider } from '@/components/ui/slider';
+
+const CommissionCalculator = () => {
+    const [users, setUsers] = useState(5);
+    const commissionPer5Users = 15;
+    const earnings = Math.floor(users / 5) * commissionPer5Users;
+
+    return (
+        <Card className="bg-card/80 backdrop-blur-sm border-border/20 shadow-xl hover:shadow-primary/20 transition-all duration-300 text-left p-6 sm:p-8 glow-card mt-8">
+            <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-2xl sm:text-3xl">Calcula tus Ganancias</CardTitle>
+                <CardDescription className="text-sm sm:text-base pt-2 text-muted-foreground">
+                    Usa el deslizador para estimar tus comisiones potenciales basado en el número de clientes que recargan saldo.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 space-y-6">
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center font-semibold text-lg">
+                        <span className="flex items-center gap-2"><FaUsers className="h-5 w-5 text-primary" /> Clientes con Recargas</span>
+                        <span className="text-primary">{users.toLocaleString()}</span>
+                    </div>
+                    <Slider
+                        value={[users]}
+                        onValueChange={(value) => setUsers(value[0])}
+                        min={5}
+                        max={500}
+                        step={5}
+                        aria-label="Calculadora de clientes"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>5</span>
+                        <span>500</span>
+                    </div>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm text-muted-foreground mb-1">Ganancia Estimada (MXN)</p>
+                    <p className="text-3xl font-bold flex items-center justify-center gap-2 text-green-500">
+                        <CircleDollarSign className="h-7 w-7"/> ${earnings.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">($15 MXN por cada 5 clientes)</p>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 const CollaboratorsPage = () => {
     const router = useRouter();
@@ -78,6 +124,7 @@ const CollaboratorsPage = () => {
                 >
                     Próximamente
                 </Button>
+                <CommissionCalculator />
             </div>
 
             <section id="how-it-works" className="py-16">
