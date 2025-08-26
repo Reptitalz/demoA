@@ -131,7 +131,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const isWhatsappAssistant = useMemo(() => assistantType === 'whatsapp', [assistantType]);
 
   const effectiveMaxSteps = useMemo(() => {
-    if (!isWhatsappAssistant) return 3; // Type -> Prompt -> Account
+    if (!isWhatsappAssistant) return 4; // Type -> Details -> Prompt -> Account
     return dbNeeded ? 6 : 5; // Type -> Details -> Prompt -> DB -> Terms -> Account
   }, [dbNeeded, isWhatsappAssistant]);
 
@@ -142,38 +142,36 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             if (!assistantType) return "Por favor, selecciona un tipo de asistente.";
             return null;
         case 2:
+            if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
             if (isWhatsappAssistant) {
-              if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
-              if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
-              if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu WhatsApp para notificaciones.";
-            } else { // Desktop
-               if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+                if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
+                if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu WhatsApp para notificaciones.";
             }
             return null;
         case 3:
-             if (isWhatsappAssistant) {
-                if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
-             } else { // Desktop
-                if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-             }
-             return null;
+            if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+            return null;
         case 4:
-            if (!isWhatsappAssistant) return null; // Should be auth step
-            if (!dbNeeded) {
+            if (isWhatsappAssistant) {
+                if (dbNeeded) {
+                    if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
+                    if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
+                    if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/d/'))) return "Proporciona una URL válida de Hoja de Google.";
+                    if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
+                } else {
+                    if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+                }
+            } else { // Desktop
                 if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-            } else {
-                 if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-                 if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-                 if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/d/'))) return "Proporciona una URL válida de Hoja de Google.";
-                 if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
             }
             return null;
         case 5:
-             if (!isWhatsappAssistant) return null;
-             if (dbNeeded) {
-                if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+             if (isWhatsappAssistant) {
+                if (dbNeeded) {
+                    if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
+                }
              }
-             return null; // Auth step validation is handled inside
+             return null; // Auth step
         case 6:
              return null; // Auth step
         default:
@@ -183,7 +181,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   
   const isStepValid = useMemo((): boolean => {
     if (isFinalizingSetup) return false;
-    // Auth step validation is handled inside its component
     if (currentStep === effectiveMaxSteps) return true;
 
     return getValidationMessageForStep(currentStep) === null;
@@ -199,6 +196,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     let nextStep = currentStep + 1;
     
+    if (!isWhatsappAssistant && currentStep === 3) {
+      nextStep = 4; // Skip to Auth for desktop
+    }
     if (isWhatsappAssistant && currentStep === 3 && !dbNeeded) {
         nextStep = 5; // Skip DB config if not needed
     }
@@ -211,6 +211,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const handlePrevious = () => {
     if (currentStep > 1) {
         let prevStep = currentStep - 1;
+        if (!isWhatsappAssistant && currentStep === 4) {
+          prevStep = 3; // Go back to prompt from auth
+        }
         if (isWhatsappAssistant && currentStep === 5 && !dbNeeded) {
             prevStep = 3; // Go back to prompt from terms, skipping db
         }
@@ -235,11 +238,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
         const finalAssistantConfig: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: isDesktopAssistant ? "Mi Asistente de Escritorio" : (assistantName || "Mi Asistente"),
+            name: assistantName || (isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp"),
             type: assistantType || 'desktop',
             prompt: assistantPrompt || "Eres un asistente amigable y servicial.",
-            purposes: isDesktopAssistant ? [] : Array.from(selectedPurposes),
-            databaseId: isWhatsappAssistant && dbNeeded && databaseOption.type ? `db_${Date.now()}` : undefined,
+            purposes: Array.from(selectedPurposes),
+            databaseId: dbNeeded && databaseOption.type ? `db_${Date.now()}` : undefined,
             imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
             isActive: isDesktopAssistant,
             numberReady: isDesktopAssistant,
@@ -248,7 +251,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         };
 
-        const newDbEntry: DatabaseConfig | undefined = isWhatsappAssistant && dbNeeded && databaseOption.type ? {
+        const newDbEntry: DatabaseConfig | undefined = dbNeeded && databaseOption.type ? {
             id: finalAssistantConfig.databaseId!,
             name: databaseOption.name!,
             source: databaseOption.type!,
@@ -306,7 +309,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       } finally {
         setIsFinalizingSetup(false);
       }
-  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, assistantType, isWhatsappAssistant]);
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, assistantType]);
 
   useEffect(() => {
     if (session?.user && isOpen && !state.userProfile.isAuthenticated && currentStep >= effectiveMaxSteps) {
@@ -351,10 +354,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
     switch(currentStep) {
         case 1: return <Step0AssistantType />;
-        case 2: return isWhatsappAssistant ? <Step1AssistantDetails /> : <Step2AssistantPrompt />;
-        case 3: return isWhatsappAssistant ? <Step2AssistantPrompt /> : <Step5TermsAndConditions />;
-        case 4: return isWhatsappAssistant ? (dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />) : null;
-        case 5: return isWhatsappAssistant ? <Step5TermsAndConditions /> : null;
+        case 2: return <Step1AssistantDetails />;
+        case 3: return <Step2AssistantPrompt />;
+        case 4:
+            if (isWhatsappAssistant) {
+                return dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />;
+            }
+            return <Step5TermsAndConditions />; // Desktop flow
+        case 5: 
+            return isWhatsappAssistant ? <Step5TermsAndConditions /> : null;
         default: return null;
     }
   };
