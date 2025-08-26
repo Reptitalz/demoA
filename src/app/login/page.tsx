@@ -172,7 +172,7 @@ const LoginPageContent = () => {
         </Button>
         
         {process.env.NODE_ENV === 'development' && (
-            <Button variant="secondary" onClick={() => router.push('/dashboard')} className="w-full mt-4">
+            <Button variant="secondary" onClick={() => router.push('/dashboarddemo')} className="w-full mt-4">
               Modo Demo (Dashboard)
             </Button>
         )}
