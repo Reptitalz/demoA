@@ -45,14 +45,17 @@ const LoginPageContent = () => {
         const result = await signIn(provider, {
             redirect: false,
             ...(provider === 'credentials' && { email, password, userType: 'user' }),
+            callbackUrl: '/dashboard/assistants'
         });
         
         if (result?.error) {
             throw new Error(result.error);
         }
-        // On successful sign-in, the AppProvider's session check will handle fetching profile
-        // and subsequent redirection.
-        toast({ title: "Iniciando sesión...", description: "Verificando tus datos."});
+        if (result?.ok && result?.url) {
+            router.push(result.url);
+        } else if (result?.ok) {
+            router.push('/dashboard/assistants');
+        }
 
     } catch (error: any) {
       console.error("Login Error:", error);

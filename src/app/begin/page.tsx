@@ -213,7 +213,7 @@ const BeginPage = () => {
 
     const handleGoogleSignIn = () => {
         if (!selectedOption) return;
-        const callbackUrl = `/dashboard?newUserFlow=${selectedOption}`;
+        const callbackUrl = `/dashboard/assistants`;
         signIn('google', { callbackUrl });
     }
     

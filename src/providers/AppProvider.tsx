@@ -56,7 +56,7 @@ const initialState: AppState = {
 const AppContext = createContext<{ 
   state: AppState; 
   dispatch: React.Dispatch<Action>;
-  fetchProfileCallback: (email: string, newUserFlow?: 'desktop' | 'whatsapp') => Promise<void>;
+  fetchProfileCallback: (email: string) => Promise<void>;
 } | undefined>(undefined);
 
 type Action =
@@ -279,43 +279,16 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const fetchProfileCallback = useCallback(async (email: string, newUserFlow?: 'desktop' | 'whatsapp') => {
+  const fetchProfileCallback = useCallback(async (email: string) => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
     try {
       const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
       
-      if (response.status === 404 && newUserFlow) {
-          // This path is for new users coming from Google Sign-In, who don't have a profile yet.
-          // Since the registration dialog handles profile creation for email/pass users,
-          // we create a profile for Google users here.
-          console.log(`Profile not found for ${email}, creating new profile with ${newUserFlow} assistant.`);
-
-          const createResponse = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              email: email, 
-              password: `google-user-${Date.now()}`, // Dummy password for schema compliance
-              assistantType: newUserFlow
-            }),
-          });
-          
-          const { userProfile: createdProfile, message } = await createResponse.json();
-          if(!createResponse.ok) {
-            throw new Error(message || "Could not create profile for new Google user.");
-          }
-
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: createdProfile });
-          toast({ title: "¡Bienvenido/a!", description: "Hemos creado tu primer asistente. ¡Ya puedes empezar!" });
-          router.replace('/dashboard/assistants');
-
-      } else if (response.ok) {
+      if (response.ok) {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          router.replace('/dashboard/assistants'); // Redirect existing users to dashboard
         } else {
-           // This case can happen if API returns 200 but no profile (shouldn't happen with 404 handling)
            throw new Error('Perfil no encontrado, pero la respuesta fue exitosa.');
         }
       } else {
@@ -329,7 +302,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [router]);
+  }, []);
 
 
   useEffect(() => {
@@ -351,15 +324,13 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   }, [state.userProfile]);
 
   useEffect(() => {
-    const newUserFlow = searchParams.get('newUserFlow') as 'desktop' | 'whatsapp' | null;
-
     if (status === 'loading') {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
     } else if (status === 'unauthenticated') {
       dispatch({ type: 'LOGOUT_USER' });
     } else if (status === 'authenticated') {
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
-        fetchProfileCallback(session.user.email, newUserFlow || undefined);
+        fetchProfileCallback(session.user.email);
       } else {
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
