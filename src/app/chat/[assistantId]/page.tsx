@@ -52,10 +52,10 @@ const DesktopChatPage = () => {
           return res.json();
         })
         .then(data => {
-          setAssistant(data);
+          setAssistant(data.assistant);
           // Add a welcome message from the assistant
           setMessages([{
-            text: `¡Hola! Estás chateando con ${data.name}. ¿Cómo puedo ayudarte hoy?`,
+            text: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
             isUser: false,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
