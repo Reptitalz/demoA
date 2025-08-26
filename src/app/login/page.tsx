@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppIcon from '@/components/shared/AppIcon';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const APP_NAME = "Hey Manito!";
 
@@ -91,7 +92,9 @@ const LoginPageContent = () => {
     <div className="flex items-center justify-center min-h-screen px-4">
       <div className="w-full max-w-md space-y-6 animate-fadeIn">
         <div className="text-center mb-6 flex flex-col items-center">
-          <AppIcon className="h-14 w-14 mb-3" />
+          <Link href="/">
+            <AppIcon className="h-14 w-14 mb-3" />
+          </Link>
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>
         </div>
