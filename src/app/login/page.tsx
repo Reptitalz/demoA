@@ -66,20 +66,30 @@ const LoginPageContent = () => {
             userType: 'user',
         });
     } else {
+        // For Google, we can allow NextAuth to handle the redirect
         result = await signIn('google', {
-            redirect: false,
+            callbackUrl: '/dashboard/assistants'
         });
+        return; // Early return as NextAuth will handle the rest
     }
     
+    setIsLoggingIn(false);
+    
     if (result?.error) {
-        setIsLoggingIn(false);
          toast({
               title: "Error de inicio de sesión",
               description: "Correo electrónico o contraseña incorrectos.",
               variant: "destructive",
           });
+    } else if (!result?.ok) {
+        toast({
+            title: "Error de inicio de sesión",
+            description: "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
+            variant: "destructive",
+        });
     }
     // If successful, the AppProvider's useEffect will handle the profile fetch and redirect.
+    // No need for an explicit router.push here.
   };
   
   if (status === 'loading' || state.loadingStatus.active) {
