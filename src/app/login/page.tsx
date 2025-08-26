@@ -71,11 +71,6 @@ const LoginPageContent = () => {
         setIsLoggingIn(false);
     }
   };
-
-  const handleOpenRegisterDialog = () => {
-    dispatch({ type: 'RESET_WIZARD' });
-    setIsRegisterDialogOpen(true);
-  };
   
   // Show loading indicator while session is being determined or profile is being fetched.
   if (status === 'loading' || state.loadingStatus.active) {
@@ -147,7 +142,7 @@ const LoginPageContent = () => {
         </div>
 
         <Button
-            onClick={handleOpenRegisterDialog}
+            onClick={() => router.push('/begin')}
             className={cn(
                 "w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2",
                 "bg-brand-gradient text-primary-foreground hover:opacity-90",
