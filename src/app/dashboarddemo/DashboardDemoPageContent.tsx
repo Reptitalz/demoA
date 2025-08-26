@@ -235,7 +235,6 @@ const DashboardDemoPageContent = () => {
               {pathname.startsWith('/dashboarddemo/profile') && 'Perfil y Soporte'}
               {pathname === '/dashboarddemo' && 'Panel de Demostración'}
             </h2>
-            <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
           </div>
           <p className="text-xs text-muted-foreground">
              {pathname.startsWith('/dashboarddemo/assistants') && 'Gestiona todos tus asistentes de IA desde aquí.'}
