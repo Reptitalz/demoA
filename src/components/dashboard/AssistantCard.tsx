@@ -64,7 +64,7 @@ const AssistantCard = ({
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
-  const desktopChatUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}${assistant.chatPath}`;
+  const desktopChatUrl = assistant.chatPath || `/chat/not-found`;
   const shareUrl = assistant.type === 'whatsapp' ? whatsappUrl : desktopChatUrl;
 
 
@@ -457,8 +457,11 @@ const AssistantCard = ({
                                   </AlertDialogContent>
                                 </AlertDialog>
                             ) : (
-                                <Button onClick={() => setIsApiInfoDialogOpen(true)} size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
-                                   <Code size={14} /> API Info
+                                <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
+                                  <Link href={desktopChatUrl}>
+                                    <FaWhatsapp size={14} />
+                                    <span className="ml-1">Chatear</span>
+                                  </Link>
                                 </Button>
                             )}
 
