@@ -2,7 +2,7 @@
 // src/app/chat/[assistantId]/page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef, useId } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { FaWhatsapp, FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
@@ -73,6 +73,8 @@ const DesktopChatPage = () => {
   useEffect(() => {
     if (assistantSlug) {
       // The API endpoint should find the assistant by its chatPath slug.
+      // This logic will be implemented in a future step. For now, we simulate.
+      setIsLoading(true);
       fetch(`/api/assistants/public/${assistantSlug}`)
         .then(res => {
           if (!res.ok) {
@@ -81,6 +83,7 @@ const DesktopChatPage = () => {
           return res.json();
         })
         .then(data => {
+          if(!data.assistant) throw new Error('Asistente no encontrado.');
           setAssistant(data.assistant);
           setMessages([{
             text: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
@@ -125,7 +128,6 @@ const DesktopChatPage = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
                 executionId: executionId,
