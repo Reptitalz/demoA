@@ -1,4 +1,3 @@
-
 // src/app/chat/[assistantId]/page.tsx
 "use client";
 
@@ -35,7 +34,7 @@ const ChatBubble = ({ text, isUser, time }: { text: string; isUser: boolean; tim
 const DesktopChatPage = () => {
   const params = useParams();
   const { toast } = useToast();
-  const assistantSlug = params.assistantId as string;
+  const assistantId = params.assistantId as string;
   const [assistant, setAssistant] = useState<Partial<AssistantConfig> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,31 +50,31 @@ const DesktopChatPage = () => {
   useEffect(() => {
     // Generate or retrieve session IDs from localStorage
     const getSessionInfo = () => {
-        let sid = localStorage.getItem(`sessionId_${assistantSlug}`);
+        let sid = localStorage.getItem(`sessionId_${assistantId}`);
         if (!sid) {
             sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            localStorage.setItem(`sessionId_${assistantSlug}`, sid);
+            localStorage.setItem(`sessionId_${assistantId}`, sid);
         }
         
-        let eid = localStorage.getItem(`executionId_${assistantSlug}`);
+        let eid = localStorage.getItem(`executionId_${assistantId}`);
          if (!eid) {
             eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            localStorage.setItem(`executionId_${assistantSlug}`, eid);
+            localStorage.setItem(`executionId_${assistantId}`, eid);
         }
 
         setSessionId(sid);
         setExecutionId(eid);
     }
     getSessionInfo();
-  }, [assistantSlug]);
+  }, [assistantId]);
 
 
   useEffect(() => {
-    if (assistantSlug) {
+    if (assistantId) {
       // The API endpoint should find the assistant by its chatPath slug.
       // This logic will be implemented in a future step. For now, we simulate.
       setIsLoading(true);
-      fetch(`/api/assistants/public/${assistantSlug}`)
+      fetch(`/api/assistants/public/${assistantId}`)
         .then(res => {
           if (!res.ok) {
             throw new Error('Asistente no encontrado o no disponible.');
@@ -102,7 +101,7 @@ const DesktopChatPage = () => {
         })
         .finally(() => setIsLoading(false));
     }
-  }, [assistantSlug]);
+  }, [assistantId]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
