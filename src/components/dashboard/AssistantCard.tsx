@@ -21,6 +21,7 @@ import { Progress } from "../ui/progress";
 import { MessagesSquare, AppWindow, Bot, Code } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { differenceInDays } from 'date-fns';
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -246,6 +247,7 @@ const AssistantCard = ({
     </Badge>
   );
 
+  const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
 
   return (
     <>
@@ -312,9 +314,16 @@ const AssistantCard = ({
         </CardHeader>
         <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
           {assistant.isFirstDesktopAssistant ? (
-            <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 p-2 text-sm font-semibold text-gray-800 shadow-md">
+             <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 p-2.5 text-sm font-semibold text-gray-800 shadow-md">
               <FaCrown />
-              <span>Gratis por 30 días</span>
+              <div>
+                <span>Modo Ilimitado</span>
+                {trialDaysRemaining > 0 ? (
+                  <span className="block text-xs font-normal opacity-90">Te quedan {trialDaysRemaining} días</span>
+                ) : (
+                  <span className="block text-xs font-normal opacity-90">Prueba finalizada</span>
+                )}
+              </div>
             </div>
           ) : (
             <div>

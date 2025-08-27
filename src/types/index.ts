@@ -80,6 +80,7 @@ export interface AssistantConfig {
   tools?: AssistantTools;
   timezone?: string;
   isFirstDesktopAssistant?: boolean;
+  trialStartDate?: string;
 }
 
 export type AuthProviderType = "google" | "phone" | "email";
