@@ -4,15 +4,6 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 export async function middleware(req: NextRequest) {
-  // --- DEVELOPMENT OVERRIDE ---
-  // In development mode, we bypass authentication for easier access to the dashboard.
-  // The authentication logic will still run in production.
-  if (process.env.NODE_ENV === 'development') {
-    console.log("DEV MODE: Bypassing authentication middleware.");
-    return NextResponse.next();
-  }
-  // --- END DEVELOPMENT OVERRIDE ---
-
   const { pathname } = req.nextUrl;
   const secret = process.env.NEXTAUTH_SECRET;
 
@@ -48,7 +39,6 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*', 
-    '/dashboard',
     '/app/:path*',
     '/colaboradores/dashboard/:path*'
 ],
