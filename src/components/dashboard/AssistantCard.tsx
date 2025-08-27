@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown, FaExclamationTriangle } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -207,25 +207,38 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
+  // Trial logic
+  const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
+  const isTrialActive = assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
+  const isTrialExpired = assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0 && !assistant.monthlyMessageLimit;
+
   // Status logic refined
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-
-  if (assistant.isActive) {
+  
+  if (isTrialExpired) {
+      badgeText = "Prueba Finalizada";
+      badgeVariant = "destructive";
+  } else if (assistant.isActive) {
       badgeText = "Activo";
       badgeVariant = "default";
-  } else if (assistant.phoneLinked && !assistant.isActive) {
+  } else if (assistant.phoneLinked && !assistant.numberReady) {
       badgeText = "Activando";
       badgeVariant = "outline";
+  } else if (!assistant.isActive && !isTrialExpired) {
+      badgeText = "Inactivo";
+      badgeVariant = "secondary";
   }
     
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      assistant.isActive && "bg-brand-gradient text-primary-foreground",
-      badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      assistant.isActive && !isTrialActive && "bg-brand-gradient text-primary-foreground",
+      badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400",
+      badgeText === "Activo" && isTrialActive && "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
     )}>
       {badgeText === "Activando" && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
+      {badgeText === "Activo" && isTrialActive && <FaCrown className="mr-1 h-3 w-3" />}
       {badgeText}
     </Badge>
   );
@@ -246,8 +259,6 @@ const AssistantCard = ({
       {assistant.type === 'whatsapp' ? 'WhatsApp' : 'Desktop'}
     </Badge>
   );
-
-  const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
 
   return (
     <>
@@ -313,19 +324,15 @@ const AssistantCard = ({
           </div>
         </CardHeader>
         <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
-          {assistant.isFirstDesktopAssistant ? (
-             <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 p-2.5 text-sm font-semibold text-gray-800 shadow-md">
+          {isTrialActive ? (
+             <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 p-2.5 text-sm font-semibold text-gray-800 shadow-md">
               <FaCrown />
               <div>
                 <span>Modo Ilimitado</span>
-                {trialDaysRemaining > 0 ? (
                   <span className="block text-xs font-normal opacity-90">Te quedan {trialDaysRemaining} días</span>
-                ) : (
-                  <span className="block text-xs font-normal opacity-90">Prueba finalizada</span>
-                )}
               </div>
             </div>
-          ) : (
+          ) : !isTrialExpired ? (
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
                 <MessagesSquare size={14} className="text-accent" /> Consumo Mensual:
@@ -338,7 +345,7 @@ const AssistantCard = ({
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
           <div>
             <div className="flex justify-between items-center mb-1 sm:mb-1.5">
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
@@ -510,6 +517,15 @@ const AssistantCard = ({
                                 Verificar y Activar
                             </Button>
                         </div>
+                    ) : isTrialExpired ? (
+                        <Button
+                            size="sm"
+                            onClick={() => setIsMessageLimitDialogOpen(true)}
+                            className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs animate-pulse-border"
+                        >
+                            <FaExclamationTriangle size={13} className="mr-2" />
+                            Asignar Límite de Mensajes
+                        </Button>
                     ) : assistant.type === 'whatsapp' ? (
                          <Button
                             size="sm"

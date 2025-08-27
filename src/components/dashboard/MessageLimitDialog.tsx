@@ -62,6 +62,7 @@ const MessageLimitDialog = ({ isOpen, onOpenChange, assistant }: MessageLimitDia
     const updatedAssistant: AssistantConfig = {
       ...assistant,
       monthlyMessageLimit: limit,
+      isActive: limit > 0 // Activate assistant if a limit is set
     };
     
     dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
