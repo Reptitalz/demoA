@@ -2,7 +2,7 @@
 // src/app/chat/[assistantId]/page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { useParams } from 'next/navigation';
 import { FaWhatsapp, FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { AssistantConfig } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
+import { useToast } from '@/hooks/use-toast';
 
 const ChatBubble = ({ text, isUser, time }: { text: string; isUser: boolean; time: string }) => (
   <div className={cn("flex mb-2.5 animate-fadeIn", isUser ? "justify-end" : "justify-start")}>
@@ -33,7 +34,8 @@ const ChatBubble = ({ text, isUser, time }: { text: string; isUser: boolean; tim
 
 const DesktopChatPage = () => {
   const params = useParams();
-  const assistantId = params.assistantId as string;
+  const { toast } = useToast();
+  const assistantSlug = params.assistantId as string;
   const [assistant, setAssistant] = useState<Partial<AssistantConfig> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +44,36 @@ const DesktopChatPage = () => {
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // For real chat, we need session IDs
+  const [sessionId, setSessionId] = useState<string>('');
+  const [executionId, setExecutionId] = useState<string>('');
 
   useEffect(() => {
-    if (assistantId) {
-      fetch(`/api/assistants/public/${assistantId}`)
+    // Generate or retrieve session IDs from localStorage
+    const getSessionInfo = () => {
+        let sid = localStorage.getItem(`sessionId_${assistantSlug}`);
+        if (!sid) {
+            sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            localStorage.setItem(`sessionId_${assistantSlug}`, sid);
+        }
+        
+        let eid = localStorage.getItem(`executionId_${assistantSlug}`);
+         if (!eid) {
+            eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            localStorage.setItem(`executionId_${assistantSlug}`, eid);
+        }
+
+        setSessionId(sid);
+        setExecutionId(eid);
+    }
+    getSessionInfo();
+  }, [assistantSlug]);
+
+
+  useEffect(() => {
+    if (assistantSlug) {
+      // The API endpoint should find the assistant by its chatPath slug.
+      fetch(`/api/assistants/public/${assistantSlug}`)
         .then(res => {
           if (!res.ok) {
             throw new Error('Asistente no encontrado o no disponible.');
@@ -71,7 +99,7 @@ const DesktopChatPage = () => {
         })
         .finally(() => setIsLoading(false));
     }
-  }, [assistantId]);
+  }, [assistantSlug]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,7 +107,7 @@ const DesktopChatPage = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentMessage.trim() || isSending || error) return;
+    if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
 
     const userMessage = {
       text: currentMessage,
@@ -88,19 +116,48 @@ const DesktopChatPage = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
 
-    setTimeout(() => {
-      const aiResponse = {
-        text: "Esta es una respuesta simulada del asistente. La lógica de IA real se implementará aquí.",
-        isUser: false,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      setIsSending(false);
-    }, 1500);
+    try {
+        const response = await fetch('/api/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                assistantId: assistant.id,
+                chatPath: assistant.chatPath,
+                message: messageToSend,
+                executionId: executionId,
+                destination: sessionId
+            })
+        });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
+        }
+
+        // TODO: Implement actual polling to /api/events with the executionId to get the real response
+        // For now, we will simulate a response after a delay.
+        setTimeout(() => {
+            const aiResponse = {
+                text: "Respuesta de la IA (simulada). El sondeo de eventos se implementará aquí.",
+                isUser: false,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, aiResponse]);
+            setIsSending(false);
+        }, 2000);
+
+    } catch (err: any) {
+        toast({ title: 'Error', description: err.message, variant: 'destructive' });
+        // Restore message to input if sending fails
+        setCurrentMessage(messageToSend);
+        // Remove the message from chat history
+        setMessages(prev => prev.slice(0, -1));
+        setIsSending(false);
+    }
   };
 
   if (isLoading) {
