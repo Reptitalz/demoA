@@ -91,7 +91,7 @@ const CollaboratorsPage = () => {
             icon: <FaRocket className="h-8 w-8 text-accent" />,
             title: "3. Impulsa sus Recargas",
             description: "Cada vez que tus clientes recarguen créditos para sus asistentes, tú ganas una comisión. ¡Tu éxito es nuestro éxito!",
-            imageUrl: "https://placehold.co/600x400.png",
+            imageUrl: "/4.jpeg",
             imageHint: "earnings commission"
         }
     ];
