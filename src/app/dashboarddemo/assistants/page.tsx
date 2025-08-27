@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from 'react';
-import DashboardPageContent from '../DashboardDemoPageContent';
+import DashboardPageContent from '@/app/dashboard/DashboardPageContent';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 

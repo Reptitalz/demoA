@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaRobot, FaDatabase, FaUser, FaSignInAlt, FaTachometerAlt } from 'react-icons/fa';
+import { FaRobot, FaDatabase, FaUser, FaSignInAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,8 @@ import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Bot } from 'lucide-react';
+import NotificationsBell from '@/components/notifications/NotificationsBell'; // Re-using real component
+import { signOut } from 'next-auth/react'; // Re-using real function
 
 const menuItems = [
     { path: '/dashboarddemo/assistants', icon: Bot, label: 'Asistentes' },
@@ -34,6 +36,7 @@ export default function DashboardDemoLayout({
                         <span className="font-bold text-lg">{APP_NAME} (Demo)</span>
                     </Link>
                     <div className="flex items-center gap-1.5">
+                        {/* Demo does not need real notifications, but you could show a fake one if desired */}
                         <ThemeToggle />
                         <Button variant="outline" size="sm" onClick={() => router.push('/login')} className="text-xs px-2 py-1"> 
                             <FaSignInAlt size={12} className="mr-1" /> 

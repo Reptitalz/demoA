@@ -8,7 +8,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp, FaInfoCircle, FaExchangeAlt } from 'react-icons/fa';
+import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,7 +16,7 @@ import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User, Bot, Database, AppWindow } from 'lucide-react';
+import { MessageSquare, User, Bot, Database } from 'lucide-react';
 import Link from 'next/link';
 
 const DashboardPageContent = () => {
@@ -25,7 +25,7 @@ const DashboardPageContent = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { userProfile, isLoading } = state;
+  const { userProfile, loadingStatus } = state;
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
@@ -34,6 +34,7 @@ const DashboardPageContent = () => {
 
   // This is the single source of truth for demo data.
   const demoProfile = {
+      isAuthenticated: false, // This is the key that triggers demo mode
       assistants: [{
           id: 'demo-asst-1',
           name: 'Asistente de Ventas (Demo)',
@@ -55,7 +56,8 @@ const DashboardPageContent = () => {
           messageCount: 300,
           monthlyMessageLimit: 1000,
           purposes: ['create_smart_db'],
-          databaseId: 'demo-db-2'
+          databaseId: 'demo-db-2',
+          isFirstDesktopAssistant: true, // This assistant is in free trial
       }],
       databases: [{
           id: 'demo-db-1',
@@ -76,13 +78,13 @@ const DashboardPageContent = () => {
 
   // Handle session and payment status logic for authenticated users
   useEffect(() => {
-    if (isLoading && !isDemoMode) {
+    if (loadingStatus.active && !isDemoMode) {
         return;
     }
-    if (!isLoading && !isDemoMode && !userProfile.isAuthenticated) {
+    if (!loadingStatus.active && !isDemoMode && !userProfile.isAuthenticated) {
         router.replace('/login');
     }
-  }, [isLoading, isDemoMode, userProfile.isAuthenticated, router]);
+  }, [loadingStatus.active, isDemoMode, userProfile.isAuthenticated, router]);
   
   useEffect(() => {
     if(isDemoMode) return;
@@ -99,7 +101,8 @@ const DashboardPageContent = () => {
           });
           fetchProfileCallback(userEmail);
       }
-      router.replace(pathname, { scroll: false });
+      const newPath = pathname || '/dashboard';
+      router.replace(newPath, { scroll: false });
     }
   }, [searchParams, fetchProfileCallback, toast, userProfile.email, router, pathname, isDemoMode]);
 
@@ -112,7 +115,7 @@ const DashboardPageContent = () => {
 
   const handleReconfigureAssistant = (assistantId: string) => {
     if (isDemoMode) {
-      handleActionInDemo('Reconfigurar Asistente');
+      handleActionInDemo('Configurar Asistente');
       return;
     }
     const assistant = userProfile.assistants.find(a => a.id === assistantId);
@@ -144,7 +147,7 @@ const DashboardPageContent = () => {
         
         dispatch({ type: 'SET_WIZARD_STEP', payload: 1 }); 
         router.push('/app');
-        toast({ title: "Reconfigurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
+        toast({ title: "Configurando Asistente", description: `Cargando configuración para ${assistant.name}.` });
     } else {
         toast({ title: "Error", description: "Asistente no encontrado.", variant: "destructive"});
     }
@@ -161,7 +164,7 @@ const DashboardPageContent = () => {
   
   const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId);
 
-  if (isLoading && !isDemoMode) {
+  if (loadingStatus.active && !isDemoMode) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
         <LoadingSpinner size={28} /> 
@@ -170,9 +173,11 @@ const DashboardPageContent = () => {
   }
   
   const renderContentForRoute = () => {
-    const effectivePathname = pathname || '/dashboard/assistants';
+    const isAssistantsPage = pathname.endsWith('/assistants');
+    const isDatabasesPage = pathname.endsWith('/databases');
+    const isProfilePage = pathname.endsWith('/profile');
 
-    if (effectivePathname.startsWith('/dashboard/assistants')) {
+    if (isAssistantsPage) {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
@@ -212,7 +217,7 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (effectivePathname.startsWith('/dashboard/databases')) {
+    if (isDatabasesPage) {
       return (
         <div className="space-y-4">
             <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
@@ -251,7 +256,7 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (effectivePathname.startsWith('/dashboard/profile')) {
+    if (isProfilePage) {
       return (
          <Card
           className="animate-fadeIn transition-all hover:shadow-lg"
@@ -356,30 +361,38 @@ const DashboardPageContent = () => {
     return null; // Or a default view
   }
   
+  const getPageTitle = () => {
+    if(pathname.endsWith('/assistants')) return 'Panel de Asistentes';
+    if(pathname.endsWith('/databases')) return 'Bases de Datos';
+    if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
+    return isDemoMode ? 'Panel de Demostración' : 'Panel Principal';
+  }
+
+  const getPageDescription = () => {
+    if(pathname.endsWith('/assistants')) return isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.';
+    if(pathname.endsWith('/databases')) return isDemoMode ? 'Explora bases de datos de ejemplo.' : 'Administra las fuentes de datos conectadas.';
+    if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
+    return isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.';
+  }
+
   return (
     <>
       <PageContainer className="space-y-5"> 
         <div className="animate-fadeIn">
           <div className="flex justify-between items-center mb-0.5"> 
             <h2 className="text-xl font-bold tracking-tight text-foreground">
-              {pathname.startsWith('/dashboard/assistants') && 'Panel de Asistentes'}
-              {pathname.startsWith('/dashboard/databases') && 'Bases de Datos'}
-              {pathname.startsWith('/dashboard/profile') && 'Perfil y Soporte'}
-              {pathname === '/dashboard' && (isDemoMode ? 'Panel de Demostración' : 'Panel Principal')}
+              {getPageTitle()}
             </h2>
             {isDemoMode && (
                 <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-             {pathname.startsWith('/dashboard/assistants') && (isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.')}
-             {pathname.startsWith('/dashboard/databases') && (isDemoMode ? 'Explora bases de datos de ejemplo.' : 'Administra las fuentes de datos conectadas.')}
-             {pathname.startsWith('/dashboard/profile') && 'Administra tu información, apariencia y obtén ayuda.'}
-             {pathname === '/dashboard' && (isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.')}
+            {getPageDescription()}
           </p>
         </div>
         
-        {pathname !== '/dashboard/profile' && <DashboardSummary />}
+        {!pathname.endsWith('/profile') && <DashboardSummary />}
 
         {renderContentForRoute()}
       </PageContainer>

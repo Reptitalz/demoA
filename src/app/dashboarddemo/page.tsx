@@ -1,19 +1,22 @@
 "use client";
 
-import { Suspense } from 'react';
-import DashboardPageContent from './DashboardDemoPageContent';
+import { useEffect, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 function DashboardDemoPage() {
+  const router = useRouter();
+
+  // The demo pages are now structured. Redirect the base /dashboarddemo to the assistants view.
+  useEffect(() => {
+    router.replace('/dashboarddemo/assistants');
+  }, [router]);
+
   return (
-     <Suspense fallback={
-        <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
-            <LoadingSpinner size={36} />
-        </PageContainer>
-    }>
-        <DashboardPageContent />
-    </Suspense>
+    <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+        <LoadingSpinner size={36} />
+    </PageContainer>
   );
 }
 

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -10,13 +9,18 @@ import RechargeCreditsDialog from './RechargeCreditsDialog';
 import { MESSAGES_PER_CREDIT } from "@/config/appConfig";
 import { cn } from '@/lib/utils';
 import MessagesInfoDialog from "./MessagesInfoDialog";
+import { useRouter } from "next/navigation";
+
 
 const DashboardSummary = () => {
   const { state } = useApp();
-  const { assistants, credits } = state.userProfile;
+  const { assistants, credits, isAuthenticated } = state.userProfile;
+  const router = useRouter();
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [isMessagesInfoOpen, setIsMessagesInfoOpen] = useState(false);
+
+  const isDemoMode = !isAuthenticated;
 
   // Calculate total messages from credits
   const totalMessagesFromCredits = (credits || 0) * MESSAGES_PER_CREDIT;
@@ -25,6 +29,13 @@ const DashboardSummary = () => {
   // The final available messages is the difference
   const availableMessages = totalMessagesFromCredits - totalConsumedMessages;
 
+  const handleRechargeClick = () => {
+    if (isDemoMode) {
+      router.push('/login');
+    } else {
+      setIsRechargeOpen(true);
+    }
+  }
 
   return (
     <>
@@ -56,7 +67,7 @@ const DashboardSummary = () => {
               "shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer",
               "bg-gradient-to-br from-card to-muted/30 hover:from-muted/30"
             )}
-            onClick={() => setIsRechargeOpen(true)}
+            onClick={handleRechargeClick}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Créditos</CardTitle>
