@@ -392,7 +392,7 @@ const BeginPage = () => {
                     <Card className="p-4">
                         <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                             <Image
-                                src="https://picsum.photos/600/400"
+                                src="/5.jpeg"
                                 alt="Pagos seguros con Mercado Pago"
                                 width={600}
                                 height={400}
