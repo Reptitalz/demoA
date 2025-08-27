@@ -79,6 +79,7 @@ export interface AssistantConfig {
   gupshupConfig?: GupshupConfig;
   tools?: AssistantTools;
   timezone?: string;
+  isFirstDesktopAssistant?: boolean;
 }
 
 export type AuthProviderType = "google" | "phone" | "email";

@@ -266,6 +266,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
+            isFirstDesktopAssistant: isDesktopAssistant,
         };
 
         const newDbEntry: DatabaseConfig | undefined = dbNeeded && databaseOption.type ? {
