@@ -16,8 +16,9 @@ import { PhoneInput } from "../ui/phone-input";
 import { E164Number, isValidPhoneNumber } from "react-phone-number-input";
 import { useApp } from "@/providers/AppProvider";
 import MessageLimitDialog from './MessageLimitDialog';
+import ApiInfoDialog from './ApiInfoDialog';
 import { Progress } from "../ui/progress";
-import { MessagesSquare, AppWindow, Bot } from "lucide-react";
+import { MessagesSquare, AppWindow, Bot, Code } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 
@@ -41,6 +42,7 @@ const AssistantCard = ({
   const [imageError, setImageError] = useState(false);
   const [isBusinessInfoDialogOpen, setIsBusinessInfoDialogOpen] = useState(false);
   const [isMessageLimitDialogOpen, setIsMessageLimitDialogOpen] = useState(false);
+  const [isApiInfoDialogOpen, setIsApiInfoDialogOpen] = useState(false);
   const [isReassignAlertOpen, setIsReassignAlertOpen] = useState(false);
 
   // Local state for the phone integration flow
@@ -62,7 +64,7 @@ const AssistantCard = ({
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
-  const desktopChatUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/chat/${assistant.id}`;
+  const desktopChatUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}${assistant.chatPath}`;
   const shareUrl = assistant.type === 'whatsapp' ? whatsappUrl : desktopChatUrl;
 
 
@@ -455,8 +457,8 @@ const AssistantCard = ({
                                   </AlertDialogContent>
                                 </AlertDialog>
                             ) : (
-                                <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
-                                   <Link href={`/chat/${assistant.id}`}><Bot size={14} /> Chatear</Link>
+                                <Button onClick={() => setIsApiInfoDialogOpen(true)} size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
+                                   <Code size={14} /> API Info
                                 </Button>
                             )}
 
@@ -521,6 +523,11 @@ const AssistantCard = ({
       <MessageLimitDialog
         isOpen={isMessageLimitDialogOpen}
         onOpenChange={setIsMessageLimitDialogOpen}
+        assistant={assistant}
+      />
+      <ApiInfoDialog
+        isOpen={isApiInfoDialogOpen}
+        onOpenChange={setIsApiInfoDialogOpen}
         assistant={assistant}
       />
     </>
