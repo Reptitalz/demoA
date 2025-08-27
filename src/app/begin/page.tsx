@@ -311,7 +311,7 @@ const BeginPage = () => {
                             <CardHeader className="p-4">
                                 <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                                     <Image
-                                        src="/4.jpeg"
+                                        src="/5.jpeg"
                                         alt="Asistente en navegador"
                                         width={600}
                                         height={400}
@@ -509,5 +509,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
