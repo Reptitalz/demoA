@@ -77,7 +77,7 @@ const CollaboratorsPage = () => {
             icon: <FaUserPlus className="h-8 w-8 text-primary" />,
             title: "1. Registra a tu Cliente",
             description: "Usa tu enlace de referido único para que tus clientes creen su primer asistente. ¡Es el primer paso para empezar a ganar!",
-            imageUrl: "https://placehold.co/600x400.png",
+            imageUrl: "/5.jpeg",
             imageHint: "client registration"
         },
         {
