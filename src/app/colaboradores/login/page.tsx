@@ -148,7 +148,7 @@ const CollaboratorLoginPage = () => {
           </Button>
 
           {process.env.NODE_ENV === 'development' && (
-            <Button variant="secondary" onClick={() => router.push('/colaboradores/dashboard/demo')} className="w-full mt-4">
+            <Button variant="secondary" onClick={() => router.push('/democolaborator')} className="w-full mt-4">
               Modo Demo (Colaboradores)
             </Button>
         )}
