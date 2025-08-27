@@ -84,7 +84,7 @@ const CollaboratorsPage = () => {
             icon: <FaWhatsapp className="h-8 w-8 text-green-500" />,
             title: "2. Ayúdalos a Activar",
             description: "Guía a tus clientes en la vinculación de un número de WhatsApp nuevo. Es crucial para que el asistente funcione.",
-            imageUrl: "https://placehold.co/600x400.png",
+            imageUrl: "/4.jpeg",
             imageHint: "whatsapp activation"
         },
         {
