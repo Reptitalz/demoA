@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from "@/config/appConfig";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { cn } from "@/lib/utils";
 
 const CollaboratorDashboardPage = () => {
     const { state } = useApp();
@@ -60,6 +61,27 @@ const CollaboratorDashboardPage = () => {
         });
     };
 
+    const summaryCards = [
+        {
+            title: "Usuarios Referidos",
+            value: collaboratorProfile.referredUsers.toLocaleString(),
+            description: "Clientes que has registrado.",
+            icon: <FaUsers className="h-6 w-6 text-blue-500" />
+        },
+        {
+            title: "Ingresos Generados",
+            value: `$${collaboratorProfile.totalEarnings.toFixed(2)}`,
+            description: "Comisiones ganadas de recargas.",
+            icon: <FaDollarSign className="h-6 w-6 text-green-500" />
+        },
+        {
+            title: "Tasa de Conversión",
+            value: `${collaboratorProfile.conversionRate}%`,
+            description: "Visitas a tu enlace vs. registros.",
+            icon: <FaChartLine className="h-6 w-6 text-orange-500" />
+        }
+    ];
+
     if (loadingStatus.active && !isDemoMode) {
         return (
             <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
@@ -88,56 +110,40 @@ const CollaboratorDashboardPage = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Usuarios Referidos</CardTitle>
-                        <FaUsers className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{collaboratorProfile.referredUsers}</div>
-                        <p className="text-xs text-muted-foreground">Clientes que has registrado.</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Ingresos Generados</CardTitle>
-                        <FaDollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">${collaboratorProfile.totalEarnings.toFixed(2)}</div>
-                        <p className="text-xs text-muted-foreground">Comisiones ganadas de recargas.</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Tasa de Conversión</CardTitle>
-                        <FaChartLine className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{collaboratorProfile.conversionRate}%</div>
-                        <p className="text-xs text-muted-foreground">Visitas a tu enlace vs. registros.</p>
-                    </CardContent>
-                </Card>
+                 {summaryCards.map((card, index) => (
+                    <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                           <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                           {card.icon}
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{card.value}</div>
+                            <p className="text-xs text-muted-foreground">{card.description}</p>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
 
             {/* Referral Link Card */}
-            <Card className="animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+            <Card className="animate-fadeIn glow-card" style={{ animationDelay: '0.4s' }}>
                 <CardHeader>
                     <CardTitle>Tu Enlace de Referido</CardTitle>
                     <p className="text-sm text-muted-foreground pt-1">
                         Comparte este enlace con tus clientes para que se registren. Todas las recargas que hagan te generarán una comisión.
                     </p>
                 </CardHeader>
-                <CardContent className="flex items-center gap-4 bg-muted/50 p-4 rounded-lg">
-                    <input
-                        type="text"
-                        value={referralLink}
-                        readOnly
-                        className="flex-grow bg-transparent border-none focus:ring-0 text-sm"
-                    />
-                    <Button onClick={handleCopyLink} size="sm">
-                        <FaClipboard className="mr-2" /> Copiar Enlace
-                    </Button>
+                <CardContent className="bg-muted/50 p-4 rounded-lg">
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <input
+                            type="text"
+                            value={referralLink}
+                            readOnly
+                            className="flex-grow w-full bg-transparent border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+                        />
+                        <Button onClick={handleCopyLink} size="sm" className="w-full sm:w-auto shrink-0">
+                            <FaClipboard className="mr-2" /> Copiar Enlace
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
