@@ -2,35 +2,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-const CHAT_API_URL = 'https://control.reptitalz.cloud/api/v1/chat';
+// The base domain for the webhook
+const WEBHOOK_DOMAIN = 'https://control.reptitalz.cloud/api/webhook';
 
 export async function POST(request: NextRequest) {
   try {
-    const { assistantId, chatPath, message, executionId, destination } = await request.json();
+    // We still receive the full context from the client
+    const { chatPath, message, executionId, destination } = await request.json();
 
-    if (!assistantId || !chatPath || !message || !executionId || !destination) {
+    if (!chatPath || !message || !executionId || !destination) {
       return NextResponse.json({ message: 'Faltan parámetros requeridos.' }, { status: 400 });
     }
+    
+    // Construct the dynamic webhook URL by removing the leading slash from chatPath
+    const dynamicPath = chatPath.startsWith('/') ? chatPath.substring(1) : chatPath;
+    const webhookUrl = `${WEBHOOK_DOMAIN}/${dynamicPath}`;
 
+    // The new, simplified payload as requested
     const payload = {
-      assistantId,
-      chatPath,
-      executionId,
       message,
       destination,
+      executionId,
     };
 
-    // Forward the request to the actual chat service
-    // We don't wait for the response here as per the instructions.
-    // The client will handle polling for the response.
-    axios.post(CHAT_API_URL, payload, {
+    // Forward the request to the new dynamic webhook endpoint
+    axios.post(webhookUrl, payload, {
       headers: {
         'Content-Type': 'application/json',
       },
       timeout: 5000 // 5-second timeout to avoid hanging
     }).catch(error => {
         // We log the error but don't want to block the client response
-        console.error(`Error forwarding chat message to ${CHAT_API_URL}:`, error.message);
+        console.error(`Error forwarding chat message to ${webhookUrl}:`, error.message);
     });
 
     // Immediately confirm to the client that the message has been dispatched
