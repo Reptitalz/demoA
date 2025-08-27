@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -43,7 +44,8 @@ const DashboardDemoPageContent = () => {
           messageCount: 300,
           monthlyMessageLimit: 1000,
           purposes: ['create_smart_db'],
-          databaseId: 'demo-db-2'
+          databaseId: 'demo-db-2',
+          isFirstDesktopAssistant: true, // This assistant is in free trial
       }],
       databases: [{
           id: 'demo-db-1',
@@ -88,7 +90,7 @@ const DashboardDemoPageContent = () => {
                 <AssistantCard 
                     key={assistant.id} 
                     assistant={assistant as any} 
-                    onReconfigure={() => handleActionInDemo("Reconfigurar Asistente")}
+                    onReconfigure={() => handleActionInDemo("Configurar Asistente")}
                     animationDelay={`${0.4 + index * 0.1}s`}
                 />
                 ))}

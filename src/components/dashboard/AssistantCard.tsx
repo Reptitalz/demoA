@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -311,18 +311,25 @@ const AssistantCard = ({
           </div>
         </CardHeader>
         <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
-          <div>
-            <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
-              <MessagesSquare size={14} className="text-accent" /> Consumo Mensual:
-            </h4>
-            <div className="mt-1.5 space-y-1">
-              <Progress value={consumptionPercentage} className="h-1.5" />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{(assistant.messageCount || 0).toLocaleString()}</span>
-                <span>{(assistant.monthlyMessageLimit || 0).toLocaleString()} msjs.</span>
+          {assistant.isFirstDesktopAssistant ? (
+            <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 p-2 text-sm font-semibold text-gray-800 shadow-md">
+              <FaCrown />
+              <span>Gratis por 30 días</span>
+            </div>
+          ) : (
+            <div>
+              <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
+                <MessagesSquare size={14} className="text-accent" /> Consumo Mensual:
+              </h4>
+              <div className="mt-1.5 space-y-1">
+                <Progress value={consumptionPercentage} className="h-1.5" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{(assistant.messageCount || 0).toLocaleString()}</span>
+                  <span>{(assistant.monthlyMessageLimit || 0).toLocaleString()} msjs.</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           <div>
             <div className="flex justify-between items-center mb-1 sm:mb-1.5">
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
