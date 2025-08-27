@@ -12,7 +12,12 @@ export async function middleware(req: NextRequest) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 
-  // Define protected routes
+  // The demo dashboard should be public
+  if (pathname.startsWith('/colaboradores/dashboard/demo')) {
+    return NextResponse.next();
+  }
+
+  // Define other protected routes
   const isProtectedRoute = 
       pathname.startsWith('/dashboard') || 
       pathname.startsWith('/app') ||
