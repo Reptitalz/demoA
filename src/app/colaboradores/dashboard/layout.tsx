@@ -28,9 +28,9 @@ export default function CollaboratorDashboardLayout({
     const router = useRouter();
     const { toast } = useToast();
     const { dispatch } = useApp();
-    const { status } = useSession();
-
-    const isDemoMode = status !== 'authenticated';
+    
+    // Determine demo mode based on the URL path, not session status.
+    const isDemoMode = pathname.includes('/demo');
 
     const handleLogout = async () => {
         try {
