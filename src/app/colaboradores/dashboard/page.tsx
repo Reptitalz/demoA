@@ -10,14 +10,17 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { APP_NAME } from "@/config/appConfig";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const CollaboratorDashboardPage = () => {
     const { state } = useApp();
     const router = useRouter();
     const { toast } = useToast();
+    const { status } = useSession();
     const { userProfile, loadingStatus } = state;
 
-    const isDemoMode = !userProfile.isAuthenticated;
+    // Determine if it's demo mode by checking authentication status
+    const isDemoMode = status !== 'authenticated';
 
     const collaboratorProfile = isDemoMode ? {
         referralCode: 'DEMO12345',
