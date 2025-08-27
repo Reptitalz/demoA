@@ -147,6 +147,12 @@ const CollaboratorLoginPage = () => {
               Registrarse como Colaborador
           </Button>
 
+          {process.env.NODE_ENV === 'development' && (
+            <Button variant="secondary" onClick={() => router.push('/colaboradores/dashboard/demo')} className="w-full mt-4">
+              Modo Demo (Colaboradores)
+            </Button>
+        )}
+
         </div>
       </div>
       <RegisterCollaboratorDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
