@@ -14,9 +14,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Faltan parámetros requeridos.' }, { status: 400 });
     }
     
-    // Construct the dynamic webhook URL by removing the leading slash from chatPath
-    const dynamicPath = chatPath.startsWith('/') ? chatPath.substring(1) : chatPath;
-    const webhookUrl = `${WEBHOOK_DOMAIN}/${dynamicPath}`;
+    // Construct the dynamic webhook URL
+    const webhookUrl = `${WEBHOOK_DOMAIN}/${chatPath}`;
 
     // The new, simplified payload as requested
     const payload = {

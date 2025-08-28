@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -27,7 +26,7 @@ function generateChatPath(assistantName: string): string {
     .replace(/-+/g, '-');
   
   const randomSuffix = Math.random().toString(36).substring(2, 7);
-  return `/chat/${slug}-${randomSuffix}`;
+  return `${slug}-${randomSuffix}`;
 }
 
 const AppSetupPageContent = () => {
