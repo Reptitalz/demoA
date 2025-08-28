@@ -404,7 +404,7 @@ const BeginPage = () => {
                     "transition-opacity duration-300 absolute w-full",
                     step === 2 ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 )}>
-                    <Card className="p-4">
+                    <Card className="p-3 sm:p-4">
                         <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
                             <Image
                                 src="/5.jpeg"
