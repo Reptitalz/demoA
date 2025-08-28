@@ -199,7 +199,7 @@ const AssistantCard = ({
 
 
   const allPurposes = assistant.purposes.map(pid =>
-    assistantPurposesConfig.find(p => p.id === pid)
+    assistantPurposesConfig.find(p => p.id === pid.split(' ')[0])
   ).filter(p => p);
 
   const displayedPurposes = showAllPurposes ? allPurposes : allPurposes.slice(0, INITIAL_PURPOSES_TO_SHOW);
@@ -287,23 +287,18 @@ const AssistantCard = ({
                 {assistant.isActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
-                          {assistant.type === 'whatsapp' && <FaPhoneAlt size={12} className="text-muted-foreground" />} {assistant.type === 'whatsapp' ? assistant.phoneLinked : 'Activo en la web'}
+                          {assistant.type === 'whatsapp' 
+                            ? <><FaPhoneAlt size={12} className="text-muted-foreground" /> {assistant.phoneLinked}</>
+                            : 'Activo en la web'
+                          }
                       </div>
-                      {assistant.type === 'desktop' &&
-                        <Link
-                            href={desktopChatUrl}
-                            className={cn(
-                            "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
-                            "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
-                            "bg-brand-gradient"
-                            )}
-                            aria-label="Iniciar chat de escritorio"
-                            title="Iniciar chat de escritorio"
-                        >
-                            <FaWhatsapp size={14} />
-                            <span>Chatear</span>
-                        </Link>
-                      }
+                       {assistant.type === 'desktop' && (
+                         <Button size="sm" asChild className="text-xs ml-2 h-7 px-2.5 py-1.5 bg-brand-gradient text-primary-foreground hover:opacity-90">
+                           <Link href={desktopChatUrl}>
+                              <FaWhatsapp size={13} className="mr-1.5"/> Chatear
+                           </Link>
+                         </Button>
+                      )}
                     </CardDescription>
                 ) : badgeText === "Activando" ? (
                    <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
