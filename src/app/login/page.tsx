@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { UserPlus } from 'lucide-react';
@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/label';
 import AppIcon from '@/components/shared/AppIcon';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import PageContainer from '@/components/layout/PageContainer';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 const APP_NAME = "Hey Manito!";
 
@@ -186,7 +188,13 @@ const LoginPageContent = () => {
 
 const LoginPage = () => {
   return (
-    <LoginPageContent />
+    <Suspense fallback={
+        <PageContainer className="flex items-center justify-center min-h-screen">
+            <LoadingSpinner size={36} />
+        </PageContainer>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 };
 

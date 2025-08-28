@@ -20,4 +20,14 @@ function DashboardDemoPage() {
   );
 }
 
-export default DashboardDemoPage;
+export default function DashboardDemoRedirector() {
+    return (
+        <Suspense fallback={
+            <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
+                <LoadingSpinner size={36} />
+            </PageContainer>
+        }>
+            <DashboardDemoPage />
+        </Suspense>
+    )
+}

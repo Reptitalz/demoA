@@ -20,9 +20,8 @@ function DashboardRouter() {
             if (userProfile.isAuthenticated) {
                 router.replace('/dashboard/assistants');
             } else {
-            // If the user is NOT authenticated, they are seeing the demo mode.
-            // Redirect them to the demo entry point.
-                router.replace('/dashboarddemo/assistants');
+            // If the user is NOT authenticated, redirect them to the main login page.
+                router.replace('/login');
             }
         }
     }, [loadingStatus.active, userProfile.isAuthenticated, router]);
