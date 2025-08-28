@@ -21,17 +21,18 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
 }
 
 if (!NEXTAUTH_SECRET) {
+    console.error("***************************************************************************");
+    console.error("CRITICAL WARNING: NEXTAUTH_SECRET environment variable is not set.");
     if (process.env.NODE_ENV === 'production') {
-        throw new Error("CRITICAL: NEXTAUTH_SECRET is not set in environment variables for production.");
+        console.error("The application will NOT function correctly in production without this secret.");
+    } else {
+        // Use a default, static secret for development and issue a warning.
+        NEXTAUTH_SECRET = "super-secret-development-key-for-heymanito";
+        console.warn("Using a default, insecure key for development purposes.");
+        console.warn("You MUST set a secure secret in your .env.local file for production.");
+        console.warn("Generate one with: `openssl rand -base64 32`");
     }
-    // Use a default, static secret for development and issue a warning.
-    NEXTAUTH_SECRET = "super-secret-development-key-for-heymanito";
-    console.warn("***************************************************************************");
-    console.warn("WARNING: NEXTAUTH_SECRET environment variable is not set.");
-    console.warn("Using a default, insecure key for development purposes.");
-    console.warn("You MUST set a secure secret in your .env.local file for production.");
-    console.warn("Generate one with: `openssl rand -base64 32`");
-    console.warn("***************************************************************************");
+    console.error("***************************************************************************");
 }
 
 export const authOptions: NextAuthOptions = {

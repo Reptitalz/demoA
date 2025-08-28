@@ -102,8 +102,6 @@ const nextConfig = {
         "fs": false,
       };
     }
-     // This is necessary to prevent bundling issues with native modules used by server-side packages.
-    config.externals.push('bcryptjs');
     return config;
   },
 };
