@@ -134,7 +134,7 @@ const PasswordStrengthMeter = ({ strength }: { strength: number }) => {
 
 
 const BeginPage = () => {
-    const { state, dispatch } = useApp();
+    const { dispatch } = useApp();
     const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -195,7 +195,9 @@ const BeginPage = () => {
 
     const handleSelectOption = (option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
-        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
+        if (dispatch) {
+            dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
+        }
     };
 
     const handleNext = () => {
@@ -509,3 +511,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
