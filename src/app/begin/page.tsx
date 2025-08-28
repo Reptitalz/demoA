@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -193,12 +193,11 @@ const BeginPage = () => {
         }
     }
 
-    const handleSelectOption = (option: 'desktop' | 'whatsapp') => {
+    const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
-        if (dispatch) {
-            dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
-        }
-    };
+        // We no longer need to dispatch to the AppProvider from here
+        // as the server will handle the default assistant creation.
+    }, []);
 
     const handleNext = () => {
         if (step < 3) {
@@ -214,9 +213,18 @@ const BeginPage = () => {
     }
 
     const handleGoogleSignIn = () => {
-        if (!selectedOption) return;
-        const callbackUrl = `/dashboard/assistants`;
-        signIn('google', { callbackUrl });
+        if (!selectedOption) {
+            toast({ title: "Error", description: "Por favor, selecciona un tipo de asistente en el paso 1.", variant: "destructive" });
+            setStep(1);
+            return;
+        }
+        setIsProcessing(true);
+        // The server-side signIn callback now handles new user creation by default.
+        // We just need to trigger the sign-in and redirect.
+        signIn('google', { callbackUrl: '/dashboard/assistants' }).catch(err => {
+             toast({ title: "Error", description: "No se pudo iniciar sesión con Google.", variant: "destructive" });
+             setIsProcessing(false);
+        });
     }
     
     const handleEmailRegister = async (e: React.FormEvent) => {
@@ -452,8 +460,8 @@ const BeginPage = () => {
                                 <CardDescription className="text-xs">La forma más rápida y segura de crear tu cuenta.</CardDescription>
                             </CardHeader>
                              <CardContent className="p-4 pt-0">
-                                <Button size="sm" className={cn("w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
-                                    Continuar con Google <ArrowRight className="ml-2" size={14} />
+                                <Button size="sm" className={cn("w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")} disabled={isProcessing}>
+                                    {isProcessing ? <FaSpinner className="animate-spin" /> : <>Continuar con Google <ArrowRight className="ml-2" size={14} /></>}
                                 </Button>
                             </CardContent>
                         </Card>
@@ -511,5 +519,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    

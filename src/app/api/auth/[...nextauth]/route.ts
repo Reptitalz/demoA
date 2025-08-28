@@ -1,4 +1,3 @@
-
 // src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -7,8 +6,9 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { connectToDatabase } from "@/lib/mongodb";
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
-import type { UserProfile, CollaboratorProfile } from '@/types';
+import type { UserProfile, CollaboratorProfile, AssistantConfig } from '@/types';
 import bcrypt from 'bcryptjs';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from "@/config/appConfig";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -31,6 +31,18 @@ if (!NEXTAUTH_SECRET) {
         console.warn("For production, you MUST set a secure secret in your environment variables.");
         console.warn("**********************************************************************************");
     }
+}
+
+function generateChatPath(assistantName: string): string {
+  const slug = assistantName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  
+  return `/chat/${slug}`;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -115,9 +127,69 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-     async signIn({ user }) {
-      console.log(`User signing in: ${user.email}. Allowing sign-in.`);
-      return true;
+     async signIn({ user, account, profile, email, credentials }) {
+      const { db } = await connectToDatabase();
+      const userCollection = db.collection<UserProfile>('userProfiles');
+      
+      const userEmail = user.email;
+      if (!userEmail) {
+        console.error("Sign-in error: User email is missing.");
+        return false; // Prevent sign-in if no email
+      }
+
+      // Check if user already exists
+      const existingUser = await userCollection.findOne({ email: userEmail });
+
+      // If user does not exist AND they are signing in with Google, create a new profile
+      if (!existingUser && account?.provider === 'google') {
+        console.log(`New Google user signing in: ${userEmail}. Creating profile.`);
+        
+        try {
+          // This logic is for users coming from the /begin flow.
+          // We can't directly access the assistant type here on the server.
+          // So we create a default 'desktop' assistant as a robust fallback.
+          const assistantName = "Mi Asistente de Escritorio";
+          const assistantType = 'desktop';
+
+          const newAssistant: AssistantConfig = {
+            id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            name: assistantName,
+            type: assistantType,
+            prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
+            purposes: [],
+            isActive: true, // Desktop assistants start active
+            numberReady: true,
+            messageCount: 0,
+            monthlyMessageLimit: 1000,
+            imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+            chatPath: generateChatPath(assistantName),
+            isFirstDesktopAssistant: true,
+            trialStartDate: new Date().toISOString(),
+          };
+
+          const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+            firebaseUid: user.id,
+            authProvider: 'google',
+            email: userEmail,
+            firstName: user.name?.split(' ')[0] || '',
+            lastName: user.name?.split(' ').slice(1).join(' ') || '',
+            assistants: [newAssistant],
+            databases: [],
+            credits: 1, // 1 free credit for the trial
+          };
+
+          await userCollection.insertOne(newUserProfile as UserProfile);
+          console.log(`Successfully created new user profile for ${userEmail}`);
+
+        } catch (dbError) {
+          console.error("Failed to create user profile in database during sign-in:", dbError);
+          return false; // Prevent sign-in if DB operation fails
+        }
+      } else {
+        console.log(`Existing user signing in: ${userEmail}.`);
+      }
+      
+      return true; // Allow sign-in
     },
   },
   secret: NEXTAUTH_SECRET,
@@ -131,5 +203,3 @@ export const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
-
-    
