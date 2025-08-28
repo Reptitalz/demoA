@@ -18,7 +18,7 @@ import { useApp } from "@/providers/AppProvider";
 import MessageLimitDialog from './MessageLimitDialog';
 import ApiInfoDialog from './ApiInfoDialog';
 import { Progress } from "../ui/progress";
-import { MessagesSquare, AppWindow, Bot, Code } from "lucide-react";
+import { MessagesSquare, AppWindow, Bot, Code, MessageCircle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { differenceInDays } from 'date-fns';
@@ -475,7 +475,7 @@ const AssistantCard = ({
                             ) : (
                                 <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs" title="Chatear con Asistente">
                                     <Link href={desktopChatUrl}>
-                                        <Code size={14} />
+                                        <MessageCircle size={14} />
                                     </Link>
                                 </Button>
                             )}
