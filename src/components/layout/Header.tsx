@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -15,19 +16,14 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
-import { FaBars, FaChevronRight } from 'react-icons/fa';
+import { FaBars } from 'react-icons/fa';
 
 interface HeaderProps {
   fullWidth?: boolean;
 }
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
-  const { state } = useApp();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { toast } = useToast();
   const [isStandalone, setIsStandalone] = useState(false);
@@ -55,8 +51,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         toast({ title: "¡Aplicación Instalada!", description: "La aplicación se ha instalado en tu dispositivo." });
-      } else {
-        console.log('User dismissed the A2HS prompt');
       }
       setDeferredPrompt(null);
     }
@@ -82,12 +76,12 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           {showInstallButton && (
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={handleInstallClick}
               className="hidden sm:inline-flex"
             >
-              <Download />
-              <span className="sr-only">Instalar aplicación</span>
+              <Download className="mr-2 h-4 w-4"/>
+              Instalar
             </Button>
           )}
           <DropdownMenu>
@@ -98,19 +92,15 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <span>Productos</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem asChild>
-                       <Link href="/">WhatsApp Asistente</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-
+              <DropdownMenuItem asChild>
+                <Link href="/begin">Crear Asistente</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/#pricing">Precios</Link>
+              </DropdownMenuItem>
+               <DropdownMenuItem asChild>
+                <Link href="/colaboradores">Colaboradores</Link>
+              </DropdownMenuItem>
               {showInstallButton && (
                 <>
                   <DropdownMenuSeparator />

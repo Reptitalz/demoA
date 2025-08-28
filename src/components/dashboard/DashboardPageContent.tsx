@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp, FaDownload } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User, Bot, Database } from 'lucide-react';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
+import AppIcon from '../shared/AppIcon';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -31,6 +32,7 @@ const DashboardPageContent = () => {
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   const isDemoMode = !userProfile.isAuthenticated;
 
@@ -78,6 +80,34 @@ const DashboardPageContent = () => {
   };
 
   const profileToRender = isDemoMode ? demoProfile : userProfile;
+  
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        toast({ title: "¡Aplicación Instalada!", description: "La aplicación se ha instalado en tu dispositivo." });
+      }
+      setDeferredPrompt(null);
+    } else if (isDemoMode) {
+        router.push('/login');
+    }
+  };
+
+  const showInstallButton = !!deferredPrompt || isDemoMode;
+
 
   // Handle session and payment status logic for authenticated users
   useEffect(() => {
@@ -293,6 +323,32 @@ const DashboardPageContent = () => {
                 </Button>
               </div>
               <Separator />
+
+               {/* Install App Section */}
+              {showInstallButton && (
+                <>
+                <div className="flex items-center justify-between p-4 sm:p-6">
+                    <div className="flex items-center gap-4">
+                    <AppIcon className="h-6 w-6" />
+                    <div>
+                        <h3 className="font-semibold">Instalar Aplicación</h3>
+                        <p className="text-sm text-muted-foreground">
+                        Añade Hey Manito a tu pantalla de inicio.
+                        </p>
+                    </div>
+                    </div>
+                    <Button
+                    size="sm"
+                    onClick={handleInstallClick}
+                    className="shrink-0 bg-brand-gradient text-primary-foreground hover:opacity-90"
+                    >
+                    <FaDownload className="mr-2" />
+                    {isDemoMode ? 'Iniciar Sesión para Instalar' : 'Instalar'}
+                    </Button>
+                </div>
+                <Separator />
+                </>
+              )}
 
               {/* Security Section */}
               <div className="flex items-center justify-between p-4 sm:p-6">
