@@ -119,22 +119,22 @@ const DesktopChatPage = () => {
       clearInterval(pollIntervalRef.current);
     }
 
+    const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/v1/chat`;
+
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const response = await fetch('/api/chat/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chatPath: assistant?.chatPath,
-            executionId: executionId,
-            destination: sessionId,
-            poll: true // Add a flag to indicate this is a polling request
-          })
+        const response = await fetch(RESPONSE_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                destination: sessionId, // Polling by the unique session ID
+            })
         });
 
         if (response.ok) {
           const data = await response.json();
-          if (data.message) {
+          // Assuming the response contains a message if one is available for this destination
+          if (data && data.message) {
             const aiResponse = {
               text: data.message,
               isUser: false,
@@ -149,10 +149,10 @@ const DesktopChatPage = () => {
         }
       } catch (err) {
         console.error('Polling error:', err);
-        // Don't show toast for every poll error, could be spammy
+        // Don't show toast for every poll error, it could be spammy
       }
     }, 3000); // Poll every 3 seconds
-  }, [assistant?.chatPath, executionId, sessionId]);
+  }, [sessionId]);
 
 
   const handleSendMessage = async (e: React.FormEvent) => {

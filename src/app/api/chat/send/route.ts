@@ -3,41 +3,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { connectToDatabase } from '@/lib/mongodb';
 
-// The new webhook URL for the chat service
-const CHAT_WEBHOOK_URL = 'https://control.reptitalz.cloud/api/v1/chat';
-const EVENTS_COLLECTION = 'events'; // Collection where assistant responses are stored
+// This endpoint is now ONLY for forwarding the user's message to the webhook.
+// Polling will be handled directly by the client against the events API.
+const EVENTS_COLLECTION = 'events'; // This remains for potential future use or logging.
 
 export async function POST(request: NextRequest) {
   try {
-    const { assistantId, chatPath, message, executionId, destination, poll } = await request.json();
+    const { assistantId, chatPath, message, executionId, destination } = await request.json();
 
-    if (!chatPath || !executionId || !destination) {
-      return NextResponse.json({ message: 'Faltan parámetros requeridos (chatPath, executionId, destination).' }, { status: 400 });
-    }
-
-    // --- Polling Logic ---
-    if (poll) {
-      const { db } = await connectToDatabase();
-      const event = await db.collection(EVENTS_COLLECTION).findOneAndDelete({
-        "data.destination": destination,
-        "data.type": "assistant_response" // Look for responses from the assistant
-      });
-
-      if (event) {
-        // Found a response, return it to the client
-        return NextResponse.json({ success: true, message: event.data.message });
-      } else {
-        // No new message found for this destination yet
-        return NextResponse.json({ success: true, message: null });
-      }
-    }
-
-    // --- Sending Logic ---
-    if (!message || !assistantId) {
-      return NextResponse.json({ message: 'Los parámetros "message" y "assistantId" son requeridos para enviar.' }, { status: 400 });
+    if (!chatPath || !message || !assistantId || !executionId || !destination) {
+      return NextResponse.json({ message: 'Faltan parámetros requeridos (assistantId, chatPath, message, executionId, destination).' }, { status: 400 });
     }
     
-    // Construct the payload according to the new format
+    // The new, dynamic webhook URL for sending the user's message.
+    const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${chatPath}`;
+
+    // Construct the payload according to the required format
     const payload = {
       assistantId,
       chatPath,
