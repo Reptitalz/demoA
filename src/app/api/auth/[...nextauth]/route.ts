@@ -197,7 +197,6 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     error: '/login', // Redirect to login on error, error message will be in URL query
   },
-  url: NEXTAUTH_URL,
 };
 
 const handler = NextAuth(authOptions);

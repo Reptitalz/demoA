@@ -289,22 +289,20 @@ const AssistantCard = ({
                       <div className="flex items-center gap-1 text-muted-foreground">
                           {assistant.type === 'whatsapp' && <FaPhoneAlt size={12} className="text-muted-foreground" />} {assistant.type === 'whatsapp' ? assistant.phoneLinked : 'Activo en la web'}
                       </div>
-                      {assistant.type === 'whatsapp' &&
-                        <a
-                            href={whatsappUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      {assistant.type === 'desktop' &&
+                        <Link
+                            href={desktopChatUrl}
                             className={cn(
                             "flex items-center gap-1.5 text-primary-foreground hover:opacity-90",
                             "transition-all transform hover:scale-105 ml-2 px-2.5 py-1.5 rounded-lg shadow-md text-xs",
                             "bg-brand-gradient"
                             )}
-                            aria-label="Iniciar chat de WhatsApp"
-                            title="Iniciar chat de WhatsApp"
+                            aria-label="Iniciar chat de escritorio"
+                            title="Iniciar chat de escritorio"
                         >
                             <FaWhatsapp size={14} />
                             <span>Chatear</span>
-                        </a>
+                        </Link>
                       }
                     </CardDescription>
                 ) : badgeText === "Activando" ? (
@@ -480,11 +478,14 @@ const AssistantCard = ({
                                   </AlertDialogContent>
                                 </AlertDialog>
                             ) : (
-                                <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs">
-                                  <Link href={desktopChatUrl}>
-                                    <FaWhatsapp size={14} />
-                                    <span className="ml-1">Chatear</span>
-                                  </Link>
+                                 <Button
+                                  size="sm"
+                                  onClick={() => setIsApiInfoDialogOpen(true)}
+                                  variant="secondary"
+                                  className="transition-transform transform hover:scale-105 w-full text-xs"
+                                  title="Información de API"
+                                >
+                                  <Code size={14} />
                                 </Button>
                             )}
 

@@ -1,4 +1,3 @@
-
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -58,6 +57,8 @@ export async function POST(request: NextRequest) {
         monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
         chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
+        isFirstDesktopAssistant: isDesktopAssistant,
+        trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
     };
     
     const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {

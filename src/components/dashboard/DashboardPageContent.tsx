@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User, Bot, Database } from 'lucide-react';
 import Link from 'next/link';
+import { subDays } from 'date-fns';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -58,6 +60,7 @@ const DashboardPageContent = () => {
           purposes: ['create_smart_db'],
           databaseId: 'demo-db-2',
           isFirstDesktopAssistant: true, // This assistant is in free trial
+          trialStartDate: subDays(new Date(), 5).toISOString(), // Trial started 5 days ago
       }],
       databases: [{
           id: 'demo-db-1',
