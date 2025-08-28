@@ -1,8 +1,11 @@
-
 {
   "name": "Hey Manito!",
-  "short_name": "Hey Manito",
+  "short_name": "HeyManito",
   "description": "Crea y gestiona asistentes virtuales con IA para automatizar tu comunicación por WhatsApp.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#8a4fff",
+  "theme_color": "#8a4fff",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -14,10 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#8a4fff",
-  "background_color": "#18181b",
-  "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }

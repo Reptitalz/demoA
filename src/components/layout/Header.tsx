@@ -79,6 +79,17 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          {showInstallButton && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleInstallClick}
+              className="hidden sm:inline-flex"
+            >
+              <Download />
+              <span className="sr-only">Instalar aplicación</span>
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
