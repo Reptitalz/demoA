@@ -3,13 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { connectToDatabase } from '@/lib/mongodb';
 
-// The base domain for the webhook
-const WEBHOOK_DOMAIN = 'https://control.reptitalz.cloud/api/webhook';
-const EVENTS_COLLECTION = 'events'; // Assuming your events are stored here
+// The new webhook URL for the chat service
+const CHAT_WEBHOOK_URL = 'https://control.reptitalz.cloud/api/v1/chat';
+const EVENTS_COLLECTION = 'events'; // Collection where assistant responses are stored
 
 export async function POST(request: NextRequest) {
   try {
-    const { chatPath, message, executionId, destination, poll } = await request.json();
+    const { assistantId, chatPath, message, executionId, destination, poll } = await request.json();
 
     if (!chatPath || !executionId || !destination) {
       return NextResponse.json({ message: 'Faltan parámetros requeridos (chatPath, executionId, destination).' }, { status: 400 });
@@ -33,26 +33,26 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Sending Logic ---
-    if (!message) {
-      return NextResponse.json({ message: 'El parámetro "message" es requerido para enviar.' }, { status: 400 });
+    if (!message || !assistantId) {
+      return NextResponse.json({ message: 'Los parámetros "message" y "assistantId" son requeridos para enviar.' }, { status: 400 });
     }
     
-    // Construct the dynamic webhook URL
-    const webhookUrl = `${WEBHOOK_DOMAIN}/${chatPath}`;
-
+    // Construct the payload according to the new format
     const payload = {
+      assistantId,
+      chatPath,
+      executionId,
       message,
       destination,
-      executionId,
     };
 
     // Asynchronously forward the request to the external webhook
-    axios.post(webhookUrl, payload, {
+    axios.post(CHAT_WEBHOOK_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 5000 // 5-second timeout
     }).catch(error => {
         // We log the error but don't want to block the client response
-        console.error(`Error forwarding chat message to ${webhookUrl}:`, error.message);
+        console.error(`Error forwarding chat message to ${CHAT_WEBHOOK_URL}:`, error.message);
     });
 
     // Immediately confirm to the client that the message has been dispatched for processing
