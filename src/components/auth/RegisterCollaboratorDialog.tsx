@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 import { FaSpinner } from 'react-icons/fa';
 import { signIn } from 'next-auth/react';
-import { useApp } from '@/providers/AppProvider';
 
 interface RegisterCollaboratorDialogProps {
   isOpen: boolean;
@@ -18,7 +17,6 @@ interface RegisterCollaboratorDialogProps {
 }
 
 const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaboratorDialogProps) => {
-  const { state } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -26,9 +24,11 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   const handleRegister = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword || !firstName || !lastName) {
       toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos.", variant: "destructive" });
       return;
     }
@@ -40,26 +40,24 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
     setIsProcessing(true);
     
     try {
-      const { assistantType } = state.wizard;
-      
-      // 1. Create user directly in our DB via API
-      const registerResponse = await fetch('/api/auth/register', {
+      // 1. Create collaborator profile in our DB via API
+      const registerResponse = await fetch('/api/create-collaborator-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, assistantType }),
+        body: JSON.stringify({ email, password, firstName, lastName }),
       });
 
       if (!registerResponse.ok) {
         const errorData = await registerResponse.json();
-        throw new Error(errorData.message || 'No se pudo crear el perfil.');
+        throw new Error(errorData.message || 'No se pudo crear el perfil de colaborador.');
       }
       
-      // 2. Sign in the new user with NextAuth using credentials
+      // 2. Sign in the new collaborator with NextAuth using credentials
       const signInResult = await signIn('credentials', {
         redirect: false,
         email,
         password,
-        userType: 'user'
+        userType: 'collaborator'
       });
 
       if (signInResult?.error) {
@@ -68,14 +66,14 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       
       toast({
         title: "¡Registro Exitoso!",
-        description: `Bienvenido/a. Serás redirigido a tu panel.`,
+        description: `Bienvenido/a. Serás redirigido a tu panel de colaborador.`,
       });
       
       onOpenChange(false);
-      router.push('/dashboard/assistants');
-
+      // The app provider will handle the redirect after fetching the profile.
+      
     } catch (error: any) {
-      console.error("User registration error:", error);
+      console.error("Collaborator registration error:", error);
       toast({ title: "Error de Registro", description: error.message, variant: "destructive" });
     } finally {
       setIsProcessing(false);
@@ -86,12 +84,22 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
-          <DialogTitle>Registro con Correo</DialogTitle>
+          <DialogTitle>Registro de Colaborador</DialogTitle>
           <DialogDescription>
-            Crea tu cuenta para guardar tu progreso y empezar a usar tu asistente.
+            Crea tu cuenta para obtener tu enlace de referido y empezar a ganar.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstNameRegCollab">Nombre</Label>
+                <Input id="firstNameRegCollab" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastNameRegCollab">Apellido</Label>
+                <Input id="lastNameRegCollab" value={lastName} onChange={e => setLastName(e.target.value)} required />
+              </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="emailRegCollab">Correo Electrónico</Label>
             <Input id="emailRegCollab" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
@@ -109,7 +117,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cancelar</Button>
           <Button onClick={handleRegister} disabled={isProcessing}>
             {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
-            Crear Cuenta
+            Crear Cuenta de Colaborador
           </Button>
         </DialogFooter>
       </DialogContent>

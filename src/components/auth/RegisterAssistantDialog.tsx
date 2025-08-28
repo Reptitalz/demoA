@@ -16,107 +16,50 @@ import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
 import type { UserProfile, AssistantConfig, DatabaseConfig } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
-import { sendAssistantCreatedWebhook } from '@/services/outboundWebhookService';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { firebaseApp } from '@/lib/firebase';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { signIn, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { UserPlus } from 'lucide-react';
 
 interface AuthStepContentProps {
-  onFinalize: (authProvider: 'google' | 'email', authData: any) => Promise<void>;
+  onFinalize: (authProvider: 'google' | 'email', authData?: any) => Promise<void>;
   isProcessing: boolean;
 }
 
 function generateChatPath(assistantName: string): string {
   const slug = assistantName
     .toLowerCase()
-    // remove accents, swap ñ for n, etc
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    // remove invalid chars
     .replace(/[^a-z0-9 -]/g, '')
-    // collapse whitespace and replace by -
     .replace(/\s+/g, '-')
-    // collapse dashes
     .replace(/-+/g, '-');
   
   return `/chat/${slug}`;
 }
 
-// Separate component for the Auth Step to manage its own form state locally
 const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepContentProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const { toast } = useToast();
 
-  const handleEmailPasswordAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password || !firstName || !lastName) {
-      toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive"});
-      return;
-    }
-    await onFinalize('email', { email, password, firstName, lastName });
-  };
-  
   const handleGoogleAuth = () => {
-    onFinalize('google', {});
+    onFinalize('google');
   }
 
   return (
     <div className="animate-fadeIn space-y-6">
         <div className="text-center">
-              <h3 className="text-xl font-semibold">Último Paso: Crea tu Cuenta</h3>
+              <h3 className="text-xl font-semibold">Último Paso: Inicia Sesión para Guardar</h3>
               <p className="text-sm text-muted-foreground">
-              Elige cómo quieres registrarte para guardar tu asistente y acceder a tu panel.
+                Inicia sesión con Google para guardar tu asistente y acceder a tu panel.
               </p>
         </div>
         
-        <form onSubmit={handleEmailPasswordAuth} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <Label htmlFor="firstNameReg">Nombre</Label>
-                    <Input id="firstNameReg" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Tu nombre" required />
-                </div>
-                <div>
-                    <Label htmlFor="lastNameReg">Apellido</Label>
-                    <Input id="lastNameReg" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tu apellido" required />
-                </div>
-            </div>
-            <div>
-                <Label htmlFor="emailReg">Correo Electrónico</Label>
-                <Input id="emailReg" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required />
-            </div>
-            <div>
-                <Label htmlFor="passwordReg">Contraseña</Label>
-                <Input id="passwordReg" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
-            </div>
-            <Button type="submit" disabled={isProcessing} className="w-full">
-              {isProcessing ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Crear Cuenta y Finalizar'}
-            </Button>
-        </form>
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">O</span>
-          </div>
-        </div>
-
         <Button
           onClick={handleGoogleAuth}
           disabled={isProcessing}
           variant="outline"
-          className="w-full"
+          className="w-full text-lg py-6"
           type="button"
          >
-          <FcGoogle className="mr-2 h-5 w-5" />
+          {isProcessing ? <FaSpinner className="animate-spin h-5 w-5" /> : <FcGoogle className="mr-2 h-5 w-5" />}
           Continuar con Google
         </Button>
 
@@ -132,8 +75,8 @@ interface RegisterAssistantDialogProps {
 }
 
 const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDialogProps) => {
-  const { state, dispatch } = useApp();
-  const { data: session } = useSession();
+  const { state, dispatch, fetchProfileCallback } = useApp();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
   const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, assistantType } = state.wizard;
@@ -147,8 +90,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const isWhatsappAssistant = useMemo(() => assistantType === 'whatsapp', [assistantType]);
 
   const effectiveMaxSteps = useMemo(() => {
-    if (!isWhatsappAssistant) return 4; // Type -> Details -> Prompt -> Account
-    return dbNeeded ? 6 : 5; // Type -> Details -> Prompt -> DB -> Terms -> Account
+    // Desktop: Type -> Details -> Prompt -> Terms -> Auth (5)
+    if (!isWhatsappAssistant) return 5; 
+    // WhatsApp: Type -> Details -> Prompt -> DB? -> Terms -> Auth (5 or 6)
+    return dbNeeded ? 6 : 5;
   }, [dbNeeded, isWhatsappAssistant]);
 
 
@@ -169,27 +114,27 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             return null;
         case 4:
             if (isWhatsappAssistant) {
-                if (dbNeeded) {
+                if (dbNeeded) { // Step 4 is DB for WA
                     if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
                     if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
                     if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/d/'))) return "Proporciona una URL válida de Hoja de Google.";
                     if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
-                } else {
+                } else { // Step 4 is Terms for WA (no DB)
                     if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
                 }
-            } else { // Desktop
+            } else { // Step 4 is Terms for Desktop
                 if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
             }
             return null;
         case 5:
              if (isWhatsappAssistant) {
-                if (dbNeeded) {
+                if (dbNeeded) { // Step 5 is Terms for WA (with DB)
                     if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
                 }
              }
-             return null; // Auth step
+             return null;
         case 6:
-             return null; // Auth step
+             return null;
         default:
             return "Paso inválido";
     }
@@ -211,12 +156,10 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
     
     let nextStep = currentStep + 1;
-    
-    if (!isWhatsappAssistant && currentStep === 3) {
-      nextStep = 4; // Skip to Auth for desktop
-    }
+
+    // Skip DB config for WA assistant if not needed
     if (isWhatsappAssistant && currentStep === 3 && !dbNeeded) {
-        nextStep = 5; // Skip DB config if not needed
+        nextStep = 5; 
     }
     
     if (nextStep <= effectiveMaxSteps) {
@@ -227,29 +170,20 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const handlePrevious = () => {
     if (currentStep > 1) {
         let prevStep = currentStep - 1;
-        if (!isWhatsappAssistant && currentStep === 4) {
-          prevStep = 3; // Go back to prompt from auth
-        }
+        // Correctly go back from Terms to Prompt if DB was skipped
         if (isWhatsappAssistant && currentStep === 5 && !dbNeeded) {
-            prevStep = 3; // Go back to prompt from terms, skipping db
+            prevStep = 3; 
         }
         dispatch({ type: 'SET_WIZARD_STEP', payload: prevStep });
     }
   };
   
-  const createProfileAndFinalize = useCallback(async (firebaseUser: any, authProvider: 'google' | 'email', formData?: any) => {
+  const createOrUpdateProfileAndFinalize = useCallback(async (user: any) => {
       setIsFinalizingSetup(true);
       try {
-        const userEmail = firebaseUser.email;
-        const uid = firebaseUser.uid;
-        
-        const userFirstName = authProvider === 'email' ? formData.firstName : (firebaseUser.name?.split(' ')[0] || '');
-        const userLastName = authProvider === 'email' ? formData.lastName : (firebaseUser.name?.split(' ').slice(1).join(' ') || '');
-        
-        if (!uid || !userEmail) {
-            throw new Error("No se pudieron obtener los datos de autenticación.");
-        }
-        
+        const userEmail = user.email;
+        if (!userEmail) throw new Error("No se pudo obtener el email del usuario.");
+
         const isDesktopAssistant = assistantType === 'desktop';
 
         const finalAssistantConfig: AssistantConfig = {
@@ -281,92 +215,89 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             relevantColumnsDescription: databaseOption.relevantColumnsDescription,
         } : undefined;
           
-          const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-              firebaseUid: uid,
+        let finalProfile: Partial<UserProfile>;
+
+        if (state.userProfile.isAuthenticated) {
+            // User is already logged in, just add the new assistant and DB
+            finalProfile = {
+                assistants: [...state.userProfile.assistants, finalAssistantConfig],
+                databases: newDbEntry ? [...state.userProfile.databases, newDbEntry] : state.userProfile.databases,
+                credits: isDesktopAssistant ? (state.userProfile.credits || 0) + 1 : state.userProfile.credits,
+            };
+            dispatch({ type: 'UPDATE_USER_PROFILE', payload: finalProfile });
+        } else {
+             const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+              firebaseUid: user.id,
               email: userEmail,
-              firstName: userFirstName,
-              lastName: userLastName,
-              authProvider,
+              firstName: user.name?.split(' ')[0] || '',
+              lastName: user.name?.split(' ').slice(1).join(' ') || '',
+              authProvider: 'google',
               assistants: [finalAssistantConfig],
               databases: newDbEntry ? [newDbEntry] : [],
               credits: isDesktopAssistant ? 1 : 0,
-          };
-
-          const response = await fetch('/api/create-user-profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(finalProfileData),
-          });
-
-          const { userProfile: createdProfile, message } = await response.json();
-
-          if (!response.ok && response.status !== 200) {
-              throw new Error(message || "No se pudo crear el perfil de usuario.");
-          }
-          
-          if (response.status === 201) {
-            await sendAssistantCreatedWebhook(createdProfile, finalAssistantConfig, newDbEntry || null);
-          }
-
-          if (authProvider === 'email') {
-             await signIn('credentials', {
-                redirect: false,
-                email: userEmail,
-                password: formData.password,
-                userType: 'user'
+            };
+            
+            const response = await fetch('/api/create-user-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalProfileData),
             });
-          }
+
+            const { userProfile: createdProfile, message } = await response.json();
+
+            if (!response.ok && response.status !== 200) {
+                throw new Error(message || "No se pudo crear el perfil de usuario.");
+            }
+            dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
+        }
           
-          dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
-          toast({ title: "¡Cuenta Creada!", description: `Bienvenido/a. Redirigiendo al dashboard...` });
-          onOpenChange(false);
-          router.push('/dashboard/assistants');
+        toast({ title: "¡Asistente Creado!", description: `Tu nuevo asistente está listo.` });
+        onOpenChange(false);
+        router.push('/dashboard/assistants');
 
       } catch (error: any) {
           console.error("Profile creation error:", error);
-          toast({ title: "Error al crear perfil", description: error.message, variant: "destructive" });
+          toast({ title: "Error al crear asistente", description: error.message, variant: "destructive" });
       } finally {
         setIsFinalizingSetup(false);
       }
-  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, assistantType]);
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, assistantType, state.userProfile]);
 
   useEffect(() => {
-    if (session?.user && isOpen && !state.userProfile.isAuthenticated && currentStep >= effectiveMaxSteps) {
-        const firebaseUser = {
-            uid: session.user.id,
-            email: session.user.email,
-            name: session.user.name,
-        };
-        createProfileAndFinalize(firebaseUser, 'google');
-    }
-  }, [session, isOpen, state.userProfile.isAuthenticated, currentStep, effectiveMaxSteps, createProfileAndFinalize]);
-  
-  const handleFinalize = useCallback(async (authProvider: 'google' | 'email', authData: any) => {
-    if (authProvider === 'email') {
-      setIsFinalizingSetup(true);
-      const auth = getAuth(firebaseApp);
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, authData.email, authData.password);
-        await createProfileAndFinalize(userCredential.user, 'email', authData);
-      } catch (error: any) {
-          console.error("Authentication/Registration Error:", error);
-          let errorMessage = "Ocurrió un error inesperado.";
-          if (error.code === 'auth/email-already-in-use') {
-              errorMessage = "Este correo electrónico ya está registrado. Por favor, inicia sesión.";
-          } else if (error.message) {
-              errorMessage = error.message;
-          }
-          toast({ title: "Error de Registro", description: errorMessage, variant: "destructive"});
-          setIsFinalizingSetup(false);
+    // This effect triggers when the user is already authenticated and reaches the final step
+    if (status === 'authenticated' && isOpen && currentStep === effectiveMaxSteps) {
+      if (session?.user) {
+        createOrUpdateProfileAndFinalize(session.user);
       }
-    } else { // Google
+    }
+  }, [session, status, isOpen, currentStep, effectiveMaxSteps, createOrUpdateProfileAndFinalize]);
+  
+  const handleFinalize = useCallback(async (authProvider: 'google' | 'email') => {
+    // This function is now only for initiating the sign-in process
+    // The actual profile creation is handled by the useEffect above
+    if (authProvider === 'google') {
        signIn('google', {
-         callbackUrl: `/dashboard?newUserFlow=${state.wizard.assistantType}`
+         callbackUrl: `/app?action=add` // Redirect back to this flow
        });
     }
-  }, [createProfileAndFinalize, toast, state.wizard.assistantType]);
+  }, []);
 
   const renderStepContent = () => {
+    // If user is logged in, skip the auth step and show a finalizing message
+    if (currentStep === effectiveMaxSteps && status === 'authenticated') {
+      return (
+         <div className="animate-fadeIn space-y-6 flex flex-col items-center justify-center h-full">
+            <FaSpinner className="animate-spin h-10 w-10 text-primary" />
+            <div className="text-center">
+              <h3 className="text-xl font-semibold">Guardando Asistente</h3>
+              <p className="text-sm text-muted-foreground">
+              Estamos añadiendo el nuevo asistente a tu cuenta.
+              </p>
+            </div>
+        </div>
+      );
+    }
+    
     if (currentStep === effectiveMaxSteps) {
         return <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />;
     }
@@ -379,9 +310,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             if (isWhatsappAssistant) {
                 return dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />;
             }
-            return <Step5TermsAndConditions />; // Desktop flow
+            return <Step5TermsAndConditions />;
         case 5: 
-            return isWhatsappAssistant ? <Step5TermsAndConditions /> : null;
+            return (isWhatsappAssistant && dbNeeded) ? <Step5TermsAndConditions /> : null;
         default: return null;
     }
   };
@@ -403,17 +334,17 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             <UserPlus /> Crear un Nuevo Asistente
           </DialogTitle>
           <DialogDescription className="text-center">
-            Sigue los pasos para configurar tu primer asistente inteligente.
+            Sigue los pasos para configurar tu nuevo asistente inteligente.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto px-6 space-y-4">
             <SetupProgressBar />
             <div className="min-h-[400px] relative">
-            {isFinalizingSetup && (
+            {isFinalizingSetup && currentStep !== effectiveMaxSteps && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 rounded-md">
                 <FaSpinner className="animate-spin h-10 w-10 text-primary" />
-                <p className="mt-4 text-sm text-muted-foreground">Finalizando registro...</p>
+                <p className="mt-4 text-sm text-muted-foreground">Finalizando...</p>
                 </div>
             )}
             <div className="p-1">
@@ -422,19 +353,17 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             </div>
         </div>
         
-        <div className="flex justify-between items-center p-6 border-t mt-auto bg-background/80 backdrop-blur-sm">
-          <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105">
-              <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
-          </Button>
+        {currentStep < effectiveMaxSteps && (
+          <div className="flex justify-between items-center p-6 border-t mt-auto bg-background/80 backdrop-blur-sm">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105">
+                <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
+            </Button>
 
-          {currentStep < effectiveMaxSteps ? (
-              <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
-                Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-          ) : (
-            <span /> // Placeholder to keep the layout consistent on the last step
-          )}
-        </div>
+            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
+              Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

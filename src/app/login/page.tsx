@@ -7,7 +7,6 @@ import { useApp } from '@/providers/AppProvider';
 import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import LoadingStatus from '@/components/shared/LoadingStatus';
@@ -29,7 +28,6 @@ const LoginPageContent = () => {
   const { toast } = useToast();
   const { status } = useSession();
 
-  const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,7 +49,6 @@ const LoginPageContent = () => {
                 : "Ha ocurrido un error. Por favor, intenta de nuevo.",
               variant: "destructive",
           });
-          // Remove error from URL without reloading
           router.replace('/login', {scroll: false});
       }
   }, [searchParams, toast, router]);
@@ -68,11 +65,10 @@ const LoginPageContent = () => {
             userType: 'user',
         });
     } else {
-        // For Google, we can allow NextAuth to handle the redirect
         result = await signIn('google', {
             callbackUrl: '/dashboard/assistants'
         });
-        return; // Early return as NextAuth will handle the rest
+        return; 
     }
     
     setIsLoggingIn(false);
@@ -90,8 +86,6 @@ const LoginPageContent = () => {
             variant: "destructive",
         });
     }
-    // If successful, the AppProvider's useEffect will handle the profile fetch and redirect.
-    // No need for an explicit router.push here.
   };
   
   if (status === 'loading' || (status === 'authenticated' && !state.userProfile.isAuthenticated)) {
@@ -181,7 +175,6 @@ const LoginPageContent = () => {
         
       </div>
     </div>
-    <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
     </>
   );
 };

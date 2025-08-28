@@ -287,6 +287,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
         const data = await response.json();
         if (data.userProfile) {
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+          router.replace('/dashboard/assistants');
         } else {
            throw new Error('Perfil no encontrado, pero la respuesta fue exitosa.');
         }
@@ -297,13 +298,12 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error("Error fetching/handling profile:", error);
       toast({ title: 'Error de Red', description: `No se pudo obtener tu perfil: ${error.message}`, variant: 'destructive' });
-      // If fetching fails, log them out to be safe
       signOut({ callbackUrl: '/login' });
       dispatch({ type: 'LOGOUT_USER' });
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, []);
+  }, [router]);
 
 
   useEffect(() => {
@@ -330,22 +330,14 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } else if (status === 'unauthenticated') {
       dispatch({ type: 'LOGOUT_USER' });
     } else if (status === 'authenticated') {
-      // If session is authenticated but our local state is not, fetch the profile
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
         fetchProfileCallback(session.user.email);
       } else if (state.userProfile.isAuthenticated) {
-        // If both are authenticated, we're good. Stop loading.
         dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
       }
     }
   }, [status, session, state.userProfile.isAuthenticated, fetchProfileCallback]);
 
-  // Redirect logic after profile is loaded
-  useEffect(() => {
-    if (!state.loadingStatus.active && state.userProfile.isAuthenticated) {
-        router.replace('/dashboard/assistants');
-    }
-  }, [state.loadingStatus.active, state.userProfile.isAuthenticated, router]);
 
   return (
     <AppContext.Provider value={{ state, dispatch, fetchProfileCallback }}>
