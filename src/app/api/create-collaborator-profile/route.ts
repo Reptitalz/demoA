@@ -1,34 +1,47 @@
-
 // src/app/api/create-collaborator-profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import type { CollaboratorProfile } from '@/types';
-import { randomBytes } from 'crypto';
+import bcrypt from 'bcryptjs';
+
+// Helper function to generate a unique referral code without using Node.js crypto
+function generateReferralCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const profileData: Pick<CollaboratorProfile, 'firebaseUid' | 'email' | 'firstName' | 'lastName'> = await request.json();
+    const { email, password, firstName, lastName } = await request.json();
 
-    if (!profileData || !profileData.firebaseUid || !profileData.email) {
-      return NextResponse.json({ message: 'Datos de perfil de colaborador inválidos.' }, { status: 400 });
+    if (!email || !password || !firstName || !lastName) {
+      return NextResponse.json({ message: 'Se requieren todos los campos del perfil.' }, { status: 400 });
     }
 
     const { db } = await connectToDatabase();
     const collection = db.collection<CollaboratorProfile>('collaboratorProfiles');
 
     // Check if collaborator already exists
-    const existingCollaborator = await collection.findOne({ email: profileData.email });
+    const existingCollaborator = await collection.findOne({ email });
     if (existingCollaborator) {
-      return NextResponse.json({ message: "Este colaborador ya existe." }, { status: 409 }); // 409 Conflict
+      return NextResponse.json({ message: "Este colaborador ya existe." }, { status: 409 });
     }
-
-    // Generate a unique referral code
-    const referralCode = randomBytes(4).toString('hex').toUpperCase();
+    
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newCollaboratorProfile: Omit<CollaboratorProfile, '_id'> = {
-      ...profileData,
-      isAuthenticated: true, // Should be managed by session, but set true on creation
-      referralCode,
+      firebaseUid: '', // Not used for credential-based collaborators
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      isAuthenticated: true,
+      referralCode: generateReferralCode(),
       referredUsers: [],
       totalEarnings: 0,
       conversionRate: 0,

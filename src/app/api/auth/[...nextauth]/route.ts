@@ -22,28 +22,16 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
 
 if (!NEXTAUTH_SECRET) {
     if (process.env.NODE_ENV === 'production') {
-        throw new Error("Missing NEXTAUTH_SECRET in .env for production");
-    } else {
-        // Use a default secret for development, but warn the user.
-        NEXTAUTH_SECRET = "super-secret-development-key-heymanito";
-        console.warn("**********************************************************************************");
-        console.warn("WARNING: NEXTAUTH_SECRET is not set in .env.local. Using a default for development.");
-        console.warn("For production, you MUST set a secure secret in your environment variables.");
-        console.warn("**********************************************************************************");
+        throw new Error("CRITICAL: NEXTAUTH_SECRET is not set in environment variables for production.");
     }
-}
-
-function generateChatPath(assistantName: string): string {
-  const slug = assistantName
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9 -]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
-  
-  const randomSuffix = Math.random().toString(36).substring(2, 7);
-  return `${slug}-${randomSuffix}`;
+    // Use a default, static secret for development and issue a warning.
+    NEXTAUTH_SECRET = "super-secret-development-key-for-heymanito";
+    console.warn("***************************************************************************");
+    console.warn("WARNING: NEXTAUTH_SECRET environment variable is not set.");
+    console.warn("Using a default, insecure key for development purposes.");
+    console.warn("You MUST set a secure secret in your .env.local file for production.");
+    console.warn("Generate one with: `openssl rand -base64 32`");
+    console.warn("***************************************************************************");
 }
 
 export const authOptions: NextAuthOptions = {
