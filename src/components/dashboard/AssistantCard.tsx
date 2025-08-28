@@ -65,7 +65,7 @@ const AssistantCard = ({
 
   const cleanedPhoneNumberForWhatsApp = assistant.phoneLinked ? assistant.phoneLinked.replace(/\D/g, '') : '';
   const whatsappUrl = `https://wa.me/${cleanedPhoneNumberForWhatsApp}`;
-  const desktopChatUrl = assistant.chatPath || `/chat/not-found`;
+  const desktopChatUrl = assistant.chatPath ? `/chat/${assistant.chatPath}` : `/chat/not-found`;
   const shareUrl = assistant.type === 'whatsapp' ? whatsappUrl : desktopChatUrl;
 
 
@@ -293,7 +293,7 @@ const AssistantCard = ({
                           }
                       </div>
                        {assistant.type === 'desktop' && (
-                         <Button size="sm" asChild className="text-xs ml-2 h-7 px-2.5 py-1.5 bg-brand-gradient text-primary-foreground hover:opacity-90">
+                         <Button asChild size="sm" className="text-xs ml-2 h-7 px-2.5 py-1.5 bg-brand-gradient text-primary-foreground hover:opacity-90">
                            <Link href={desktopChatUrl}>
                               <FaWhatsapp size={13} className="mr-1.5"/> Chatear
                            </Link>
@@ -473,14 +473,10 @@ const AssistantCard = ({
                                   </AlertDialogContent>
                                 </AlertDialog>
                             ) : (
-                                 <Button
-                                  size="sm"
-                                  onClick={() => setIsApiInfoDialogOpen(true)}
-                                  variant="secondary"
-                                  className="transition-transform transform hover:scale-105 w-full text-xs"
-                                  title="Información de API"
-                                >
-                                  <Code size={14} />
+                                <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs" title="Chatear con Asistente">
+                                    <Link href={desktopChatUrl}>
+                                        <FaWhatsapp size={14} />
+                                    </Link>
                                 </Button>
                             )}
 
@@ -566,3 +562,5 @@ const AssistantCard = ({
 };
 
 export default AssistantCard;
+
+    
