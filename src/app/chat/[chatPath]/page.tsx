@@ -1,7 +1,7 @@
 // src/app/chat/[chatPath]/page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { FaWhatsapp, FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,7 @@ const DesktopChatPage = () => {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // For real chat, we need session IDs
   const [sessionId, setSessionId] = useState<string>('');
@@ -99,11 +100,60 @@ const DesktopChatPage = () => {
         })
         .finally(() => setIsLoading(false));
     }
+
+    // Cleanup polling on component unmount
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+
   }, [chatPath]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const pollForResponse = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const response = await fetch('/api/chat/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chatPath: assistant?.chatPath,
+            executionId: executionId,
+            destination: sessionId,
+            poll: true // Add a flag to indicate this is a polling request
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.message) {
+            const aiResponse = {
+              text: data.message,
+              isUser: false,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, aiResponse]);
+            setIsSending(false); // Assistant has responded
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+        // Don't show toast for every poll error, could be spammy
+      }
+    }, 3000); // Poll every 3 seconds
+  }, [assistant?.chatPath, executionId, sessionId]);
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,17 +187,8 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
         }
 
-        // TODO: Implement actual polling to /api/events with the executionId to get the real response
-        // For now, we will simulate a response after a delay.
-        setTimeout(() => {
-            const aiResponse = {
-                text: "Respuesta de la IA (simulada). El sondeo de eventos se implementará aquí.",
-                isUser: false,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, aiResponse]);
-            setIsSending(false);
-        }, 2000);
+        // Start polling for the response
+        pollForResponse();
 
     } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -180,7 +221,9 @@ const DesktopChatPage = () => {
                     </Avatar>
                     <div className="flex-grow overflow-hidden">
                         <p className="font-semibold truncate">{assistant?.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">Typing...</p>
+                         <p className="text-sm text-muted-foreground truncate">
+                          {isSending ? "Escribiendo..." : "en línea"}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -210,7 +253,7 @@ const DesktopChatPage = () => {
                   <ChatBubble key={index} text={msg.text} isUser={msg.isUser} time={msg.time} />
                 ))}
                  {isSending && (
-                    <div className="flex justify-start">
+                    <div className="flex justify-start animate-fadeIn">
                         <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-white dark:bg-slate-700">
                             <div className="flex items-center gap-2">
                                 <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
