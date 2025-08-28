@@ -292,13 +292,7 @@ const AssistantCard = ({
                             : 'Activo en la web'
                           }
                       </div>
-                       {assistant.type === 'desktop' ? (
-                         <Button asChild size="sm" className="text-xs ml-2 h-7 px-2.5 py-1.5 bg-brand-gradient text-primary-foreground hover:opacity-90">
-                           <Link href={desktopChatUrl}>
-                              <FaWhatsapp size={13} className="mr-1.5"/> Chatear
-                           </Link>
-                         </Button>
-                      ) : (
+                       {assistant.type === 'whatsapp' && (
                          <Button asChild size="sm" className="text-xs ml-2 h-7 px-2.5 py-1.5 bg-brand-gradient text-primary-foreground hover:opacity-90">
                            <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                               <FaWhatsapp size={13} className="mr-1.5"/> Chatear
