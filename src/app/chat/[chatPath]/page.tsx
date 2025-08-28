@@ -72,7 +72,7 @@ const DesktopChatPage = () => {
   useEffect(() => {
     if (chatPath) {
       setIsLoading(true);
-      fetch(`/api/assistants/public/${chatPath}`)
+      fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`)
         .then(res => {
           if (!res.ok) {
             throw new Error('Asistente no encontrado o no disponible.');
