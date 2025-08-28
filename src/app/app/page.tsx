@@ -26,7 +26,8 @@ function generateChatPath(assistantName: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
   
-  return `/chat/${slug}`;
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  return `/chat/${slug}-${randomSuffix}`;
 }
 
 const AppSetupPageContent = () => {
@@ -169,6 +170,8 @@ const AppSetupPageContent = () => {
       }
       return purpose;
     });
+
+    const hasNameChanged = assistantToUpdate.name !== assistantName;
     
     const finalAssistantConfig: AssistantConfig = {
         ...assistantToUpdate,
@@ -177,7 +180,9 @@ const AppSetupPageContent = () => {
         purposes: finalPurposes,
         databaseId: newAssistantDbIdToLink ?? (dbNeeded ? assistantToUpdate.databaseId : undefined),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        chatPath: assistantToUpdate.type === 'desktop' ? generateChatPath(assistantName) : undefined,
+        chatPath: assistantToUpdate.type === 'desktop' 
+          ? (hasNameChanged ? generateChatPath(assistantName) : assistantToUpdate.chatPath)
+          : undefined,
     };
     
     let updatedAssistantsArray = state.userProfile.assistants.map(a => a.id === state.wizard.editingAssistantId ? finalAssistantConfig : a);

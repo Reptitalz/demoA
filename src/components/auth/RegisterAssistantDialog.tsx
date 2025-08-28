@@ -34,7 +34,8 @@ function generateChatPath(assistantName: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
   
-  return `/chat/${slug}`;
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  return `/chat/${slug}-${randomSuffix}`;
 }
 
 const AuthStepContent = React.memo(({ onFinalize, isProcessing }: AuthStepContentProps) => {

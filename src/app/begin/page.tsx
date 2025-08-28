@@ -134,7 +134,7 @@ const PasswordStrengthMeter = ({ strength }: { strength: number }) => {
 
 
 const BeginPage = () => {
-    const { dispatch } = useApp();
+    const { state, dispatch } = useApp();
     const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -150,6 +150,13 @@ const BeginPage = () => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
+    // Store the selected assistant type in the AppProvider state when it changes
+    useEffect(() => {
+        if (selectedOption) {
+            dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: selectedOption });
+        }
+    }, [selectedOption, dispatch]);
+    
     useEffect(() => {
         if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = 0;
@@ -195,8 +202,6 @@ const BeginPage = () => {
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
-        // We no longer need to dispatch to the AppProvider from here
-        // as the server will handle the default assistant creation.
     }, []);
 
     const handleNext = () => {
@@ -219,8 +224,8 @@ const BeginPage = () => {
             return;
         }
         setIsProcessing(true);
-        // The server-side signIn callback now handles new user creation by default.
-        // We just need to trigger the sign-in and redirect.
+        // The server-side signIn callback is now simplified. 
+        // The AppProvider will handle profile creation after successful sign-in.
         signIn('google', { callbackUrl: '/dashboard/assistants' }).catch(err => {
              toast({ title: "Error", description: "No se pudo iniciar sesión con Google.", variant: "destructive" });
              setIsProcessing(false);

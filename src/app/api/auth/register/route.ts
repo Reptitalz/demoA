@@ -1,3 +1,4 @@
+
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -18,7 +19,8 @@ function generateChatPath(assistantName: string): string {
     // collapse dashes
     .replace(/-+/g, '-');
   
-  return `/chat/${slug}`;
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  return `/chat/${slug}-${randomSuffix}`;
 }
 
 

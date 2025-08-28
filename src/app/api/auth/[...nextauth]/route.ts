@@ -1,3 +1,4 @@
+
 // src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
@@ -42,7 +43,8 @@ function generateChatPath(assistantName: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
   
-  return `/chat/${slug}`;
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  return `/chat/${slug}-${randomSuffix}`;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -128,68 +130,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
      async signIn({ user, account, profile, email, credentials }) {
-      const { db } = await connectToDatabase();
-      const userCollection = db.collection<UserProfile>('userProfiles');
-      
-      const userEmail = user.email;
-      if (!userEmail) {
-        console.error("Sign-in error: User email is missing.");
-        return false; // Prevent sign-in if no email
-      }
-
-      // Check if user already exists
-      const existingUser = await userCollection.findOne({ email: userEmail });
-
-      // If user does not exist AND they are signing in with Google, create a new profile
-      if (!existingUser && account?.provider === 'google') {
-        console.log(`New Google user signing in: ${userEmail}. Creating profile.`);
-        
-        try {
-          // This logic is for users coming from the /begin flow.
-          // We can't directly access the assistant type here on the server.
-          // So we create a default 'desktop' assistant as a robust fallback.
-          const assistantName = "Mi Asistente de Escritorio";
-          const assistantType = 'desktop';
-
-          const newAssistant: AssistantConfig = {
-            id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: assistantName,
-            type: assistantType,
-            prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
-            purposes: [],
-            isActive: true, // Desktop assistants start active
-            numberReady: true,
-            messageCount: 0,
-            monthlyMessageLimit: 1000,
-            imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-            chatPath: generateChatPath(assistantName),
-            isFirstDesktopAssistant: true,
-            trialStartDate: new Date().toISOString(),
-          };
-
-          const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
-            firebaseUid: user.id,
-            authProvider: 'google',
-            email: userEmail,
-            firstName: user.name?.split(' ')[0] || '',
-            lastName: user.name?.split(' ').slice(1).join(' ') || '',
-            assistants: [newAssistant],
-            databases: [],
-            credits: 1, // 1 free credit for the trial
-          };
-
-          await userCollection.insertOne(newUserProfile as UserProfile);
-          console.log(`Successfully created new user profile for ${userEmail}`);
-
-        } catch (dbError) {
-          console.error("Failed to create user profile in database during sign-in:", dbError);
-          return false; // Prevent sign-in if DB operation fails
-        }
-      } else {
-        console.log(`Existing user signing in: ${userEmail}.`);
-      }
-      
-      return true; // Allow sign-in
+      // This callback is now simplified. Its main purpose is to allow the sign-in.
+      // The logic for creating a new user profile is handled on the client-side
+      // after the user is successfully authenticated and redirected.
+      return true; // Allow sign-in for all providers
     },
   },
   secret: NEXTAUTH_SECRET,

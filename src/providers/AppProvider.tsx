@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 const initialWizardState: WizardState = {
   currentStep: 1,
@@ -87,6 +88,19 @@ type Action =
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
+
+function generateChatPath(assistantName: string): string {
+  const slug = assistantName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  return `/chat/${slug}-${randomSuffix}`;
+}
 
 
 const appReducer = (state: AppState, action: Action): AppState => {
@@ -272,28 +286,87 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
   }
 }
 
+async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whatsapp'): Promise<UserProfile> {
+    const isDesktopAssistant = assistantType === 'desktop';
+    const assistantName = isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp";
+
+    const newAssistant: AssistantConfig = {
+      id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: assistantName,
+      type: assistantType,
+      prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
+      purposes: [],
+      isActive: isDesktopAssistant,
+      numberReady: isDesktopAssistant,
+      messageCount: 0,
+      monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
+      imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+      chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
+      isFirstDesktopAssistant: isDesktopAssistant,
+      trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
+    };
+    
+    const newUserProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+      firebaseUid: user.id, // from next-auth user object
+      authProvider: 'google',
+      email: user.email!,
+      firstName: user.name?.split(' ')[0] || '',
+      lastName: user.name?.split(' ').slice(1).join(' ') || '',
+      assistants: [newAssistant],
+      databases: [],
+      credits: isDesktopAssistant ? 1 : 0,
+    };
+    
+    const response = await fetch('/api/create-user-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUserProfileData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to create user profile.");
+    }
+    
+    const { userProfile } = await response.json();
+    return userProfile;
+}
+
 const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const previousStateRef = useRef<AppState>(initialState);
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const fetchProfileCallback = useCallback(async (email: string) => {
+  const fetchProfileCallback = useCallback(async (email: string, isNewUser = false, user: any = null) => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
     try {
-      const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.userProfile) {
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-          router.replace('/dashboard/assistants');
-        } else {
-           throw new Error('Perfil no encontrado, pero la respuesta fue exitosa.');
-        }
+      if (isNewUser) {
+          const newUserProfile = await createNewUserProfile(user, state.wizard.assistantType);
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: newUserProfile });
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error del servidor: ${response.status}`);
+        const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
+        
+        if (response.status === 404) {
+          // This is a new user signing in with Google
+          const newUserProfile = await createNewUserProfile(session!.user!, state.wizard.assistantType);
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: newUserProfile });
+          router.replace('/dashboard/assistants');
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.userProfile) {
+            dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+            router.replace('/dashboard/assistants');
+          } else {
+            throw new Error('Perfil no encontrado, pero la respuesta fue exitosa.');
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Error del servidor: ${response.status}`);
+        }
       }
     } catch (error: any) {
       console.error("Error fetching/handling profile:", error);
@@ -303,7 +376,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [router]);
+  }, [router, state.wizard.assistantType, session]);
 
 
   useEffect(() => {
@@ -328,7 +401,12 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     if (status === 'loading') {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Verificando sesión...', progress: 30 } });
     } else if (status === 'unauthenticated') {
-      dispatch({ type: 'LOGOUT_USER' });
+      // Clear user data but don't show loading screen, let pages handle redirects.
+      if (state.userProfile.isAuthenticated) {
+          dispatch({ type: 'LOGOUT_USER' });
+      } else {
+           dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false } });
+      }
     } else if (status === 'authenticated') {
       if (session?.user?.email && !state.userProfile.isAuthenticated) {
         fetchProfileCallback(session.user.email);
