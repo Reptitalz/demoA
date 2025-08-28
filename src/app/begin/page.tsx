@@ -323,8 +323,8 @@ const BeginPage = () => {
                                 selectedOption === 'desktop' ? "border-primary shadow-lg" : "border-transparent"
                             )}
                         >
-                            <CardHeader className="p-4">
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
+                            <CardHeader className="p-3">
+                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-2 border">
                                     <Image
                                         src="/4.jpeg"
                                         alt="Asistente en navegador"
@@ -340,7 +340,7 @@ const BeginPage = () => {
                                 <CardTitle className="flex items-center gap-2 text-sm"><AppWindow size={16}/> Asistente en Navegador</CardTitle>
                                 <CardDescription className="text-xs">Después, ${PRICE_PER_CREDIT.toFixed(2)} MXN por {MESSAGES_PER_CREDIT.toLocaleString()} mensajes.</CardDescription>
                             </CardHeader>
-                             <CardContent className="p-4 pt-0">
+                             <CardContent className="p-3 pt-0">
                                 <Button 
                                     size="sm" 
                                     className={cn(
@@ -362,8 +362,8 @@ const BeginPage = () => {
                                 selectedOption === 'whatsapp' ? "border-primary shadow-lg" : "border-transparent"
                             )}
                         >
-                            <CardHeader className="p-4">
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
+                            <CardHeader className="p-3">
+                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-2 border">
                                      <Image
                                         src="/1.jpeg"
                                         alt="Asistente en WhatsApp"
@@ -379,7 +379,7 @@ const BeginPage = () => {
                                 <CardTitle className="flex items-center gap-2 text-sm"><FaWhatsapp size={16}/> Asistente en WhatsApp</CardTitle>
                                 <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
                             </CardHeader>
-                             <CardContent className="p-4 pt-0">
+                             <CardContent className="p-3 pt-0">
                                 <Button 
                                     size="sm" 
                                     className={cn(
