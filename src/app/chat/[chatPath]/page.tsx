@@ -116,7 +116,7 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
-        const response = await fetch(`${EVENTS_API_URL}?executionId=${executionId}`);
+        const response = await fetch(`${EVENTS_API_URL}?destination=${executionId}`);
 
         if (response.ok) {
           const events = await response.json();
@@ -318,3 +318,5 @@ const DesktopChatPage = () => {
 };
 
 export default DesktopChatPage;
+
+    
