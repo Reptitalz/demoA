@@ -120,12 +120,10 @@ const DesktopChatPage = () => {
         clearInterval(pollIntervalRef.current);
     }
 
-    // Corrected URL: Use destination (sessionId) to poll for events.
-    const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/v1/chat`;
+    const RESPONSE_API_URL = 'https://control.reptitalz.cloud/api/v1/chat';
 
     const poll = async () => {
         try {
-            // Send sessionId as 'destination' to get the correct events
             const response = await fetch(RESPONSE_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -139,9 +137,7 @@ const DesktopChatPage = () => {
                 if (Array.isArray(events) && events.length > 0) {
                     const newProcessedIds = new Set(processedEventIds);
 
-                    // The events API should return the specific response event
                     for (const event of events) {
-                        // Assuming the polling API returns a specific event structure
                         if (event.type === 'assistant_response' && event.data?.message && !newProcessedIds.has(event.id)) {
                             const aiResponse = {
                                 text: event.data.message,
@@ -169,7 +165,6 @@ const DesktopChatPage = () => {
             }
         } catch (err) {
             console.error('Polling error:', err);
-             // Stop polling on network error to prevent spamming failed requests
             if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
             }
