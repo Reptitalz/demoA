@@ -120,13 +120,16 @@ const DesktopChatPage = () => {
         clearInterval(pollIntervalRef.current);
     }
 
-    const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/events?executionId=${executionId}`;
+    // Corrected URL: Use destination (sessionId) to poll for events.
+    const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/v1/chat`;
 
     const poll = async () => {
         try {
+            // Send sessionId as 'destination' to get the correct events
             const response = await fetch(RESPONSE_API_URL, {
-                method: 'GET',
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ destination: sessionId })
             });
             
             if (response.ok) {
@@ -136,8 +139,10 @@ const DesktopChatPage = () => {
                 if (Array.isArray(events) && events.length > 0) {
                     const newProcessedIds = new Set(processedEventIds);
 
+                    // The events API should return the specific response event
                     for (const event of events) {
-                        if (event.type === 'Respuesta' && !newProcessedIds.has(event.id)) {
+                        // Assuming the polling API returns a specific event structure
+                        if (event.type === 'assistant_response' && event.data?.message && !newProcessedIds.has(event.id)) {
                             const aiResponse = {
                                 text: event.data.message,
                                 isUser: false,
@@ -173,7 +178,7 @@ const DesktopChatPage = () => {
 
     pollIntervalRef.current = setInterval(poll, 3000);
 
-}, [executionId, processedEventIds]);
+}, [sessionId, processedEventIds]);
 
 
   const handleSendMessage = async (e: React.FormEvent) => {
