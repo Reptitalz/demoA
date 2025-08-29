@@ -117,42 +117,63 @@ const DesktopChatPage = () => {
 
   const pollForResponse = useCallback(() => {
     if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
+        clearInterval(pollIntervalRef.current);
     }
 
     const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/events?executionId=${executionId}`;
 
-    pollIntervalRef.current = setInterval(async () => {
-      try {
-        const response = await fetch(RESPONSE_API_URL, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-        });
+    const poll = async () => {
+        try {
+            const response = await fetch(RESPONSE_API_URL, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            
+            if (response.ok) {
+                const events = await response.json();
+                let foundNewResponse = false;
+                
+                if (Array.isArray(events) && events.length > 0) {
+                    const newProcessedIds = new Set(processedEventIds);
 
-        if (response.ok) {
-          const events = await response.json();
-          if (Array.isArray(events)) {
-             const responseEvent = events.find(e => e.type === 'Respuesta' && !processedEventIds.has(e.id));
-             if (responseEvent) {
-                const aiResponse = {
-                    text: responseEvent.data.message,
-                    isUser: false,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-                setMessages(prev => [...prev, aiResponse]);
-                setProcessedEventIds(prev => new Set(prev).add(responseEvent.id));
-                setIsSending(false);
-                if (pollIntervalRef.current) {
-                    clearInterval(pollIntervalRef.current);
+                    for (const event of events) {
+                        if (event.type === 'Respuesta' && !newProcessedIds.has(event.id)) {
+                            const aiResponse = {
+                                text: event.data.message,
+                                isUser: false,
+                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            };
+                            setMessages(prev => [...prev, aiResponse]);
+                            newProcessedIds.add(event.id);
+                            foundNewResponse = true;
+                        }
+                    }
+                    
+                    setProcessedEventIds(newProcessedIds);
+
+                    if (foundNewResponse) {
+                        setIsSending(false);
+                        if (pollIntervalRef.current) {
+                            clearInterval(pollIntervalRef.current);
+                            pollIntervalRef.current = null;
+                        }
+                    }
                 }
-             }
-          }
+            } else {
+                 console.error('Polling request failed with status:', response.status);
+            }
+        } catch (err) {
+            console.error('Polling error:', err);
+             // Stop polling on network error to prevent spamming failed requests
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+            }
         }
-      } catch (err) {
-        console.error('Polling error:', err);
-      }
-    }, 3000);
-  }, [executionId, processedEventIds]);
+    };
+
+    pollIntervalRef.current = setInterval(poll, 3000);
+
+}, [executionId, processedEventIds]);
 
 
   const handleSendMessage = async (e: React.FormEvent) => {
