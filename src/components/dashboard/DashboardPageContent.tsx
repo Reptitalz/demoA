@@ -17,9 +17,10 @@ import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User, Bot, Database } from 'lucide-react';
+import { MessageSquare, User, Bot, Database, Download } from 'lucide-react';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
+import AppIcon from '../shared/AppIcon';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -311,6 +312,28 @@ const DashboardPageContent = () => {
                   disabled
                 >
                  {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
+                </Button>
+              </div>
+              <Separator />
+
+              {/* Install App Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <Download className="h-6 w-6 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Instalar Aplicación</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Añade la aplicación a tu pantalla de inicio para un acceso rápido.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => toast({ title: "Próximamente", description: "La instalación de la aplicación estará disponible pronto." })}
+                  className="shrink-0"
+                >
+                  <AppIcon className="h-4 w-4 mr-2" />
+                  Instalar
                 </Button>
               </div>
               <Separator />

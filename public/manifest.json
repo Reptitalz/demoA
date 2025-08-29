@@ -1,11 +1,10 @@
-
 {
   "name": "Hey Manito!",
   "short_name": "Hey Manito!",
-  "description": "Crea Asistentes de IA para WhatsApp y automatiza tu negocio.",
+  "description": "Crea y gestiona asistentes de IA para WhatsApp.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#111827",
+  "background_color": "#2c2a27",
   "theme_color": "#8a4fff",
   "icons": [
     {
