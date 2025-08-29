@@ -112,15 +112,11 @@ const DesktopChatPage = () => {
       clearInterval(pollIntervalRef.current);
     }
 
-    const EVENTS_API_URL = 'https://control.reptitalz.cloud/api/events';
+    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events`;
 
     const poll = async () => {
       try {
-        const response = await fetch(EVENTS_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ executionId }),
-        });
+        const response = await fetch(`${EVENTS_API_URL}?executionId=${executionId}`);
 
         if (response.ok) {
           const events = await response.json();
@@ -162,6 +158,10 @@ const DesktopChatPage = () => {
           }
         } else {
           console.error('Polling request failed with status:', response.status);
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
         }
       } catch (err) {
         console.error('Polling error:', err);
