@@ -47,6 +47,7 @@ const DesktopChatPage = () => {
   // For real chat, we need session IDs
   const [sessionId, setSessionId] = useState<string>('');
   const [executionId, setExecutionId] = useState<string>('');
+  const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Generate or retrieve session IDs from localStorage
@@ -119,40 +120,39 @@ const DesktopChatPage = () => {
       clearInterval(pollIntervalRef.current);
     }
 
-    const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/v1/chat`;
+    const RESPONSE_API_URL = `https://control.reptitalz.cloud/api/events?executionId=${executionId}`;
 
     pollIntervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(RESPONSE_API_URL, {
-            method: 'POST',
+            method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                destination: sessionId, // Polling by the unique session ID
-            })
         });
 
         if (response.ok) {
-          const data = await response.json();
-          // Assuming the response contains a message if one is available for this destination
-          if (data && data.message) {
-            const aiResponse = {
-              text: data.message,
-              isUser: false,
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, aiResponse]);
-            setIsSending(false); // Assistant has responded
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-            }
+          const events = await response.json();
+          if (Array.isArray(events)) {
+             const responseEvent = events.find(e => e.type === 'Respuesta' && !processedEventIds.has(e.id));
+             if (responseEvent) {
+                const aiResponse = {
+                    text: responseEvent.data.message,
+                    isUser: false,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                setMessages(prev => [...prev, aiResponse]);
+                setProcessedEventIds(prev => new Set(prev).add(responseEvent.id));
+                setIsSending(false);
+                if (pollIntervalRef.current) {
+                    clearInterval(pollIntervalRef.current);
+                }
+             }
           }
         }
       } catch (err) {
         console.error('Polling error:', err);
-        // Don't show toast for every poll error, it could be spammy
       }
-    }, 3000); // Poll every 3 seconds
-  }, [sessionId]);
+    }, 3000);
+  }, [executionId, processedEventIds]);
 
 
   const handleSendMessage = async (e: React.FormEvent) => {
