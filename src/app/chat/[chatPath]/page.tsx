@@ -44,32 +44,26 @@ const DesktopChatPage = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // For real chat, we need session IDs
   const [sessionId, setSessionId] = useState<string>('');
   const [executionId, setExecutionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
+  const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
 
   useEffect(() => {
-    // Generate or retrieve session IDs from localStorage
     const getSessionInfo = () => {
         let sid = localStorage.getItem(`sessionId_${chatPath}`);
         if (!sid) {
             sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             localStorage.setItem(`sessionId_${chatPath}`, sid);
         }
-        
-        let eid = localStorage.getItem(`executionId_${chatPath}`);
-         if (!eid) {
-            eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            localStorage.setItem(`executionId_${chatPath}`, eid);
-        }
-
         setSessionId(sid);
+        
+        let eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        localStorage.setItem(`executionId_${chatPath}`, eid);
         setExecutionId(eid);
     }
     getSessionInfo();
   }, [chatPath]);
-
 
   useEffect(() => {
     if (chatPath) {
@@ -102,13 +96,11 @@ const DesktopChatPage = () => {
         .finally(() => setIsLoading(false));
     }
 
-    // Cleanup polling on component unmount
     return () => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }
     };
-
   }, [chatPath]);
 
   useEffect(() => {
@@ -117,69 +109,81 @@ const DesktopChatPage = () => {
 
   const pollForResponse = useCallback(() => {
     if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+      clearInterval(pollIntervalRef.current);
     }
 
-    const RESPONSE_API_URL = 'https://control.reptitalz.cloud/api/v1/chat';
+    const EVENTS_API_URL = 'https://control.reptitalz.cloud/api/v1/chat';
 
     const poll = async () => {
-        try {
-            const response = await fetch(RESPONSE_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ destination: sessionId })
-            });
-            
-            if (response.ok) {
-                const events = await response.json();
-                let foundNewResponse = false;
-                
-                if (Array.isArray(events) && events.length > 0) {
-                    const newProcessedIds = new Set(processedEventIds);
+      try {
+        const response = await fetch(EVENTS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ destination: sessionId }),
+        });
 
-                    for (const event of events) {
-                        if (event.type === 'assistant_response' && event.data?.message && !newProcessedIds.has(event.id)) {
-                            const aiResponse = {
-                                text: event.data.message,
-                                isUser: false,
-                                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                            };
-                            setMessages(prev => [...prev, aiResponse]);
-                            newProcessedIds.add(event.id);
-                            foundNewResponse = true;
-                        }
-                    }
-                    
-                    setProcessedEventIds(newProcessedIds);
+        if (response.ok) {
+          const events = await response.json();
+          let foundFinalResponse = false;
+          
+          if (Array.isArray(events) && events.length > 0) {
+            const newProcessedIds = new Set(processedEventIds);
 
-                    if (foundNewResponse) {
-                        setIsSending(false);
-                        if (pollIntervalRef.current) {
-                            clearInterval(pollIntervalRef.current);
-                            pollIntervalRef.current = null;
-                        }
-                    }
-                }
-            } else {
-                 console.error('Polling request failed with status:', response.status);
+            for (const event of events) {
+              if (newProcessedIds.has(event.id)) continue;
+
+              if (event.type === 'assistant_status' && event.data?.statusMessage) {
+                setAssistantStatusMessage(event.data.statusMessage);
+              }
+
+              if (event.type === 'assistant_response' && event.data?.message) {
+                const aiResponse = {
+                  text: event.data.message,
+                  isUser: false,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                };
+                setMessages(prev => [...prev, aiResponse]);
+                foundFinalResponse = true;
+              }
+              
+              newProcessedIds.add(event.id);
             }
-        } catch (err) {
-            console.error('Polling error:', err);
-            if (pollIntervalRef.current) {
+
+            setProcessedEventIds(newProcessedIds);
+
+            if (foundFinalResponse) {
+              setIsSending(false);
+              setAssistantStatusMessage('Escribiendo...'); // Reset status
+              if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+              }
             }
+          }
+        } else {
+          console.error('Polling request failed with status:', response.status);
         }
+      } catch (err) {
+        console.error('Polling error:', err);
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+      }
     };
 
     pollIntervalRef.current = setInterval(poll, 3000);
-
-}, [sessionId, processedEventIds]);
-
+  }, [sessionId, processedEventIds]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
 
+    // Reset execution ID for a new conversation flow
+    const newExecutionId = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    setExecutionId(newExecutionId);
+    localStorage.setItem(`executionId_${chatPath}`, newExecutionId);
+    
     const userMessage = {
       text: currentMessage,
       isUser: true,
@@ -190,6 +194,7 @@ const DesktopChatPage = () => {
     const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
+    setAssistantStatusMessage('Procesando solicitud...'); // Initial status
 
     try {
         const response = await fetch('/api/chat/send', {
@@ -199,7 +204,7 @@ const DesktopChatPage = () => {
                 assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
-                executionId: executionId,
+                executionId: newExecutionId,
                 destination: sessionId
             })
         });
@@ -209,16 +214,14 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
         }
 
-        // Start polling for the response
         pollForResponse();
 
     } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
-        // Restore message to input if sending fails
         setCurrentMessage(messageToSend);
-        // Remove the message from chat history
         setMessages(prev => prev.slice(0, -1));
         setIsSending(false);
+        setAssistantStatusMessage('Escribiendo...');
     }
   };
 
@@ -229,13 +232,11 @@ const DesktopChatPage = () => {
   return (
     <div className="h-screen w-screen flex items-center justify-center">
       <div className="w-full h-full flex">
-        {/* Sidebar (Chat List Mockup) */}
         <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
             <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
                 <Input placeholder="Buscar o empezar un chat nuevo" className="bg-white dark:bg-slate-700"/>
             </header>
             <div className="flex-grow overflow-y-auto">
-                {/* Mock chat item */}
                 <div className="flex items-center gap-3 p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-800/50">
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
@@ -244,14 +245,13 @@ const DesktopChatPage = () => {
                     <div className="flex-grow overflow-hidden">
                         <p className="font-semibold truncate">{assistant?.name}</p>
                          <p className="text-sm text-muted-foreground truncate">
-                          {isSending ? "Escribiendo..." : "en línea"}
+                          {isSending ? assistantStatusMessage : "en línea"}
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        {/* Main Chat Window */}
         <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800">
            <div
             className="w-full h-full chat-background"
@@ -267,7 +267,7 @@ const DesktopChatPage = () => {
                 </Avatar>
                 <div>
                   <h3 className="font-semibold text-base">{assistant?.name || 'Asistente'}</h3>
-                  <p className="text-xs opacity-80">{error ? 'no disponible' : 'en línea'}</p>
+                  <p className="text-xs opacity-80">{error ? 'no disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
                 </div>
               </header>
               <main className="flex-1 p-4 overflow-y-auto">
@@ -277,11 +277,14 @@ const DesktopChatPage = () => {
                  {isSending && (
                     <div className="flex justify-start animate-fadeIn">
                         <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-white dark:bg-slate-700">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></span>
-                            </div>
+                           <div className="flex items-center gap-3">
+                               <div className="flex items-center gap-2">
+                                  <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                  <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                  <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></span>
+                               </div>
+                               <span className="text-sm text-muted-foreground italic">{assistantStatusMessage}</span>
+                           </div>
                         </div>
                     </div>
                  )}
