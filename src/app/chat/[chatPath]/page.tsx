@@ -112,14 +112,14 @@ const DesktopChatPage = () => {
       clearInterval(pollIntervalRef.current);
     }
 
-    const EVENTS_API_URL = 'https://control.reptitalz.cloud/api/v1/chat';
+    const EVENTS_API_URL = 'https://control.reptitalz.cloud/api/events';
 
     const poll = async () => {
       try {
         const response = await fetch(EVENTS_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ destination: sessionId }),
+          body: JSON.stringify({ executionId }),
         });
 
         if (response.ok) {
@@ -173,7 +173,7 @@ const DesktopChatPage = () => {
     };
 
     pollIntervalRef.current = setInterval(poll, 3000);
-  }, [sessionId, processedEventIds]);
+  }, [executionId, processedEventIds]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
