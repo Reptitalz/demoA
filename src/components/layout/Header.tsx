@@ -24,40 +24,6 @@ interface HeaderProps {
 }
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const { toast } = useToast();
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
-      setIsStandalone(true);
-    }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        toast({ title: "¡Aplicación Instalada!", description: "La aplicación se ha instalado en tu dispositivo." });
-      }
-      setDeferredPrompt(null);
-    }
-  };
-
-  const showInstallButton = !!deferredPrompt && !isStandalone;
-
   return (
     <header className="bg-card shadow-sm sticky top-0 z-50">
       <div className={cn(
@@ -73,17 +39,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {showInstallButton && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleInstallClick}
-              className="hidden sm:inline-flex"
-            >
-              <Download className="mr-2 h-4 w-4"/>
-              Instalar
-            </Button>
-          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -101,15 +56,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                <DropdownMenuItem asChild>
                 <Link href="/colaboradores">Colaboradores</Link>
               </DropdownMenuItem>
-              {showInstallButton && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleInstallClick}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Instalar App
-                  </DropdownMenuItem>
-                </>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
