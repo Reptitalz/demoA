@@ -50,6 +50,7 @@ const DesktopChatPage = () => {
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
 
   useEffect(() => {
+    // Generate session and execution IDs on initial load.
     const getSessionInfo = () => {
         let sid = localStorage.getItem(`sessionId_${chatPath}`);
         if (!sid) {
@@ -58,8 +59,11 @@ const DesktopChatPage = () => {
         }
         setSessionId(sid);
         
-        let eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        localStorage.setItem(`executionId_${chatPath}`, eid);
+        let eid = localStorage.getItem(`executionId_${chatPath}`);
+        if (!eid) {
+            eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            localStorage.setItem(`executionId_${chatPath}`, eid);
+        }
         setExecutionId(eid);
     }
     getSessionInfo();
@@ -107,7 +111,7 @@ const DesktopChatPage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const pollForResponse = useCallback(() => {
+  const pollForResponse = useCallback((currentExecutionId: string) => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
     }
@@ -116,7 +120,7 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
-        const response = await fetch(`${EVENTS_API_URL}?destination=${executionId}`);
+        const response = await fetch(`${EVENTS_API_URL}?destination=${currentExecutionId}`);
 
         if (response.ok) {
           const events = await response.json();
@@ -173,16 +177,16 @@ const DesktopChatPage = () => {
     };
 
     pollIntervalRef.current = setInterval(poll, 3000);
-  }, [executionId, processedEventIds]);
+  }, [processedEventIds]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
 
-    // Reset execution ID for a new conversation flow
+    // **CRITICAL FIX**: Generate the new executionId *before* sending the message.
     const newExecutionId = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     setExecutionId(newExecutionId);
-    localStorage.setItem(`executionId_${chatPath}`, newExecutionId);
+    setProcessedEventIds(new Set()); // Reset processed events for the new interaction
     
     const userMessage = {
       text: currentMessage,
@@ -194,7 +198,7 @@ const DesktopChatPage = () => {
     const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
-    setAssistantStatusMessage('Procesando solicitud...'); // Initial status
+    setAssistantStatusMessage('Procesando solicitud...');
 
     try {
         const response = await fetch('/api/chat/send', {
@@ -204,7 +208,7 @@ const DesktopChatPage = () => {
                 assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
-                executionId: newExecutionId,
+                executionId: newExecutionId, // Use the *new* ID
                 destination: sessionId
             })
         });
@@ -214,7 +218,8 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
         }
 
-        pollForResponse();
+        // Start polling with the correct, new executionId
+        pollForResponse(newExecutionId);
 
     } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -318,5 +323,3 @@ const DesktopChatPage = () => {
 };
 
 export default DesktopChatPage;
-
-    
