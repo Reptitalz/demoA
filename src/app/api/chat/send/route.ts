@@ -1,11 +1,11 @@
 // src/app/api/chat/send/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
-import { connectToDatabase } from '@/lib/mongodb';
 
-// This endpoint is now ONLY for forwarding the user's message to the webhook.
-// Polling will be handled directly by the client against the events API.
-const EVENTS_COLLECTION = 'events'; // This remains for potential future use or logging.
+// This endpoint is no longer used for sending messages directly from the client chat page.
+// The client now posts directly to the external webhook.
+// This file is kept in case it's used by other parts of the system or for future use.
+// It currently forwards a request but won't be hit by the main chat UI.
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,14 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Faltan parámetros requeridos (assistantId, chatPath, message, executionId, destination).' }, { status: 400 });
     }
     
-    // The new, dynamic webhook URL for sending the user's message.
+    // The webhook URL for sending the user's message.
     const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${chatPath}`;
 
     // Construct the payload according to the required format
     const payload = {
-      assistantId,
-      chatPath,
-      executionId,
       message,
       destination,
     };

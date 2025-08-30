@@ -45,28 +45,21 @@ const DesktopChatPage = () => {
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [sessionId, setSessionId] = useState<string>('');
-  const [executionId, setExecutionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
 
   useEffect(() => {
-    // Generate session and execution IDs on initial load.
-    const getSessionInfo = () => {
+    // Generate session ID on initial load if it doesn't exist.
+    const getSessionId = () => {
         let sid = localStorage.getItem(`sessionId_${chatPath}`);
         if (!sid) {
             sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             localStorage.setItem(`sessionId_${chatPath}`, sid);
         }
         setSessionId(sid);
-        
-        let eid = localStorage.getItem(`executionId_${chatPath}`);
-        if (!eid) {
-            eid = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            localStorage.setItem(`executionId_${chatPath}`, eid);
-        }
-        setExecutionId(eid);
+        console.log(`Chat Session ID: ${sid}`);
     }
-    getSessionInfo();
+    getSessionId();
   }, [chatPath]);
 
   useEffect(() => {
@@ -111,34 +104,31 @@ const DesktopChatPage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const pollForResponse = useCallback((currentSessionId: string) => {
+  const pollForResponse = useCallback(() => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
     }
+    if (!sessionId) return;
 
-    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events`;
+    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${sessionId}`;
 
     const poll = async () => {
       try {
-        const response = await fetch(`${EVENTS_API_URL}?destination=${currentSessionId}`);
+        const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
           const events = await response.json();
           let foundFinalResponse = false;
-          
+
           if (Array.isArray(events) && events.length > 0) {
             const newProcessedIds = new Set(processedEventIds);
 
             for (const event of events) {
               if (newProcessedIds.has(event.id)) continue;
-
-              if (event.type === 'assistant_status' && event.data?.statusMessage) {
-                setAssistantStatusMessage(event.data.statusMessage);
-              }
-
-              if (event.type === 'assistant_response' && event.data?.message) {
-                const aiResponse = {
-                  text: event.data.message,
+              
+              if (event.node === 'Respuesta' && event.status === 'success' && event.output?.responseText) {
+                 const aiResponse = {
+                  text: event.output.responseText,
                   isUser: false,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 };
@@ -162,11 +152,9 @@ const DesktopChatPage = () => {
           }
         } else {
           console.error('Polling request failed with status:', response.status);
-          if (response.status !== 404) { // Don't stop polling on 404 (no events yet)
-              if (pollIntervalRef.current) {
-                clearInterval(pollIntervalRef.current);
-                pollIntervalRef.current = null;
-              }
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
         }
       } catch (err) {
@@ -179,14 +167,11 @@ const DesktopChatPage = () => {
     };
 
     pollIntervalRef.current = setInterval(poll, 3000);
-  }, [processedEventIds]);
+  }, [sessionId, processedEventIds]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
-    
-    const newExecutionId = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    setExecutionId(newExecutionId);
     
     const userMessage = {
       text: currentMessage,
@@ -200,28 +185,26 @@ const DesktopChatPage = () => {
     setIsSending(true);
     setAssistantStatusMessage('Procesando solicitud...');
 
-    console.log(`Enviando mensaje. Session ID (destination): ${sessionId}, Execution ID: ${newExecutionId}`);
-
     try {
-        const response = await fetch('/api/chat/send', {
+        const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${assistant.chatPath}`;
+        const payload = {
+          message: messageToSend,
+          destination: sessionId
+        };
+
+        const response = await fetch(CHAT_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                assistantId: assistant.id,
-                chatPath: assistant.chatPath,
-                message: messageToSend,
-                executionId: newExecutionId, // Send the new executionId for this specific interaction
-                destination: sessionId // Send the persistent session Id
-            })
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
+            throw new Error(errorData.message || 'No se pudo enviar el mensaje al agente.');
         }
 
-        // Start polling using the SESSION ID
-        pollForResponse(sessionId);
+        // Start polling for the response
+        pollForResponse();
 
     } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
