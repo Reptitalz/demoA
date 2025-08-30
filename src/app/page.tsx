@@ -35,25 +35,25 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
       num: "1",
       icon: <UserCog size={32} className="text-primary" />,
       title: "Crea tu Asistente",
-      description: "Define el nombre, la personalidad y los objetivos de tu asistente a trav\u00e9s de nuestro sencillo asistente de configuraci\u00f3n. No se requiere c\u00f3digo."
+      description: "Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
     },
     {
       num: "2",
       icon: <FaSimCard size={32} className="text-primary" />,
-      title: "Vincula un N\u00famero",
-      description: "Adquiere una SIM nueva (sin WhatsApp previo) y vinc\u00falala a tu asistente para que pueda empezar a comunicarse."
+      title: "Vincula un Número",
+      description: "Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
     },
     {
       num: "3",
       icon: <FaCheckCircle size={32} className="text-primary" />,
       title: "Activa y Disfruta",
-      description: "Recibir\u00e1s un c\u00f3digo de verificaci\u00f3n de Facebook por SMS. Ingr\u00e9salo para activar tu asistente y deja que empiece a trabajar para ti."
+      description: "Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
     },
     {
       num: "4",
       icon: <Coins size={32} className="text-primary" />,
-      title: "Recarga Cr\u00e9ditos",
-      description: "A\u00f1ade saldo a tu cuenta de forma segura con Mercado Pago para que tu asistente nunca deje de operar."
+      title: "Recarga Créditos",
+      description: "Añade saldo a tu cuenta de forma segura con Mercado Pago para que tu asistente nunca deje de operar."
     }
   ];
 
@@ -87,9 +87,9 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
           {/* Vertical Stepper - Hidden on mobile */}
           <div className="hidden sm:flex w-1/3 bg-muted/50 p-6 flex-col justify-center border-r">
               <DialogHeader className="mb-8 text-left">
-                <DialogTitle className="text-2xl">C\u00f3mo Funciona</DialogTitle>
+                <DialogTitle className="text-2xl">Cómo Funciona</DialogTitle>
                 <DialogDescription>
-                  Configurar tu asistente es r\u00e1pido e intuitivo.
+                  Configurar tu asistente es rápido e intuitivo.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-1 relative">
@@ -120,7 +120,7 @@ const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange:
           {/* Step Content - Full width on mobile */}
           <div className="w-full sm:w-2/3 p-6 sm:p-8 flex flex-col">
               <DialogHeader className="sm:hidden mb-4 text-center">
-                 <DialogTitle className="text-xl">C\u00f3mo Funciona</DialogTitle>
+                 <DialogTitle className="text-xl">Cómo Funciona</DialogTitle>
               </DialogHeader>
               <div className="flex-grow min-h-[280px] flex items-center justify-center animate-fadeIn">
                   {currentStepData && (
@@ -165,13 +165,13 @@ const PayAsYouGoCalculator = () => {
       <CardHeader className="p-0 mb-6">
         <CardTitle className="text-2xl sm:text-3xl">Paga Solo Por Lo Que Usas</CardTitle>
         <CardDescription className="text-sm sm:text-base pt-2 text-muted-foreground">
-          Sin suscripciones ni compromisos. Ajusta tu consumo seg\u00fan tus necesidades y obt\u00e9n siempre el mejor precio.
+          Sin suscripciones ni compromisos. Ajusta tu consumo según tus necesidades y obtén siempre el mejor precio.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0 space-y-6">
         <div className="space-y-4">
           <div className="flex justify-between items-center font-semibold text-lg">
-            <span className="flex items-center gap-2"><MessagesSquare className="h-5 w-5 text-primary" /> N\u00famero de Mensajes</span>
+            <span className="flex items-center gap-2"><MessagesSquare className="h-5 w-5 text-primary" /> Número de Mensajes</span>
             <span className="text-primary">{messages.toLocaleString()}</span>
           </div>
           <Slider
@@ -189,26 +189,26 @@ const PayAsYouGoCalculator = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
             <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Total de Cr\u00e9ditos</p>
+                <p className="text-sm text-muted-foreground mb-1">Total de Créditos</p>
                 <p className="text-2xl font-bold flex items-center justify-center gap-2">
                     <Coins className="text-accent"/> {credits.toLocaleString()}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">({MESSAGES_PER_CREDIT.toLocaleString()} mensajes por cr\u00e9dito)</p>
+                <p className="text-xs text-muted-foreground mt-1">({MESSAGES_PER_CREDIT.toLocaleString()} mensajes por crédito)</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">Costo Estimado (MXN)</p>
                  <p className="text-2xl font-bold flex items-center justify-center gap-2">
                     <CircleDollarSign className="text-green-500"/> ${price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">(${PRICE_PER_CREDIT.toFixed(2)} MXN por cr\u00e9dito)</p>
+                <p className="text-xs text-muted-foreground mt-1">(${PRICE_PER_CREDIT.toFixed(2)} MXN por crédito)</p>
             </div>
         </div>
         <div className="pt-4 border-t border-border/20 text-center">
           <div className="flex items-center justify-center gap-2">
-            <p className="text-xs text-muted-foreground">Pagos seguros a trav\u00e9s de Mercado Pago</p>
+            <p className="text-xs text-muted-foreground">Pagos seguros a través de Mercado Pago</p>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Aceptamos tarjetas de cr\u00e9dito, d\u00e9bito, SPEI, OXXO y todos los m\u00e9todos de pago disponibles a trav\u00e9s de Mercado Pago.
+            Aceptamos tarjetas de crédito, débito, SPEI, OXXO y todos los métodos de pago disponibles a través de Mercado Pago.
           </p>
         </div>
       </CardContent>
@@ -279,15 +279,15 @@ const PhoneChatMockup = () => {
                         <header className="bg-[#008069] dark:bg-slate-800 text-white p-2 flex items-center shadow-md z-10">
                             <FaWhatsapp className="h-8 w-8 mr-2"/>
                             <div>
-                                <h3 className="font-semibold text-base">Asistente de Pasteler\u00eda</h3>
-                                <p className="text-xs opacity-80">en l\u00ednea</p>
+                                <h3 className="font-semibold text-base">Asistente de Pastelería</h3>
+                                <p className="text-xs opacity-80">en línea</p>
                             </div>
                         </header>
                         <div className="flex-1 p-3 overflow-y-auto">
-                           <ChatBubble text="Hola, quisiera un pastel para un cumplea\u00f1os." isUser={true} time="4:20 PM" />
-                           <ChatBubble text="\u00a1Claro que s\u00ed! Con gusto. \u00bfQu\u00e9 sabor te gustar\u00eda y para cu\u00e1ntas personas ser\u00eda?" isUser={false} time="4:21 PM" />
+                           <ChatBubble text="Hola, quisiera un pastel para un cumpleaños." isUser={true} time="4:20 PM" />
+                           <ChatBubble text="¡Claro que sí! Con gusto. ¿Qué sabor te gustaría y para cuántas personas sería?" isUser={false} time="4:21 PM" />
                            <ChatBubble text="Chocolate, para 10 personas." isUser={true} time="4:21 PM" />
-                           <ChatBubble text="Perfecto. Tengo un pastel de chocolate para 12 personas en $550 MXN. \u00bfTe gustar\u00eda agendarlo?" isUser={false} time="4:22 PM" />
+                           <ChatBubble text="Perfecto. Tengo un pastel de chocolate para 12 personas en $550 MXN. ¿Te gustaría agendarlo?" isUser={false} time="4:22 PM" />
                         </div>
                          <footer className="p-2 bg-transparent flex items-center">
                             <Input 
@@ -378,21 +378,21 @@ const HeroSection = () => {
       const { outcome } = await deferredInstallPrompt.userChoice;
       if (outcome === 'accepted') {
         toast({
-          title: "Aplicaci\u00f3n Instalada",
-          description: "\u00a1Gracias por instalar Hey Manito!",
+          title: "Aplicación Instalada",
+          description: "¡Gracias por instalar Hey Manito!",
         });
       } else {
          toast({
-          title: "Instalaci\u00f3n Cancelada",
-          description: "Puedes instalar la aplicaci\u00f3n en cualquier momento desde el men\u00fa de tu navegador.",
+          title: "Instalación Cancelada",
+          description: "Puedes instalar la aplicación en cualquier momento desde el menú de tu navegador.",
           variant: "default"
         });
       }
       setDeferredInstallPrompt(null);
     } else {
        toast({
-        title: "Instalaci\u00f3n no disponible",
-        description: "Tu navegador no es compatible o la aplicaci\u00f3n ya est\u00e1 instalada.",
+        title: "Instalación no disponible",
+        description: "Tu navegador no es compatible o la aplicación ya está instalada.",
       });
     }
   };
@@ -425,22 +425,22 @@ const HeroSection = () => {
                 Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-fadeIn" style={{animationDelay: '0.2s'}}>
-               Automatiza tus ventas y atenci\u00f3n al cliente en WhatsApp con asistentes de IA que trabajan para ti 24/7.
+               Automatiza tus ventas y atención al cliente en WhatsApp con asistentes de IA que trabajan para ti 24/7.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
                     <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg", "shiny-border")}>
-                        <Link href="/begin">Iniciar Gratis 30 D\u00edas</Link>
+                        <Link href="/begin">Iniciar Gratis 30 Días</Link>
                     </Button>
                     <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
-                        C\u00f3mo Funciona
+                        como funciona
                     </Button>
                 </div>
             </div>
              <div className="mt-8 flex flex-col items-center gap-3 animate-fadeIn" style={{animationDelay: '0.4s'}}>
                 <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
                     <FcGoogle className="h-4 w-4" />
-                    <span className="text-xs text-foreground/80">Autenticaci\u00f3n segura con Google</span>
+                    <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                 </div>
                  <Button
                     onClick={handleDownloadClick}
@@ -525,23 +525,23 @@ const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children
 const features = [
   {
     icon: <FaCogs size={24} className="text-primary" />,
-    title: "Configuraci\u00f3n Intuitiva",
-    description: "Lanza tus asistentes en minutos con nuestro asistente guiado paso a paso. Sin necesidad de c\u00f3digo."
+    title: "Configuración Intuitiva",
+    description: "Lanza tus asistentes en minutos con nuestro asistente guiado paso a paso. Sin necesidad de código."
   },
   {
     icon: <FaBrain size={24} className="text-primary" />,
-    title: "Conexi\u00f3n de Datos Flexible",
+    title: "Conexión de Datos Flexible",
     description: "Vincula Hojas de Google o crea bases de datos inteligentes que la IA gestiona por ti."
   },
   {
     icon: <FaWhatsapp size={24} className="text-primary" />,
-    title: "Automatizaci\u00f3n en WhatsApp",
+    title: "Automatización en WhatsApp",
     description: "Despliega tus asistentes directamente en WhatsApp para interactuar con clientes y recibir notificaciones."
   },
   {
     icon: <FaSitemap size={24} className="text-primary" />,
-    title: "Gesti\u00f3n Centralizada",
-    description: "Crea y administra m\u00faltiples asistentes para diferentes prop\u00f3sitos desde un \u00fanico panel de control."
+    title: "Gestión Centralizada",
+    description: "Crea y administra múltiples asistentes para diferentes propósitos desde un único panel de control."
   },
   {
     icon: <FaShieldAlt size={24} className="text-primary" />,
@@ -551,7 +551,7 @@ const features = [
   {
     icon: <FaMoneyBillWave size={24} className="text-primary" />,
     title: "Paga por lo que Usas",
-    description: "Sin suscripciones ni sorpresas. Nuestro modelo de cr\u00e9ditos te da control total sobre tus costos."
+    description: "Sin suscripciones ni sorpresas. Nuestro modelo de créditos te da control total sobre tus costos."
   }
 ];
 
@@ -655,7 +655,7 @@ const FeaturesCarousel = () => {
                 "w-2.5 h-2.5 rounded-full transition-all duration-300",
                 currentIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/50 hover:bg-muted-foreground"
               )}
-              aria-label={`Ir a la caracter\u00edstica ${index + 1}`}
+              aria-label={`Ir a la característica ${index + 1}`}
             />
           ))}
         </div>
@@ -669,28 +669,28 @@ const FeaturesCarousel = () => {
 
 const faqItems = [
     {
-        question: "\u00bfQu\u00e9 necesito para empezar a usar mi asistente?",
-        answer: "\u00a1Es muy sencillo! Solo necesitas una nueva tarjeta SIM (chip) que nunca se haya registrado en WhatsApp y una cuenta de correo electr\u00f3nico para crear tu perfil. Nuestra gu\u00eda de configuraci\u00f3n te llevar\u00e1 paso a paso."
+        question: "¿Qué necesito para empezar a usar mi asistente?",
+        answer: "¡Es muy sencillo! Solo necesitas una nueva tarjeta SIM (chip) que nunca se haya registrado en WhatsApp y una cuenta de correo electrónico para crear tu perfil. Nuestra guía de configuración te llevará paso a paso."
     },
     {
-        question: "\u00bfPuedo usar mi n\u00famero de WhatsApp personal o de negocio actual?",
-        answer: "No. Para garantizar una integraci\u00f3n correcta y cumplir con las pol\u00edticas de WhatsApp, es indispensable usar un n\u00famero de tel\u00e9fono completamente nuevo. Esto asegura que tu asistente tenga una l\u00ednea dedicada y estable para operar sin conflictos."
+        question: "¿Puedo usar mi número de WhatsApp personal o de negocio actual?",
+        answer: "No. Para garantizar una integración correcta y cumplir con las políticas de WhatsApp, es indispensable usar un número de teléfono completamente nuevo. Esto asegura que tu asistente tenga una línea dedicada y estable para operar sin conflictos."
     },
     {
-        question: "\u00bfC\u00f3mo funcionan los cr\u00e9ditos y el conteo de mensajes?",
-        answer: "Funciona con un sistema de pago por uso. Compras cr\u00e9ditos, y cada cr\u00e9dito te otorga una cantidad de mensajes (ej. 1,000). Se cuenta como 'un mensaje' cada interacci\u00f3n, tanto los mensajes que tu asistente env\u00eda como los que recibe y procesa. As\u00ed, solo pagas por el uso real."
+        question: "¿Cómo funcionan los créditos y el conteo de mensajes?",
+        answer: "Funciona con un sistema de pago por uso. Compras créditos, y cada crédito te otorga una cantidad de mensajes (ej. 1,000). Se cuenta como 'un mensaje' cada interacción, tanto los mensajes que tu asistente envía como los que recibe y procesa. Así, solo pagas por el uso real."
     },
     {
-        question: "\u00bfEs segura la informaci\u00f3n de mi negocio y mis clientes?",
-        answer: "La seguridad es nuestra prioridad. Nosotros no almacenamos el contenido de tus conversaciones. La informaci\u00f3n de tu negocio (como productos o servicios) que vinculas a trav\u00e9s de Hojas de Google permanece bajo tu control y se rige por las pol\u00edticas de seguridad de Google."
+        question: "¿Es segura la información de mi negocio y mis clientes?",
+        answer: "La seguridad es nuestra prioridad. Nosotros no almacenamos el contenido de tus conversaciones. La información de tu negocio (como productos o servicios) que vinculas a través de Hojas de Google permanece bajo tu control y se rige por las políticas de seguridad de Google."
     },
     {
-        question: "\u00bfQu\u00e9 pasa si mi asistente no sabe c\u00f3mo responder algo?",
-        answer: "Puedes configurar tu asistente para que, en caso de no saber una respuesta o cuando un cliente necesite atenci\u00f3n especializada, te notifique directamente a tu n\u00famero personal de WhatsApp para que puedas intervenir en la conversaci\u00f3n."
+        question: "¿Qué pasa si mi asistente no sabe cómo responder algo?",
+        answer: "Puedes configurar tu asistente para que, en caso de no saber una respuesta o cuando un cliente necesite atención especializada, te notifique directamente a tu número personal de WhatsApp para que puedas intervenir en la conversación."
     },
      {
-        question: "\u00bfPuedo personalizar la personalidad de mi asistente?",
-        answer: "\u00a1Totalmente! El coraz\u00f3n de tu asistente es el 'prompt' que t\u00fa defines. Puedes instruirlo para que sea formal, amigable, divertido o muy t\u00e9cnico, y darle reglas espec\u00edficas sobre c\u00f3mo debe interactuar, qu\u00e9 informaci\u00f3n puede dar y c\u00f3mo debe manejar diferentes situaciones."
+        question: "¿Puedo personalizar la personalidad de mi asistente?",
+        answer: "¡Totalmente! El corazón de tu asistente es el 'prompt' que tú defines. Puedes instruirlo para que sea formal, amigable, divertido o muy técnico, y darle reglas específicas sobre cómo debe interactuar, qué información puede dar y cómo debe manejar diferentes situaciones."
     },
 ];
 
@@ -700,7 +700,7 @@ const FaqSection = () => {
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Preguntas Frecuentes</h2>
-                    <p className="mt-4 text-muted-foreground">Aqu\u00ed resolvemos tus dudas m\u00e1s comunes.</p>
+                    <p className="mt-4 text-muted-foreground">Aquí resolvemos tus dudas más comunes.</p>
                 </div>
                 <Accordion type="single" collapsible className="w-full">
                     {faqItems.map((item, index) => (
@@ -725,12 +725,12 @@ export default function MarketingHomePage() {
     navigator.clipboard.writeText(email).then(() => {
         toast({
             title: 'Correo Copiado',
-            description: 'La direcci\u00f3n de correo de soporte ha sido copiada a tu portapapeles.',
+            description: 'La dirección de correo de soporte ha sido copiada a tu portapapeles.',
         });
     }, (err) => {
         toast({
             title: 'Error al Copiar',
-            description: 'No se pudo copiar la direcci\u00f3n de correo.',
+            description: 'No se pudo copiar la dirección de correo.',
             variant: 'destructive',
         });
         console.error('Could not copy text: ', err);
@@ -758,22 +758,22 @@ export default function MarketingHomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Empieza en 3 Sencillos Pasos</h2>
-            <p className="mt-4 text-muted-foreground">Configurar tu asistente de IA para WhatsApp es r\u00e1pido e intuitivo.</p>
+            <p className="mt-4 text-muted-foreground">Configurar tu asistente de IA para WhatsApp es rápido e intuitivo.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12" onMouseMove={setupMouseEvent}>
             <StepCard
               num="1"
               icon={<UserCog size={28} className="text-primary" />}
               title="Crea tu Asistente"
-              description="Define el nombre, la personalidad y los objetivos de tu asistente a trav\u00e9s de nuestro sencillo asistente de configuraci\u00f3n. No se requiere c\u00f3digo."
+              description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
               imageUrl="/1.jpeg"
               imageHint="AI assistant setup"
             />
             <StepCard
               num="2"
               icon={<FaSimCard size={28} className="text-primary" />}
-              title="Vincula un N\u00famero"
-              description="Adquiere una SIM nueva (sin WhatsApp previo) y vinc\u00falala a tu asistente para que pueda empezar a comunicarse."
+              title="Vincula un Número"
+              description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
               imageUrl="/2.jpeg"
               imageHint="SIM card linking"
             />
@@ -781,7 +781,7 @@ export default function MarketingHomePage() {
               num="3"
               icon={<FaCheckCircle size={28} className="text-primary" />}
               title="Activa y Disfruta"
-              description="Recibir\u00e1s un c\u00f3digo de verificaci\u00f3n de Facebook por SMS. Ingr\u00e9salo para activar tu asistente y deja que empiece a trabajar para ti."
+              description="Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
               imageUrl="/3.jpeg"
               imageHint="success activation"
             />
@@ -792,8 +792,8 @@ export default function MarketingHomePage() {
       <section id="features" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">\u00bfQu\u00e9 puede hacer tu asistente?</h2>
-            <p className="mt-4 text-muted-foreground">Herramientas dise\u00f1adas para ser poderosas y f\u00e1ciles de usar en WhatsApp.</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">¿Qué puede hacer tu asistente?</h2>
+            <p className="mt-4 text-muted-foreground">Herramientas diseñadas para ser poderosas y fáciles de usar en WhatsApp.</p>
           </div>
           <FeaturesCarousel />
         </div>
@@ -803,7 +803,7 @@ export default function MarketingHomePage() {
       <section id="pricing" className="w-full mt-16 sm:mt-20 scroll-mt-20 py-16 bg-card/50">
         <div className="text-center mb-12 max-w-3xl mx-auto px-4">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Precios Flexibles y Transparentes</h2>
-            <p className="mt-4 text-muted-foreground">Elige un plan de cr\u00e9ditos que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
+            <p className="mt-4 text-muted-foreground">Elige un plan de créditos que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
         </div>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8" onMouseMove={setupMouseEvent}>
             <PayAsYouGoCalculator />
@@ -814,13 +814,13 @@ export default function MarketingHomePage() {
 
       <section className="w-full mt-20 sm:mt-28 py-16">
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-             <h2 className="text-3xl sm:text-4xl font-bold mb-6">\u00bfListo para Empezar a Automatizar?</h2>
+             <h2 className="text-3xl sm:text-4xl font-bold mb-6">¿Listo para Empezar a Automatizar?</h2>
              <p className="text-lg text-muted-foreground mb-8">
-               \u00danete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas por WhatsApp.
+               Únete a {APP_NAME} hoy mismo y transforma la manera en que gestionas tus comunicaciones y tareas por WhatsApp.
              </p>
              <div className="flex flex-col items-center gap-4">
                  <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg", "shiny-border")}>
-                    <Link href="/begin">Iniciar Gratis 30 D\u00edas</Link>
+                    <Link href="/begin">Iniciar Gratis 30 Días</Link>
                 </Button>
                <p className="text-xs text-muted-foreground mt-2">
                  Crea tu cuenta y configura tu primer asistente en minutos.
@@ -872,6 +872,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
