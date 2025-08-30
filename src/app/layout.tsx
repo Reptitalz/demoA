@@ -20,24 +20,24 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: `${APP_NAME} | Asistentes Virtuales IA y Automatización WhatsApp`,
+    default: `${APP_NAME} | Asistentes Virtuales IA y Automatizaci\u00f3n WhatsApp`,
     template: `%s | ${APP_NAME}`,
   },
-  description: `Descubre ${APP_NAME}, la plataforma líder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicación por WhatsApp, integra bases de datos y optimiza procesos.`,
+  description: `Descubre ${APP_NAME}, la plataforma l\u00edder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicaci\u00f3n por WhatsApp, integra bases de datos y optimiza procesos.`,
   keywords: [
     // Existing keywords
     'asistente virtual', 
     'IA', 
     'chatbot', 
     'WhatsApp', 
-    'automatización', 
+    'automatizaci\u00f3n', 
     'CRM', 
     'inteligencia artificial', 
     APP_NAME, 
-    'gestión de clientes', 
+    'gesti\u00f3n de clientes', 
     'Hey Manito', 
     'chatbot para WhatsApp', 
-    'automatización para negocios', 
+    'automatizaci\u00f3n para negocios', 
     'CRM con IA',
     // New high-volume keywords
     'virtual assistant',
@@ -51,19 +51,20 @@ export const metadata: Metadata = {
     // New long-tail commercial keywords
     'WhatsApp assistant for customer support',
     'WhatsApp AI assistant pricing',
-    'automatización de mensajes WhatsApp',
+    'automatizaci\u00f3n de mensajes WhatsApp',
     'virtual assistant for small business',
     // New local keywords
-    'asistente virtual WhatsApp México',
+    'asistente virtual WhatsApp M\u00e9xico',
     'asistente virtual WhatsApp Tepic',
     'asistente inteligente WhatsApp Nayarit',
     // New voice-search oriented keywords
-    'cómo funciona un asistente virtual en WhatsApp',
-    'asistente inteligente para WhatsApp qué hace'
+    'c\u00f3mo funciona un asistente virtual en WhatsApp',
+    'asistente inteligente para WhatsApp qu\u00e9 hace'
   ],
   authors: [{ name: APP_NAME }],
   creator: APP_NAME,
   publisher: APP_NAME,
+  manifest: '/manifest.json',
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
