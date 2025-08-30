@@ -182,11 +182,13 @@ const DesktopChatPage = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
-
-    // **CRITICAL FIX**: Generate the new executionId *before* sending the message.
+    
     const newExecutionId = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    setExecutionId(newExecutionId);
+    setExecutionId(newExecutionId); // This is for the *next* interaction
     setProcessedEventIds(new Set()); // Reset processed events for the new interaction
+    
+    // Log the IDs being used for this specific interaction
+    console.log(`Sending message with Session ID (destination): ${sessionId} and Execution ID: ${newExecutionId}`);
     
     const userMessage = {
       text: currentMessage,
@@ -208,7 +210,7 @@ const DesktopChatPage = () => {
                 assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
-                executionId: newExecutionId, // Use the *new* ID
+                executionId: newExecutionId,
                 destination: sessionId
             })
         });
@@ -218,7 +220,6 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
         }
 
-        // Start polling with the correct, new executionId
         pollForResponse(newExecutionId);
 
     } catch (err: any) {
