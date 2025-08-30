@@ -57,7 +57,6 @@ const DesktopChatPage = () => {
             localStorage.setItem(`sessionId_${chatPath}`, sid);
         }
         setSessionId(sid);
-        console.log(`Chat Session ID: ${sid}`);
     }
     getSessionId();
   }, [chatPath]);
@@ -119,10 +118,9 @@ const DesktopChatPage = () => {
         if (response.ok) {
           const events = await response.json();
           let foundFinalResponse = false;
+          const newProcessedIds = new Set(processedEventIds);
 
           if (Array.isArray(events) && events.length > 0) {
-            const newProcessedIds = new Set(processedEventIds);
-
             for (const event of events) {
               if (newProcessedIds.has(event.id)) continue;
               
@@ -138,17 +136,17 @@ const DesktopChatPage = () => {
               
               newProcessedIds.add(event.id);
             }
+          }
+          
+          setProcessedEventIds(newProcessedIds);
 
-            setProcessedEventIds(newProcessedIds);
-
-            if (foundFinalResponse) {
+          if (foundFinalResponse) {
               setIsSending(false);
               setAssistantStatusMessage('Escribiendo...'); // Reset status
               if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
                 pollIntervalRef.current = null;
               }
-            }
           }
         } else {
           console.error('Polling request failed with status:', response.status);
@@ -188,8 +186,9 @@ const DesktopChatPage = () => {
     try {
         const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${assistant.chatPath}`;
         const payload = {
+          assistantId: assistant.id,
           message: messageToSend,
-          destination: sessionId
+          destination: sessionId,
         };
 
         const response = await fetch(CHAT_WEBHOOK_URL, {
@@ -199,7 +198,7 @@ const DesktopChatPage = () => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({ message: 'Error del servidor sin detalles.'}));
             throw new Error(errorData.message || 'No se pudo enviar el mensaje al agente.');
         }
 
