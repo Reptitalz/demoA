@@ -111,7 +111,7 @@ const DesktopChatPage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const pollForResponse = useCallback((currentExecutionId: string) => {
+  const pollForResponse = useCallback((currentSessionId: string) => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
     }
@@ -120,7 +120,7 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
-        const response = await fetch(`${EVENTS_API_URL}?destination=${currentExecutionId}`);
+        const response = await fetch(`${EVENTS_API_URL}?destination=${currentSessionId}`);
 
         if (response.ok) {
           const events = await response.json();
@@ -162,9 +162,11 @@ const DesktopChatPage = () => {
           }
         } else {
           console.error('Polling request failed with status:', response.status);
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
+          if (response.status !== 404) { // Don't stop polling on 404 (no events yet)
+              if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+              }
           }
         }
       } catch (err) {
@@ -184,11 +186,7 @@ const DesktopChatPage = () => {
     if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
     
     const newExecutionId = `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    setExecutionId(newExecutionId); // This is for the *next* interaction
-    setProcessedEventIds(new Set()); // Reset processed events for the new interaction
-    
-    // Log the IDs being used for this specific interaction
-    console.log(`Sending message with Session ID (destination): ${sessionId} and Execution ID: ${newExecutionId}`);
+    setExecutionId(newExecutionId);
     
     const userMessage = {
       text: currentMessage,
@@ -202,6 +200,8 @@ const DesktopChatPage = () => {
     setIsSending(true);
     setAssistantStatusMessage('Procesando solicitud...');
 
+    console.log(`Enviando mensaje. Session ID (destination): ${sessionId}, Execution ID: ${newExecutionId}`);
+
     try {
         const response = await fetch('/api/chat/send', {
             method: 'POST',
@@ -210,8 +210,8 @@ const DesktopChatPage = () => {
                 assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
-                executionId: newExecutionId,
-                destination: sessionId
+                executionId: newExecutionId, // Send the new executionId for this specific interaction
+                destination: sessionId // Send the persistent session Id
             })
         });
 
@@ -220,7 +220,8 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje.');
         }
 
-        pollForResponse(newExecutionId);
+        // Start polling using the SESSION ID
+        pollForResponse(sessionId);
 
     } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
