@@ -9,7 +9,7 @@ import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CR
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog } from 'lucide-react';
+import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -24,6 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import AppIcon from '@/components/shared/AppIcon';
 
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
@@ -309,6 +310,7 @@ const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const particlesContainerRef = useRef<HTMLDivElement>(null);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     const container = containerRef.current;
@@ -356,6 +358,14 @@ const HeroSection = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  const handleDownloadClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    toast({
+        title: "Próximamente",
+        description: "La descarga de la aplicación estará disponible pronto.",
+    });
+  };
+
   return (
     <>
     <div ref={containerRef} className="relative w-full text-center py-20 sm:py-28 md:py-32 lg:py-36 overflow-hidden">
@@ -396,11 +406,19 @@ const HeroSection = () => {
                     </Button>
                 </div>
             </div>
-             <div className="mt-8 animate-fadeIn" style={{animationDelay: '0.4s'}}>
+             <div className="mt-8 flex flex-col items-center gap-3 animate-fadeIn" style={{animationDelay: '0.4s'}}>
                 <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
                     <FcGoogle className="h-4 w-4" />
                     <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                 </div>
+                 <Button
+                    onClick={handleDownloadClick}
+                    variant="ghost"
+                    className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted"
+                >
+                    <AppIcon className="h-4 w-4 mr-2" />
+                    <span className="text-xs text-foreground/80">Descargar App</span>
+                </Button>
             </div>
              <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
                 <span className="font-bold text-brand-gradient">Registro Gratis</span>. Recarga cuando quieras.
@@ -823,5 +841,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
