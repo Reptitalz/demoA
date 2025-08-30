@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaWhatsapp, FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -109,10 +109,12 @@ const DesktopChatPage = () => {
     }
     if (!sessionId) return;
 
+    // The URL to poll for events, using the SESSION ID.
     const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${sessionId}`;
 
     const poll = async () => {
       try {
+        // Fetch events using GET
         const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
@@ -150,10 +152,11 @@ const DesktopChatPage = () => {
           }
         } else {
           console.error('Polling request failed with status:', response.status);
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
+          // Stop polling on error to prevent spamming a broken endpoint
+           if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -163,7 +166,8 @@ const DesktopChatPage = () => {
         }
       }
     };
-
+    // Start polling immediately and then set an interval
+    poll();
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [sessionId, processedEventIds]);
 
@@ -184,17 +188,16 @@ const DesktopChatPage = () => {
     setAssistantStatusMessage('Procesando solicitud...');
 
     try {
-        const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${assistant.chatPath}`;
-        const payload = {
-          assistantId: assistant.id,
-          message: messageToSend,
-          destination: sessionId,
-        };
-
-        const response = await fetch(CHAT_WEBHOOK_URL, {
+        // Send the message to our own backend proxy
+        const response = await fetch('/api/chat/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                assistantId: assistant.id,
+                chatPath: assistant.chatPath,
+                message: messageToSend,
+                destination: sessionId,
+            })
         });
 
         if (!response.ok) {
@@ -202,13 +205,13 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje al agente.');
         }
 
-        // Start polling for the response
+        // Start polling for the response from the external events endpoint
         pollForResponse();
 
     } catch (err: any) {
         toast({ title: 'Error', description: err.message, variant: 'destructive' });
-        setCurrentMessage(messageToSend);
-        setMessages(prev => prev.slice(0, -1));
+        setCurrentMessage(messageToSend); // Restore user message on failure
+        setMessages(prev => prev.slice(0, -1)); // Remove the message from chat
         setIsSending(false);
         setAssistantStatusMessage('Escribiendo...');
     }
@@ -221,6 +224,7 @@ const DesktopChatPage = () => {
   return (
     <div className="h-screen w-screen flex items-center justify-center">
       <div className="w-full h-full flex">
+        {/* Sidebar Mockup */}
         <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
             <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
                 <Input placeholder="Buscar o empezar un chat nuevo" className="bg-white dark:bg-slate-700"/>
@@ -241,6 +245,7 @@ const DesktopChatPage = () => {
             </div>
         </div>
 
+        {/* Main Chat Area */}
         <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800">
            <div
             className="w-full h-full chat-background"
