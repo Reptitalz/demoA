@@ -6,18 +6,19 @@ import axios from 'axios';
 export async function POST(request: NextRequest) {
   try {
     // 1. Get all necessary data from the client's request
-    const { chatPath, message, destination } = await request.json();
+    const { assistantId, chatPath, message, destination } = await request.json();
 
     // 2. Validate that all required parameters are present
-    if (!chatPath || !message || !destination) {
-      return NextResponse.json({ message: 'Faltan parámetros requeridos (chatPath, message, destination).' }, { status: 400 });
+    if (!assistantId || !chatPath || !message || !destination) {
+      return NextResponse.json({ message: 'Faltan parámetros requeridos (assistantId, chatPath, message, destination).' }, { status: 400 });
     }
     
     // 3. Define the external webhook URL
     const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${chatPath}`;
 
-    // 4. Construct the precise payload the external server expects (simplified)
+    // 4. Construct the precise payload the external server expects
     const payload = {
+      assistantId,
       message,
       destination,
     };

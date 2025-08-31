@@ -193,6 +193,7 @@ const DesktopChatPage = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
                 destination: sessionId,
