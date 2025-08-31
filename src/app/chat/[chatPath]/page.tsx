@@ -57,7 +57,6 @@ const DesktopChatPage = () => {
             localStorage.setItem(`sessionId_${chatPath}`, sid);
         }
         setSessionId(sid);
-        console.log("Chat Session ID (destination):", sid);
     }
     getSessionId();
   }, [chatPath]);
@@ -184,43 +183,42 @@ const DesktopChatPage = () => {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    // Optimistically update the UI
     setMessages(prev => [...prev, userMessage]);
     const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
     setAssistantStatusMessage('Procesando solicitud...');
 
-    try {
-        const payload = {
+    // Send the message to our own backend proxy
+    fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
             assistantId: assistant.id,
             message: messageToSend,
             destination: sessionId,
-        };
-        
-        // Send the message to our own backend proxy
-        const response = await fetch('/api/chat/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ...payload,
-                chatPath: assistant.chatPath,
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'Error del servidor sin detalles.'}));
-            throw new Error(errorData.message || 'No se pudo enviar el mensaje al agente.');
-        }
-
+            chatPath: assistant.chatPath,
+        })
+    }).then(response => {
+        // We've confirmed the webhook is receiving, so we don't need to check response.ok here.
+        // We proceed to poll regardless, as requested.
+        console.log('Message sent to proxy. Initiating poll for response.');
         pollForResponse();
-
-    } catch (err: any) {
-        toast({ title: 'Error', description: err.message, variant: 'destructive' });
-        setCurrentMessage(messageToSend); // Restore user message on failure
-        setMessages(prev => prev.slice(0, -1)); // Remove the message from chat
+    }).catch(err => {
+        // This would be a network error on the client side, not a server error from the webhook.
+        console.error("Error sending message to proxy:", err);
+        toast({
+            title: "Error de Red",
+            description: "No se pudo enviar tu mensaje. Por favor, revisa tu conexión.",
+            variant: 'destructive',
+        });
+        // Revert UI changes on client-side network error
+        setCurrentMessage(messageToSend);
+        setMessages(prev => prev.slice(0, -1));
         setIsSending(false);
         setAssistantStatusMessage('Escribiendo...');
-    }
+    });
   };
 
   if (isLoading) {
