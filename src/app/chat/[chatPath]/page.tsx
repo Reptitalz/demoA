@@ -115,20 +115,19 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
-        console.log(`Polling for response at: ${EVENTS_API_URL}`);
         const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
           const events = await response.json();
-          // *** DIAGNOSTIC LOG ***
           console.log("Received data from events API:", JSON.stringify(events, null, 2));
+
 
           let foundFinalResponse = false;
           const newProcessedIds = new Set(processedEventIds);
 
           if (Array.isArray(events) && events.length > 0) {
             for (const event of events) {
-              if (newProcessedIds.has(event.id)) continue;
+              if (!event.id || newProcessedIds.has(event.id)) continue;
               
               if (event.node === 'Respuesta' && event.status === 'success' && event.output?.responseText) {
                  const aiResponse = {
@@ -171,7 +170,7 @@ const DesktopChatPage = () => {
         }
       }
     };
-    poll();
+    
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [sessionId, processedEventIds]);
 
@@ -192,15 +191,19 @@ const DesktopChatPage = () => {
     setAssistantStatusMessage('Procesando solicitud...');
 
     try {
+        const payload = {
+            assistantId: assistant.id,
+            message: messageToSend,
+            destination: sessionId,
+        };
+        
         // Send the message to our own backend proxy
         const response = await fetch('/api/chat/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                assistantId: assistant.id,
+                ...payload,
                 chatPath: assistant.chatPath,
-                message: messageToSend,
-                destination: sessionId,
             })
         });
 
