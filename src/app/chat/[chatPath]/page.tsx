@@ -115,10 +115,14 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
+        console.log(`Polling for response at: ${EVENTS_API_URL}`);
         const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
           const events = await response.json();
+          // *** DIAGNOSTIC LOG ***
+          console.log("Received data from events API:", JSON.stringify(events, null, 2));
+
           let foundFinalResponse = false;
           const newProcessedIds = new Set(processedEventIds);
 
