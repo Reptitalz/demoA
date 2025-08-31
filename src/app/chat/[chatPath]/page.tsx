@@ -57,6 +57,7 @@ const DesktopChatPage = () => {
             localStorage.setItem(`sessionId_${chatPath}`, sid);
         }
         setSessionId(sid);
+        console.log("Chat Session ID (destination):", sid);
     }
     getSessionId();
   }, [chatPath]);
@@ -114,7 +115,6 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
-        // Fetch events using GET
         const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
@@ -134,6 +134,8 @@ const DesktopChatPage = () => {
                 };
                 setMessages(prev => [...prev, aiResponse]);
                 foundFinalResponse = true;
+              } else if (event.output?.statusMessage) {
+                setAssistantStatusMessage(event.output.statusMessage);
               }
               
               newProcessedIds.add(event.id);
@@ -152,7 +154,6 @@ const DesktopChatPage = () => {
           }
         } else {
           console.error('Polling request failed with status:', response.status);
-          // Stop polling on error to prevent spamming a broken endpoint
            if (pollIntervalRef.current) {
               clearInterval(pollIntervalRef.current);
               pollIntervalRef.current = null;
@@ -166,7 +167,6 @@ const DesktopChatPage = () => {
         }
       }
     };
-    // Start polling immediately and then set an interval
     poll();
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [sessionId, processedEventIds]);
@@ -193,7 +193,6 @@ const DesktopChatPage = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                assistantId: assistant.id,
                 chatPath: assistant.chatPath,
                 message: messageToSend,
                 destination: sessionId,
@@ -205,7 +204,6 @@ const DesktopChatPage = () => {
             throw new Error(errorData.message || 'No se pudo enviar el mensaje al agente.');
         }
 
-        // Start polling for the response from the external events endpoint
         pollForResponse();
 
     } catch (err: any) {
