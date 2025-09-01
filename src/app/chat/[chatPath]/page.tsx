@@ -107,13 +107,13 @@ const DesktopChatPage = () => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
     }
-    if (!sessionId) return;
+    if (!assistant?.id) return;
 
-    // The URL to poll for events, using the SESSION ID.
-    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${sessionId}`;
+    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${assistant.id}`;
 
     const poll = async () => {
       try {
+        console.log(`Polling for response at: ${EVENTS_API_URL}`);
         const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
@@ -171,7 +171,7 @@ const DesktopChatPage = () => {
     };
     
     pollIntervalRef.current = setInterval(poll, 3000);
-  }, [sessionId, processedEventIds]);
+  }, [assistant?.id, processedEventIds]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,14 +183,12 @@ const DesktopChatPage = () => {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // Optimistically update the UI
     setMessages(prev => [...prev, userMessage]);
     const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
     setAssistantStatusMessage('Procesando solicitud...');
 
-    // Send the message to our own backend proxy
     fetch('/api/chat/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -201,19 +199,16 @@ const DesktopChatPage = () => {
             chatPath: assistant.chatPath,
         })
     }).then(response => {
-        // We've confirmed the webhook is receiving, so we don't need to check response.ok here.
-        // We proceed to poll regardless, as requested.
         console.log('Message sent to proxy. Initiating poll for response.');
         pollForResponse();
     }).catch(err => {
-        // This would be a network error on the client side, not a server error from the webhook.
+        // This is a client-side network error, revert UI optimistically
         console.error("Error sending message to proxy:", err);
         toast({
             title: "Error de Red",
             description: "No se pudo enviar tu mensaje. Por favor, revisa tu conexión.",
             variant: 'destructive',
         });
-        // Revert UI changes on client-side network error
         setCurrentMessage(messageToSend);
         setMessages(prev => prev.slice(0, -1));
         setIsSending(false);
