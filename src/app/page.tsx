@@ -669,8 +669,12 @@ const FeaturesCarousel = () => {
 
 const faqItems = [
     {
-        question: "¿Qué necesito para empezar a usar mi asistente?",
-        answer: "¡Es muy sencillo! Solo necesitas una nueva tarjeta SIM (chip) que nunca se haya registrado en WhatsApp y una cuenta de correo electrónico para crear tu perfil. Nuestra guía de configuración te llevará paso a paso."
+        question: "¿Qué necesito para empezar a usar mi asistente de WhatsApp?",
+        answer: "¡Es muy sencillo! Para un asistente de WhatsApp, necesitas una nueva tarjeta SIM (chip) que nunca se haya registrado en WhatsApp y una cuenta de correo electrónico para crear tu perfil. Nuestra guía de configuración te llevará paso a paso."
+    },
+    {
+        question: "¿Para qué sirve un asistente de escritorio si no usa WhatsApp?",
+        answer: "Un asistente de escritorio es perfecto para pruebas, desarrollo y uso interno. Vive en una página web con un chat dedicado. Puedes usarlo para perfeccionar tus prompts, integrarlo en tus propias aplicaciones a través de una API, o usarlo como una base de conocimiento interna para tu equipo, todo sin necesidad de un número de teléfono."
     },
     {
         question: "¿Puedo usar mi número de WhatsApp personal o de negocio actual?",
@@ -872,6 +876,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
