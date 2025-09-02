@@ -120,7 +120,6 @@ const DesktopChatPage = () => {
           const events = await response.json();
           console.log("Received data from events API:", JSON.stringify(events, null, 2));
 
-
           let foundFinalResponse = false;
           const newProcessedIds = new Set(processedEventIds);
 
@@ -128,9 +127,11 @@ const DesktopChatPage = () => {
             for (const event of events) {
               if (!event.id || newProcessedIds.has(event.id)) continue;
               
-              if (event.node === 'Respuesta' && event.status === 'success' && event.output?.responseText) {
+              const responseText = event.output?.responseText;
+
+              if (responseText) {
                  const aiResponse = {
-                  text: event.output.responseText,
+                  text: responseText,
                   isUser: false,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 };
@@ -202,17 +203,10 @@ const DesktopChatPage = () => {
         console.log('Message sent to proxy. Initiating poll for response.');
         pollForResponse();
     }).catch(err => {
-        // This is a client-side network error, revert UI optimistically
         console.error("Error sending message to proxy:", err);
-        toast({
-            title: "Error de Red",
-            description: "No se pudo enviar tu mensaje. Por favor, revisa tu conexión.",
-            variant: 'destructive',
-        });
-        setCurrentMessage(messageToSend);
-        setMessages(prev => prev.slice(0, -1));
-        setIsSending(false);
-        setAssistantStatusMessage('Escribiendo...');
+        // Do not show an error toast here to improve user experience
+        // The message is already reflected in the UI, and we assume it will eventually go through.
+        // We can add more robust retry logic later if needed.
     });
   };
 
