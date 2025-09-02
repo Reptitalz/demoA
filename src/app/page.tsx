@@ -263,7 +263,7 @@ const PhoneChatMockup = () => {
     return (
         <div 
             ref={ref}
-            className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2.5rem] h-[550px] w-[270px] shadow-xl animate-float"
+            className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[8px] rounded-[2.5rem] h-[550px] w-[270px] shadow-xl"
             style={style}
         >
             <div className="w-[120px] h-[18px] bg-gray-800 top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute"></div>
@@ -872,6 +872,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
