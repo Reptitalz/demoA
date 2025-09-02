@@ -347,7 +347,7 @@ const DashboardPageContent = () => {
                   className="shrink-0 bg-green-500 hover:bg-green-600 text-white"
                 >
                   <Link
-                    href="https://wa.me/5213344090167"
+                    href="https://wa.me/523350474005"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
