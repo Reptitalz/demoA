@@ -1,3 +1,4 @@
+
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -52,13 +53,13 @@ export async function POST(request: NextRequest) {
         type: assistantType,
         prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
         purposes: [],
-        isActive: isDesktopAssistant,
-        numberReady: isDesktopAssistant,
+        isActive: isDesktopAssistant, // Active for free trial
+        numberReady: isDesktopAssistant, // Ready for free trial
         messageCount: 0,
-        monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
+        monthlyMessageLimit: isDesktopAssistant ? 10000 : 0, // High limit for trial
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
         chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
-        isFirstDesktopAssistant: isDesktopAssistant,
+        isFirstDesktopAssistant: isDesktopAssistant, // This is their first one
         trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
     };
     
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       assistants: [newAssistant],
       databases: [],
-      credits: isDesktopAssistant ? 1 : 0,
+      credits: 0, // No credits given on signup
     };
 
     const insertResult = await userCollection.insertOne(newUserProfile as UserProfile);

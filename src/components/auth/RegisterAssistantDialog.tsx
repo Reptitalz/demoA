@@ -186,7 +186,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         if (!userEmail) throw new Error("No se pudo obtener el email del usuario.");
 
         const isDesktopAssistant = assistantType === 'desktop';
-
+        const userHasDesktopAssistant = state.userProfile.isAuthenticated && state.userProfile.assistants.some(a => a.type === 'desktop');
+        const isFirstDesktopAssistantForUser = isDesktopAssistant && !userHasDesktopAssistant;
+        
         const finalAssistantConfig: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             name: assistantName || (isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp"),
@@ -195,14 +197,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             purposes: Array.from(selectedPurposes),
             databaseId: dbNeeded && databaseOption.type ? `db_${Date.now()}` : undefined,
             imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-            isActive: isDesktopAssistant,
-            numberReady: isDesktopAssistant,
+            isActive: isFirstDesktopAssistantForUser, // Only active if it's the first desktop one (free trial)
+            numberReady: isFirstDesktopAssistantForUser,
             messageCount: 0,
-            monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
+            monthlyMessageLimit: isFirstDesktopAssistantForUser ? 10000 : 0, // High limit for trial, 0 otherwise
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
-            isFirstDesktopAssistant: isDesktopAssistant,
-            trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
+            isFirstDesktopAssistant: isFirstDesktopAssistantForUser,
+            trialStartDate: isFirstDesktopAssistantForUser ? new Date().toISOString() : undefined,
         };
 
         const newDbEntry: DatabaseConfig | undefined = dbNeeded && databaseOption.type ? {
@@ -222,8 +224,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             // User is already logged in, just add the new assistant and DB
             finalProfile = {
                 assistants: [...state.userProfile.assistants, finalAssistantConfig],
-                databases: newDbEntry ? [...state.userProfile.databases, newDbEntry] : state.userProfile.databases,
-                credits: isDesktopAssistant ? (state.userProfile.credits || 0) + 1 : state.userProfile.credits,
+                databases: newDbEntry ? [...(state.userProfile.databases || []), newDbEntry] : state.userProfile.databases,
             };
             dispatch({ type: 'UPDATE_USER_PROFILE', payload: finalProfile });
         } else {
@@ -235,7 +236,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               authProvider: 'google',
               assistants: [finalAssistantConfig],
               databases: newDbEntry ? [newDbEntry] : [],
-              credits: isDesktopAssistant ? 1 : 0,
+              credits: 0, // No credits on creation
             };
             
             const response = await fetch('/api/create-user-profile', {

@@ -209,36 +209,36 @@ const AssistantCard = ({
 
   // Trial logic
   const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
-  const isTrialActive = assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
-  const isTrialExpired = assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0 && !assistant.monthlyMessageLimit;
+  const isTrialActive = !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
+  const isTrialExpired = !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
 
   // Status logic refined
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
   
-  if (isTrialExpired) {
+  if (isTrialExpired && assistant.monthlyMessageLimit === 0) {
       badgeText = "Prueba Finalizada";
       badgeVariant = "destructive";
+  } else if (isTrialActive) {
+      badgeText = "Prueba Gratuita";
+      badgeVariant = "default";
   } else if (assistant.isActive) {
       badgeText = "Activo";
       badgeVariant = "default";
   } else if (assistant.phoneLinked && !assistant.numberReady) {
       badgeText = "Activando";
       badgeVariant = "outline";
-  } else if (!assistant.isActive && !isTrialExpired) {
-      badgeText = "Inactivo";
-      badgeVariant = "secondary";
   }
     
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      assistant.isActive && !isTrialActive && "bg-brand-gradient text-primary-foreground",
-      badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400",
-      badgeText === "Activo" && isTrialActive && "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+      badgeText === "Activo" && "bg-brand-gradient text-primary-foreground",
+      badgeText === "Prueba Gratuita" && "bg-gradient-to-r from-yellow-400 to-orange-500 text-white",
+      badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
       {badgeText === "Activando" && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
-      {badgeText === "Activo" && isTrialActive && <FaCrown className="mr-1 h-3 w-3" />}
+      {badgeText === "Prueba Gratuita" && <FaCrown className="mr-1 h-3 w-3" />}
       {badgeText}
     </Badge>
   );
@@ -425,7 +425,7 @@ const AssistantCard = ({
                 </div>
             ) : (
                 <>
-                    {assistant.isActive ? (
+                    {assistant.isActive || isTrialActive ? (
                         <div className="grid grid-cols-3 gap-2">
                              <Button
                                 size="sm"
@@ -509,7 +509,7 @@ const AssistantCard = ({
                                 Verificar y Activar
                             </Button>
                         </div>
-                    ) : isTrialExpired ? (
+                    ) : badgeText === "Prueba Finalizada" ? (
                         <Button
                             size="sm"
                             onClick={() => setIsMessageLimitDialogOpen(true)}
