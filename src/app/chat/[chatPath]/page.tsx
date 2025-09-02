@@ -113,19 +113,17 @@ const DesktopChatPage = () => {
 
     const poll = async () => {
       try {
-        console.log(`Polling for response at: ${EVENTS_API_URL}`);
         const response = await fetch(EVENTS_API_URL);
 
         if (response.ok) {
           const events = await response.json();
-          console.log("Received data from events API:", JSON.stringify(events, null, 2));
-
           let foundFinalResponse = false;
           const newProcessedIds = new Set(processedEventIds);
 
           if (Array.isArray(events) && events.length > 0) {
             for (const event of events) {
-              if (!event.id || newProcessedIds.has(event.id)) continue;
+              const eventId = event._id || event.id;
+              if (!eventId || newProcessedIds.has(eventId)) continue;
               
               const responseText = event.output?.responseText;
 
@@ -141,7 +139,7 @@ const DesktopChatPage = () => {
                 setAssistantStatusMessage(event.output.statusMessage);
               }
               
-              newProcessedIds.add(event.id);
+              newProcessedIds.add(eventId);
             }
           }
           
@@ -200,13 +198,10 @@ const DesktopChatPage = () => {
             chatPath: assistant.chatPath,
         })
     }).then(response => {
-        console.log('Message sent to proxy. Initiating poll for response.');
         pollForResponse();
     }).catch(err => {
-        console.error("Error sending message to proxy:", err);
         // Do not show an error toast here to improve user experience
         // The message is already reflected in the UI, and we assume it will eventually go through.
-        // We can add more robust retry logic later if needed.
     });
   };
 
