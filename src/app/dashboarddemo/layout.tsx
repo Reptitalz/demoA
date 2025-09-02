@@ -102,12 +102,6 @@ export default function DashboardDemoLayout({
                     </div>
                 </TooltipProvider>
              </nav>
-             <div className="fixed bottom-2 right-4 z-10 flex items-center gap-2">
-                <span className="text-xs text-muted-foreground/80">Versión 1.0</span>
-                <Button variant="outline" size="sm" className="text-xs h-auto px-2 py-1">
-                    Novedades
-                </Button>
-            </div>
         </div>
     );
 }
