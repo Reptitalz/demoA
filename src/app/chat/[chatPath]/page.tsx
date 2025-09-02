@@ -110,6 +110,8 @@ const DesktopChatPage = () => {
     if (!assistant?.id) return;
 
     const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${assistant.id}`;
+    
+    console.log("Polling for response at:", EVENTS_API_URL);
 
     const poll = async () => {
       try {
@@ -117,6 +119,8 @@ const DesktopChatPage = () => {
 
         if (response.ok) {
           const events = await response.json();
+          console.log("Received data from events API:", events);
+
           let foundFinalResponse = false;
           const newProcessedIds = new Set(processedEventIds);
 
@@ -186,7 +190,7 @@ const DesktopChatPage = () => {
     const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
-    setAssistantStatusMessage('Procesando solicitud...');
+    setAssistantStatusMessage('Escribiendo...');
 
     fetch('/api/chat/send', {
         method: 'POST',
@@ -202,6 +206,7 @@ const DesktopChatPage = () => {
     }).catch(err => {
         // Do not show an error toast here to improve user experience
         // The message is already reflected in the UI, and we assume it will eventually go through.
+        console.error("Error sending message to proxy:", err);
     });
   };
 
@@ -259,13 +264,10 @@ const DesktopChatPage = () => {
                  {isSending && (
                     <div className="flex justify-start animate-fadeIn">
                         <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-white dark:bg-slate-700">
-                           <div className="flex items-center gap-3">
-                               <div className="flex items-center gap-2">
-                                  <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                  <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                  <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></span>
-                               </div>
-                               <span className="text-sm text-muted-foreground italic">{assistantStatusMessage}</span>
+                           <div className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
                            </div>
                         </div>
                     </div>
