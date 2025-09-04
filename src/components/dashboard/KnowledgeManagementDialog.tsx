@@ -114,54 +114,58 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
           </DialogDescription>
         </DialogHeader>
         
-        {viewMode === 'add' ? (
-          <div className="space-y-3 animate-fadeIn">
-            <Textarea
-                placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
-                value={newKnowledge}
-                onChange={e => setNewKnowledge(e.target.value)}
-                rows={6}
-                disabled={isSaving}
-                className="text-sm"
-                autoFocus
-            />
-            <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setViewMode('list')} disabled={isSaving}>Cancelar</Button>
-                <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()}>
-                    {isSaving ? <FaSpinner className="animate-spin mr-2" /> : <FaPlus className="mr-2" />}
-                    Guardar Conocimiento
-                </Button>
+        <div className="flex-grow flex flex-col space-y-3">
+          {viewMode === 'add' && (
+            <div className="space-y-3 animate-fadeIn">
+              <Textarea
+                  placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
+                  value={newKnowledge}
+                  onChange={e => setNewKnowledge(e.target.value)}
+                  rows={6}
+                  disabled={isSaving}
+                  className="text-sm"
+                  autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setViewMode('list')} disabled={isSaving}>Cancelar</Button>
+                  <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()}>
+                      {isSaving ? <FaSpinner className="animate-spin mr-2" /> : <FaPlus className="mr-2" />}
+                      Guardar Conocimiento
+                  </Button>
+              </div>
             </div>
-          </div>
-        ) : null}
+          )}
 
-        <ScrollArea className="flex-grow border rounded-md">
-            <div className="p-4">
-                {isLoading ? (
-                    <div className="flex justify-center items-center h-32">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                ) : items.length === 0 && viewMode === 'list' ? (
-                    <p className="text-center text-muted-foreground p-4">Aún no hay conocimiento añadido.</p>
-                ) : (
-                    <div className="space-y-3">
-                    {items.map(item => (
-                        <div key={item._id.toString()} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="flex-grow">
-                                <p className="text-sm text-foreground whitespace-pre-wrap">{item.content}</p>
-                                <p className="text-xs text-muted-foreground mt-2">
-                                    {formatBytes(item.size)} - {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: es })}
-                                </p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item._id.toString())} disabled={itemToDelete === item._id.toString()} className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8">
-                                {itemToDelete === item._id.toString() ? <FaSpinner className="animate-spin" /> : <FaTrash />}
-                            </Button>
+          {viewMode === 'list' && (
+            <ScrollArea className="flex-grow border rounded-md">
+                <div className="p-4">
+                    {isLoading ? (
+                        <div className="flex justify-center items-center h-32">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    ))}
-                    </div>
-                )}
-            </div>
-        </ScrollArea>
+                    ) : items.length === 0 ? (
+                        <p className="text-center text-muted-foreground p-4">Aún no hay conocimiento añadido.</p>
+                    ) : (
+                        <div className="space-y-3">
+                        {items.map(item => (
+                            <div key={item._id.toString()} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                                <div className="flex-grow">
+                                    <p className="text-sm text-foreground whitespace-pre-wrap">{item.content}</p>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        {formatBytes(item.size)} - {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: es })}
+                                    </p>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item._id.toString())} disabled={itemToDelete === item._id.toString()} className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8">
+                                    {itemToDelete === item._id.toString() ? <FaSpinner className="animate-spin" /> : <FaTrash />}
+                                </Button>
+                            </div>
+                        ))}
+                        </div>
+                    )}
+                </div>
+            </ScrollArea>
+          )}
+        </div>
         
         <DialogFooter className="flex-col sm:flex-row sm:justify-between w-full pt-2">
             {viewMode === 'list' && (
@@ -170,7 +174,7 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
                     Añadir Conocimiento
                 </Button>
             )}
-            <div className="sm:flex-grow" /> 
+             <div className="sm:flex-grow" /> 
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
