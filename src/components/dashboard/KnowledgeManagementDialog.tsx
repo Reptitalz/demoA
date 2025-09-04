@@ -26,6 +26,7 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
   const { userProfile } = state;
   const { toast } = useToast();
   
+  const [viewMode, setViewMode] = useState<'list' | 'add'>('list');
   const [newKnowledge, setNewKnowledge] = useState('');
   const [items, setItems] = useState<KnowledgeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +36,8 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
+      setViewMode('list'); // Reset to list view every time it opens
+      setNewKnowledge(''); // Clear textarea
       fetch(`/api/knowledge?databaseId=${database.id}&userId=${userProfile._id}`)
         .then(res => res.json())
         .then((data: KnowledgeItem[] | { message: string }) => {
@@ -64,6 +67,7 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
       setItems(prev => [data, ...prev]);
       dispatch({ type: 'UPDATE_DATABASE', payload: { ...database, storageSize: (database.storageSize || 0) + data.size } });
       setNewKnowledge('');
+      setViewMode('list'); // Go back to list view
       toast({ title: 'Éxito', description: 'Elemento de conocimiento añadido.' });
 
     } catch (err: any) {
@@ -110,20 +114,26 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-3">
+        {viewMode === 'add' ? (
+          <div className="space-y-3 animate-fadeIn">
             <Textarea
                 placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
                 value={newKnowledge}
                 onChange={e => setNewKnowledge(e.target.value)}
-                rows={4}
+                rows={6}
                 disabled={isSaving}
                 className="text-sm"
+                autoFocus
             />
-            <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()} className="w-full">
-                {isSaving ? <FaSpinner className="animate-spin mr-2" /> : <FaPlus className="mr-2" />}
-                Añadir Conocimiento
-            </Button>
-        </div>
+            <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setViewMode('list')} disabled={isSaving}>Cancelar</Button>
+                <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()}>
+                    {isSaving ? <FaSpinner className="animate-spin mr-2" /> : <FaPlus className="mr-2" />}
+                    Guardar Conocimiento
+                </Button>
+            </div>
+          </div>
+        ) : null}
 
         <ScrollArea className="flex-grow border rounded-md">
             <div className="p-4">
@@ -131,7 +141,7 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
                     <div className="flex justify-center items-center h-32">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                ) : items.length === 0 ? (
+                ) : items.length === 0 && viewMode === 'list' ? (
                     <p className="text-center text-muted-foreground p-4">Aún no hay conocimiento añadido.</p>
                 ) : (
                     <div className="space-y-3">
@@ -153,8 +163,15 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
             </div>
         </ScrollArea>
         
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cerrar</Button>
+        <DialogFooter className="flex-col sm:flex-row sm:justify-between w-full pt-2">
+            {viewMode === 'list' && (
+                <Button onClick={() => setViewMode('add')} disabled={isSaving}>
+                    <FaPlus className="mr-2" />
+                    Añadir Conocimiento
+                </Button>
+            )}
+            <div className="sm:flex-grow" /> 
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -162,3 +179,4 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
 };
 
 export default KnowledgeManagementDialog;
+
