@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import ChangeDatabaseTypeDialog from "./ChangeDatabaseTypeDialog";
 import { Progress } from "../ui/progress";
 import { formatBytes } from "@/lib/utils";
+import KnowledgeManagementDialog from "./KnowledgeManagementDialog"; // Import the new dialog
+import { BookOpen } from "lucide-react";
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -24,6 +26,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const { toast } = useToast();
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isChangeTypeDialogOpen, setIsChangeTypeDialogOpen] = useState(false);
+  const [isKnowledgeDialogOpen, setIsKnowledgeDialogOpen] = useState(false); // State for the new dialog
   
   const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id).map(a => a.name);
 
@@ -184,15 +187,28 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
           )}
         </CardContent>
          <CardFooter className="flex flex-col items-start gap-2 border-t pt-3 text-xs">
-            <h4 className="font-semibold">Vinculado a:</h4>
-            {linkedAssistants.length > 0 ? (
-                 <div className="flex flex-wrap gap-1">
-                    {linkedAssistants.map(name => (
-                        <Badge key={name} variant="secondary">{name}</Badge>
-                    ))}
-                </div>
+            {database.source === 'smart_db' ? (
+                <Button 
+                    className="w-full" 
+                    size="sm"
+                    onClick={() => setIsKnowledgeDialogOpen(true)}
+                >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Asignar Conocimiento
+                </Button>
             ) : (
-                <p className="text-muted-foreground">No está vinculado a ningún asistente.</p>
+                <>
+                    <h4 className="font-semibold">Vinculado a:</h4>
+                    {linkedAssistants.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                            {linkedAssistants.map(name => (
+                                <Badge key={name} variant="secondary">{name}</Badge>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground">No está vinculado a ningún asistente.</p>
+                    )}
+                </>
             )}
         </CardFooter>
       </Card>
@@ -225,6 +241,14 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         onOpenChange={setIsChangeTypeDialogOpen}
         database={database}
       />
+      
+      {database.source === 'smart_db' && (
+        <KnowledgeManagementDialog
+            isOpen={isKnowledgeDialogOpen}
+            onOpenChange={setIsKnowledgeDialogOpen}
+            database={database}
+        />
+      )}
     </>
   );
 };

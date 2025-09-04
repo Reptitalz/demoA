@@ -190,3 +190,12 @@ export interface Transaction {
     phone: string;
   };
 }
+
+export interface KnowledgeItem {
+  _id: ObjectId;
+  databaseId: string;
+  userId: string;
+  content: string;
+  size: number; // in bytes
+  createdAt: Date;
+}
