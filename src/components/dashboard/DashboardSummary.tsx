@@ -43,6 +43,7 @@ const DashboardSummary = () => {
       value: assistants.length,
       description: "Total creados",
       icon: FaRobot,
+      color: "text-blue-500",
       onClick: () => router.push('/dashboard/assistants'),
       isInteractive: true,
     },
@@ -51,6 +52,7 @@ const DashboardSummary = () => {
       value: credits || 0,
       description: "Clic para recargar",
       icon: Wallet,
+      color: "text-orange-500",
       onClick: handleRechargeClick,
       isInteractive: true,
     },
@@ -59,6 +61,7 @@ const DashboardSummary = () => {
       value: availableMessages.toLocaleString(),
       description: "Disponibles",
       icon: MessagesSquare,
+      color: "text-green-500",
       onClick: () => setIsMessagesInfoOpen(true),
       isInteractive: true,
     },
@@ -72,15 +75,15 @@ const DashboardSummary = () => {
                 key={index}
                 onClick={card.onClick}
                 className={cn(
-                  "p-3 rounded-lg transition-all duration-200",
+                  "p-3 rounded-lg transition-all duration-200 flex flex-col",
                   card.isInteractive && "cursor-pointer hover:bg-muted/80"
                 )}
             >
               <div className="flex items-center gap-2 text-muted-foreground">
-                <card.icon className="h-4 w-4" />
+                <card.icon className={cn("h-4 w-4", card.color)} />
                 <h3 className="text-sm font-medium">{card.title}</h3>
               </div>
-              <div className="mt-1">
+              <div className="mt-1 flex-grow flex flex-col justify-center">
                 <p className="text-2xl font-bold text-foreground">{card.value}</p>
                 <p className="text-xs text-muted-foreground">{card.description}</p>
               </div>
