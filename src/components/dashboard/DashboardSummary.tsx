@@ -1,7 +1,7 @@
+
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaRobot } from "react-icons/fa";
 import { Coins, Wallet, MessagesSquare } from 'lucide-react';
 import { useState } from 'react';
@@ -57,7 +57,7 @@ const DashboardSummary = () => {
     {
       title: "Mensajes",
       value: availableMessages.toLocaleString(),
-      description: "Disponibles para enviar",
+      description: "Disponibles",
       icon: MessagesSquare,
       onClick: () => setIsMessagesInfoOpen(true),
       isInteractive: true,
@@ -66,31 +66,24 @@ const DashboardSummary = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2">
         {summaryCards.map((card, index) => (
             <div
                 key={index}
-                className="relative transform-gpu transition-all duration-300"
-                style={{ perspective: '1000px' }}
+                onClick={card.onClick}
+                className={cn(
+                  "p-3 rounded-lg transition-all duration-200",
+                  card.isInteractive && "cursor-pointer hover:bg-muted/80"
+                )}
             >
-                <Card
-                    onClick={card.onClick}
-                    className={cn(
-                        "h-full overflow-hidden bg-card/60 backdrop-blur-sm border-border/20 shadow-lg transition-all duration-300",
-                        card.isInteractive && "cursor-pointer hover:shadow-primary/20 hover:-translate-y-1"
-                    )}
-                >
-                    <div className="p-4 sm:p-5 flex flex-col justify-between h-full">
-                        <div className="flex items-center justify-between text-muted-foreground">
-                            <h3 className="text-sm font-medium">{card.title}</h3>
-                            <card.icon className="h-5 w-5" />
-                        </div>
-                        <div className="mt-2">
-                            <p className="text-3xl font-bold text-foreground">{card.value}</p>
-                            <p className="text-xs text-muted-foreground">{card.description}</p>
-                        </div>
-                    </div>
-                </Card>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <card.icon className="h-4 w-4" />
+                <h3 className="text-sm font-medium">{card.title}</h3>
+              </div>
+              <div className="mt-1">
+                <p className="text-2xl font-bold text-foreground">{card.value}</p>
+                <p className="text-xs text-muted-foreground">{card.description}</p>
+              </div>
             </div>
         ))}
       </div>
