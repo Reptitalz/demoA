@@ -529,10 +529,12 @@ const AssistantCard = ({
                         </Button>
                     ) : null }
                     <Button
-                        variant="default"
                         size="sm"
                         onClick={handleReconfigureClick}
-                        className="transition-transform transform hover:scale-105 w-full text-xs animate-pulse-border"
+                        className={cn(
+                            "w-full text-xs transition-transform transform hover:scale-105",
+                            "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                        )}
                     >
                         <FaCog size={14} />
                         Configurar
