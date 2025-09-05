@@ -482,8 +482,9 @@ const AssistantCard = ({
 
                             <Button
                                 size="sm"
+                                variant="secondary"
                                 onClick={handleShare}
-                                className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs col-span-3"
+                                className="w-full text-xs col-span-3"
                             >
                                 <FaShareAlt size={14} />
                                 Compartir
