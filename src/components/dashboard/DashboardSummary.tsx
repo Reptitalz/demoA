@@ -50,7 +50,7 @@ const DashboardSummary = () => {
     {
       title: "Créditos",
       value: credits || 0,
-      description: "Clic para recargar",
+      description: "Disponibles",
       icon: Wallet,
       color: "text-orange-500",
       onClick: handleRechargeClick,
@@ -74,19 +74,22 @@ const DashboardSummary = () => {
               return (
                 <div
                     key={card.title}
-                    onClick={card.onClick}
-                    className="relative aspect-square p-4 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
+                    onClick={card.title !== 'Créditos' ? card.onClick : undefined}
+                    className="relative p-4 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
                 >
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                            <Icon className={cn("h-6 w-6", card.color)} />
-                            <h3 className="text-sm font-medium">{card.title}</h3>
-                        </div>
+                    <div className="flex justify-between items-start">
+                        <h3 className="text-sm font-medium">{card.title}</h3>
+                        <Icon className={cn("h-5 w-5", card.color)} />
                     </div>
-                    <div>
-                        <p className="text-3xl font-bold text-foreground">{card.value}</p>
-                        <p className="text-xs text-muted-foreground">{card.description}</p>
+                    <div className="flex items-center justify-between mt-2">
+                        <span className="text-3xl font-bold">{card.value}</span>
+                        {card.title === 'Créditos' && (
+                            <Button size="icon" variant="default" onClick={card.onClick} className="h-8 w-8 rounded-full bg-brand-gradient shadow-lg">
+                                <FaPlus />
+                            </Button>
+                        )}
                     </div>
+                     <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
                 </div>
               )
             })}
