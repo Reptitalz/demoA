@@ -67,35 +67,25 @@ const DashboardSummary = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {summaryCards.map((card, index) => (
             <div
                 key={index}
                 onClick={card.onClick}
                 className={cn(
-                    "relative aspect-square p-4 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer",
-                    "bg-card hover:bg-card/80 glow-card"
+                    "relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
                 )}
             >
-               <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <card.icon className={cn("h-4 w-4", card.color)} />
+               <div className="flex items-center gap-3">
+                    <card.icon className={cn("h-6 w-6", card.color)} />
+                    <div>
                         <h3 className="text-sm font-medium">{card.title}</h3>
+                         <p className="text-xs text-muted-foreground">{card.description}</p>
                     </div>
-                    {card.title === "Créditos" && (
-                         <Button 
-                            size="icon"
-                            className="h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-lg shrink-0"
-                            aria-label="Recargar créditos"
-                          >
-                            <FaPlus size={12} />
-                          </Button>
-                    )}
                </div>
 
-              <div className="text-left">
-                <p className="text-4xl font-bold text-foreground">{card.value}</p>
-                <p className="text-xs text-muted-foreground">{card.description}</p>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-foreground">{card.value}</p>
               </div>
             </div>
         ))}
