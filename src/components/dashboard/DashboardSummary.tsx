@@ -68,27 +68,49 @@ const DashboardSummary = () => {
   return (
     <>
       <div className="grid grid-cols-1 gap-4">
-        {summaryCards.map((card, index) => (
+        <div className="grid grid-cols-2 gap-4">
+            {summaryCards.slice(0, 2).map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                    key={card.title}
+                    onClick={card.onClick}
+                    className="relative aspect-square p-4 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
+                >
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                            <Icon className={cn("h-6 w-6", card.color)} />
+                            <h3 className="text-sm font-medium">{card.title}</h3>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-4xl font-bold text-foreground">{card.value}</p>
+                        <p className="text-xs text-muted-foreground">{card.description}</p>
+                    </div>
+                </div>
+              )
+            })}
+        </div>
+
+        {(() => {
+          const card = summaryCards[2];
+          const Icon = card.icon;
+          return (
             <div
-                key={index}
                 onClick={card.onClick}
-                className={cn(
-                    "relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
-                )}
+                className="relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
             >
-               <div className="flex items-center gap-3">
-                    <card.icon className={cn("h-6 w-6", card.color)} />
+                <div className="flex items-center gap-3">
+                    <Icon className={cn("h-6 w-6", card.color)} />
                     <div>
                         <h3 className="text-sm font-medium">{card.title}</h3>
-                         <p className="text-xs text-muted-foreground">{card.description}</p>
+                        <p className="text-xs text-muted-foreground">{card.description}</p>
                     </div>
-               </div>
-
-              <div className="text-right">
+                </div>
                 <p className="text-2xl font-bold text-foreground">{card.value}</p>
-              </div>
             </div>
-        ))}
+          );
+        })()}
       </div>
       
       <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
