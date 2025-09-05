@@ -39,13 +39,21 @@ const DashboardSummary = () => {
   }
 
   const summaryCards = [
-    {
+     {
       title: "Asistentes",
       value: assistants.length,
       description: "Total creados",
       icon: FaRobot,
       color: "text-blue-500",
       onClick: () => router.push('/dashboard/assistants'),
+    },
+    {
+      title: "Créditos",
+      value: credits || 0,
+      description: "Clic para recargar",
+      icon: Wallet,
+      color: "text-orange-500",
+      onClick: handleRechargeClick,
     },
     {
       title: "Mensajes",
@@ -59,44 +67,34 @@ const DashboardSummary = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        {/* Credits Card Special Layout */}
-        <div 
-          onClick={handleRechargeClick}
-          className="p-3 rounded-lg transition-all duration-200 flex items-center cursor-pointer hover:bg-muted/80"
-        >
-          <div className="flex-grow">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Wallet className="h-4 w-4 text-orange-500" />
-              <h3 className="text-sm font-medium">Créditos</h3>
-            </div>
-            <div className="mt-1">
-              <p className="text-2xl font-bold text-foreground">{credits || 0}</p>
-              <p className="text-xs text-muted-foreground">Clic para recargar</p>
-            </div>
-          </div>
-          <Button 
-            size="icon"
-            className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
-            aria-label="Recargar créditos"
-          >
-            <FaPlus />
-          </Button>
-        </div>
-
-        {/* Other Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {summaryCards.map((card, index) => (
             <div
                 key={index}
                 onClick={card.onClick}
-                className="p-3 rounded-lg transition-all duration-200 flex flex-col cursor-pointer hover:bg-muted/80"
+                className={cn(
+                    "relative aspect-square p-4 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer",
+                    "bg-card hover:bg-card/80 glow-card"
+                )}
             >
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <card.icon className={cn("h-4 w-4", card.color)} />
-                <h3 className="text-sm font-medium">{card.title}</h3>
-              </div>
-              <div className="mt-1 flex-grow flex flex-col justify-center">
-                <p className="text-2xl font-bold text-foreground">{card.value}</p>
+               <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <card.icon className={cn("h-4 w-4", card.color)} />
+                        <h3 className="text-sm font-medium">{card.title}</h3>
+                    </div>
+                    {card.title === "Créditos" && (
+                         <Button 
+                            size="icon"
+                            className="h-7 w-7 rounded-full bg-primary hover:bg-primary/90 shadow-lg shrink-0"
+                            aria-label="Recargar créditos"
+                          >
+                            <FaPlus size={12} />
+                          </Button>
+                    )}
+               </div>
+
+              <div className="text-left">
+                <p className="text-4xl font-bold text-foreground">{card.value}</p>
                 <p className="text-xs text-muted-foreground">{card.description}</p>
               </div>
             </div>
