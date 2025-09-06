@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -44,23 +45,23 @@ const DashboardSummary = () => {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         {summaryCards.map((card, index) => {
            const Icon = card.icon;
            return (
             <div 
                 key={index}
                 onClick={card.action}
-                className="relative aspect-square p-3 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
+                className="relative p-2.5 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
             >
                 <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                        <Icon className={cn("h-5 w-5", card.color)} />
+                    <div className="flex items-center gap-1.5">
+                        <Icon className={cn("h-4 w-4", card.color)} />
                         <h3 className="text-xs font-medium">{card.title}</h3>
                     </div>
                 </div>
-                <div className="text-right">
-                    <p className="text-3xl font-bold text-foreground">{card.value}</p>
+                <div className="text-right mt-1">
+                    <p className="text-2xl font-bold text-foreground">{card.value}</p>
                     <p className="text-[10px] text-muted-foreground">{card.description}</p>
                 </div>
             </div>
@@ -70,7 +71,7 @@ const DashboardSummary = () => {
       
        <div 
         onClick={() => setIsMessagesInfoOpen(true)}
-        className="mt-4 relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
+        className="relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
       >
         <div className="flex items-center gap-3">
           <MessagesSquare className="h-6 w-6 text-green-500" />
@@ -89,3 +90,4 @@ const DashboardSummary = () => {
 };
 
 export default DashboardSummary;
+
