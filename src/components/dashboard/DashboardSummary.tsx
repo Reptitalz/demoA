@@ -50,7 +50,7 @@ const DashboardSummary = () => {
     {
       title: "Créditos",
       value: credits || 0,
-      description: "Disponibles",
+      description: "Clic para recargar",
       icon: Wallet,
       color: "text-orange-500",
       onClick: handleRechargeClick,
@@ -67,53 +67,53 @@ const DashboardSummary = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-2 gap-4">
-            {summaryCards.slice(0, 2).map((card) => {
-              const Icon = card.icon;
-              return (
-                <div
-                    key={card.title}
-                    onClick={card.title !== 'Créditos' ? card.onClick : undefined}
-                    className="relative p-4 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
-                >
-                    <div className="flex justify-between items-start">
-                        <h3 className="text-sm font-medium">{card.title}</h3>
-                        <Icon className={cn("h-5 w-5", card.color)} />
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                        <span className="text-3xl font-bold">{card.value}</span>
-                        {card.title === 'Créditos' && (
-                            <Button size="icon" variant="default" onClick={card.onClick} className="h-8 w-8 rounded-full bg-brand-gradient shadow-lg">
-                                <FaPlus />
-                            </Button>
-                        )}
-                    </div>
-                     <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
-                </div>
-              )
-            })}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Asistentes y Créditos Cards */}
+        <div 
+            onClick={() => router.push('/dashboard/assistants')}
+            className="relative p-4 rounded-lg transition-all duration-300 flex items-center gap-4 cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
+        >
+            <FaRobot className="h-10 w-10 text-blue-500/20" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-5xl font-extrabold text-blue-500">{assistants.length}</span>
+            </div>
+            <div className="flex-1">
+                <h3 className="font-semibold text-foreground">Asistentes</h3>
+                <p className="text-xs text-muted-foreground">Total creados</p>
+            </div>
         </div>
 
-        {(() => {
-          const card = summaryCards[2];
-          const Icon = card.icon;
-          return (
-            <div
-                onClick={card.onClick}
-                className="relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card"
-            >
-                <div className="flex items-center gap-3">
-                    <Icon className={cn("h-6 w-6", card.color)} />
-                    <div>
-                        <h3 className="text-sm font-medium">{card.title}</h3>
-                        <p className="text-xs text-muted-foreground">{card.description}</p>
-                    </div>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{card.value}</p>
+        <div 
+            onClick={handleRechargeClick}
+            className="relative p-4 rounded-lg transition-all duration-300 flex items-center gap-4 cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
+        >
+            <Wallet className="h-10 w-10 text-orange-500/20" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-5xl font-extrabold text-orange-500">{credits || 0}</span>
             </div>
-          );
-        })()}
+             <div className="flex-1">
+                <h3 className="font-semibold text-foreground">Créditos</h3>
+                <p className="text-xs text-muted-foreground">Disponibles</p>
+            </div>
+            <Button size="icon" variant="default" className="h-8 w-8 rounded-full bg-brand-gradient shadow-lg">
+                <FaPlus />
+            </Button>
+        </div>
+      </div>
+      
+      {/* Mensajes Card */}
+       <div 
+        onClick={() => setIsMessagesInfoOpen(true)}
+        className="mt-4 relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
+      >
+        <div className="flex items-center gap-3">
+          <MessagesSquare className="h-6 w-6 text-green-500" />
+          <div>
+            <h3 className="font-semibold text-sm">Mensajes</h3>
+            <p className="text-xs text-muted-foreground">Disponibles</p>
+          </div>
+        </div>
+        <p className="text-2xl font-bold text-foreground">{availableMessages.toLocaleString()}</p>
       </div>
       
       <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
