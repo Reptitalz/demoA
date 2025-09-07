@@ -19,7 +19,7 @@ body {
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 260 70% 60%; /* Vibrant Purple */
+    --primary: 262 80% 58%; /* Vibrant Purple */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 0 0% 94%; /* Light Gray */
@@ -28,15 +28,15 @@ body {
     --muted: 0 0% 90%; /* Lighter Gray */
     --muted-foreground: 240 5% 45%;
 
-    --accent: 30 100% 55%; /* Bright Orange */
-    --accent-foreground: 20 90% 5%; /* Dark brown/black for orange */
+    --accent: 280 80% 60%; /* Vibrant Violet */
+    --accent-foreground: 0 0% 100%; /* White for violet */
 
     --destructive: 0 84.2% 60.2%; /* Standard destructive red */
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 89.8%; /* Light border */
     --input: 0 0% 93.3%; /* Light input background */
-    --ring: 260 70% 60%; /* New primary purple for focus rings */
+    --ring: 262 80% 58%; /* New primary purple for focus rings */
 
     --radius: 0.5rem;
   }
@@ -52,7 +52,7 @@ body {
     --popover: 220 10% 12%;
     --popover-foreground: 210 30% 95%;
 
-    --primary: 260 70% 60%; /* Vibrant Purple */
+    --primary: 262 80% 58%; /* Vibrant Purple */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 10% 25%; /* Darker Gray for secondary elements */
@@ -61,15 +61,15 @@ body {
     --muted: 220 10% 20%;
     --muted-foreground: 210 30% 60%;
 
-    --accent: 30 100% 55%; /* Bright Orange */
-    --accent-foreground: 20 90% 5%; /* Dark brown/black for orange */
+    --accent: 280 80% 60%; /* Vibrant Violet */
+    --accent-foreground: 0 0% 100%; /* White for violet */
 
     --destructive: 0 70% 55%; /* Adjusted Red */
     --destructive-foreground: 0 0% 98%;
 
     --border: 220 10% 30%;
     --input: 220 10% 22%;
-    --ring: 260 70% 60%; /* New primary purple for focus rings */
+    --ring: 262 80% 58%; /* New primary purple for focus rings */
   }
 }
 
