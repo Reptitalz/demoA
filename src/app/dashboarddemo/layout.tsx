@@ -4,20 +4,21 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaRobot, FaDatabase, FaUser, FaSignInAlt } from 'react-icons/fa';
+import { FaDatabase, FaUser, FaSignInAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
-import { Bot } from 'lucide-react';
+import { Bot, Brain } from 'lucide-react';
 import NotificationsBell from '@/components/notifications/NotificationsBell'; // Re-using real component
 import { signOut } from 'next-auth/react'; // Re-using real function
 
 const menuItems = [
     { path: '/dashboarddemo/assistants', icon: Bot, label: 'Asistentes' },
     { path: '/dashboarddemo/databases', icon: FaDatabase, label: 'Bases de Datos' },
+    { path: '/dashboarddemo/brain', icon: Brain, label: 'Cerebro' },
     { path: '/dashboarddemo/profile', icon: FaUser, label: 'Perfil' },
 ];
 
