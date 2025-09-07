@@ -41,12 +41,19 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
     }
   }
   
-  const showMessagesCard = currentPath && !currentPath.endsWith('/databases');
+  const showMessagesCard = !currentPath.endsWith('/databases');
 
-  const summaryCards = [
-    { title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
-    { title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: Wallet, color: 'text-orange-500', action: handleRechargeClick },
+  const allSummaryCards = [
+    { id: 'assistants', title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
+    { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: Wallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
+
+  const summaryCards = allSummaryCards.filter(card => {
+    if (currentPath.endsWith('/databases')) {
+      return card.id === 'assistants'; // Only show assistants card
+    }
+    return true; // Show all cards otherwise
+  });
 
 
   return (
@@ -98,4 +105,3 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
 };
 
 export default DashboardSummary;
-
