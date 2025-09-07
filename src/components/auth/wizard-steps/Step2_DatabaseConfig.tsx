@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FaGoogle, FaBrain, FaExclamationTriangle, FaCheckCircle, FaRegCircle } from "react-icons/fa";
+import { FaGoogle, FaBrain, FaExclamationTriangle, FaCheckCircle, FaRegCircle, FaDatabase } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -262,4 +262,5 @@ const Step2DatabaseConfig = () => {
 };
 
 export default Step2DatabaseConfig;
+
 

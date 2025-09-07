@@ -34,7 +34,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
 
   const getDatabaseIcon = (source: DatabaseSource) => {
     if (source === "google_sheets") return FaGoogle;
-    if (source === "smart_db") return FaBrain;
+    if (source === "smart_db") return FaDatabase;
     return FaDatabase;
   };
   const Icon = getDatabaseIcon(database.source);
@@ -119,7 +119,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 overflow-hidden">
-              <FaDatabase className="h-8 w-8 text-primary shrink-0" />
+              <FaBrain className="h-8 w-8 text-primary shrink-0" />
               <div className="flex-1 overflow-hidden">
                 <CardTitle className="text-xl truncate" title={database.name}>{database.name}</CardTitle>
                 <CardDescription className="text-xs pt-1 flex items-center gap-1.5 whitespace-nowrap">
@@ -208,7 +208,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                       />
                   </svg>
                   <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-                    <FaBrain className="h-6 w-6 text-primary mb-1"/>
+                    <FaDatabase className="h-6 w-6 text-primary mb-1"/>
                     <span className="text-lg font-bold text-foreground">
                         {`${Math.round(storagePercentage)}%`}
                     </span>
