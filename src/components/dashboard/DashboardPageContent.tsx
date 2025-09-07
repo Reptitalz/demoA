@@ -191,7 +191,7 @@ const DashboardPageContent = () => {
             </h3>
             <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
                 <FaStar size={13} className="mr-1" />
-                Crear Asistente
+                {isDemoMode ? 'Iniciar Sesión para Crear' : 'Crear Asistente'}
             </Button>
             </div>
             {profileToRender.assistants.length > 0 ? (
