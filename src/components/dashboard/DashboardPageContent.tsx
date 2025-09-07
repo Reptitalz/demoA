@@ -395,7 +395,7 @@ const DashboardPageContent = () => {
           </p>
         </div>
         
-        {!pathname.endsWith('/profile') && !pathname.endsWith('/databases') && <DashboardSummary />}
+        {!pathname.endsWith('/profile') && <DashboardSummary currentPath={pathname} />}
 
         {renderContentForRoute()}
       </PageContainer>
