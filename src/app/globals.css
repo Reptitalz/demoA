@@ -246,6 +246,25 @@ body {
         radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px),
         radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px);
   }
+
+  /* Animated Gradient Border */
+  @keyframes animated-gradient-border {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .animated-gradient-border {
+    border: 2px solid transparent;
+    background-image: 
+      linear-gradient(hsl(var(--background)), hsl(var(--background))), 
+      linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 200% 100%;
+    animation: animated-gradient-border 4s ease-in-out infinite;
+  }
+  
 }
 
 

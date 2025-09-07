@@ -14,6 +14,7 @@ import { formatBytes } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface KnowledgeManagementDialogProps {
   isOpen: boolean;
@@ -123,7 +124,10 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
                   onChange={e => setNewKnowledge(e.target.value)}
                   rows={6}
                   disabled={isSaving}
-                  className="text-sm"
+                  className={cn(
+                    "text-sm",
+                    "focus-within:animated-gradient-border"
+                  )}
                   autoFocus
               />
               <div className="flex justify-end gap-2">
