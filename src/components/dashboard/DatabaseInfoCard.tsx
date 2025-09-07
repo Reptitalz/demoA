@@ -3,7 +3,7 @@
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload, FaHdd } from "react-icons/fa";
+import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload, FaHdd, FaAddressBook } from "react-icons/fa";
 import { useApp } from "@/providers/AppProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
@@ -15,6 +15,7 @@ import { Progress } from "../ui/progress";
 import { formatBytes } from "@/lib/utils";
 import KnowledgeManagementDialog from "./KnowledgeManagementDialog"; // Import the new dialog
 import { BookOpen } from "lucide-react";
+import ContactsDialog from "./ContactsDialog";
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -27,6 +28,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isChangeTypeDialogOpen, setIsChangeTypeDialogOpen] = useState(false);
   const [isKnowledgeDialogOpen, setIsKnowledgeDialogOpen] = useState(false); // State for the new dialog
+  const [isContactsDialogOpen, setIsContactsDialogOpen] = useState(false);
   
   const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id).map(a => a.name);
 
@@ -224,14 +226,25 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         </CardContent>
          <CardFooter className="flex flex-col items-start gap-2 border-t pt-3 text-xs">
             {database.source === 'smart_db' ? (
-                <Button 
-                    className="w-full" 
-                    size="sm"
-                    onClick={() => setIsKnowledgeDialogOpen(true)}
-                >
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Asignar Conocimiento
-                </Button>
+                <div className="w-full grid grid-cols-2 gap-2">
+                  <Button 
+                      className="w-full" 
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setIsContactsDialogOpen(true)}
+                  >
+                      <FaAddressBook className="mr-2 h-4 w-4" />
+                      Contactos
+                  </Button>
+                  <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => setIsKnowledgeDialogOpen(true)}
+                  >
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Conocimiento
+                  </Button>
+                </div>
             ) : (
                 <>
                     <h4 className="font-semibold">Vinculado a:</h4>
@@ -279,11 +292,18 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
       />
       
       {database.source === 'smart_db' && (
-        <KnowledgeManagementDialog
-            isOpen={isKnowledgeDialogOpen}
-            onOpenChange={setIsKnowledgeDialogOpen}
-            database={database}
-        />
+        <>
+          <KnowledgeManagementDialog
+              isOpen={isKnowledgeDialogOpen}
+              onOpenChange={setIsKnowledgeDialogOpen}
+              database={database}
+          />
+          <ContactsDialog
+              isOpen={isContactsDialogOpen}
+              onOpenChange={setIsContactsDialogOpen}
+              database={database}
+          />
+        </>
       )}
     </>
   );
