@@ -106,6 +106,11 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const storageUsed = database.storageSize || 0;
   const storagePercentage = Math.min((storageUsed / MAX_STORAGE_BYTES) * 100, 100);
 
+  const radius = 36;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (storagePercentage / 100) * circumference;
+
+
   return (
     <>
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn flex flex-col" style={{animationDelay}}>
@@ -174,15 +179,46 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
            )}
 
           {database.source === 'smart_db' && (
-            <div className="space-y-2 pt-2">
-              <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <FaHdd size={14} className="text-accent" /> Almacenamiento
-              </h4>
-              <Progress value={storagePercentage} className="h-1.5" />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{formatBytes(storageUsed)}</span>
-                <span>{MAX_STORAGE_MB} MB</span>
-              </div>
+            <div className="flex items-center gap-4 pt-2">
+                <div className="relative w-24 h-24">
+                  <svg className="w-full h-full" viewBox="0 0 100 100">
+                      <circle
+                          className="text-muted/30"
+                          strokeWidth="8"
+                          stroke="currentColor"
+                          fill="transparent"
+                          r={radius}
+                          cx="50"
+                          cy="50"
+                      />
+                      <circle
+                          className="text-primary"
+                          strokeWidth="8"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={strokeDashoffset}
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="transparent"
+                          r={radius}
+                          cx="50"
+                          cy="50"
+                          style={{transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.5s ease-in-out'}}
+                      />
+                  </svg>
+                  <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+                    <FaBrain className="h-6 w-6 text-primary mb-1"/>
+                    <span className="text-lg font-bold text-foreground">
+                        {`${Math.round(storagePercentage)}%`}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                      Almacenamiento
+                    </h4>
+                    <p className="text-xs text-muted-foreground">{formatBytes(storageUsed)} de {MAX_STORAGE_MB} MB usados.</p>
+                     <Progress value={storagePercentage} className="h-1.5 mt-2" />
+                </div>
             </div>
           )}
         </CardContent>
