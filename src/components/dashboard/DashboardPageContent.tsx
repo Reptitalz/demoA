@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User, Bot, Database } from 'lucide-react';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -188,9 +189,9 @@ const DashboardPageContent = () => {
                 <Bot size={18} className="text-primary" /> 
                 Tus Asistentes
             </h3>
-            <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
-                <FaPlusCircle size={13} className="mr-1" /> 
-                Añadir Asistente
+            <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                <FaStar size={13} className="mr-1" />
+                Crear Asistente
             </Button>
             </div>
             {profileToRender.assistants.length > 0 ? (
@@ -230,7 +231,7 @@ const DashboardPageContent = () => {
                 </h3>
                 {showAddDatabaseButton && (
                     <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-                        <FaPlusCircle size={13} className="mr-1" />
+                        <FaStar size={13} className="mr-1" />
                         Añadir Base de Datos
                     </Button>
                 )}

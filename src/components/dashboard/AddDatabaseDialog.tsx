@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaArrowRight, FaArrowLeft, FaSitemap } from 'react-icons/fa';
+import { FaSpinner, FaArrowRight, FaArrowLeft, FaSitemap, FaStar } from 'react-icons/fa';
 import type { AssistantConfig, DatabaseConfig } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Step2DatabaseConfig from '../auth/wizard-steps/Step2_DatabaseConfig';
