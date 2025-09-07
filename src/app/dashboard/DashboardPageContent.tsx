@@ -261,111 +261,103 @@ const DashboardPageContent = () => {
     
     if (isProfilePage) {
       return (
-        <div className="space-y-4">
-          <Card
-            className="animate-fadeIn transition-all hover:shadow-lg"
-            style={{ animationDelay: '0.1s' }}
-          >
-            <CardContent className="p-0">
-              <div className="flex flex-col">
-                {/* Personal Info Section */}
-                <div className="flex items-center justify-between p-4 sm:p-6">
-                  <div className="flex items-center gap-4">
-                    <User className="h-6 w-6 text-primary" />
-                    <div>
-                      <h3 className="font-semibold">Información Personal</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Actualiza tus datos personales y de facturación.
-                      </p>
-                    </div>
+         <Card
+          className="animate-fadeIn transition-all hover:shadow-lg"
+          style={{ animationDelay: '0.1s' }}
+        >
+          <CardContent className="p-0">
+            <div className="flex flex-col">
+              {/* Personal Info Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <User className="h-6 w-6 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Información Personal</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Actualiza tus datos personales y de facturación.
+                    </p>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      if (isDemoMode) {
-                          router.push('/login');
-                          return;
-                      }
-                      setIsPersonalInfoOpen(true)}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (isDemoMode) {
+                        router.push('/login');
+                        return;
                     }
-                    className="shrink-0"
-                  >
-                    {isDemoMode ? 'Iniciar Sesión' : 'Editar'}
-                  </Button>
-                </div>
-                <Separator />
-
-                {/* Security Section */}
-                <div className="flex items-center justify-between p-4 sm:p-6">
-                  <div className="flex items-center gap-4">
-                    <FaKey className="h-6 w-6 text-destructive" />
-                    <div>
-                      <h3 className="font-semibold">Seguridad</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con tu proveedor."}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled
-                  >
-                  {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
-                  </Button>
-                </div>
-                <Separator />
-
-                {/* Appearance Section */}
-                <div className="flex items-center justify-between p-4 sm:p-6">
-                  <div className="flex items-center gap-4">
-                    <FaPalette className="h-6 w-6 text-primary" />
-                    <div>
-                      <h3 className="font-semibold">Apariencia</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Elige entre el tema claro y el oscuro.
-                      </p>
-                    </div>
-                  </div>
-                  <ThemeToggle />
-                </div>
-                <Separator />
-
-                {/* Support Section */}
-                <div className="flex items-center justify-between p-4 sm:p-6">
-                  <div className="flex items-center gap-4">
-                    <MessageSquare className="h-6 w-6 text-green-500" />
-                    <div>
-                      <h3 className="font-semibold">Soporte Técnico</h3>
-                      <p className="text-sm text-muted-foreground">
-                        ¿Necesitas ayuda? Contáctanos por WhatsApp.
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    asChild
-                    size="sm"
-                    className="shrink-0 bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    <Link
-                      href="https://wa.me/5213350474005"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Contactar
-                    </Link>
-                  </Button>
-                </div>
+                    setIsPersonalInfoOpen(true)}
+                  }
+                  className="shrink-0"
+                >
+                  {isDemoMode ? 'Iniciar Sesión' : 'Editar'}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-          <div className="flex items-center justify-center gap-4 pt-4 text-xs text-muted-foreground">
-            <span>Versión 1.0</span>
-            <Button variant="outline" size="sm" className="text-xs h-auto px-2 py-1" disabled>
-              Novedades
-            </Button>
-          </div>
-        </div>
+              <Separator />
+
+              {/* Security Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <FaKey className="h-6 w-6 text-destructive" />
+                  <div>
+                    <h3 className="font-semibold">Seguridad</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con tu proveedor."}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled
+                >
+                 {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
+                </Button>
+              </div>
+              <Separator />
+
+              {/* Appearance Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <FaPalette className="h-6 w-6 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Apariencia</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Elige entre el tema claro y el oscuro.
+                    </p>
+                  </div>
+                </div>
+                <ThemeToggle />
+              </div>
+              <Separator />
+
+              {/* Support Section */}
+              <div className="flex items-center justify-between p-4 sm:p-6">
+                <div className="flex items-center gap-4">
+                  <MessageSquare className="h-6 w-6 text-green-500" />
+                  <div>
+                    <h3 className="font-semibold">Soporte Técnico</h3>
+                    <p className="text-sm text-muted-foreground">
+                      ¿Necesitas ayuda? Contáctanos por WhatsApp.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  asChild
+                  size="sm"
+                  className="shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Link
+                    href="https://wa.me/5213344090167"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Contactar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )
     }
 
@@ -403,7 +395,7 @@ const DashboardPageContent = () => {
           </p>
         </div>
         
-        {!pathname.endsWith('/profile') && <DashboardSummary />}
+        {pathname && !pathname.endsWith('/profile') && <DashboardSummary currentPath={pathname} />}
 
         {renderContentForRoute()}
       </PageContainer>
