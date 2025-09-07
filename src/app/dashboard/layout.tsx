@@ -1,10 +1,9 @@
-
 "use client";
 
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaRobot, FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -14,11 +13,12 @@ import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
 import { signOut } from 'next-auth/react';
-import { Bot } from 'lucide-react';
+import { Bot, Brain } from 'lucide-react';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: Bot, label: 'Asistentes' },
     { path: '/dashboard/databases', icon: FaDatabase, label: 'Bases de Datos' },
+    { path: '/dashboard/brain', icon: Brain, label: 'Cerebro' },
     { path: '/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
 
