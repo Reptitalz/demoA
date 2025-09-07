@@ -387,7 +387,7 @@ const DashboardPageContent = () => {
               {getPageTitle()}
             </h2>
             {isDemoMode && (
-                <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
+                <Button onClick={() => router.push('/login')} size="sm" variant="outline">Iniciar Sesión</Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -395,7 +395,7 @@ const DashboardPageContent = () => {
           </p>
         </div>
         
-        {pathname && !pathname.endsWith('/profile') && <DashboardSummary currentPath={pathname} />}
+        {!pathname.endsWith('/profile') && <DashboardSummary currentPath={pathname} />}
 
         {renderContentForRoute()}
       </PageContainer>
