@@ -118,15 +118,17 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
         <div className="flex-grow flex flex-col space-y-3">
           {viewMode === 'add' && (
             <div className="space-y-3 animate-fadeIn">
-              <Textarea
-                  placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
-                  value={newKnowledge}
-                  onChange={e => setNewKnowledge(e.target.value)}
-                  rows={6}
-                  disabled={isSaving}
-                  className="text-sm"
-                  autoFocus
-              />
+              <div className="p-0.5 bg-gradient-to-r from-primary to-accent rounded-md">
+                <Textarea
+                    placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
+                    value={newKnowledge}
+                    onChange={e => setNewKnowledge(e.target.value)}
+                    rows={6}
+                    disabled={isSaving}
+                    className="text-sm"
+                    autoFocus
+                />
+              </div>
               <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setViewMode('list')} disabled={isSaving}>Cancelar</Button>
                   <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()}>
