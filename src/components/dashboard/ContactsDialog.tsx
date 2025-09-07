@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaTrash, FaPlus, FaAddressBook, FaUser, FaPhone } from 'react-icons/fa';
+import { FaSpinner, FaTrash, FaPlus, FaAddressBook, FaUser, FaPhone, FaWeightHanging } from 'react-icons/fa';
 import type { DatabaseConfig } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Loader2, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { formatBytes } from '@/lib/utils';
 
 
 // This is a placeholder type. We'll need a real API for this.
@@ -19,15 +20,14 @@ interface Contact {
   _id: string;
   name: string;
   phone: string;
-  lastContact: string;
-  avatarUrl?: string;
+  conversationSize: number; // in bytes
 }
 
 const DEMO_CONTACTS: Contact[] = [
-    { _id: '1', name: 'Ana García', phone: '+52 33 1234 5678', lastContact: 'hace 2 horas' },
-    { _id: '2', name: 'Carlos Martínez', phone: '+52 55 9876 5432', lastContact: 'hace 1 día' },
-    { _id: '3', name: 'Sofía Rodríguez', phone: '+52 81 1122 3344', lastContact: 'hace 3 días' },
-    { _id: '4', name: 'Javier Hernández', phone: '+52 44 2233 4455', lastContact: 'hace 1 semana' },
+    { _id: '1', name: 'Ana García', phone: '+52 33 1234 5678', conversationSize: 1250 },
+    { _id: '2', name: 'Carlos Martínez', phone: '+52 55 9876 5432', conversationSize: 5600 },
+    { _id: '3', name: 'Sofía Rodríguez', phone: '+52 81 1122 3344', conversationSize: 850 },
+    { _id: '4', name: 'Javier Hernández', phone: '+52 44 2233 4455', conversationSize: 22400 },
 ];
 
 interface ContactsDialogProps {
@@ -98,17 +98,13 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
                         <div className="space-y-2">
                         {filteredContacts.map(contact => (
                             <div key={contact._id} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
-                                <Avatar>
-                                    <AvatarImage src={contact.avatarUrl} />
-                                    <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
                                 <div className="flex-grow">
                                     <p className="text-sm font-semibold text-foreground">{contact.name}</p>
                                     <p className="text-xs text-muted-foreground flex items-center gap-1.5"><FaPhone size={10}/>{contact.phone}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-muted-foreground">Último contacto</p>
-                                    <p className="text-xs font-medium text-foreground">{contact.lastContact}</p>
+                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5"><FaWeightHanging size={10}/>Peso de la Conversación</p>
+                                    <p className="text-xs font-medium text-foreground">{formatBytes(contact.conversationSize)}</p>
                                 </div>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8">
                                     <FaTrash />
