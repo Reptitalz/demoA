@@ -41,7 +41,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
     }
   }
   
-  const showMessagesCard = !currentPath.endsWith('/databases');
+  const showMessagesCard = currentPath && !currentPath.endsWith('/databases');
 
   const summaryCards = [
     { title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
@@ -58,15 +58,15 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
             <div 
                 key={index}
                 onClick={card.action}
-                className="relative aspect-square p-2 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
+                className="relative p-2 rounded-lg transition-all duration-300 flex flex-col justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
             >
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-1.5">
-                        <Icon className={cn("h-5 w-5", card.color)} />
+                        <Icon className={cn("h-4 w-4", card.color)} />
                         <h3 className="text-xs font-medium">{card.title}</h3>
                     </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right mt-1">
                     <p className="text-2xl font-bold text-foreground">{card.value}</p>
                     <p className="text-[10px] text-muted-foreground">{card.description}</p>
                 </div>
@@ -98,3 +98,4 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
 };
 
 export default DashboardSummary;
+
