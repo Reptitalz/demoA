@@ -249,20 +249,40 @@ body {
 
   /* Animated Gradient Border */
   @keyframes animated-gradient-border {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   .animated-gradient-border {
+    position: relative;
+    overflow: hidden;
     border: 2px solid transparent;
-    background-image: 
-      linear-gradient(hsl(var(--background)), hsl(var(--background))), 
-      linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    background-size: 200% 100%;
-    animation: animated-gradient-border 4s ease-in-out infinite;
+    border-radius: 0.375rem; /* Corresponds to rounded-md */
+  }
+
+  .animated-gradient-border::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      from var(--angle, 0deg),
+      hsl(var(--primary)),
+      hsl(var(--accent)),
+      hsl(var(--primary))
+    );
+    animation: animated-gradient-border 6s linear infinite;
+  }
+
+  .animated-gradient-border > * {
+    position: relative;
+    z-index: 1;
   }
   
 }
