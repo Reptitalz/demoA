@@ -125,7 +125,7 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
                     onChange={e => setNewKnowledge(e.target.value)}
                     rows={6}
                     disabled={isSaving}
-                    className="text-sm"
+                    className="text-sm bg-card"
                     autoFocus
                 />
               </div>
