@@ -9,7 +9,7 @@ import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CR
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download } from 'lucide-react';
+import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download, AppWindow, Code } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -461,67 +461,6 @@ const HeroSection = () => {
   )
 }
 
-const StepCard = ({ num, icon, title, description, imageUrl, imageHint, children }: { num: string, icon: React.ReactNode, title: string, description: string, imageUrl: string, imageHint: string, children?: React.ReactNode }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      {
-        rootMargin: '0px',
-        threshold: 0.1
-      }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "relative p-6 rounded-lg border border-border/10 transition-all duration-300 glow-card opacity-0",
-        isVisible && "animate-scroll-in"
-      )}
-    >
-        <div className="relative space-y-4">
-            <div className="mb-4 inline-block bg-primary/10 p-3 rounded-lg border border-primary/20">
-                {icon}
-            </div>
-             <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-              <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-1 rounded-full z-10">
-                Paso {num}
-              </div>
-              <Image
-                src={imageUrl}
-                alt={title}
-                width={300}
-                height={169}
-                className="w-full h-full object-cover"
-                data-ai-hint={imageHint}
-              />
-            </div>
-            <h3 className="text-xl font-semibold mb-2 pt-2">{title}</h3>
-            <p className="text-muted-foreground">{description}</p>
-        </div>
-    </div>
-  );
-};
-
 const features = [
   {
     icon: <FaCogs size={24} className="text-primary" />,
@@ -758,37 +697,52 @@ export default function MarketingHomePage() {
         <PhoneChatMockup />
       </div>
 
-       <section id="how-it-works" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
+       <section id="assistant-types" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Empieza en 3 Sencillos Pasos</h2>
-            <p className="mt-4 text-muted-foreground">Configurar tu asistente de IA para WhatsApp es rápido e intuitivo.</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Dos Tipos de Asistentes, Infinitas Posibilidades</h2>
+            <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
+              Elige la herramienta perfecta para tu necesidad. Ya sea para interactuar con clientes en WhatsApp o para potenciar tus herramientas internas, tenemos la solución ideal.
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12" onMouseMove={setupMouseEvent}>
-            <StepCard
-              num="1"
-              icon={<UserCog size={28} className="text-primary" />}
-              title="Crea tu Asistente"
-              description="Define el nombre, la personalidad y los objetivos de tu asistente a través de nuestro sencillo asistente de configuración. No se requiere código."
-              imageUrl="/1.jpeg"
-              imageHint="AI assistant setup"
-            />
-            <StepCard
-              num="2"
-              icon={<FaSimCard size={28} className="text-primary" />}
-              title="Vincula un Número"
-              description="Adquiere una SIM nueva (sin WhatsApp previo) y vincúlala a tu asistente para que pueda empezar a comunicarse."
-              imageUrl="/2.jpeg"
-              imageHint="SIM card linking"
-            />
-            <StepCard
-              num="3"
-              icon={<FaCheckCircle size={28} className="text-primary" />}
-              title="Activa y Disfruta"
-              description="Recibirás un código de verificación de Facebook por SMS. Ingrésalo para activar tu asistente y deja que empiece a trabajar para ti."
-              imageUrl="/3.jpeg"
-              imageHint="success activation"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            {/* Asistente Desktop */}
+            <Card className="flex flex-col text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow overflow-hidden glow-card">
+              <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
+                <AppWindow size={32} className="text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold">Asistente en Navegador</h3>
+              <p className="text-muted-foreground mt-2 mb-4 flex-grow">
+                Un asistente que vive en una página web, ideal para pruebas, desarrollo y uso interno.
+              </p>
+              <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
+                <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Prueba prompts y lógica de IA sin costo inicial.</span></li>
+                <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Acceso inmediato con 30 días de prueba ilimitada.</span></li>
+                <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Intégralo en tus apps mediante una API.</span></li>
+              </ul>
+              <Button asChild className={cn("mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                <Link href="/begin">Prueba Gratis</Link>
+              </Button>
+            </Card>
+
+            {/* Asistente WhatsApp */}
+            <Card className="flex flex-col text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow overflow-hidden glow-card">
+              <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
+                <FaWhatsapp size={32} className="text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold">Asistente en WhatsApp</h3>
+              <p className="text-muted-foreground mt-2 mb-4 flex-grow">
+                La solución completa para automatizar la comunicación con tus clientes 24/7.
+              </p>
+              <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
+                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Atiende a tus clientes y vende en la plataforma que más usan.</span></li>
+                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Requiere un número de teléfono nuevo para una integración estable.</span></li>
+                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Conexión directa con la API oficial de WhatsApp.</span></li>
+              </ul>
+              <Button asChild className="mt-auto">
+                <Link href="/begin">Crear Asistente WhatsApp</Link>
+              </Button>
+            </Card>
           </div>
         </div>
       </section>
@@ -876,6 +830,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
