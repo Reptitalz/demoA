@@ -117,11 +117,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
             </ScrollArea>
         </div>
         
-        <DialogFooter className="flex-col sm:flex-row sm:justify-between w-full pt-2">
-            <Button disabled>
-                <FaPlus className="mr-2" />
-                Añadir Contacto
-            </Button>
+        <DialogFooter className="flex-col sm:flex-row sm:justify-end w-full pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
