@@ -28,7 +28,7 @@ body {
     --muted: 0 0% 90%; /* Lighter Gray */
     --muted-foreground: 240 5% 45%;
 
-    --accent: 280 80% 60%; /* Vibrant Violet */
+    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
     --accent-foreground: 0 0% 100%; /* White for violet */
 
     --destructive: 0 84.2% 60.2%; /* Standard destructive red */
@@ -61,7 +61,7 @@ body {
     --muted: 220 10% 20%;
     --muted-foreground: 210 30% 60%;
 
-    --accent: 280 80% 60%; /* Vibrant Violet */
+    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
     --accent-foreground: 0 0% 100%; /* White for violet */
 
     --destructive: 0 70% 55%; /* Adjusted Red */
