@@ -199,3 +199,17 @@ export interface KnowledgeItem {
   size: number; // in bytes
   createdAt: Date;
 }
+
+export interface ContactImage {
+    _id: string;
+    url: string;
+    receivedAt: Date;
+}
+
+export interface Contact {
+  _id: string;
+  name: string;
+  phone: string;
+  conversationSize: number; // in bytes
+  images?: ContactImage[];
+}

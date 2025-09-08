@@ -7,22 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaTrash, FaPlus, FaAddressBook, FaUser, FaPhone, FaWeightHanging } from 'react-icons/fa';
-import type { DatabaseConfig } from '@/types';
+import { FaSpinner, FaTrash, FaPlus, FaAddressBook, FaUser, FaPhone, FaWeightHanging, FaImage } from 'react-icons/fa';
+import type { DatabaseConfig, Contact } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Loader2, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { formatBytes } from '@/lib/utils';
+import ContactImagesDialog from './ContactImagesDialog'; // Import the new dialog
 
 
 // This is a placeholder type. We'll need a real API for this.
-interface Contact {
-  _id: string;
-  name: string;
-  phone: string;
-  conversationSize: number; // in bytes
-}
-
 const DEMO_CONTACTS: Contact[] = [
     { _id: '1', name: 'Ana García', phone: '+52 33 1234 5678', conversationSize: 1250 },
     { _id: '2', name: 'Carlos Martínez', phone: '+52 55 9876 5432', conversationSize: 5600 },
@@ -45,6 +39,8 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isImagesDialogOpen, setIsImagesDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -57,12 +53,18 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
     }
   }, [isOpen, database.id]);
 
+  const handleViewImages = (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsImagesDialogOpen(true);
+  };
+
   const filteredContacts = contacts.filter(contact =>
     contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contact.phone.includes(searchTerm)
   );
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
@@ -106,6 +108,9 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
                                     <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5"><FaWeightHanging size={10}/>Peso de la Conversación</p>
                                     <p className="text-xs font-medium text-foreground">{formatBytes(contact.conversationSize)}</p>
                                 </div>
+                                <Button variant="ghost" size="icon" onClick={() => handleViewImages(contact)} className="text-primary hover:text-primary hover:bg-primary/10 h-8 w-8">
+                                    <FaImage />
+                                </Button>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8">
                                     <FaTrash />
                                 </Button>
@@ -122,6 +127,15 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {selectedContact && (
+        <ContactImagesDialog 
+            isOpen={isImagesDialogOpen}
+            onOpenChange={setIsImagesDialogOpen}
+            contact={selectedContact}
+        />
+    )}
+    </>
   );
 };
 
