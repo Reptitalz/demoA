@@ -66,7 +66,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
+      <DialogContent className="w-full h-full max-w-none flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FaAddressBook /> Contactos de "{database.name}"
