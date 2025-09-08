@@ -12,6 +12,7 @@ import { APP_NAME } from "@/config/appConfig";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 const CollaboratorDashboardPage = () => {
     const { state } = useApp();
@@ -61,26 +62,12 @@ const CollaboratorDashboardPage = () => {
         });
     };
 
-    const summaryCards = [
-        {
-            title: "Usuarios Referidos",
-            value: collaboratorProfile.referredUsers.toLocaleString(),
-            description: "Clientes que has registrado.",
-            icon: <FaUsers className="h-6 w-6 text-blue-500" />
-        },
-        {
-            title: "Ingresos Generados",
-            value: `$${collaboratorProfile.totalEarnings.toFixed(2)}`,
-            description: "Comisiones ganadas de recargas.",
-            icon: <FaDollarSign className="h-6 w-6 text-green-500" />
-        },
-        {
-            title: "Tasa de Conversión",
-            value: `${collaboratorProfile.conversionRate}%`,
-            description: "Visitas a tu enlace vs. registros.",
-            icon: <FaChartLine className="h-6 w-6 text-orange-500" />
-        }
-    ];
+    const conversionCard = {
+        title: "Tasa de Conversión",
+        value: `${collaboratorProfile.conversionRate}%`,
+        description: "Visitas vs. registros.",
+        icon: <FaChartLine className="h-5 w-5 text-orange-500" />
+    };
 
     if (loadingStatus.active && !isDemoMode) {
         return (
@@ -109,19 +96,32 @@ const CollaboratorDashboardPage = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                 {summaryCards.map((card, index) => (
-                    <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                           <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                           {card.icon}
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{card.value}</div>
-                            <p className="text-xs text-muted-foreground">{card.description}</p>
-                        </CardContent>
-                    </Card>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 sm:col-span-1">
+                    <CardContent className="p-4 flex items-center justify-around h-full">
+                        {/* Users Section */}
+                        <div className="text-center space-y-1">
+                            <FaUsers className="h-6 w-6 text-blue-500 mx-auto" />
+                            <p className="text-sm font-medium">Usuarios Referidos</p>
+                            <p className="text-2xl font-bold">{collaboratorProfile.referredUsers.toLocaleString()}</p>
+                        </div>
+                        <Separator orientation="vertical" className="h-16 mx-4" />
+                        {/* Earnings Section */}
+                        <div className="text-center space-y-1">
+                            <FaDollarSign className="h-6 w-6 text-green-500 mx-auto" />
+                            <p className="text-sm font-medium">Ingresos Generados</p>
+                            <p className="text-2xl font-bold">${collaboratorProfile.totalEarnings.toFixed(2)}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 sm:col-span-1">
+                     <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full space-y-1">
+                        {conversionCard.icon}
+                        <p className="text-sm font-medium">{conversionCard.title}</p>
+                        <p className="text-2xl font-bold">{conversionCard.value}</p>
+                        <p className="text-xs text-muted-foreground">{conversionCard.description}</p>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Referral Link Card */}
