@@ -88,11 +88,6 @@ const CollaboratorDashboardPage = () => {
                         Bienvenido, {collaboratorProfile.firstName}. Aquí puedes seguir tu progreso.
                     </p>
                 </div>
-                 {isDemoMode && (
-                    <Button onClick={() => router.push('/colaboradores/login')}>
-                        Iniciar Sesión / Registrarse
-                    </Button>
-                )}
             </div>
 
             {/* Summary Cards */}
