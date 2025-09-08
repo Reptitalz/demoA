@@ -243,7 +243,7 @@ const DesktopChatPage = () => {
            <div
             className="w-full h-full chat-background"
           >
-            <div className="h-full flex flex-col backdrop-blur-sm bg-black/10">
+            <div className="h-full flex flex-col">
               <header className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0">
                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
                    <Link href="/dashboard/assistants"><FaArrowLeft /></Link>
