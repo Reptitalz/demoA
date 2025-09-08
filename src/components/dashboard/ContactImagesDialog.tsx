@@ -18,6 +18,8 @@ const DEMO_IMAGES: ContactImage[] = [
     { _id: 'img1', url: 'https://picsum.photos/seed/cake1/400/300', receivedAt: new Date('2024-07-28T10:30:00Z') },
     { _id: 'img2', url: 'https://picsum.photos/seed/design2/400/300', receivedAt: new Date('2024-07-27T15:00:00Z') },
     { _id: 'img3', url: 'https://picsum.photos/seed/idea3/400/300', receivedAt: new Date('2024-07-25T09:15:00Z') },
+    { _id: 'img4', url: 'https://picsum.photos/seed/meeting4/400/300', receivedAt: new Date('2024-07-24T18:45:00Z') },
+    { _id: 'img5', url: 'https://picsum.photos/seed/product5/400/300', receivedAt: new Date('2024-07-23T11:00:00Z') },
 ];
 
 interface ContactImagesDialogProps {
@@ -75,7 +77,8 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-grow border rounded-md -mx-2">
+        <div className="flex-grow border rounded-md overflow-hidden">
+          <ScrollArea className="h-full">
             <div className="p-4">
                 {isLoading ? (
                     <div className="flex justify-center items-center h-48">
@@ -114,7 +117,8 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                     </div>
                 )}
             </div>
-        </ScrollArea>
+          </ScrollArea>
+        </div>
         
         <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
