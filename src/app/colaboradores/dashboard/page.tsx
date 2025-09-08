@@ -109,7 +109,7 @@ const CollaboratorDashboardPage = () => {
                         {/* Earnings Section */}
                         <div className="p-0.5 rounded-lg bg-brand-gradient shiny-border">
                             <div 
-                                className="text-center space-y-1 p-2 rounded-lg cursor-pointer"
+                                className="text-center space-y-1 p-2 rounded-lg cursor-pointer bg-card"
                                 onClick={() => toast({ title: 'Ingresos', description: 'Aquí verías el detalle de tus ingresos.'})}
                             >
                                 <FaDollarSign className="h-6 w-6 text-green-500 mx-auto" />
