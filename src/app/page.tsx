@@ -725,7 +725,8 @@ export default function MarketingHomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             {/* Asistente Desktop */}
              <div className="p-1 rounded-lg bg-brand-gradient shiny-border transition-all duration-300" style={transformStyle}>
-              <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d">
+              <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d chroma-card">
+                <div className="chroma-card-glow" />
                 <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
                   <AppWindow size={32} className="text-primary" />
                 </div>
@@ -852,6 +853,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
