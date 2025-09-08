@@ -31,10 +31,10 @@ const CollaboratorDashboardPage = () => {
         conversionRate: 5.2,
         firstName: 'Colaborador Demo'
     } : {
-        referralCode: userProfile.firebaseUid ? userProfile.firebaseUid.substring(0, 8) : 'ABC12345',
-        referredUsers: 0,
-        totalEarnings: 0,
-        conversionRate: 0,
+        referralCode: userProfile.referralCode || 'ABC12345',
+        referredUsers: userProfile.referredUsers?.length || 0,
+        totalEarnings: userProfile.totalEarnings || 0,
+        conversionRate: userProfile.conversionRate || 0,
         firstName: userProfile.firstName || 'Colaborador'
     };
 
@@ -91,30 +91,30 @@ const CollaboratorDashboardPage = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                 <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 sm:col-span-1">
-                    <CardContent className="p-4 flex items-center justify-around h-full">
+                    <CardContent className="p-3 flex items-center justify-around h-full">
                         {/* Users Section */}
                         <div className="text-center space-y-1">
-                            <FaUsers className="h-6 w-6 text-blue-500 mx-auto" />
-                            <p className="text-sm font-medium">Usuarios Referidos</p>
-                            <p className="text-2xl font-bold">{collaboratorProfile.referredUsers.toLocaleString()}</p>
+                            <FaUsers className="h-5 w-5 text-blue-500 mx-auto" />
+                            <p className="text-xs font-medium">Usuarios Referidos</p>
+                            <p className="text-xl font-bold">{collaboratorProfile.referredUsers.toLocaleString()}</p>
                         </div>
-                        <Separator orientation="vertical" className="h-16 mx-4" />
+                        <Separator orientation="vertical" className="h-12 mx-2" />
                         {/* Earnings Section */}
                         <div 
-                            className="text-center space-y-1 p-3 rounded-lg cursor-pointer transition-all duration-300 hover:bg-muted/50"
+                            className="text-center space-y-1 p-2 rounded-lg cursor-pointer transition-all duration-300 hover:bg-muted/50"
                             onClick={() => toast({ title: 'Ingresos', description: 'Aquí verías el detalle de tus ingresos.'})}
                         >
-                            <FaDollarSign className="h-6 w-6 text-green-500 mx-auto" />
-                            <p className="text-sm font-medium">Ingresos Generados</p>
-                            <p className="text-2xl font-bold">${collaboratorProfile.totalEarnings.toFixed(2)}</p>
+                            <FaDollarSign className="h-5 w-5 text-green-500 mx-auto" />
+                            <p className="text-xs font-medium">Ingresos Generados</p>
+                            <p className="text-xl font-bold">${collaboratorProfile.totalEarnings.toFixed(2)}</p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 sm:col-span-1">
-                     <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full space-y-1">
+                     <CardContent className="p-3 flex flex-col items-center justify-center text-center h-full space-y-1">
                         {conversionCard.icon}
-                        <p className="text-sm font-medium">{conversionCard.title}</p>
-                        <p className="text-2xl font-bold">{conversionCard.value}</p>
+                        <p className="text-xs font-medium">{conversionCard.title}</p>
+                        <p className="text-xl font-bold">{conversionCard.value}</p>
                         <p className="text-xs text-muted-foreground">{conversionCard.description}</p>
                     </CardContent>
                 </Card>
