@@ -154,19 +154,6 @@ body {
   }
 
 
-  .animate-pulse-border {
-    animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes pulse-border {
-    0%, 100% {
-      box-shadow: 0 0 0 0 hsla(var(--primary), 0.7);
-    }
-    50% {
-      box-shadow: 0 0 0 10px hsla(var(--primary), 0);
-    }
-  }
-
   .shiny-border {
     position: relative;
     overflow: hidden;
@@ -180,7 +167,7 @@ body {
     height: 100%;
     background: linear-gradient(115deg, transparent 40%, hsla(0, 0%, 100%, 0.5), transparent 60%);
     background-size: 200% 100%;
-    animation: shiny-border-anim 3s linear infinite;
+    animation: shiny-border-anim 5s linear infinite;
     z-index: 1;
     pointer-events: none;
   }
