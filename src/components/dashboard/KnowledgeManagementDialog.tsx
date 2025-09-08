@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaTrash, FaPlus, FaLightbulb } from 'react-icons/fa';
+import { FaSpinner, FaTrash, FaPlus, FaLightbulb, FaStar } from 'react-icons/fa';
 import type { DatabaseConfig, KnowledgeItem } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { formatBytes } from '@/lib/utils';
@@ -128,8 +128,8 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
                 />
               <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setViewMode('list')} disabled={isSaving}>Cancelar</Button>
-                  <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()}>
-                      {isSaving ? <FaSpinner className="animate-spin mr-2" /> : <FaPlus className="mr-2" />}
+                  <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()} className={cn("bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                      {isSaving ? <FaSpinner className="animate-spin mr-2" /> : <FaStar className="mr-2" />}
                       Guardar Conocimiento
                   </Button>
               </div>
