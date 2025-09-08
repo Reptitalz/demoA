@@ -746,7 +746,7 @@ export default function MarketingHomePage() {
 
 
             {/* Asistente WhatsApp */}
-             <div className="p-1 rounded-lg bg-brand-gradient transition-all duration-300" style={transformStyle}>
+            <div className="transition-all duration-300" style={transformStyle}>
               <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d">
                 <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
                   <FaWhatsapp size={32} className="text-primary" />
@@ -852,6 +852,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
