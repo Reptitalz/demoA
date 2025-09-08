@@ -107,10 +107,15 @@ const CollaboratorDashboardPage = () => {
                         </div>
                         <Separator orientation="vertical" className="h-16 mx-4" />
                         {/* Earnings Section */}
-                        <div className="text-center space-y-1">
-                            <FaDollarSign className="h-6 w-6 text-green-500 mx-auto" />
-                            <p className="text-sm font-medium">Ingresos Generados</p>
-                            <p className="text-2xl font-bold">${collaboratorProfile.totalEarnings.toFixed(2)}</p>
+                        <div className="p-0.5 rounded-lg bg-brand-gradient shiny-border">
+                            <div 
+                                className="text-center space-y-1 p-2 rounded-lg cursor-pointer"
+                                onClick={() => toast({ title: 'Ingresos', description: 'Aquí verías el detalle de tus ingresos.'})}
+                            >
+                                <FaDollarSign className="h-6 w-6 text-green-500 mx-auto" />
+                                <p className="text-sm font-medium">Ingresos Generados</p>
+                                <p className="text-2xl font-bold">${collaboratorProfile.totalEarnings.toFixed(2)}</p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
