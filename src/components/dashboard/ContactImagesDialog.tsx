@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FaImage, FaDownload } from 'react-icons/fa';
+import { FaImage, FaDownload, FaCheck, FaTimes } from 'react-icons/fa';
 import type { Contact, ContactImage } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Loader2 } from 'lucide-react';
@@ -34,6 +34,7 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
   
   const [images, setImages] = useState<ContactImage[]>(contact.images || []);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<ContactImage | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,6 +43,8 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
       // Here we just use the ones passed in via props.
       setImages(contact.images || []);
       setIsLoading(false);
+    } else {
+        setSelectedImage(null); // Reset when main dialog closes
     }
   }, [isOpen, contact.images]);
 
@@ -63,8 +66,22 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
         toast({ title: 'Error de Descarga', description: 'No se pudo descargar la imagen.', variant: 'destructive' });
       });
   };
+  
+  const handleReject = (imageId: string) => {
+    setImages(prev => prev.filter(img => img._id !== imageId));
+    setSelectedImage(null);
+    toast({ title: 'Imagen Rechazada', description: 'La imagen ha sido eliminada de la vista.' });
+    // Here you would typically call an API to delete the image from the server.
+  };
+
+  const handleAccept = () => {
+    setSelectedImage(null);
+    toast({ title: 'Imagen Aceptada', description: 'La imagen se ha mantenido.' });
+  };
+  
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
@@ -90,10 +107,14 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {images.map(image => (
-                        <div key={image._id} className={cn(
-                           "group relative overflow-hidden rounded-lg border shadow-sm",
-                           !image.read && "border-yellow-400 border-2"
-                        )}>
+                        <div 
+                            key={image._id} 
+                            className={cn(
+                               "group relative overflow-hidden rounded-lg border shadow-sm cursor-pointer",
+                               !image.read && "border-yellow-400 border-2"
+                            )}
+                            onClick={() => setSelectedImage(image)}
+                        >
                            <Image
                                 src={image.url}
                                 alt={`Imagen recibida el ${format(image.receivedAt, "PPPp", { locale: es })}`}
@@ -109,7 +130,10 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                                     variant="secondary" 
                                     size="sm" 
                                     className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => handleDownload(image.url, `imagen_${contact.name.replace(/\s+/g, '_')}_${image._id}.jpg`)}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent opening the detail view
+                                        handleDownload(image.url, `imagen_${contact.name.replace(/\s+/g, '_')}_${image._id}.jpg`)
+                                    }}
                                 >
                                     <FaDownload/>
                                 </Button>
@@ -127,6 +151,29 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {selectedImage && (
+        <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+            <DialogContent className="max-w-4xl p-0 border-0">
+                <Image 
+                    src={selectedImage.url}
+                    alt="Vista detallada de la imagen"
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto object-contain rounded-t-lg"
+                />
+                 <DialogFooter className="p-4 bg-background rounded-b-lg flex justify-end gap-2">
+                    <Button variant="destructive" onClick={() => handleReject(selectedImage._id)}>
+                        <FaTimes className="mr-2" /> Rechazar
+                    </Button>
+                    <Button variant="default" onClick={handleAccept}>
+                        <FaCheck className="mr-2" /> Aceptar
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+    </>
   );
 };
 
