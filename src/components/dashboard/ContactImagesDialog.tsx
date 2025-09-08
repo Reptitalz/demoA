@@ -12,14 +12,15 @@ import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 // Placeholder data for received images
 const DEMO_IMAGES: ContactImage[] = [
-    { _id: 'img1', url: 'https://picsum.photos/seed/cake1/400/300', receivedAt: new Date('2024-07-28T10:30:00Z') },
-    { _id: 'img2', url: 'https://picsum.photos/seed/design2/400/300', receivedAt: new Date('2024-07-27T15:00:00Z') },
-    { _id: 'img3', url: 'https://picsum.photos/seed/idea3/400/300', receivedAt: new Date('2024-07-25T09:15:00Z') },
-    { _id: 'img4', url: 'https://picsum.photos/seed/meeting4/400/300', receivedAt: new Date('2024-07-24T18:45:00Z') },
-    { _id: 'img5', url: 'https://picsum.photos/seed/product5/400/300', receivedAt: new Date('2024-07-23T11:00:00Z') },
+    { _id: 'img1', url: 'https://picsum.photos/seed/cake1/400/300', receivedAt: new Date('2024-07-28T10:30:00Z'), read: false },
+    { _id: 'img2', url: 'https://picsum.photos/seed/design2/400/300', receivedAt: new Date('2024-07-27T15:00:00Z'), read: true },
+    { _id: 'img3', url: 'https://picsum.photos/seed/idea3/400/300', receivedAt: new Date('2024-07-25T09:15:00Z'), read: false },
+    { _id: 'img4', url: 'https://picsum.photos/seed/meeting4/400/300', receivedAt: new Date('2024-07-24T18:45:00Z'), read: true },
+    { _id: 'img5', url: 'https://picsum.photos/seed/product5/400/300', receivedAt: new Date('2024-07-23T11:00:00Z'), read: false },
 ];
 
 interface ContactImagesDialogProps {
@@ -31,20 +32,18 @@ interface ContactImagesDialogProps {
 const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDialogProps) => {
   const { toast } = useToast();
   
-  const [images, setImages] = useState<ContactImage[]>([]);
+  const [images, setImages] = useState<ContactImage[]>(contact.images || []);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      // Simulate fetching images for the contact. Replace with actual API call.
-      setTimeout(() => {
-        // In a real app, you'd fetch images for contact.id
-        setImages(DEMO_IMAGES);
-        setIsLoading(false);
-      }, 500);
+      // In a real app, you might re-fetch images for the contact.
+      // Here we just use the ones passed in via props.
+      setImages(contact.images || []);
+      setIsLoading(false);
     }
-  }, [isOpen, contact.id]);
+  }, [isOpen, contact.images]);
 
   const handleDownload = (imageUrl: string, imageName: string) => {
     fetch(imageUrl)
@@ -91,7 +90,10 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {images.map(image => (
-                        <div key={image._id} className="group relative overflow-hidden rounded-lg border shadow-sm">
+                        <div key={image._id} className={cn(
+                           "group relative overflow-hidden rounded-lg border shadow-sm",
+                           !image.read && "border-yellow-400 border-2"
+                        )}>
                            <Image
                                 src={image.url}
                                 alt={`Imagen recibida el ${format(image.receivedAt, "PPPp", { locale: es })}`}

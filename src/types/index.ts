@@ -1,5 +1,6 @@
 
 
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -212,6 +213,7 @@ export interface ContactImage {
     _id: string;
     url: string;
     receivedAt: Date;
+    read: boolean;
 }
 
 export interface Contact {

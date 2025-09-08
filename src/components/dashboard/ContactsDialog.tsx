@@ -14,14 +14,15 @@ import { Loader2, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { formatBytes } from '@/lib/utils';
 import ContactImagesDialog from './ContactImagesDialog'; // Import the new dialog
+import { cn } from '@/lib/utils';
 
 
 // This is a placeholder type. We'll need a real API for this.
 const DEMO_CONTACTS: Contact[] = [
-    { _id: '1', name: 'Ana García', phone: '+52 33 1234 5678', conversationSize: 1250 },
-    { _id: '2', name: 'Carlos Martínez', phone: '+52 55 9876 5432', conversationSize: 5600 },
+    { _id: '1', name: 'Ana García', phone: '+52 33 1234 5678', conversationSize: 1250, images: [{ _id: 'img1', url: 'https://picsum.photos/seed/cake1/400/300', receivedAt: new Date(), read: false }] },
+    { _id: '2', name: 'Carlos Martínez', phone: '+52 55 9876 5432', conversationSize: 5600, images: [{ _id: 'img2', url: 'https://picsum.photos/seed/design2/400/300', receivedAt: new Date(), read: true }, { _id: 'img3', url: 'https://picsum.photos/seed/idea3/400/300', receivedAt: new Date(), read: false }] },
     { _id: '3', name: 'Sofía Rodríguez', phone: '+52 81 1122 3344', conversationSize: 850 },
-    { _id: '4', name: 'Javier Hernández', phone: '+52 44 2233 4455', conversationSize: 22400 },
+    { _id: '4', name: 'Javier Hernández', phone: '+52 44 2233 4455', conversationSize: 22400, images: [{ _id: 'img4', url: 'https://picsum.photos/seed/meeting4/400/300', receivedAt: new Date(), read: true }] },
 ];
 
 interface ContactsDialogProps {
@@ -56,6 +57,16 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
   const handleViewImages = (contact: Contact) => {
     setSelectedContact(contact);
     setIsImagesDialogOpen(true);
+    // Mark images as read for this contact
+    setContacts(prevContacts => prevContacts.map(c => {
+        if (c._id === contact._id && c.images) {
+            return {
+                ...c,
+                images: c.images.map(img => ({ ...img, read: true }))
+            };
+        }
+        return c;
+    }));
   };
 
   const filteredContacts = contacts.filter(contact =>
@@ -98,7 +109,9 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
                         </p>
                     ) : (
                         <div className="space-y-2">
-                        {filteredContacts.map(contact => (
+                        {filteredContacts.map(contact => {
+                           const hasUnreadImages = contact.images?.some(img => !img.read);
+                           return (
                             <div key={contact._id} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
                                 <div className="flex-grow">
                                     <p className="text-sm font-semibold text-foreground">{contact.name}</p>
@@ -108,14 +121,24 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
                                     <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5">Peso de la Conversación</p>
                                     <p className="text-xs font-medium text-foreground">{formatBytes(contact.conversationSize)}</p>
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => handleViewImages(contact)} className="text-primary hover:text-primary hover:bg-primary/10 h-8 w-8">
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={() => handleViewImages(contact)} 
+                                    className="text-primary hover:text-primary hover:bg-primary/10 h-8 w-8 relative"
+                                    disabled={!contact.images || contact.images.length === 0}
+                                >
                                     <FaImage />
+                                    {hasUnreadImages && (
+                                        <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-yellow-400 ring-2 ring-muted" />
+                                    )}
                                 </Button>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8">
                                     <FaTrash />
                                 </Button>
                             </div>
-                        ))}
+                           )
+                        })}
                         </div>
                     )}
                 </div>
