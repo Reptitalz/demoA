@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaTrash, FaPlus, FaAddressBook, FaUser, FaPhone, FaWeightHanging, FaImage } from 'react-icons/fa';
+import { FaTrash, FaAddressBook, FaPhone, FaImage } from 'react-icons/fa';
 import type { DatabaseConfig, Contact } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Loader2, Search } from 'lucide-react';
@@ -105,7 +105,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
                                     <p className="text-xs text-muted-foreground flex items-center gap-1.5"><FaPhone size={10}/>{contact.phone}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5"><FaWeightHanging size={10}/>Peso de la Conversación</p>
+                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5">Peso de la Conversación</p>
                                     <p className="text-xs font-medium text-foreground">{formatBytes(contact.conversationSize)}</p>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => handleViewImages(contact)} className="text-primary hover:text-primary hover:bg-primary/10 h-8 w-8">
