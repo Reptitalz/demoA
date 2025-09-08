@@ -78,7 +78,7 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
         </DialogHeader>
         
         <div className="flex-grow border rounded-md overflow-hidden">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-[500px]">
             <div className="p-4">
                 {isLoading ? (
                     <div className="flex justify-center items-center h-48">
