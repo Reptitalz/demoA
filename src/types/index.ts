@@ -93,6 +93,12 @@ export interface UserAddress {
   state?: string;
 }
 
+export interface CollaboratorBankInfo {
+    bankName?: string;
+    accountHolder?: string;
+    clabe?: string;
+}
+
 export interface CollaboratorProfile {
   _id?: ObjectId;
   firebaseUid: string;
@@ -101,10 +107,12 @@ export interface CollaboratorProfile {
   password?: string;
   firstName?: string;
   lastName?: string;
+  imageUrl?: string;
   referralCode: string;
   referredUsers: ObjectId[]; // Array of UserProfile IDs
   totalEarnings: number;
   conversionRate: number;
+  bankInfo?: CollaboratorBankInfo;
 }
 
 export interface UserProfile {

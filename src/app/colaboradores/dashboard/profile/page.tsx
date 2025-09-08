@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FaUser, FaEnvelope, FaKey, FaCopy } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaKey, FaCopy, FaUniversity, FaSave } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
 import { useApp } from "@/providers/AppProvider";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
@@ -45,44 +45,68 @@ const CollaboratorProfilePage = () => {
                     Perfil de Colaborador
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                    Gestiona tu información personal y de seguridad.
+                    Gestiona tu información personal, de pago y de seguridad.
                 </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                    <CardHeader>
-                        <CardTitle>Información Personal</CardTitle>
-                        <CardDescription>Estos datos se utilizan para identificarte en la plataforma.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center gap-4">
-                             <Avatar className="h-16 w-16">
-                                <AvatarImage src={userProfile.imageUrl || "https://picsum.photos/seed/collab/100"} />
-                                <AvatarFallback>{userProfile.firstName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <Button variant="outline" disabled>Cambiar Foto</Button>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <Label htmlFor="firstName">Nombre</Label>
-                                <Input id="firstName" defaultValue={userProfile.firstName} disabled />
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                        <CardHeader>
+                            <CardTitle>Información Personal</CardTitle>
+                            <CardDescription>Estos datos se utilizan para identificarte en la plataforma.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={userProfile.imageUrl || "https://picsum.photos/seed/collab/100"} />
+                                    <AvatarFallback>{userProfile.firstName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <Button variant="outline" disabled>Cambiar Foto</Button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <Label htmlFor="firstName">Nombre</Label>
+                                    <Input id="firstName" defaultValue={userProfile.firstName} disabled />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="lastName">Apellido</Label>
+                                    <Input id="lastName" defaultValue={userProfile.lastName} disabled />
+                                </div>
                             </div>
                             <div className="space-y-1">
-                                <Label htmlFor="lastName">Apellido</Label>
-                                <Input id="lastName" defaultValue={userProfile.lastName} disabled />
+                                <Label htmlFor="email">Correo Electrónico</Label>
+                                <Input id="email" type="email" defaultValue={userProfile.email} disabled />
                             </div>
-                        </div>
-                         <div className="space-y-1">
-                            <Label htmlFor="email">Correo Electrónico</Label>
-                            <Input id="email" type="email" defaultValue={userProfile.email} disabled />
-                        </div>
-                         <Button disabled>Guardar Cambios</Button>
-                    </CardContent>
-                </Card>
+                            <Button disabled>Guardar Cambios</Button>
+                        </CardContent>
+                    </Card>
+
+                     <Card className="animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+                        <CardHeader>
+                            <CardTitle>Datos de Transferencia Bancaria</CardTitle>
+                            <CardDescription>Ingresa tus datos para recibir tus ganancias. Los pagos se realizan el día 15 de cada mes.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-1">
+                                <Label htmlFor="bankName">Nombre del Banco</Label>
+                                <Input id="bankName" placeholder="Ej: BBVA, Santander, etc." />
+                            </div>
+                             <div className="space-y-1">
+                                <Label htmlFor="accountHolder">Nombre del Titular de la Cuenta</Label>
+                                <Input id="accountHolder" placeholder="Tu nombre completo como aparece en la cuenta" />
+                            </div>
+                             <div className="space-y-1">
+                                <Label htmlFor="clabe">CLABE Interbancaria (18 dígitos)</Label>
+                                <Input id="clabe" placeholder="XXXXXXXXXXXXXXXXXX" maxLength={18} />
+                            </div>
+                            <Button disabled><FaSave className="mr-2" /> Guardar Datos Bancarios</Button>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <div className="space-y-6">
-                    <Card className="animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+                    <Card className="animate-fadeIn" style={{ animationDelay: '0.4s' }}>
                         <CardHeader>
                             <CardTitle>Seguridad</CardTitle>
                         </CardHeader>
@@ -94,7 +118,7 @@ const CollaboratorProfilePage = () => {
                             <Button variant="secondary" disabled>Cambiar Contraseña</Button>
                         </CardContent>
                     </Card>
-                    <Card className="animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+                    <Card className="animate-fadeIn" style={{ animationDelay: '0.5s' }}>
                         <CardHeader>
                             <CardTitle>Tu Enlace de Referido</CardTitle>
                         </CardHeader>
