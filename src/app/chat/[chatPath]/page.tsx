@@ -239,11 +239,9 @@ const DesktopChatPage = () => {
         </div>
 
         {/* Main Chat Area */}
-        <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800">
-           <div
-            className="w-full h-full chat-background"
-          >
-            <div className="h-full flex flex-col">
+        <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800 relative">
+           <div className="absolute inset-0 chat-background" />
+            <div className="relative h-full flex flex-col">
               <header className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0">
                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
                    <Link href="/dashboard/assistants"><FaArrowLeft /></Link>
@@ -274,7 +272,7 @@ const DesktopChatPage = () => {
                  )}
                 <div ref={chatEndRef} />
               </main>
-              <footer className="p-3 bg-slate-200 dark:bg-slate-800 flex items-center gap-3 shrink-0 border-t border-black/10">
+              <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 shrink-0 border-t border-black/10">
                 <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
                   <Input
                     type="text"
@@ -294,7 +292,6 @@ const DesktopChatPage = () => {
              <div className="absolute bottom-1 right-1/2 translate-x-1/2 text-[9px] text-muted-foreground/50 pointer-events-none">
                 Powered by {APP_NAME}
             </div>
-          </div>
         </div>
       </div>
     </div>
