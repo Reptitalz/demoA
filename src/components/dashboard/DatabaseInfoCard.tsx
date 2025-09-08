@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import ChangeDatabaseTypeDialog from "./ChangeDatabaseTypeDialog";
 import { Progress } from "../ui/progress";
-import { formatBytes } from "@/lib/utils";
+import { formatBytes, cn } from "@/lib/utils";
 import KnowledgeManagementDialog from "./KnowledgeManagementDialog"; // Import the new dialog
 import { BookOpen } from "lucide-react";
 import ContactsDialog from "./ContactsDialog";
@@ -237,7 +237,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                       Contactos
                   </Button>
                   <Button 
-                      className="w-full" 
+                      className={cn("w-full", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")} 
                       size="sm"
                       onClick={() => setIsKnowledgeDialogOpen(true)}
                   >
