@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -16,6 +17,7 @@ import { APP_NAME } from '@/config/appConfig';
 import RegisterCollaboratorDialog from '@/components/auth/RegisterCollaboratorDialog';
 import { cn } from '@/lib/utils';
 import { UserPlus } from 'lucide-react';
+import Link from 'next/link';
 
 const CollaboratorLoginPage = () => {
   const router = useRouter();
@@ -82,7 +84,9 @@ const CollaboratorLoginPage = () => {
       <div className="flex items-center justify-center min-h-screen bg-background px-4">
         <div className="w-full max-w-md bg-card shadow-xl rounded-2xl p-6 sm:p-8 animate-fadeIn animate-float">
           <div className="text-center mb-6 flex flex-col items-center">
-            <AppIcon className="h-12 w-12 mb-2" />
+            <Link href="/">
+                <AppIcon className="h-12 w-12 mb-2" />
+            </Link>
             <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
             <p className="text-sm text-muted-foreground mt-2">Acceso para Colaboradores</p>
           </div>
