@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -105,7 +104,7 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col" onInteractOutside={e => { if (isSaving) e.preventDefault(); }}>
+      <DialogContent className="w-full h-full max-w-none flex flex-col" onInteractOutside={e => { if (isSaving) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FaLightbulb /> Gestionar Conocimiento de "{database.name}"
