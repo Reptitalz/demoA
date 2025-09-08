@@ -38,25 +38,23 @@ const CollaboratorDashboardPage = () => {
         firstName: userProfile.firstName || 'Colaborador'
     };
 
-    const referralLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/login?ref=${collaboratorProfile.referralCode}`;
-
-    const handleCopyLink = () => {
+    const handleCopyCode = () => {
         if (isDemoMode) {
             toast({
                 title: "Modo Demostración",
-                description: "La copia del enlace está deshabilitada en el modo de demostración.",
+                description: "La copia de la clave está deshabilitada en el modo de demostración.",
             });
             return;
         }
-        navigator.clipboard.writeText(referralLink).then(() => {
+        navigator.clipboard.writeText(collaboratorProfile.referralCode).then(() => {
             toast({
-                title: "Enlace Copiado",
-                description: "Tu enlace de referido ha sido copiado al portapapeles.",
+                title: "Clave Copiada",
+                description: "Tu clave de referido ha sido copiada al portapapeles.",
             });
         }, (err) => {
             toast({
                 title: 'Error al Copiar',
-                description: 'No se pudo copiar el enlace.',
+                description: 'No se pudo copiar la clave.',
                 variant: 'destructive',
             });
         });
@@ -122,24 +120,24 @@ const CollaboratorDashboardPage = () => {
                 </Card>
             </div>
 
-            {/* Referral Link Card */}
+            {/* Referral Code Card */}
             <Card className="animate-fadeIn glow-card" style={{ animationDelay: '0.4s' }}>
                 <CardHeader>
-                    <CardTitle>Tu Enlace de Referido</CardTitle>
+                    <CardTitle>Tu Clave de Referido</CardTitle>
                     <p className="text-sm text-muted-foreground pt-1">
-                        Comparte este enlace con tus clientes para que se registren. Todas las recargas que hagan te generarán una comisión.
+                        Comparte esta clave con tus clientes para que la ingresen al registrarse. Todas las recargas que hagan te generarán una comisión.
                     </p>
                 </CardHeader>
                 <CardContent className="bg-muted/50 p-4 rounded-lg">
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                         <input
                             type="text"
-                            value={referralLink}
+                            value={collaboratorProfile.referralCode}
                             readOnly
-                            className="flex-grow w-full bg-transparent border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+                            className="flex-grow w-full bg-transparent border-input rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary font-mono tracking-widest text-center sm:text-left"
                         />
-                        <Button onClick={handleCopyLink} size="sm" className="w-full sm:w-auto shrink-0">
-                            <FaClipboard className="mr-2" /> Copiar Enlace
+                        <Button onClick={handleCopyCode} size="sm" className="w-full sm:w-auto shrink-0">
+                            <FaClipboard className="mr-2" /> Copiar Clave
                         </Button>
                     </div>
                 </CardContent>

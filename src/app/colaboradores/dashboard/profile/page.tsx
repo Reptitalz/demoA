@@ -19,13 +19,13 @@ const CollaboratorProfilePage = () => {
     const { userProfile, loadingStatus } = state;
     const { status } = useSession();
 
-    const referralLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002'}/login?ref=${userProfile.firebaseUid ? userProfile.firebaseUid.substring(0, 8) : 'ABC12345'}`;
+    const referralCode = userProfile.firebaseUid ? userProfile.firebaseUid.substring(0, 8) : 'ABC12345';
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(referralLink).then(() => {
+        navigator.clipboard.writeText(referralCode).then(() => {
             toast({
-                title: "Enlace Copiado",
-                description: "Tu enlace de referido ha sido copiado.",
+                title: "Clave Copiada",
+                description: "Tu clave de referido ha sido copiada.",
             });
         });
     };
@@ -120,12 +120,12 @@ const CollaboratorProfilePage = () => {
                     </Card>
                     <Card className="animate-fadeIn" style={{ animationDelay: '0.5s' }}>
                         <CardHeader>
-                            <CardTitle>Tu Enlace de Referido</CardTitle>
+                            <CardTitle>Tu Clave de Referido</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                           <Input value={referralLink} readOnly />
+                           <Input value={referralCode} readOnly className="font-mono tracking-widest text-center" />
                            <Button className="w-full" onClick={handleCopy}>
-                               <FaCopy className="mr-2" /> Copiar Enlace
+                               <FaCopy className="mr-2" /> Copiar Clave
                            </Button>
                         </CardContent>
                     </Card>
