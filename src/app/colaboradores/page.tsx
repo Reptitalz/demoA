@@ -133,7 +133,7 @@ const CollaboratorsPage = () => {
                     )}
                     onClick={() => router.push('/colaboradores/login')}
                 >
-                    Únete ahora
+                    Acceder al portal
                 </Button>
                 <CommissionCalculator />
             </div>
