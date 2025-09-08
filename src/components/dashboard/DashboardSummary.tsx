@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
@@ -55,6 +56,28 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
       <div className="grid grid-cols-2 gap-2 mb-2">
         {allSummaryCards.map((card, index) => {
            const Icon = card.icon;
+           
+           if (card.id === 'credits') {
+             return (
+               <div key={index} className="relative p-0.5 rounded-lg bg-brand-gradient shiny-border cursor-pointer" onClick={card.action}>
+                  <div 
+                      className="relative p-2 rounded-[7px] h-full transition-all duration-300 flex flex-col justify-between bg-card hover:bg-card/80"
+                  >
+                      <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-1.5">
+                              <Icon className={cn("h-4 w-4", card.color)} />
+                              <h3 className="text-xs font-medium">{card.title}</h3>
+                          </div>
+                      </div>
+                      <div className="text-right mt-1">
+                          <p className="text-3xl font-bold text-foreground">{card.value}</p>
+                          <p className="text-[10px] text-muted-foreground">{card.description}</p>
+                      </div>
+                  </div>
+               </div>
+             )
+           }
+
            return (
             <div 
                 key={index}
