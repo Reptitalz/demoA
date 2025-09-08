@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -118,17 +117,14 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
         <div className="flex-grow flex flex-col space-y-3">
           {viewMode === 'add' && (
             <div className="space-y-3 animate-fadeIn">
-              <div className="p-0.5 bg-brand-gradient rounded-md shiny-border animate-pulse-border">
-                <Textarea
-                    placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
-                    value={newKnowledge}
-                    onChange={e => setNewKnowledge(e.target.value)}
-                    rows={6}
-                    disabled={isSaving}
-                    className="text-sm bg-card"
-                    autoFocus
+              <Textarea
+                  placeholder="Escribe aquí una nueva pieza de conocimiento para tu asistente... (Ej: 'Nuestros horarios de atención son de 9am a 6pm de lunes a viernes.')"
+                  value={newKnowledge}
+                  onChange={e => setNewKnowledge(e.target.value)}
+                  rows={6}
+                  disabled={isSaving}
+                  className="text-sm bg-card"
                 />
-              </div>
               <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setViewMode('list')} disabled={isSaving}>Cancelar</Button>
                   <Button onClick={handleAddItem} disabled={isSaving || !newKnowledge.trim()}>
