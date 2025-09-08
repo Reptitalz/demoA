@@ -7,21 +7,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaTrash, FaPlus, FaLightbulb, FaStar } from 'react-icons/fa';
-import type { DatabaseConfig, KnowledgeItem } from '@/types';
+import type { DatabaseConfig, KnowledgeItem, AssistantConfig } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { formatBytes } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface KnowledgeManagementDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   database: DatabaseConfig;
+  assistant?: AssistantConfig;
 }
 
-const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: KnowledgeManagementDialogProps) => {
+const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database, assistant }: KnowledgeManagementDialogProps) => {
   const { state, dispatch } = useApp();
   const { userProfile } = state;
   const { toast } = useToast();
@@ -104,10 +106,16 @@ const KnowledgeManagementDialog = ({ isOpen, onOpenChange, database }: Knowledge
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full h-full max-w-none flex flex-col" onInteractOutside={e => { if (isSaving) e.preventDefault(); }}>
+      <DialogContent className="w-full h-full max-w-none sm:max-w-2xl sm:h-auto sm:max-h-[90vh] flex flex-col" onInteractOutside={e => { if (isSaving) e.preventDefault(); }}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FaLightbulb /> Gestionar Conocimiento de "{database.name}"
+          <DialogTitle className="flex items-center gap-3">
+             {assistant && (
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={assistant.imageUrl} alt={assistant.name} />
+                <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+            )}
+            <span>Gestionar Conocimiento de "{database.name}"</span>
           </DialogTitle>
           <DialogDescription>
             Añade, edita o elimina la información que tu asistente utilizará para responder.

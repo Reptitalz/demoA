@@ -30,7 +30,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const [isKnowledgeDialogOpen, setIsKnowledgeDialogOpen] = useState(false); // State for the new dialog
   const [isContactsDialogOpen, setIsContactsDialogOpen] = useState(false);
   
-  const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id).map(a => a.name);
+  const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id);
 
   const getDatabaseIcon = (source: DatabaseSource) => {
     if (source === "google_sheets") return FaGoogle;
@@ -156,7 +156,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         </CardHeader>
         <CardContent className="flex-grow space-y-3 text-sm">
            <p className="text-muted-foreground break-all">
-            Asistente: <span className="font-semibold text-foreground">{linkedAssistants[0] || 'No asignado'}</span>
+            Asistente: <span className="font-semibold text-foreground">{linkedAssistants[0]?.name || 'No asignado'}</span>
           </p>
           {database.source === 'google_sheets' && database.accessUrl && (
             <div className="flex items-center gap-1.5">
@@ -250,8 +250,8 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                     <h4 className="font-semibold">Vinculado a:</h4>
                     {linkedAssistants.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                            {linkedAssistants.map(name => (
-                                <Badge key={name} variant="secondary">{name}</Badge>
+                            {linkedAssistants.map(asst => (
+                                <Badge key={asst.id} variant="secondary">{asst.name}</Badge>
                             ))}
                         </div>
                     ) : (
@@ -271,7 +271,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                 {linkedAssistants.length > 0 && (
                     <div className="mt-2 text-destructive bg-destructive/10 p-2 rounded-md">
                         <p className="font-bold">¡Atención!</p>
-                        <p>Esta base de datos está actualmente vinculada a los siguientes asistentes: <span className="font-semibold">{linkedAssistants.join(', ')}</span>. Serán desvinculados.</p>
+                        <p>Esta base de datos está actualmente vinculada a los siguientes asistentes: <span className="font-semibold">{linkedAssistants.map(a => a.name).join(', ')}</span>. Serán desvinculados.</p>
                     </div>
                 )}
             </AlertDialogDescription>
@@ -297,6 +297,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
               isOpen={isKnowledgeDialogOpen}
               onOpenChange={setIsKnowledgeDialogOpen}
               database={database}
+              assistant={linkedAssistants[0]}
           />
           <ContactsDialog
               isOpen={isContactsDialogOpen}
