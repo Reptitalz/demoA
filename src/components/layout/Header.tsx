@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { FaBars } from 'react-icons/fa';
+import NotificationsBell from '../notifications/NotificationsBell';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -38,7 +39,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
           <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
         </Link>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <NotificationsBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">
@@ -55,6 +56,11 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
               </DropdownMenuItem>
                <DropdownMenuItem asChild>
                 <Link href="/colaboradores">Colaboradores</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex items-center justify-between">
+                <span>Alternar Tema</span>
+                <ThemeToggle />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
