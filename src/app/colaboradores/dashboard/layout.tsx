@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaUserFriends, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt } from 'react-icons/fa';
+import { FaUserFriends, FaChartBar, FaUser, FaSignOutAlt, FaSignInAlt, FaNewspaper } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,8 @@ import { signOut, useSession } from 'next-auth/react';
 
 const menuItems = [
     { path: '/colaboradores/dashboard', icon: FaChartBar, label: 'Panel' },
+    { path: '/colaboradores/dashboard/clientes', icon: FaUserFriends, label: 'Clientes' },
+    { path: '/colaboradores/dashboard/novedades', icon: FaNewspaper, label: 'Novedades' },
     { path: '/colaboradores/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
 
@@ -73,7 +75,7 @@ export default function CollaboratorDashboardLayout({
                         {menuItems.map(item => (
                             <Tooltip key={item.path}>
                                 <TooltipTrigger asChild>
-                                    <Link href={isDemoMode ? `${item.path}/demo` : item.path} passHref legacyBehavior>
+                                    <Link href={isDemoMode ? item.path.replace('/colaboradores/dashboard', '/democolaborator') : item.path} passHref legacyBehavior>
                                         <div
                                             className={cn(
                                                 "flex flex-col items-center justify-center h-full w-20 cursor-pointer transition-colors text-muted-foreground hover:text-primary",
@@ -100,7 +102,7 @@ export default function CollaboratorDashboardLayout({
                         {menuItems.map(item => (
                             <Tooltip key={item.path}>
                                 <TooltipTrigger asChild>
-                                     <Link href={isDemoMode ? `${item.path}/demo` : item.path} passHref legacyBehavior>
+                                     <Link href={isDemoMode ? item.path.replace('/colaboradores/dashboard', '/democolaborator') : item.path} passHref legacyBehavior>
                                         <Button
                                             variant={(pathname === item.path || pathname.startsWith(`${item.path}/`)) ? "default" : "ghost"}
                                             size="icon"

@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaChartBar, FaUser, FaSignInAlt } from 'react-icons/fa';
+import { FaChartBar, FaUser, FaSignInAlt, FaUserFriends, FaNewspaper } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -13,7 +13,9 @@ import { APP_NAME } from '@/config/appConfig';
 
 const menuItems = [
     { path: '/democolaborator', icon: FaChartBar, label: 'Panel' },
-    { path: '/democolaborator/profile', icon: FaUser, label: 'Perfil (Demo)' },
+    { path: '/democolaborator/clientes', icon: FaUserFriends, label: 'Clientes' },
+    { path: '/democolaborator/novedades', icon: FaNewspaper, label: 'Novedades' },
+    { path: '/democolaborator/profile', icon: FaUser, label: 'Perfil' },
 ];
 
 export default function CollaboratorDemoLayout({
