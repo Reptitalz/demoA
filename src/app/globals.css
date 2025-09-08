@@ -167,7 +167,7 @@ body {
     height: 100%;
     background: linear-gradient(115deg, transparent 40%, hsla(0, 0%, 100%, 0.5), transparent 60%);
     background-size: 200% 100%;
-    animation: shiny-border-anim 5s linear infinite;
+    animation: shiny-border-anim 3s linear infinite;
     z-index: 1;
     pointer-events: none;
   }
@@ -234,7 +234,9 @@ body {
         radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px);
   }
 
-  /* Animated Gradient Border - REMOVED */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
   
 }
 

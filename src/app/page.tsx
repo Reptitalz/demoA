@@ -663,6 +663,23 @@ const FaqSection = () => {
 
 export default function MarketingHomePage() {
   const { toast } = useToast();
+  const [transformStyle, setTransformStyle] = useState({});
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+        const { clientX, clientY } = e;
+        const { innerWidth, innerHeight } = window;
+        const x = (clientX / innerWidth - 0.5) * 2; // -1 to 1
+        const y = (clientY / innerHeight - 0.5) * 2; // -1 to 1
+
+        setTransformStyle({
+            transform: `perspective(1000px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg)`
+        });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+  
   const handleCopyEmail = () => {
     const email = 'contacto@heymanito.com';
     navigator.clipboard.writeText(email).then(() => {
@@ -693,7 +710,7 @@ export default function MarketingHomePage() {
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
       <HeroSection />
 
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{animationDelay: '0.5s', perspective: '1000px'}}>
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{perspective: '1000px'}}>
         <PhoneChatMockup />
       </div>
 
@@ -707,42 +724,47 @@ export default function MarketingHomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             {/* Asistente Desktop */}
-            <Card className="flex flex-col text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow overflow-hidden glow-card">
-              <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
-                <AppWindow size={32} className="text-primary" />
-              </div>
-              <h3 className="text-2xl font-semibold">Asistente en Navegador</h3>
-              <p className="text-muted-foreground mt-2 mb-4 flex-grow">
-                Un asistente que vive en una página web, ideal para pruebas, desarrollo y uso interno.
-              </p>
-              <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
-                <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Prueba prompts y lógica de IA sin costo inicial.</span></li>
-                <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Acceso inmediato con 30 días de prueba ilimitada.</span></li>
-                <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Intégralo en tus apps mediante una API.</span></li>
-              </ul>
-              <Button asChild className={cn("mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
-                <Link href="/begin">Prueba Gratis</Link>
-              </Button>
-            </Card>
+             <div className="p-1 rounded-lg bg-brand-gradient shiny-border transition-all duration-300" style={transformStyle}>
+              <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d">
+                <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
+                  <AppWindow size={32} className="text-primary" />
+                </div>
+                <h3 className="text-2xl font-semibold">Asistente en Navegador</h3>
+                <p className="text-muted-foreground mt-2 mb-4 flex-grow">
+                  Un asistente que vive en una página web, ideal para pruebas, desarrollo y uso interno.
+                </p>
+                <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
+                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Prueba prompts y lógica de IA sin costo inicial.</span></li>
+                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Acceso inmediato con 30 días de prueba ilimitada.</span></li>
+                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Intégralo en tus apps mediante una API.</span></li>
+                </ul>
+                <Button asChild className={cn("mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                  <Link href="/begin">Prueba Gratis</Link>
+                </Button>
+              </Card>
+            </div>
+
 
             {/* Asistente WhatsApp */}
-            <Card className="flex flex-col text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow overflow-hidden glow-card">
-              <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
-                <FaWhatsapp size={32} className="text-primary" />
-              </div>
-              <h3 className="text-2xl font-semibold">Asistente en WhatsApp</h3>
-              <p className="text-muted-foreground mt-2 mb-4 flex-grow">
-                La solución completa para automatizar la comunicación con tus clientes 24/7.
-              </p>
-              <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
-                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Atiende a tus clientes y vende en la plataforma que más usan.</span></li>
-                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Requiere un número de teléfono nuevo para una integración estable.</span></li>
-                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Conexión directa con la API oficial de WhatsApp.</span></li>
-              </ul>
-              <Button asChild className="mt-auto">
-                <Link href="/begin">Crear Asistente WhatsApp</Link>
-              </Button>
-            </Card>
+             <div className="p-1 rounded-lg bg-brand-gradient shiny-border transition-all duration-300" style={transformStyle}>
+              <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d">
+                <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
+                  <FaWhatsapp size={32} className="text-primary" />
+                </div>
+                <h3 className="text-2xl font-semibold">Asistente en WhatsApp</h3>
+                <p className="text-muted-foreground mt-2 mb-4 flex-grow">
+                  La solución completa para automatizar la comunicación con tus clientes 24/7.
+                </p>
+                <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
+                    <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Atiende a tus clientes y vende en la plataforma que más usan.</span></li>
+                    <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Requiere un número de teléfono nuevo para una integración estable.</span></li>
+                    <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Conexión directa con la API oficial de WhatsApp.</span></li>
+                </ul>
+                <Button asChild className="mt-auto">
+                  <Link href="/begin">Crear Asistente WhatsApp</Link>
+                </Button>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -830,6 +852,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
     
 
     
+
 
 
 
