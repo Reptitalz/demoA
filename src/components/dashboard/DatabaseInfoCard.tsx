@@ -226,16 +226,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         </CardContent>
          <CardFooter className="flex flex-col items-start gap-2 border-t pt-3 text-xs">
             {database.source === 'smart_db' ? (
-                <div className="w-full grid grid-cols-2 gap-2">
-                  <Button 
-                      className="w-full" 
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => setIsContactsDialogOpen(true)}
-                  >
-                      <FaAddressBook className="mr-2 h-4 w-4" />
-                      Contactos
-                  </Button>
+                <div className="w-full">
                   <Button 
                       className={cn("w-full", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")} 
                       size="sm"
