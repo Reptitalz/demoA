@@ -12,15 +12,17 @@ import { Button } from '@/components/ui/button';
 import { FaStar, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User, Bot, Database } from 'lucide-react';
+import { MessageSquare, User, Bot, Database, Brain, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import type { AssistantMemory, AssistantWithMemory } from '@/types';
+import AssistantMemoryCard from './AssistantMemoryCard';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -32,6 +34,8 @@ const DashboardPageContent = () => {
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
+  const [assistantsMemory, setAssistantsMemory] = useState<AssistantWithMemory[]>([]);
+  const [isLoadingMemory, setIsLoadingMemory] = useState(false);
   
   const isDemoMode = !userProfile.isAuthenticated;
 
@@ -79,6 +83,24 @@ const DashboardPageContent = () => {
   };
 
   const profileToRender = isDemoMode ? demoProfile : userProfile;
+  const isDatabasesPage = pathname.endsWith('/databases');
+
+  useEffect(() => {
+    if (isDatabasesPage && userProfile.isAuthenticated && userProfile._id) {
+        setIsLoadingMemory(true);
+        fetch(`/api/assistants/memory?userId=${userProfile._id}`)
+            .then(res => res.json())
+            .then((memoryData: AssistantMemory[]) => {
+                const assistantsWithMemory = userProfile.assistants.map(asst => ({
+                    ...asst,
+                    totalMemory: memoryData.find(m => m.assistantId === asst.id)?.totalMemory || 0
+                }));
+                setAssistantsMemory(assistantsWithMemory);
+            })
+            .catch(err => toast({ title: 'Error', description: 'No se pudo cargar la memoria de los asistentes.', variant: 'destructive' }))
+            .finally(() => setIsLoadingMemory(false));
+    }
+  }, [isDatabasesPage, userProfile.isAuthenticated, userProfile._id, userProfile.assistants, toast]);
 
   // Handle session and payment status logic for authenticated users
   useEffect(() => {
@@ -178,7 +200,7 @@ const DashboardPageContent = () => {
   
   const renderContentForRoute = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
-    const isDatabasesPage = pathname.endsWith('/databases');
+    
     const isProfilePage = pathname.endsWith('/profile');
 
     if (isAssistantsPage) {
@@ -223,39 +245,71 @@ const DashboardPageContent = () => {
     
     if (isDatabasesPage) {
       return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Database size={18} className="text-primary" />
-                    Bases de Datos Vinculadas
-                </h3>
-                {showAddDatabaseButton && (
-                    <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-                        <FaStar size={13} className="mr-1" />
-                        Añadir Base de Datos
-                    </Button>
+        <div className="space-y-6">
+            <div>
+                <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Database size={18} className="text-primary" />
+                        Bases de Datos Vinculadas
+                    </h3>
+                    {showAddDatabaseButton && (
+                        <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
+                            <FaStar size={13} className="mr-1" />
+                            Añadir Base de Datos
+                        </Button>
+                    )}
+                </div>
+                {profileToRender.databases.length > 0 ? (
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mt-4">
+                        {profileToRender.databases.map((db, index) => (
+                            <DatabaseInfoCard key={db.id} database={db as any} animationDelay={`${0.2 + index * 0.1}s`} />
+                        ))}
+                    </div>
+                ) : (
+                    <Card className="text-center py-10 animate-fadeIn mt-4" style={{ animationDelay: '0.2s' }}>
+                        <CardContent className="flex flex-col items-center gap-3">
+                            <Database size={40} className="text-muted-foreground" />
+                            <h3 className="text-lg font-semibold">No tienes bases de datos</h3>
+                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                Conecta una Hoja de Google o crea una Base de Datos Inteligente para darle a tus asistentes el conocimiento que necesitan para operar.
+                            </p>
+                            {showAddDatabaseButton && (
+                                <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="text-sm px-4 py-2 mt-2">Añadir Base de Datos</Button>
+                            )}
+                        </CardContent>
+                    </Card>
                 )}
             </div>
-            {profileToRender.databases.length > 0 ? (
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                    {profileToRender.databases.map((db, index) => (
-                        <DatabaseInfoCard key={db.id} database={db as any} animationDelay={`${0.2 + index * 0.1}s`} />
-                    ))}
-                </div>
-            ) : (
-                <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                    <CardContent className="flex flex-col items-center gap-3">
-                        <Database size={40} className="text-muted-foreground" />
-                        <h3 className="text-lg font-semibold">No tienes bases de datos</h3>
-                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                            Conecta una Hoja de Google o crea una Base de Datos Inteligente para darle a tus asistentes el conocimiento que necesitan para operar.
-                        </p>
-                        {showAddDatabaseButton && (
-                            <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="text-sm px-4 py-2 mt-2">Añadir Base de Datos</Button>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+
+            <Separator />
+            
+            <div>
+                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+                    <Brain size={18} className="text-primary" />
+                    Memoria de los Asistentes
+                </h3>
+                {isLoadingMemory ? (
+                     <div className="flex items-center justify-center p-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : assistantsMemory.length > 0 ? (
+                     <div className="space-y-4">
+                        {assistantsMemory.map((asst, index) => (
+                            <AssistantMemoryCard key={asst.id} assistant={asst} animationDelay={`${0.4 + index * 0.1}s`} />
+                        ))}
+                    </div>
+                ) : (
+                    <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+                        <CardContent className="flex flex-col items-center gap-3">
+                            <Brain size={40} className="text-muted-foreground" />
+                            <h3 className="text-lg font-semibold">Sin Actividad de Memoria</h3>
+                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                Tus asistentes aún no han almacenado ninguna conversación. La memoria se irá llenando a medida que interactúen.
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
         </div>
       );
     }
@@ -367,14 +421,14 @@ const DashboardPageContent = () => {
   
   const getPageTitle = () => {
     if(pathname.endsWith('/assistants')) return 'Panel de Asistentes';
-    if(pathname.endsWith('/databases')) return 'Bases de Datos';
+    if(pathname.endsWith('/databases')) return 'Cerebro';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
     return isDemoMode ? 'Panel de Demostración' : 'Panel Principal';
   }
 
   const getPageDescription = () => {
     if(pathname.endsWith('/assistants')) return isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.';
-    if(pathname.endsWith('/databases')) return isDemoMode ? 'Explora bases de datos de ejemplo.' : 'Administra las fuentes de datos conectadas.';
+    if(pathname.endsWith('/databases')) return isDemoMode ? 'Explora el cerebro de tus asistentes.' : 'Administra el conocimiento y las fuentes de datos de tus asistentes.';
     if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
     return isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.';
   }

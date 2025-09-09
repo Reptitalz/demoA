@@ -201,7 +201,7 @@ export interface Transaction {
 
 export interface KnowledgeItem {
   _id: ObjectId;
-  databaseId: string;
+  assistantId: string;
   userId: string;
   content: string;
   size: number; // in bytes
@@ -221,4 +221,13 @@ export interface Contact {
   destination: string; // The raw destination value
   conversationSize: number; // in bytes
   images?: ContactImage[]; // Images are not part of agent_memory, so this is optional
+}
+
+export interface AssistantMemory {
+  assistantId: string;
+  totalMemory: number;
+}
+
+export interface AssistantWithMemory extends AssistantConfig {
+  totalMemory: number;
 }
