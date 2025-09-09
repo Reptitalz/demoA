@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -17,8 +16,7 @@ import { signOut } from 'next-auth/react'; // Re-using real function
 
 const menuItems = [
     { path: '/dashboarddemo/assistants', icon: Bot, label: 'Asistentes' },
-    { path: '/dashboarddemo/databases', icon: FaDatabase, label: 'Bases de Datos' },
-    { path: '/dashboarddemo/brain', icon: Brain, label: 'Cerebro' },
+    { path: '/dashboarddemo/databases', icon: Brain, label: 'Cerebro' },
     { path: '/dashboarddemo/profile', icon: FaUser, label: 'Perfil' },
 ];
 

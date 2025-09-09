@@ -17,8 +17,7 @@ import { Bot, Brain } from 'lucide-react';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: Bot, label: 'Asistentes' },
-    { path: '/dashboard/databases', icon: FaDatabase, label: 'Bases de Datos' },
-    { path: '/dashboard/brain', icon: Brain, label: 'Cerebro' },
+    { path: '/dashboard/databases', icon: Brain, label: 'Cerebro' },
     { path: '/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
 
