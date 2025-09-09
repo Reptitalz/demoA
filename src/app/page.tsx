@@ -445,10 +445,12 @@ const HeroSection = () => {
                  <Button
                     onClick={handleDownloadClick}
                     variant="ghost"
-                    className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted"
+                    className="h-auto px-6 py-3 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
                 >
-                    <AppIcon className="h-4 w-4 mr-2" />
-                    <span className="text-xs text-foreground/80">Descargar App</span>
+                    <div className="bg-white rounded-lg shadow-md p-1.5">
+                        <AppIcon className="h-6 w-6" />
+                    </div>
+                    <span className="text-sm font-semibold text-foreground/90">Descargar App</span>
                 </Button>
             </div>
              <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
@@ -865,3 +867,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
 
+
+
+    
