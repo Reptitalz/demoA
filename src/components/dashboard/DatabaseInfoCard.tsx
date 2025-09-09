@@ -303,6 +303,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
               isOpen={isContactsDialogOpen}
               onOpenChange={setIsContactsDialogOpen}
               database={database}
+              assistant={linkedAssistants[0]}
           />
         </>
       )}

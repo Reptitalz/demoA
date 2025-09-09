@@ -7,31 +7,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaTrash, FaAddressBook, FaPhone, FaImage } from 'react-icons/fa';
-import type { DatabaseConfig, Contact } from '@/types';
+import { FaTrash, FaAddressBook, FaPhone, FaImage, FaDesktop } from 'react-icons/fa';
+import type { DatabaseConfig, Contact, AssistantConfig } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Loader2, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { formatBytes } from '@/lib/utils';
-import ContactImagesDialog from './ContactImagesDialog'; // Import the new dialog
+import ContactImagesDialog from './ContactImagesDialog';
 import { cn } from '@/lib/utils';
-
-
-// This is a placeholder type. We'll need a real API for this.
-const DEMO_CONTACTS: Contact[] = [
-    { _id: '1', name: 'Ana García', phone: '+52 33 1234 5678', conversationSize: 1250, images: [{ _id: 'img1', url: 'https://picsum.photos/seed/cake1/400/300', receivedAt: new Date(), read: false }] },
-    { _id: '2', name: 'Carlos Martínez', phone: '+52 55 9876 5432', conversationSize: 5600, images: [{ _id: 'img2', url: 'https://picsum.photos/seed/design2/400/300', receivedAt: new Date(), read: true }, { _id: 'img3', url: 'https://picsum.photos/seed/idea3/400/300', receivedAt: new Date(), read: false }] },
-    { _id: '3', name: 'Sofía Rodríguez', phone: '+52 81 1122 3344', conversationSize: 850 },
-    { _id: '4', name: 'Javier Hernández', phone: '+52 44 2233 4455', conversationSize: 22400, images: [{ _id: 'img4', url: 'https://picsum.photos/seed/meeting4/400/300', receivedAt: new Date(), read: true }] },
-];
 
 interface ContactsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   database: DatabaseConfig;
+  assistant?: AssistantConfig;
 }
 
-const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps) => {
+const ContactsDialog = ({ isOpen, onOpenChange, database, assistant }: ContactsDialogProps) => {
   const { state } = useApp();
   const { userProfile } = state;
   const { toast } = useToast();
@@ -44,17 +36,28 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
   const [isImagesDialogOpen, setIsImagesDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && assistant) {
       setIsLoading(true);
-      // Simulate fetching contacts. Replace with actual API call.
-      setTimeout(() => {
-        setContacts(DEMO_CONTACTS);
-        setIsLoading(false);
-      }, 500);
+      fetch(`/api/contacts?assistantId=${assistant.id}&userId=${userProfile._id}`)
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('No se pudieron cargar los contactos.');
+            }
+            return res.json();
+        })
+        .then((data: Contact[]) => {
+            setContacts(data);
+        })
+        .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }))
+        .finally(() => setIsLoading(false));
     }
-  }, [isOpen, database.id]);
+  }, [isOpen, database.id, assistant, userProfile._id, toast]);
 
   const handleViewImages = (contact: Contact) => {
+    if (!contact.images || contact.images.length === 0) {
+        toast({ title: 'Sin Imágenes', description: 'Este contacto no ha enviado imágenes.' });
+        return;
+    }
     setSelectedContact(contact);
     setIsImagesDialogOpen(true);
     // Mark images as read for this contact
@@ -70,9 +73,25 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
   };
 
   const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.phone.includes(searchTerm)
+    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const ContactIdentifier = ({ contact, assistantType }: { contact: Contact, assistantType?: 'desktop' | 'whatsapp' }) => {
+    if (assistantType === 'desktop') {
+        return (
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5" title={contact.destination}>
+                <FaDesktop size={10}/>
+                Sesión: ...{contact.destination.slice(-8)}
+            </p>
+        );
+    }
+    return (
+        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <FaPhone size={10}/>
+            {contact.destination}
+        </p>
+    );
+  };
 
   return (
     <>
@@ -80,10 +99,10 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
       <DialogContent className="w-full h-full max-w-none flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaAddressBook /> Contactos de "{database.name}"
+            <FaAddressBook /> Contactos de "{assistant?.name || database.name}"
           </DialogTitle>
           <DialogDescription>
-            Visualiza los contactos con los que ha interactuado tu asistente.
+            Visualiza los contactos y sesiones que han interactuado con tu asistente.
           </DialogDescription>
         </DialogHeader>
         
@@ -91,7 +110,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder="Buscar por nombre o teléfono..."
+                    placeholder="Buscar por teléfono o ID de sesión..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -115,10 +134,10 @@ const ContactsDialog = ({ isOpen, onOpenChange, database }: ContactsDialogProps)
                             <div key={contact._id} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
                                 <div className="flex-grow">
                                     <p className="text-sm font-semibold text-foreground">{contact.name}</p>
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1.5"><FaPhone size={10}/>{contact.phone}</p>
+                                    <ContactIdentifier contact={contact} assistantType={assistant?.type} />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5">Peso de la Conversación</p>
+                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5">Peso</p>
                                     <p className="text-xs font-medium text-foreground">{formatBytes(contact.conversationSize)}</p>
                                 </div>
                                 <Button 

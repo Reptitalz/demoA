@@ -1,6 +1,5 @@
 
 
-
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -217,9 +216,9 @@ export interface ContactImage {
 }
 
 export interface Contact {
-  _id: string;
+  _id: string; // This will be the destination (phone or session ID)
   name: string;
-  phone: string;
+  destination: string; // The raw destination value
   conversationSize: number; // in bytes
-  images?: ContactImage[];
+  images?: ContactImage[]; // Images are not part of agent_memory, so this is optional
 }
