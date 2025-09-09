@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaPlusCircle, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,9 +17,10 @@ import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User, Bot, Database } from 'lucide-react';
+import { MessageSquare, User, Bot, Database, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -188,9 +189,9 @@ const DashboardPageContent = () => {
                 <Bot size={18} className="text-primary" /> 
                 Tus Asistentes
             </h3>
-            <Button onClick={handleAddNewAssistant} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1"> 
-                <FaPlusCircle size={13} className="mr-1" /> 
-                Añadir Asistente
+            <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                <FaStar size={13} className="mr-1" />
+                {isDemoMode ? 'Iniciar Sesión para Crear' : 'Crear Asistente'}
             </Button>
             </div>
             {profileToRender.assistants.length > 0 ? (
@@ -225,12 +226,12 @@ const DashboardPageContent = () => {
         <div className="space-y-4">
             <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Database size={18} className="text-primary" />
-                    Bases de Datos Vinculadas
+                    <Brain size={18} className="text-primary" />
+                    Cerebro de los Asistentes
                 </h3>
                 {showAddDatabaseButton && (
                     <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-                        <FaPlusCircle size={13} className="mr-1" />
+                        <FaStar size={13} className="mr-1" />
                         Añadir Base de Datos
                     </Button>
                 )}
@@ -366,14 +367,14 @@ const DashboardPageContent = () => {
   
   const getPageTitle = () => {
     if(pathname.endsWith('/assistants')) return 'Panel de Asistentes';
-    if(pathname.endsWith('/databases')) return 'Bases de Datos';
+    if(pathname.endsWith('/databases')) return 'Cerebro';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
     return isDemoMode ? 'Panel de Demostración' : 'Panel Principal';
   }
 
   const getPageDescription = () => {
     if(pathname.endsWith('/assistants')) return isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.';
-    if(pathname.endsWith('/databases')) return isDemoMode ? 'Explora bases de datos de ejemplo.' : 'Administra las fuentes de datos conectadas.';
+    if(pathname.endsWith('/databases')) return isDemoMode ? 'Explora bases de datos de ejemplo.' : 'Administra el conocimiento y las fuentes de datos de tus asistentes.';
     if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
     return isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.';
   }
@@ -387,7 +388,7 @@ const DashboardPageContent = () => {
               {getPageTitle()}
             </h2>
             {isDemoMode && (
-                <Button onClick={() => router.push('/login')} size="sm" variant="outline">Iniciar Sesión</Button>
+                <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
