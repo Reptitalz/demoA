@@ -477,7 +477,7 @@ const HeroSection = () => {
 
   return (
     <>
-    <div ref={containerRef} className="relative w-full text-center py-20 sm:py-28 md:py-32 lg:py-36 overflow-hidden">
+    <div ref={containerRef} className="relative w-full text-center lg:text-left py-20 sm:py-28 md:py-32 lg:py-36 overflow-hidden">
         <div 
           className="absolute inset-0 z-0 opacity-0 dark:opacity-100 transition-opacity duration-500" 
           style={{
@@ -498,45 +498,58 @@ const HeroSection = () => {
             className="absolute inset-0 z-0 pointer-events-none"
         />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground animate-fadeIn" style={{animationDelay: '0.1s'}}>
-                Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp</span>
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-fadeIn" style={{animationDelay: '0.2s'}}>
-               Automatiza tus ventas y atención al cliente en WhatsApp con asistentes de IA que trabajan para ti 24/7.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-                    <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg", "shiny-border")}>
-                        <Link href="/begin">Iniciar Gratis 30 Días</Link>
-                    </Button>
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
-                        como funciona
-                    </Button>
-                </div>
-                 <Button asChild variant="link" className="text-muted-foreground hover:text-primary">
-                    <Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
-                </Button>
-            </div>
-             <div className="mt-8 flex flex-col items-center gap-3 animate-fadeIn" style={{animationDelay: '0.4s'}}>
-                <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
-                    <FcGoogle className="h-4 w-4" />
-                    <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
-                </div>
-                 <Button
-                    onClick={handleDownloadClick}
-                    variant="ghost"
-                    className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
-                >
-                    <div className="bg-white rounded-lg shadow-md p-1.5">
-                        <AppIcon className="h-6 w-6" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+            {/* Left Column - Text Content */}
+            <div className="lg:w-1/2">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground animate-fadeIn" style={{animationDelay: '0.1s'}}>
+                    Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp</span>
+                </h1>
+                <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 animate-fadeIn" style={{animationDelay: '0.2s'}}>
+                Automatiza tus ventas y atención al cliente en WhatsApp con asistentes de IA que trabajan para ti 24/7.
+                </p>
+                <div className="mt-10 flex flex-col items-center lg:items-start justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+                        <Button asChild size="lg" className={cn("w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-brand-gradient text-primary-foreground hover:opacity-90 shadow-lg", "shiny-border")}>
+                            <Link href="/begin">Iniciar Gratis 30 Días</Link>
+                        </Button>
+                        <Button variant="outline" size="lg" className="w-full sm:w-auto text-base px-8 py-3 transition-transform transform hover:scale-105 bg-background/50 backdrop-blur-sm" onClick={() => setIsHowItWorksOpen(true)}>
+                            cómo funciona
+                        </Button>
                     </div>
-                    <span className="text-sm font-semibold text-foreground/90">Descargar App</span>
-                </Button>
+                    <Button asChild variant="link" className="text-muted-foreground hover:text-primary">
+                        <Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
+                    </Button>
+                </div>
+                 <div className="mt-8 flex flex-col items-center lg:items-start gap-3 animate-fadeIn" style={{animationDelay: '0.4s'}}>
+                    <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
+                        <FcGoogle className="h-4 w-4" />
+                        <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
+                    </div>
+                    <Button
+                        onClick={handleDownloadClick}
+                        variant="ghost"
+                        className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
+                    >
+                         <div className="bg-white rounded-lg shadow-md p-1.5">
+                            <AppIcon className="h-6 w-6" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground/90">Descargar App</span>
+                    </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
+                    <span className="font-bold text-brand-gradient">Registro Gratis</span>. Recarga cuando quieras.
+                </p>
             </div>
-             <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
-                <span className="font-bold text-brand-gradient">Registro Gratis</span>. Recarga cuando quieras.
-            </p>
+            
+            {/* Right Column - Mockups */}
+            <div className="lg:w-1/2 w-full max-w-2xl lg:max-w-none relative mt-10 lg:mt-0 h-[550px]">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 lg:-translate-y-1/3 w-full max-w-[270px] lg:right-10 z-10">
+                    <PhoneChatMockup />
+                </div>
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 lg:left-0 lg:-translate-y-2/3 w-full lg:w-[calc(100%-80px)]">
+                    <DesktopChatMockup />
+                </div>
+            </div>
         </div>
     </div>
     <HowItWorksDialog open={isHowItWorksOpen} onOpenChange={setIsHowItWorksOpen} />
@@ -793,14 +806,7 @@ export default function MarketingHomePage() {
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
       <HeroSection />
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{perspective: '1000px'}}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            <DesktopChatMockup />
-            <PhoneChatMockup />
-        </div>
-      </div>
-
-       <section id="assistant-types" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
+      <section id="assistant-types" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Dos Tipos de Asistentes, Infinitas Posibilidades</h2>
@@ -954,5 +960,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
