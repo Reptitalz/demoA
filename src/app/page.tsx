@@ -829,7 +829,6 @@ export default function MarketingHomePage() {
                 <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
                   <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Prueba prompts y lógica de IA sin costo inicial.</span></li>
                   <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Acceso inmediato con 30 días de prueba ilimitada.</span></li>
-                  <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Intégralo en tus apps mediante una API.</span></li>
                 </ul>
                 <Button asChild className={cn("mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
                   <Link href="/begin">Prueba Gratis</Link>
@@ -960,6 +959,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
