@@ -9,27 +9,40 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AssistantConfig } from '@/types';
+import { AssistantConfig, ChatMessage } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
+import { Paperclip } from 'lucide-react';
+import Image from 'next/image';
 
-const ChatBubble = ({ text, isUser, time }: { text: string; isUser: boolean; time: string }) => (
-  <div className={cn("flex mb-2.5 animate-fadeIn", isUser ? "justify-end" : "justify-start")}>
-    <div
-      className={cn(
-        "rounded-xl px-4 py-2.5 max-w-[85%] shadow-md text-sm leading-relaxed",
-        isUser
-          ? "bg-[#dcf8c6] dark:bg-[#054740] text-gray-800 dark:text-gray-100"
-          : "bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-100"
-      )}
-    >
-      <p>{text}</p>
-      <p className="text-xs text-right mt-1.5 text-gray-500 dark:text-gray-400">{time}</p>
+const ChatBubble = ({ message, isUser, time }: { message: ChatMessage; isUser: boolean; time: string }) => (
+    <div className={cn("flex mb-2.5 animate-fadeIn", isUser ? "justify-end" : "justify-start")}>
+      <div
+        className={cn(
+          "rounded-xl px-4 py-2.5 max-w-[85%] shadow-md text-sm leading-relaxed",
+          isUser
+            ? "bg-[#dcf8c6] dark:bg-[#054740] text-gray-800 dark:text-gray-100"
+            : "bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-100"
+        )}
+      >
+        {typeof message.content === 'string' ? (
+          <p>{message.content}</p>
+        ) : (
+          message.content.type === 'image' && (
+            <Image
+              src={message.content.url}
+              alt="Imagen enviada"
+              width={200}
+              height={200}
+              className="rounded-md"
+            />
+          )
+        )}
+        <p className="text-xs text-right mt-1.5 text-gray-500 dark:text-gray-400">{time}</p>
+      </div>
     </div>
-  </div>
-);
-
+  );
 
 const DesktopChatPage = () => {
   const params = useParams();
@@ -38,10 +51,11 @@ const DesktopChatPage = () => {
   const [assistant, setAssistant] = useState<Partial<AssistantConfig> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<{ text: string, isUser: boolean, time: string }[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [sessionId, setSessionId] = useState<string>('');
@@ -75,8 +89,8 @@ const DesktopChatPage = () => {
           if(!data.assistant) throw new Error('Asistente no encontrado.');
           setAssistant(data.assistant);
           setMessages([{
-            text: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-            isUser: false,
+            role: 'model',
+            content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }]);
         })
@@ -84,8 +98,8 @@ const DesktopChatPage = () => {
             setError(err.message);
             setAssistant({ name: "Asistente no encontrado" });
              setMessages([{
-                text: `Error: ${err.message}. No se pudo cargar el asistente.`,
-                isUser: false,
+                role: 'model',
+                content: `Error: ${err.message}. No se pudo cargar el asistente.`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
              }]);
         })
@@ -133,8 +147,8 @@ const DesktopChatPage = () => {
 
               if (responseText) {
                  const aiResponse = {
-                  text: responseText,
-                  isUser: false,
+                  role: 'model' as const,
+                  content: responseText,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 };
                 setMessages(prev => [...prev, aiResponse]);
@@ -175,14 +189,34 @@ const DesktopChatPage = () => {
     
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [assistant?.id, processedEventIds]);
+  
+  const sendMessageToServer = useCallback((messageContent: string | { type: 'image'; url: string }) => {
+    if (!assistant?.id || !assistant?.chatPath || !sessionId) return;
+    
+    fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            assistantId: assistant.id,
+            message: messageContent,
+            destination: sessionId,
+            chatPath: assistant.chatPath,
+        })
+    }).then(response => {
+        pollForResponse();
+    }).catch(err => {
+        console.error("Error sending message to proxy:", err);
+    });
+  }, [assistant?.id, assistant?.chatPath, sessionId, pollForResponse]);
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentMessage.trim() || isSending || error || !assistant?.id) return;
+    if (!currentMessage.trim() || isSending || error) return;
     
-    const userMessage = {
-      text: currentMessage,
-      isUser: true,
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: currentMessage,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -192,23 +226,37 @@ const DesktopChatPage = () => {
     setIsSending(true);
     setAssistantStatusMessage('Escribiendo...');
 
-    fetch('/api/chat/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            assistantId: assistant.id,
-            message: messageToSend,
-            destination: sessionId,
-            chatPath: assistant.chatPath,
-        })
-    }).then(response => {
-        pollForResponse();
-    }).catch(err => {
-        // Do not show an error toast here to improve user experience
-        // The message is already reflected in the UI, and we assume it will eventually go through.
-        console.error("Error sending message to proxy:", err);
-    });
+    sendMessageToServer(messageToSend);
   };
+  
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || isSending || error) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: { type: 'image', url: base64String },
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setIsSending(true);
+      setAssistantStatusMessage('Analizando imagen...');
+      
+      sendMessageToServer(base64String);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
 
   if (isLoading) {
     return <div className="h-screen w-screen flex items-center justify-center bg-muted"><LoadingSpinner size={40} /></div>;
@@ -257,7 +305,7 @@ const DesktopChatPage = () => {
               </header>
               <main className="flex-1 p-4 overflow-y-auto">
                 {messages.map((msg, index) => (
-                  <ChatBubble key={index} text={msg.text} isUser={msg.isUser} time={msg.time} />
+                  <ChatBubble key={index} message={msg} isUser={msg.role === 'user'} time={msg.time || ''} />
                 ))}
                  {isSending && (
                     <div className="flex justify-start animate-fadeIn">
@@ -273,6 +321,15 @@ const DesktopChatPage = () => {
                 <div ref={chatEndRef} />
               </main>
               <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 shrink-0 border-t border-black/10">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isSending || !!error}
+                >
+                  <Paperclip className="h-5 w-5" />
+                </Button>
                 <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
                   <Input
                     type="text"
@@ -283,6 +340,13 @@ const DesktopChatPage = () => {
                     autoComplete="off"
                     disabled={!!error || isSending}
                   />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    accept="image/*"
+                    />
                   <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
                     <FaPaperPlane className="h-5 w-5" />
                   </Button>
@@ -299,5 +363,3 @@ const DesktopChatPage = () => {
 };
 
 export default DesktopChatPage;
-
-    

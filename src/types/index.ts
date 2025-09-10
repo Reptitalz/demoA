@@ -234,7 +234,8 @@ export interface AssistantWithMemory extends AssistantConfig {
 
 export interface ChatMessage {
   role: 'user' | 'model';
-  content: string;
+  content: string | { type: 'image'; url: string };
+  time?: string;
 }
 
 export interface Conversation {
