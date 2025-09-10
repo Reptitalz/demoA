@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CREDIT_PACKAGES } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle } from 'react-icons/fa';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle, FaUser } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download, AppWindow, Code } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
@@ -25,6 +26,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import AppIcon from '@/components/shared/AppIcon';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
@@ -306,6 +308,82 @@ const PhoneChatMockup = () => {
     )
 }
 
+const DesktopChatMockup = () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [style, setStyle] = useState({});
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!ref.current) return;
+            const { clientX, clientY } = e;
+            const { innerWidth, innerHeight } = window;
+            const x = (clientX / innerWidth - 0.5) * 2;
+            const y = (clientY / innerHeight - 0.5) * 2;
+            const rotateY = x * 8;
+            const rotateX = -y * 8;
+            setStyle({
+                transform: `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(0.9, 0.9, 0.9)`,
+                transition: 'transform 0.1s ease-out'
+            });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
+
+    return (
+        <div 
+            ref={ref}
+            className="relative mx-auto border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 border-4 rounded-xl h-[550px] w-full max-w-2xl shadow-2xl overflow-hidden"
+            style={style}
+        >
+            <div className="absolute top-2 left-2 flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div className="w-full h-full flex pt-8">
+                <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+                    <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                        <Input placeholder="Buscar chat..." className="bg-white dark:bg-slate-700 h-8 text-xs" />
+                    </header>
+                    <div className="flex-grow overflow-y-auto">
+                        <div className="flex items-center gap-3 p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-800/50">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src="https://picsum.photos/seed/asst1/100" />
+                                <AvatarFallback>AV</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-grow overflow-hidden">
+                                <p className="font-semibold truncate text-sm">Asistente de Ventas</p>
+                                <p className="text-xs text-muted-foreground truncate">Perfecto, tu pedido ha sido...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800/50">
+                    <header className="bg-white dark:bg-slate-900/80 p-3 flex items-center shadow-sm z-10 shrink-0 border-b border-slate-200 dark:border-slate-700">
+                        <Avatar className="h-9 w-9 mr-3 border">
+                            <AvatarImage src="https://picsum.photos/seed/asst1/100" />
+                            <AvatarFallback>AV</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h3 className="font-semibold text-sm">Asistente de Ventas</h3>
+                            <p className="text-xs text-green-500">en línea</p>
+                        </div>
+                    </header>
+                    <main className="flex-1 p-4 overflow-y-auto">
+                       <ChatBubble text="Hola, ¿tienen servicio de catering?" isUser={true} time="2:30 PM" />
+                       <ChatBubble text="¡Hola! Sí, ofrecemos servicio de catering para eventos. ¿Para qué tipo de evento y cuántas personas sería?" isUser={false} time="2:31 PM" />
+                    </main>
+                    <footer className="p-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center gap-3 shrink-0 border-t border-slate-200 dark:border-slate-700">
+                        <Input placeholder="Escribe un mensaje..." className="h-9 text-sm" />
+                        <Button size="sm" className="h-9">Enviar</Button>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const particlesContainerRef = useRef<HTMLDivElement>(null);
@@ -448,7 +526,7 @@ const HeroSection = () => {
                  <Button
                     onClick={handleDownloadClick}
                     variant="ghost"
-                    className="h-auto px-6 py-3 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
+                    className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
                 >
                     <div className="bg-white rounded-lg shadow-md p-1.5">
                         <AppIcon className="h-6 w-6" />
@@ -715,8 +793,11 @@ export default function MarketingHomePage() {
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
       <HeroSection />
 
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{perspective: '1000px'}}>
-        <PhoneChatMockup />
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 animate-fadeIn" style={{perspective: '1000px'}}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            <DesktopChatMockup />
+            <PhoneChatMockup />
+        </div>
       </div>
 
        <section id="assistant-types" className="w-full mt-20 sm:mt-28 scroll-mt-20 py-16">
@@ -873,4 +954,5 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
