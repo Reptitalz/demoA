@@ -13,20 +13,31 @@ import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appCon
 import { useApp } from '@/providers/AppProvider';
 import { FaWhatsapp } from 'react-icons/fa';
 import Link from 'next/link';
+import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 
 const BeginPage = () => {
     const { dispatch } = useApp();
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
-        router.push('/login');
-    }, [dispatch, router]);
+        setIsRegisterOpen(true);
+    }, [dispatch]);
+
+    const handleDialogChange = (open: boolean) => {
+        setIsRegisterOpen(open);
+        if (!open) {
+            // Reset wizard when dialog is closed without completing
+            dispatch({ type: 'RESET_WIZARD' });
+        }
+    }
 
     return (
+        <>
         <PageContainer className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] animate-fadeIn">
             <div className="text-center mb-8">
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
@@ -115,6 +126,8 @@ const BeginPage = () => {
                ¿Ya tienes una cuenta? <Link href="/login" className="font-semibold text-primary hover:underline">Inicia sesión aquí.</Link>
             </p>
         </PageContainer>
+        <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={handleDialogChange} />
+        </>
     );
 };
 
