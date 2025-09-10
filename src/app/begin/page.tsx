@@ -1,528 +1,121 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, Info, AppWindow } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, Info, AppWindow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT } from '@/config/appConfig';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { FaWhatsapp, FaGoogle, FaSpinner } from 'react-icons/fa';
+import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { useApp } from '@/providers/AppProvider';
-import { signIn } from 'next-auth/react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Progress } from '@/components/ui/progress';
-
-const StepIndicator = ({ currentStep }: { currentStep: number }) => {
-    const steps = [
-        { icon: <AppWindow size={14} />, label: "Elige" },
-        { icon: <Check size={14} />, label: "Entiende" },
-        { icon: <UserPlus size={14} />, label: "Regístrate" }
-    ];
-
-    return (
-        <div className="flex items-center justify-center w-full max-w-xs mx-auto mb-2 mt-1">
-            {steps.map((step, index) => (
-                <React.Fragment key={index}>
-                    <div className="flex flex-col items-center text-center">
-                        <div className={cn(
-                            "h-7 w-7 rounded-full flex items-center justify-center border-2 transition-all duration-300",
-                            currentStep > index ? "bg-primary border-primary text-primary-foreground" : "bg-card border-border text-muted-foreground",
-                            currentStep === index + 1 && "border-primary scale-110 shadow-lg"
-                        )}>
-                            {currentStep > index ? <Check size={14} /> : step.icon}
-                        </div>
-                        <p className={cn(
-                            "text-xs mt-1 transition-colors",
-                            currentStep >= index + 1 ? "font-semibold text-primary" : "text-muted-foreground"
-                        )}>
-                            {step.label}
-                        </p>
-                    </div>
-                    {index < steps.length - 1 && (
-                        <div className={cn(
-                            "flex-1 h-0.5 mx-2 transition-colors duration-500",
-                            currentStep > index + 1 ? "bg-primary" : "bg-border"
-                        )} />
-                    )}
-                </React.Fragment>
-            ))}
-        </div>
-    );
-};
-
-const AssistantDetailsDialog = ({ open, onOpenChange, type }: { open: boolean; onOpenChange: (open: boolean) => void; type: 'browser' | 'whatsapp' | null }) => {
-    if (!type) return null;
-
-    const details = {
-        browser: {
-            title: "Asistente en Navegador",
-            description: "Ideal para pruebas rápidas, desarrollo y uso interno. Tu asistente vivirá en una página web, accesible a través de un enlace único, donde podrás interactuar con él directamente.",
-            points: [
-                "Perfecto para probar prompts y lógica sin costo inicial.",
-                "No requiere vincular un número de teléfono.",
-                "Acceso inmediato después del registro.",
-                "Incluye 30 días de prueba con créditos para que experimentes."
-            ]
-        },
-        whatsapp: {
-            title: "Asistente en WhatsApp",
-            description: "La solución completa para automatizar la comunicación con tus clientes directamente en la plataforma que más usan.",
-            points: [
-                "Interactúa con tus clientes 24/7.",
-                "Requiere un número de teléfono nuevo (sin WhatsApp previo).",
-                "Se integra con la API oficial de WhatsApp para máxima estabilidad.",
-                "Ideal para ventas, soporte, agendamiento y más."
-            ]
-        }
-    };
-
-    const currentDetails = details[type];
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{currentDetails.title}</DialogTitle>
-                    <DialogDescription>{currentDetails.description}</DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                    <ul className="space-y-2">
-                        {currentDetails.points.map((point, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                                <Check className="h-4 w-4 text-green-500 mt-1 shrink-0" />
-                                <span className="text-sm text-muted-foreground">{point}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <DialogFooter>
-                    <Button onClick={() => onOpenChange(false)}>Entendido</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
-const PasswordStrengthMeter = ({ strength }: { strength: number }) => {
-    const strengthLevels = [
-        { text: "Muy Débil", color: "bg-red-500" },
-        { text: "Débil", color: "bg-orange-500" },
-        { text: "Regular", color: "bg-yellow-500" },
-        { text: "Fuerte", color: "bg-green-500" },
-        { text: "Muy Fuerte", color: "bg-emerald-500" }
-    ];
-
-    const currentStrength = strengthLevels[strength] || strengthLevels[0];
-
-    return (
-        <div className="space-y-1">
-            <Progress value={(strength + 1) * 20} className="h-1.5" />
-            <p className={`text-xs font-medium`} style={{ color: `var(--${currentStrength.color.replace('bg-', '')}-500)` }}>
-                {currentStrength.text}
-            </p>
-        </div>
-    );
-};
+import { FaWhatsapp } from 'react-icons/fa';
+import Link from 'next/link';
 
 
 const BeginPage = () => {
-    const { state, dispatch } = useApp();
-    const [step, setStep] = useState(1);
+    const { dispatch } = useApp();
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
-    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-    const [detailsType, setDetailsType] = useState<'browser' | 'whatsapp' | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [formState, setFormState] = useState({
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [passwordStrength, setPasswordStrength] = useState(0);
     const router = useRouter();
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const { toast } = useToast();
-
-    // Store the selected assistant type in the AppProvider state when it changes
-    useEffect(() => {
-        if (selectedOption) {
-            dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: selectedOption });
-        }
-    }, [selectedOption, dispatch]);
-    
-    useEffect(() => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop = 0;
-        }
-    }, [step]);
-    
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            const cards = document.querySelectorAll('.glow-card');
-            cards.forEach(card => {
-                const rect = (card as HTMLElement).getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
-                (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
-            });
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-        };
-    }, []);
-
-    const calculateStrength = (password: string): number => {
-        let score = 0;
-        if (password.length >= 8) score++;
-        if (/[A-Z]/.test(password)) score++;
-        if (/[a-z]/.test(password)) score++;
-        if (/[0-9]/.test(password)) score++;
-        if (/[^A-Za-z0-9]/.test(password)) score++;
-        return Math.max(0, score - 1);
-    };
-    
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormState(prev => ({...prev, [name]: value}));
-
-        if (name === 'password') {
-            setPasswordStrength(calculateStrength(value));
-        }
-    }
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
-    }, []);
-
-    const handleNext = () => {
-        if (step < 3) {
-            if (step === 1 && !selectedOption) return;
-            setStep(s => s + 1);
-        }
-    };
-    
-    const handleBack = () => {
-        if (step > 1) {
-            setStep(step - 1);
-        }
-    }
-
-    const handleGoogleSignIn = () => {
-        if (!selectedOption) {
-            toast({ title: "Error", description: "Por favor, selecciona un tipo de asistente en el paso 1.", variant: "destructive" });
-            setStep(1);
-            return;
-        }
-        setIsProcessing(true);
-        // The server-side signIn callback is now simplified. 
-        // The AppProvider will handle profile creation after successful sign-in.
-        signIn('google', { callbackUrl: '/dashboard/assistants' }).catch(err => {
-             toast({ title: "Error", description: "No se pudo iniciar sesión con Google.", variant: "destructive" });
-             setIsProcessing(false);
-        });
-    }
-    
-    const handleEmailRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedOption) {
-            toast({ title: "Error", description: "Por favor, selecciona un tipo de asistente en el paso 1.", variant: "destructive" });
-            setStep(1);
-            return;
-        };
-
-        const { email, password, confirmPassword } = formState;
-
-        if (!email || !password) {
-            toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos del formulario.", variant: "destructive" });
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            toast({ title: "Las contraseñas no coinciden", description: "Por favor, verifica que ambas contraseñas sean iguales.", variant: "destructive" });
-            return;
-        }
-
-        setIsProcessing(true);
-
-        try {
-          const registerResponse = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, assistantType: selectedOption }),
-          });
-    
-          if (!registerResponse.ok) {
-            const errorData = await registerResponse.json();
-            throw new Error(errorData.message || 'No se pudo crear el perfil.');
-          }
-          
-          const signInResult = await signIn('credentials', {
-            redirect: false,
-            email,
-            password,
-            userType: 'user'
-          });
-    
-          if (signInResult?.error) {
-            throw new Error(signInResult.error);
-          }
-          
-          toast({
-            title: "¡Registro Exitoso!",
-            description: `Bienvenido/a. Serás redirigido a tu panel.`,
-          });
-          
-          router.push('/dashboard/assistants');
-    
-        } catch (error: any) {
-          console.error("User registration error:", error);
-          toast({ title: "Error de Registro", description: error.message, variant: "destructive" });
-        } finally {
-          setIsProcessing(false);
-        }
-    };
-
-    const showDetails = (type: 'browser' | 'whatsapp') => {
-        setDetailsType(type);
-        setIsDetailsOpen(true);
-    };
+        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
+        router.push('/login');
+    }, [dispatch, router]);
 
     return (
-        <>
-        <PageContainer className="flex flex-col h-[calc(100vh-80px)]">
-            <div className="text-center">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
-                    Comienza para Conseguir tu{' '}
-                    <span className="text-brand-gradient">Asistente</span>
+        <PageContainer className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] animate-fadeIn">
+            <div className="text-center mb-8">
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
+                    Elige tu Primer <span className="text-brand-gradient">Asistente</span>
                 </h1>
+                <p className="mt-3 max-w-2xl mx-auto text-lg text-muted-foreground">
+                    Comienza con una prueba gratuita en el navegador o ve directamente a la automatización de WhatsApp.
+                </p>
             </div>
 
-            <StepIndicator currentStep={step} />
-
-            <div ref={scrollContainerRef} className="relative flex-grow overflow-y-auto mt-2 p-1">
-                {/* Step 1: Choose Assistant Type */}
-                <div className={cn(
-                    "transition-opacity duration-300 absolute w-full",
-                    step === 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                )}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card 
-                            onClick={() => handleSelectOption('desktop')}
-                            className={cn(
-                                "cursor-pointer transition-all border-2 glow-card",
-                                selectedOption === 'desktop' ? "border-primary shadow-lg" : "border-transparent"
-                            )}
-                        >
-                            <CardHeader className="p-3">
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-2 border">
-                                    <Image
-                                        src="/4.jpeg"
-                                        alt="Asistente en navegador"
-                                        width={600}
-                                        height={400}
-                                        className="w-full h-full object-cover"
-                                        data-ai-hint="chatbot browser"
-                                    />
-                                    <div className="absolute top-2 right-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                                        30 DÍAS GRATIS
-                                    </div>
-                                </div>
-                                <CardTitle className="flex items-center gap-2 text-sm"><AppWindow size={16}/> Asistente en Navegador</CardTitle>
-                                <CardDescription className="text-xs">Después, ${PRICE_PER_CREDIT.toFixed(2)} MXN por {MESSAGES_PER_CREDIT.toLocaleString()} mensajes.</CardDescription>
-                            </CardHeader>
-                             <CardContent className="p-3 pt-0">
-                                <Button 
-                                    size="sm" 
-                                    className={cn(
-                                        "w-full",
-                                        "bg-brand-gradient text-primary-foreground hover:opacity-90",
-                                        "shiny-border"
-                                    )} 
-                                    onClick={(e) => { e.stopPropagation(); showDetails('browser'); }}
-                                >
-                                    <Info className="mr-2" size={14} /> Ver detalles
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card 
-                            onClick={() => handleSelectOption('whatsapp')}
-                            className={cn(
-                                "cursor-pointer transition-all border-2 glow-card",
-                                selectedOption === 'whatsapp' ? "border-primary shadow-lg" : "border-transparent"
-                            )}
-                        >
-                            <CardHeader className="p-3">
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden mb-2 border">
-                                     <Image
-                                        src="/1.jpeg"
-                                        alt="Asistente en WhatsApp"
-                                        width={600}
-                                        height={400}
-                                        className="w-full h-full object-cover"
-                                        data-ai-hint="whatsapp chat"
-                                    />
-                                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                                        ${PRICE_PER_CREDIT.toFixed(2)} MXN / {MESSAGES_PER_CREDIT.toLocaleString()} Mensajes
-                                    </div>
-                                </div>
-                                <CardTitle className="flex items-center gap-2 text-sm"><FaWhatsapp size={16}/> Asistente en WhatsApp</CardTitle>
-                                <CardDescription className="text-xs">Requiere un número de teléfono sin cuenta de WhatsApp activa.</CardDescription>
-                            </CardHeader>
-                             <CardContent className="p-3 pt-0">
-                                <Button 
-                                    size="sm" 
-                                    className={cn(
-                                        "w-full",
-                                        "bg-brand-gradient text-primary-foreground hover:opacity-90",
-                                        "shiny-border"
-                                    )} 
-                                    onClick={(e) => { e.stopPropagation(); showDetails('whatsapp'); }}
-                                >
-                                    <Info className="mr-2" size={14} /> Ver detalles
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-                     <div className="text-center mt-3 text-xs text-muted-foreground max-w-2xl mx-auto bg-muted/50 p-2 rounded-lg">
-                        <p>No te preocupes, podrás cambiar de opción o usar ambas más adelante. Los créditos son acumulables y se comparten entre todos tus asistentes.</p>
-                    </div>
-                </div>
-
-                {/* Step 2: Payment Info */}
-                <div className={cn(
-                    "transition-opacity duration-300 absolute w-full",
-                    step === 2 ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                )}>
-                    <Card className="p-3 sm:p-4">
-                        <div className="relative aspect-video w-full rounded-md overflow-hidden mb-3 border">
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Desktop Assistant Card */}
+                <Card 
+                    onClick={() => handleSelectOption('desktop')}
+                    className={cn(
+                        "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20",
+                        selectedOption === 'desktop' ? "border-primary" : "border-transparent",
+                        "glow-card"
+                    )}
+                >
+                    <CardHeader className="p-0">
+                        <div className="relative aspect-video w-full">
                             <Image
-                                src="/5.jpeg"
-                                alt="Pagos seguros con Mercado Pago"
-                                width={600}
-                                height={400}
-                                className="w-full h-full object-cover"
-                                data-ai-hint="secure payment"
+                                src="/4.jpeg"
+                                alt="Asistente en navegador"
+                                layout="fill"
+                                className="object-cover"
+                                data-ai-hint="chatbot browser"
                             />
-                        </div>
-                        <CardHeader className="p-0 text-center mb-2">
-                            <CardTitle className="text-base">Paga por lo que Usas</CardTitle>
-                            <CardDescription className="text-xs">
-                                Los pagos son mediante Mercado Pago. Primero pagas y recibes tus créditos.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-0 text-sm">
-                            <div className="grid grid-cols-2 gap-2 text-center text-xs mb-3">
-                                {CREDIT_PACKAGES.slice(0, 2).map(pkg => (
-                                    <div key={pkg.credits} className="bg-muted/50 p-2 rounded-md">
-                                        <p className="font-bold text-primary">{pkg.credits} Crédito</p>
-                                        <p className="text-muted-foreground">({(pkg.credits * MESSAGES_PER_CREDIT).toLocaleString()} mensajes)</p>
-                                        <p className="font-semibold">${pkg.price.toFixed(2)} MXN</p>
-                                    </div>
-                                ))}
+                            <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6">
+                                30 DÍAS GRATIS
                             </div>
-                            <Accordion type="single" collapsible className="w-full">
-                                <AccordionItem value="item-1">
-                                    <AccordionTrigger className="text-xs py-2">¿Cómo se cuentan los mensajes?</AccordionTrigger>
-                                    <AccordionContent className="text-xs text-muted-foreground space-y-1">
-                                       <p>• Cada respuesta que envía tu asistente.</p>
-                                       <p>• Cada pregunta de un cliente que tu asistente procesa.</p>
-                                       <p>• Cada notificación que el asistente te envía a tu WhatsApp personal.</p>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-6 text-center">
+                        <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><AppWindow size={22}/> Asistente en Navegador</CardTitle>
+                        <CardDescription className="mb-4 text-sm">Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono.</CardDescription>
+                        <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Prueba ilimitada por 30 días.</span></li>
+                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Configuración y acceso instantáneo.</span></li>
+                        </ul>
+                        <Button size="lg" className="w-full font-bold">
+                            Comenzar Prueba Gratis <ArrowRight className="ml-2" size={16}/>
+                        </Button>
+                    </CardContent>
+                </Card>
 
-                 {/* Step 3: Register */}
-                <div className={cn(
-                    "transition-opacity duration-300 absolute w-full",
-                    step === 3 ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                )}>
-                    <div className="space-y-4">
-                        <Card 
-                            onClick={handleGoogleSignIn}
-                            className="cursor-pointer transition-all hover:shadow-primary/20 hover:border-primary/80"
-                        >
-                            <CardHeader className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="flex items-center gap-2 text-sm"><FaGoogle size={16} /> Regístrate con Google</CardTitle>
-                                    <div className="bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                                        RECOMENDADO
-                                    </div>
-                                </div>
-                                <CardDescription className="text-xs">La forma más rápida y segura de crear tu cuenta.</CardDescription>
-                            </CardHeader>
-                             <CardContent className="p-4 pt-0">
-                                <Button size="sm" className={cn("w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")} disabled={isProcessing}>
-                                    {isProcessing ? <FaSpinner className="animate-spin" /> : <>Continuar con Google <ArrowRight className="ml-2" size={14} /></>}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                        
-                         <Card>
-                            <form onSubmit={handleEmailRegister}>
-                                <CardHeader className="p-4">
-                                    <CardTitle className="flex items-center gap-2 text-sm"><UserPlus size={16} /> Regístrate con Correo</CardTitle>
-                                    <CardDescription className="text-xs">Usa tu correo electrónico y una contraseña para registrarte.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-0 space-y-3">
-                                     <div>
-                                        <Label htmlFor="email">Correo Electrónico</Label>
-                                        <Input id="email" name="email" type="email" value={formState.email} onChange={handleFormChange} required />
-                                     </div>
-                                     <div>
-                                        <Label htmlFor="password">Contraseña</Label>
-                                        <Input id="password" name="password" type="password" value={formState.password} onChange={handleFormChange} required />
-                                        {formState.password && <PasswordStrengthMeter strength={passwordStrength} />}
-                                     </div>
-                                     <div>
-                                        <Label htmlFor="confirmPassword">Verificar Contraseña</Label>
-                                        <Input id="confirmPassword" name="confirmPassword" type="password" value={formState.confirmPassword} onChange={handleFormChange} required />
-                                     </div>
-                                     <Button type="submit" size="sm" variant="secondary" className="w-full" disabled={isProcessing}>
-                                        {isProcessing ? <FaSpinner className="animate-spin" /> : 'Crear Cuenta y Finalizar'}
-                                     </Button>
-                                </CardContent>
-                            </form>
-                        </Card>
-                    </div>
-                </div>
-
+                {/* WhatsApp Assistant Card */}
+                <Card 
+                    onClick={() => handleSelectOption('whatsapp')}
+                    className={cn(
+                        "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20",
+                        selectedOption === 'whatsapp' ? "border-primary" : "border-transparent",
+                        "glow-card"
+                    )}
+                >
+                    <CardHeader className="p-0">
+                         <div className="relative aspect-video w-full">
+                             <Image
+                                src="/1.jpeg"
+                                alt="Asistente en WhatsApp"
+                                layout="fill"
+                                className="object-cover"
+                                data-ai-hint="whatsapp chat"
+                            />
+                            <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                PAGO POR USO
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-6 text-center">
+                        <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><FaWhatsapp size={22}/> Asistente en WhatsApp</CardTitle>
+                        <CardDescription className="mb-4 text-sm">Automatiza ventas y soporte en la plataforma de mensajería más grande del mundo.</CardDescription>
+                         <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Atención al cliente 24/7.</span></li>
+                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Requiere un número de teléfono nuevo.</span></li>
+                        </ul>
+                        <Button size="lg" className="w-full font-bold">
+                            Crear Asistente WhatsApp <ArrowRight className="ml-2" size={16}/>
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
-
-            <div className="flex justify-between items-center mt-auto pt-2 border-t">
-                <Button variant="outline" onClick={handleBack} disabled={step === 1}>
-                    <ArrowLeft className="mr-2" size={16} />
-                    Volver
-                </Button>
-                {step < 3 && (
-                    <Button onClick={handleNext} disabled={step === 1 && !selectedOption}>
-                        Siguiente
-                        <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                )}
-            </div>
-            <p className="text-center text-xs text-muted-foreground mt-1">
-               &copy; {new Date().getFullYear()} {APP_NAME}
+            
+             <p className="text-center text-sm text-muted-foreground mt-8">
+               ¿Ya tienes una cuenta? <Link href="/login" className="font-semibold text-primary hover:underline">Inicia sesión aquí.</Link>
             </p>
         </PageContainer>
-        <AssistantDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} type={detailsType} />
-        </>
     );
 };
 
 export default BeginPage;
-
-    
