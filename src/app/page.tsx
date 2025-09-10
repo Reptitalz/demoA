@@ -502,10 +502,10 @@ const HeroSection = () => {
             {/* Left Column - Text Content */}
             <div className="lg:w-1/2">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground animate-fadeIn" style={{animationDelay: '0.1s'}}>
-                    Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp</span>
+                    Crea Asistentes de IA para <span className="text-brand-gradient">WhatsApp y Desktop</span>
                 </h1>
                 <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 animate-fadeIn" style={{animationDelay: '0.2s'}}>
-                Automatiza tus ventas y atención al cliente en WhatsApp con asistentes de IA que trabajan para ti 24/7.
+                Automatiza tus ventas y atención al cliente con asistentes de IA que trabajan para ti 24/7 en WhatsApp y en tu propia web.
                 </p>
                 <div className="mt-10 flex flex-col items-center lg:items-start justify-center gap-4 animate-fadeIn" style={{animationDelay: '0.3s'}}>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
@@ -516,7 +516,7 @@ const HeroSection = () => {
                             cómo funciona
                         </Button>
                     </div>
-                    <Button asChild variant="link" className="text-muted-foreground hover:text-primary">
+                     <Button asChild variant="link" className="text-muted-foreground hover:text-primary">
                         <Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
                     </Button>
                 </div>
@@ -525,7 +525,7 @@ const HeroSection = () => {
                         <FcGoogle className="h-4 w-4" />
                         <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                     </div>
-                    <Button
+                     <Button
                         onClick={handleDownloadClick}
                         variant="ghost"
                         className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
@@ -960,6 +960,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
