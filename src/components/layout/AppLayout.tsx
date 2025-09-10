@@ -23,7 +23,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const isChatPage = pathname.startsWith('/chat');
   
   const layoutShouldBeFullWidth = pathname === '/';
-  const showCanvas = isMarketingPage || isLoginPage;
+  const showCanvas = isMarketingPage || isLoginPage || isChatPage;
   const showHeaderAndFooter = !isDashboardPage && !isDashboardDemoPage && !isCollaboratorDemoPage && !isLoginPage && !isChatPage;
   
   return (
