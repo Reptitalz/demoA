@@ -200,12 +200,12 @@ export interface Transaction {
 }
 
 export interface KnowledgeItem {
-  _id: ObjectId;
-  assistantId: string;
-  userId: string;
-  content: string;
-  size: number; // in bytes
-  createdAt: Date;
+    _id: ObjectId;
+    assistantId: string;
+    userId: string;
+    content: string;
+    size: number; // in bytes
+    createdAt: Date;
 }
 
 export interface ContactImage {
@@ -230,4 +230,19 @@ export interface AssistantMemory {
 
 export interface AssistantWithMemory extends AssistantConfig {
   totalMemory: number;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
+}
+
+export interface Conversation {
+    _id: string;
+    userIdentifier: string;
+    assistantId: string;
+    history: ChatMessage[];
+    createdAt: string;
+    updatedAt: string;
+    lastMessage: string;
 }

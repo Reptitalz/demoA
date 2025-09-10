@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -22,7 +23,8 @@ import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { AssistantMemory, AssistantWithMemory } from '@/types';
-import AssistantMemoryCard from './AssistantMemoryCard';
+import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
+import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
