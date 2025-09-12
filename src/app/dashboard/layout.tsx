@@ -41,6 +41,24 @@ export default function DashboardLayout({
     const touchEndY = React.useRef(0);
     const swipeHandled = React.useRef(false);
 
+    // State for page transition animation
+    const [isAnimating, setIsAnimating] = React.useState(false);
+
+    const handleRouteChange = (newPath: string) => {
+        if (pathname !== newPath) {
+            setIsAnimating(true);
+            setTimeout(() => {
+                router.push(newPath);
+                // The animation will reset when the pathname changes
+            }, 150); // Duration of fade-out animation
+        }
+    };
+    
+    React.useEffect(() => {
+        setIsAnimating(false);
+    }, [pathname]);
+
+
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.targetTouches[0].clientX;
         touchStartY.current = e.targetTouches[0].clientY;
@@ -65,10 +83,10 @@ export default function DashboardLayout({
 
             if (deltaX < -50) { // Swiped left
                 const nextIndex = (currentIndex + 1) % menuItems.length;
-                router.push(menuItems[nextIndex].path);
+                handleRouteChange(menuItems[nextIndex].path);
             } else if (deltaX > 50) { // Swiped right
                 const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                router.push(menuItems[prevIndex].path);
+                handleRouteChange(menuItems[prevIndex].path);
             }
             swipeHandled.current = true;
         }
@@ -102,7 +120,10 @@ export default function DashboardLayout({
                     </div>
                 </header>
             <main 
-                className="flex-grow overflow-y-auto pb-20"
+                className={cn(
+                    "flex-grow overflow-y-auto pb-20 transition-opacity duration-150",
+                    isAnimating ? 'opacity-0' : 'opacity-100'
+                )}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -115,17 +136,16 @@ export default function DashboardLayout({
                         {menuItems.map(item => (
                             <Tooltip key={item.path}>
                                 <TooltipTrigger asChild>
-                                    <Link href={item.path} passHref legacyBehavior>
-                                        <div
-                                            className={cn(
-                                                "flex flex-col items-center justify-center h-full w-20 cursor-pointer transition-colors text-muted-foreground hover:text-primary",
-                                                pathname.startsWith(item.path) && "text-primary"
-                                            )}
-                                        >
-                                            <item.icon className="h-5 w-5" />
-                                            <span className="text-[10px] mt-1">{item.label}</span>
-                                        </div>
-                                    </Link>
+                                    <div
+                                        onClick={() => handleRouteChange(item.path)}
+                                        className={cn(
+                                            "flex flex-col items-center justify-center h-full w-20 cursor-pointer transition-colors text-muted-foreground hover:text-primary",
+                                            pathname.startsWith(item.path) && "text-primary"
+                                        )}
+                                    >
+                                        <item.icon className="h-5 w-5" />
+                                        <span className="text-[10px] mt-1">{item.label}</span>
+                                    </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>{item.label}</p>
@@ -142,18 +162,17 @@ export default function DashboardLayout({
                         {menuItems.map(item => (
                             <Tooltip key={item.path}>
                                 <TooltipTrigger asChild>
-                                    <Link href={item.path} passHref legacyBehavior>
-                                        <Button
-                                            variant={pathname.startsWith(item.path) ? "default" : "ghost"}
-                                            size="icon"
-                                            className={cn(
-                                                "rounded-full transition-all",
-                                                pathname.startsWith(item.path) && "shadow-md"
-                                            )}
-                                        >
-                                            <item.icon className="h-5 w-5" />
-                                        </Button>
-                                    </Link>
+                                    <Button
+                                        variant={pathname.startsWith(item.path) ? "default" : "ghost"}
+                                        size="icon"
+                                        className={cn(
+                                            "rounded-full transition-all",
+                                            pathname.startsWith(item.path) && "shadow-md"
+                                        )}
+                                        onClick={() => handleRouteChange(item.path)}
+                                    >
+                                        <item.icon className="h-5 w-5" />
+                                    </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>{item.label}</p>
