@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +15,76 @@ import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
 import { Paperclip } from 'lucide-react';
 import Image from 'next/image';
+
+const DB_NAME = 'HeyManitoChatDB';
+const DB_VERSION = 1;
+const MESSAGES_STORE_NAME = 'messages';
+const SESSION_STORE_NAME = 'session';
+
+// --- IndexedDB Helper Functions ---
+
+const openDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
+        db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains(SESSION_STORE_NAME)) {
+        db.createObjectStore(SESSION_STORE_NAME, { keyPath: 'chatPath' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+const getSessionIdFromDB = async (chatPath: string): Promise<string | null> => {
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction(SESSION_STORE_NAME, 'readonly');
+    const store = tx.objectStore(SESSION_STORE_NAME);
+    const request = store.get(chatPath);
+    request.onsuccess = () => {
+      resolve(request.result?.sessionId || null);
+    };
+    request.onerror = () => resolve(null);
+  });
+};
+
+const setSessionIdInDB = async (chatPath: string, sessionId: string) => {
+  const db = await openDB();
+  const tx = db.transaction(SESSION_STORE_NAME, 'readwrite');
+  tx.objectStore(SESSION_STORE_NAME).put({ chatPath, sessionId });
+  return tx.complete;
+};
+
+const getMessagesFromDB = async (sessionId: string): Promise<ChatMessage[]> => {
+    const db = await openDB();
+    return new Promise((resolve) => {
+        const tx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
+        const store = tx.objectStore(MESSAGES_STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => {
+            // Filter messages by sessionId on the client side
+            const allMessages = request.result as (ChatMessage & { sessionId: string })[];
+            const sessionMessages = allMessages.filter(msg => msg.sessionId === sessionId);
+            resolve(sessionMessages);
+        };
+        request.onerror = () => resolve([]);
+    });
+};
+
+const saveMessageToDB = async (message: ChatMessage, sessionId: string) => {
+    const db = await openDB();
+    const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
+    // Add sessionId to the message object before storing
+    tx.objectStore(MESSAGES_STORE_NAME).add({ ...message, sessionId });
+    return tx.complete;
+};
+
+// --- Component ---
 
 const ChatBubble = ({ message, isUser, time }: { message: ChatMessage; isUser: boolean; time: string }) => (
     <div className={cn("flex mb-2.5 animate-fadeIn", isUser ? "justify-end" : "justify-start")}>
@@ -63,17 +133,24 @@ const DesktopChatPage = () => {
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
 
   useEffect(() => {
-    // Generate session ID on initial load if it doesn't exist.
-    const getSessionId = () => {
-        let sid = localStorage.getItem(`sessionId_${chatPath}`);
-        if (!sid) {
-            sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            localStorage.setItem(`sessionId_${chatPath}`, sid);
-        }
-        setSessionId(sid);
-    }
-    getSessionId();
+    const setupSessionAndMessages = async () => {
+      if (!chatPath) return;
+
+      let sid = await getSessionIdFromDB(chatPath);
+      if (!sid) {
+        sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        await setSessionIdInDB(chatPath, sid);
+      }
+      setSessionId(sid);
+      
+      const storedMessages = await getMessagesFromDB(sid);
+      if (storedMessages.length > 0) {
+        setMessages(storedMessages);
+      }
+    };
+    setupSessionAndMessages();
   }, [chatPath]);
+
 
   useEffect(() => {
     if (chatPath) {
@@ -88,11 +165,15 @@ const DesktopChatPage = () => {
         .then(data => {
           if(!data.assistant) throw new Error('Asistente no encontrado.');
           setAssistant(data.assistant);
-          setMessages([{
-            role: 'model',
-            content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }]);
+          if (messages.length === 0) { // Only set initial message if chat is empty
+            const initialMessage = {
+              role: 'model' as const,
+              content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages([initialMessage]);
+            if (sessionId) saveMessageToDB(initialMessage, sessionId);
+          }
         })
         .catch(err => {
             setError(err.message);
@@ -111,7 +192,7 @@ const DesktopChatPage = () => {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, [chatPath]);
+  }, [chatPath, sessionId]); // Re-run when sessionId is available
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -146,12 +227,13 @@ const DesktopChatPage = () => {
               const responseText = event.output?.responseText;
 
               if (responseText) {
-                 const aiResponse = {
+                 const aiResponse: ChatMessage = {
                   role: 'model' as const,
                   content: responseText,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 };
                 setMessages(prev => [...prev, aiResponse]);
+                saveMessageToDB(aiResponse, sessionId);
                 foundFinalResponse = true;
               } else if (event.output?.statusMessage) {
                 setAssistantStatusMessage(event.output.statusMessage);
@@ -188,10 +270,21 @@ const DesktopChatPage = () => {
     };
     
     pollIntervalRef.current = setInterval(poll, 3000);
-  }, [assistant?.id, processedEventIds]);
+  }, [assistant?.id, processedEventIds, sessionId]);
   
-  const sendMessageToServer = useCallback((messageContent: string | { type: 'image'; url: string }) => {
+  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image'; url: string }) => {
     if (!assistant?.id || !assistant?.chatPath || !sessionId) return;
+    
+    // Add image responses here
+    if (typeof messageContent !== 'string' && messageContent.type === 'image') {
+        const imageResponse: ChatMessage = {
+            role: 'model',
+            content: "Recibí tu imagen. Será verificada por el propietario y pronto te daré una respuesta.",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages(prev => [...prev, imageResponse]);
+        await saveMessageToDB(imageResponse, sessionId);
+    }
     
     fetch('/api/chat/send', {
         method: 'POST',
@@ -221,6 +314,8 @@ const DesktopChatPage = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    await saveMessageToDB(userMessage, sessionId);
+    
     const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsSending(true);
@@ -234,7 +329,7 @@ const DesktopChatPage = () => {
     if (!file || isSending || error) return;
 
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64String = reader.result as string;
       
       const userMessage: ChatMessage = {
@@ -244,6 +339,8 @@ const DesktopChatPage = () => {
       };
 
       setMessages(prev => [...prev, userMessage]);
+      await saveMessageToDB(userMessage, sessionId);
+      
       setIsSending(true);
       setAssistantStatusMessage('Analizando imagen...');
       
@@ -352,6 +449,10 @@ const DesktopChatPage = () => {
                   </Button>
                 </form>
               </footer>
+                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground/60 pointer-events-none flex items-center gap-1">
+                    <FaLock size={8} />
+                    <span>Los mensajes se guardan en este dispositivo.</span>
+                </div>
             </div>
              <div className="absolute bottom-1 right-1/2 translate-x-1/2 text-[9px] text-muted-foreground/50 pointer-events-none">
                 Powered by {APP_NAME}
