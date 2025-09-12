@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FaUserPlus, FaWhatsapp, FaRocket, FaHandshake, FaBullseye, FaChartLine, FaUsers } from 'react-icons/fa';
+import { FaUserPlus, FaWhatsapp, FaRocket, FaHandshake, FaChartLine, FaUsers } from 'react-icons/fa';
 import { ArrowRight, CircleDollarSign, Target, Coins } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import Image from 'next/image';
@@ -77,22 +77,16 @@ const CollaboratorsPage = () => {
             icon: <FaUserPlus className="h-8 w-8 text-primary" />,
             title: "1. Registra a tu Cliente",
             description: "Usa tu enlace de referido único para que tus clientes creen su primer asistente. ¡Es el primer paso para empezar a ganar!",
-            imageUrl: "/5.jpeg",
-            imageHint: "client registration"
         },
         {
             icon: <FaWhatsapp className="h-8 w-8 text-green-500" />,
             title: "2. Ayúdalos a Activar",
             description: "Guía a tus clientes en la vinculación de un número de WhatsApp nuevo. Es crucial para que el asistente funcione.",
-            imageUrl: "/4.jpeg",
-            imageHint: "whatsapp activation"
         },
         {
             icon: <FaRocket className="h-8 w-8 text-accent" />,
             title: "3. Impulsa sus Recargas",
             description: "Cada vez que tus clientes recarguen créditos para sus asistentes, tú ganas una comisión. ¡Tu éxito es nuestro éxito!",
-            imageUrl: "/4.jpeg",
-            imageHint: "earnings commission"
         }
     ];
 
@@ -146,16 +140,6 @@ const CollaboratorsPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {steps.map((step, index) => (
                         <Card key={index} className="text-center p-6 shadow-lg hover:shadow-primary/20 transition-shadow overflow-hidden">
-                             <div className="relative aspect-video mb-4 rounded-md overflow-hidden">
-                                <Image
-                                    src={step.imageUrl}
-                                    alt={step.title}
-                                    width={600}
-                                    height={400}
-                                    className="w-full h-full object-cover transition-transform hover:scale-105"
-                                    data-ai-hint={step.imageHint}
-                                />
-                            </div>
                             <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full">
                                 {step.icon}
                             </div>
