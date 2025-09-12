@@ -201,7 +201,7 @@ export interface Transaction {
 
 export interface KnowledgeItem {
     _id: ObjectId;
-    assistantId: string;
+    databaseId: string;
     userId: string;
     content: string;
     size: number; // in bytes

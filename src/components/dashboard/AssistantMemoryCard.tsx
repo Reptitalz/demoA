@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { FaEye } from "react-icons/fa";
+import { FaComments } from "react-icons/fa";
 import { AssistantWithMemory } from "@/types";
 import { formatBytes } from "@/lib/utils";
 import ConversationsDialog from './ConversationsDialog'; // Import the new dialog
@@ -40,7 +40,7 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
             </div>
           </div>
           <Button size="sm" variant="outline" onClick={() => setIsDialogOpen(true)}>
-            <FaEye className="mr-2 h-4 w-4" />
+            <FaComments className="mr-2 h-4 w-4" />
             Ver Chats
           </Button>
         </CardContent>

@@ -3,7 +3,7 @@
 import type { DatabaseConfig, DatabaseSource } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload, FaHdd, FaAddressBook } from "react-icons/fa";
+import { FaDatabase, FaLink, FaExternalLinkAlt, FaTimesCircle, FaGoogle, FaBrain, FaEllipsisV, FaTrash, FaEye, FaExchangeAlt, FaDownload, FaHdd, FaAddressBook, FaComments } from "react-icons/fa";
 import { useApp } from "@/providers/AppProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
@@ -16,6 +16,7 @@ import { formatBytes, cn } from "@/lib/utils";
 import KnowledgeManagementDialog from "./KnowledgeManagementDialog"; // Import the new dialog
 import { BookOpen } from "lucide-react";
 import ContactsDialog from "./ContactsDialog";
+import ConversationsDialog from "./ConversationsDialog";
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -29,8 +30,10 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const [isChangeTypeDialogOpen, setIsChangeTypeDialogOpen] = useState(false);
   const [isKnowledgeDialogOpen, setIsKnowledgeDialogOpen] = useState(false); // State for the new dialog
   const [isContactsDialogOpen, setIsContactsDialogOpen] = useState(false);
+  const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
   
   const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id);
+  const linkedAssistant = linkedAssistants[0];
 
   const getDatabaseIcon = (source: DatabaseSource) => {
     if (source === "google_sheets") return FaGoogle;
@@ -134,6 +137,13 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setIsConversationsDialogOpen(true)} disabled={!linkedAssistant}>
+                        <FaComments className="mr-2" /> Ver Chats
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsKnowledgeDialogOpen(true)} disabled={database.source !== 'smart_db'}>
+                        <BookOpen className="mr-2 h-4 w-4" /> Conocimiento
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleViewContent} disabled={database.source !== 'google_sheets'}>
                         <FaEye className="mr-2" /> Ver Contenido
                     </DropdownMenuItem>
@@ -282,19 +292,18 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         database={database}
       />
       
-      {database.source === 'smart_db' && (
+      {linkedAssistant && (
         <>
           <KnowledgeManagementDialog
               isOpen={isKnowledgeDialogOpen}
               onOpenChange={setIsKnowledgeDialogOpen}
               database={database}
-              assistant={linkedAssistants[0]}
+              assistant={linkedAssistant}
           />
-          <ContactsDialog
-              isOpen={isContactsDialogOpen}
-              onOpenChange={setIsContactsDialogOpen}
-              database={database}
-              assistant={linkedAssistants[0]}
+           <ConversationsDialog
+              isOpen={isConversationsDialogOpen}
+              onOpenChange={setIsConversationsDialogOpen}
+              assistant={linkedAssistant}
           />
         </>
       )}

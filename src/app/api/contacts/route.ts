@@ -1,7 +1,7 @@
 // src/app/api/contacts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { UserProfile } from '@/types';
+import { UserProfile, ContactImage } from '@/types';
 import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';
@@ -47,16 +47,35 @@ export async function GET(request: NextRequest) {
             $group: {
                 _id: "$destination",
                 // Sum the size of all messages in the conversation
-                conversationSize: { $sum: { $bsonSize: "$message" } } 
+                conversationSize: { $sum: { $bsonSize: "$message" } },
+                 // Collect all images from the messages
+                images: {
+                    $push: {
+                        $cond: [
+                            { $and: [
+                                { $isObject: "$message" },
+                                { $eq: [ { $ifNull: ["$message.type", ""] }, "image" ] }
+                            ]},
+                            {
+                                _id: { $toString: "$_id" }, // Using the message's own ID as a unique ID for the image
+                                url: "$message.url",
+                                receivedAt: "$createdAt",
+                                read: { $ifNull: ["$read", false] } // Default to false if 'read' field doesn't exist
+                            },
+                            "$$REMOVE" // Exclude non-image messages from the array
+                        ]
+                    }
+                }
             }
         },
         {
             // Reshape the output
             $project: {
-                _id: 1,
+                _id: { $toString: "$_id" }, // Ensure _id is a string
                 destination: "$_id",
                 name: "$_id", // Initially, name is the same as the identifier
-                conversationSize: 1
+                conversationSize: 1,
+                images: 1
             }
         },
         {
@@ -66,9 +85,6 @@ export async function GET(request: NextRequest) {
         }
     ]).toArray();
     
-    // Note: The 'images' field is not part of the agent_memory collection in this schema.
-    // It would need to be fetched from a different collection if that functionality is implemented.
-    // For now, contacts will not include images.
 
     return NextResponse.json(contacts);
   } catch (error) {
