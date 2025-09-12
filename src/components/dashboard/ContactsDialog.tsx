@@ -19,11 +19,10 @@ import { cn } from '@/lib/utils';
 interface ContactsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  database: DatabaseConfig;
-  assistant?: AssistantConfig;
+  assistant: AssistantConfig;
 }
 
-const ContactsDialog = ({ isOpen, onOpenChange, database, assistant }: ContactsDialogProps) => {
+const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps) => {
   const { state } = useApp();
   const { userProfile } = state;
   const { toast } = useToast();
@@ -51,7 +50,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database, assistant }: ContactsD
         .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }))
         .finally(() => setIsLoading(false));
     }
-  }, [isOpen, database.id, assistant, userProfile._id, toast]);
+  }, [isOpen, assistant, userProfile._id, toast]);
 
   const handleViewImages = (contact: Contact) => {
     if (!contact.images || contact.images.length === 0) {
@@ -99,7 +98,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database, assistant }: ContactsD
       <DialogContent className="w-full h-full max-w-none sm:max-w-xl flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaAddressBook /> Contactos de "{assistant?.name || database.name}"
+            <FaAddressBook /> Contactos de "{assistant?.name}"
           </DialogTitle>
           <DialogDescription>
             Visualiza los contactos y sesiones que han interactuado con tu asistente.

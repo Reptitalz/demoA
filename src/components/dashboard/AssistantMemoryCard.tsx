@@ -12,7 +12,7 @@ import { formatBytes } from "@/lib/utils";
 import ConversationsDialog from './ConversationsDialog'; // Import the new dialog
 import ContactsDialog from './ContactsDialog';
 import { useApp } from '@/providers/AppProvider';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider } from '../ui/tooltip';
 
 interface AssistantMemoryCardProps {
   assistant: AssistantWithMemory;
@@ -26,8 +26,6 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
   const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isContactsOpen, setIsContactsOpen] = useState(false);
   
-  const linkedDatabase: DatabaseConfig | undefined = assistant.databaseId ? state.userProfile.databases.find(db => db.id === assistant.databaseId) : undefined;
-
   return (
     <>
       <Card className="animate-fadeIn shadow-sm hover:shadow-md transition-shadow" style={{ animationDelay }}>
@@ -76,14 +74,11 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
         onOpenChange={setIsConversationsOpen}
         assistant={assistant}
       />
-      {linkedDatabase && (
-         <ContactsDialog
-            isOpen={isContactsOpen}
-            onOpenChange={setIsContactsOpen}
-            database={linkedDatabase}
-            assistant={assistant}
-        />
-      )}
+       <ContactsDialog
+          isOpen={isContactsOpen}
+          onOpenChange={setIsContactsOpen}
+          assistant={assistant}
+      />
     </>
   );
 };
