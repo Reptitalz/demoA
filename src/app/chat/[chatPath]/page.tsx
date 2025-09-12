@@ -417,45 +417,50 @@ const DesktopChatPage = () => {
                  )}
                 <div ref={chatEndRef} />
               </main>
-              <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 shrink-0 border-t border-black/10">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isSending || !!error}
-                >
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-                <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
-                  <Input
-                    type="text"
-                    placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    className="bg-white dark:bg-slate-700 rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
-                    autoComplete="off"
-                    disabled={!!error || isSending}
-                  />
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    accept="image/*"
-                    />
-                  <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
-                    <FaPaperPlane className="h-5 w-5" />
-                  </Button>
-                </form>
-              </footer>
-                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground/60 pointer-events-none flex items-center gap-1">
-                    <FaLock size={8} />
-                    <span>Los mensajes se guardan en este dispositivo.</span>
+              
+               <div className="shrink-0">
+                    <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 border-t border-black/10">
+                        <Button
+                        size="icon"
+                        variant="ghost"
+                        className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isSending || !!error}
+                        >
+                        <Paperclip className="h-5 w-5" />
+                        </Button>
+                        <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
+                        <Input
+                            type="text"
+                            placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
+                            value={currentMessage}
+                            onChange={(e) => setCurrentMessage(e.target.value)}
+                            className="bg-white dark:bg-slate-700 rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
+                            autoComplete="off"
+                            disabled={!!error || isSending}
+                        />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            accept="image/*"
+                            />
+                        <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
+                            <FaPaperPlane className="h-5 w-5" />
+                        </Button>
+                        </form>
+                    </footer>
+                     <div className="bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
+                        <div className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
+                            <FaLock size={8} />
+                            <span>Los mensajes se guardan en este dispositivo.</span>
+                        </div>
+                         <div className="text-[9px] text-muted-foreground/50">
+                            Powered by {APP_NAME}
+                        </div>
+                    </div>
                 </div>
-            </div>
-             <div className="absolute bottom-1 right-1/2 translate-x-1/2 text-[9px] text-muted-foreground/50 pointer-events-none">
-                Powered by {APP_NAME}
             </div>
         </div>
       </div>
