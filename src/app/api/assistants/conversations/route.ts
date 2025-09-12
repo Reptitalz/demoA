@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         },
         {
             $project: {
-                _id: 1,
+                _id: { $toString: "$_id" }, // Ensure _id is a string
                 userIdentifier: 1,
                 assistantId: 1,
                 createdAt: 1,

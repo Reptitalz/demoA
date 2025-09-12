@@ -24,6 +24,7 @@ interface ConversationsDialogProps {
 
 const ChatBubble = ({ message, assistant }: { message: ChatMessage; assistant: AssistantConfig }) => {
   const isUser = message.role === 'user';
+  const contentText = typeof message.content === 'string' ? message.content : '[Contenido no textual]';
   return (
     <div className={cn("flex w-full max-w-md mx-auto py-2", isUser ? "justify-end" : "justify-start")}>
       <div className="flex items-end gap-2">
@@ -41,7 +42,7 @@ const ChatBubble = ({ message, assistant }: { message: ChatMessage; assistant: A
               : "bg-white dark:bg-slate-700 rounded-bl-none"
           )}
         >
-          <p className="text-black dark:text-white">{typeof message.content === 'string' ? message.content : '[Imagen]'}</p>
+          <p className="text-black dark:text-white">{contentText}</p>
         </div>
         {isUser && (
           <Avatar className="h-6 w-6">
@@ -62,13 +63,17 @@ const ConversationDetailDialog = ({ open, onOpenChange, conversationId, assistan
     useEffect(() => {
         if (open && conversationId && state.userProfile._id) {
             setIsLoading(true);
+            setConversation(null); // Clear previous conversation
             fetch('/api/assistants/conversations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId, userId: state.userProfile._id.toString() }),
             })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to load conversation details.');
+            .then(async (res) => {
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.message || 'Failed to load conversation details.');
+                }
                 return res.json();
             })
             .then(setConversation)
@@ -120,8 +125,11 @@ const ConversationsDialog = ({ isOpen, onOpenChange, assistant }: ConversationsD
     if (isOpen && state.userProfile._id) {
       setIsLoading(true);
       fetch(`/api/assistants/conversations?assistantId=${assistant.id}&userId=${state.userProfile._id.toString()}`)
-        .then(res => {
-          if (!res.ok) throw new Error('No se pudieron cargar las conversaciones.');
+        .then(async res => {
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'No se pudieron cargar las conversaciones.');
+          }
           return res.json();
         })
         .then(data => setConversations(data))
@@ -169,7 +177,7 @@ const ConversationsDialog = ({ isOpen, onOpenChange, assistant }: ConversationsD
                                         <span>{convo.userIdentifier}</span>
                                     </p>
                                     <p className="text-xs text-muted-foreground truncate italic">
-                                        "{convo.lastMessage}"
+                                        "{typeof convo.lastMessage === 'string' ? convo.lastMessage : '[Mensaje no textual]'}"
                                     </p>
                                 </div>
                                 <div className="text-right text-xs text-muted-foreground shrink-0">
