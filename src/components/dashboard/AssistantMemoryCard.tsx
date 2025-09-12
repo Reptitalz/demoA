@@ -1,3 +1,4 @@
+
 // src/components/dashboard/AssistantMemoryCard.tsx
 "use client";
 
@@ -74,11 +75,11 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
         onOpenChange={setIsConversationsOpen}
         assistant={assistant}
       />
-       {assistant && <ContactsDialog
+       <ContactsDialog
           isOpen={isContactsOpen}
           onOpenChange={setIsContactsOpen}
           assistant={assistant}
-      />}
+      />
     </>
   );
 };

@@ -1,3 +1,4 @@
+
 // src/components/dashboard/ConversationsDialog.tsx
 "use client";
 
@@ -40,7 +41,7 @@ const ChatBubble = ({ message, assistant }: { message: ChatMessage; assistant: A
               : "bg-white dark:bg-slate-700 rounded-bl-none"
           )}
         >
-          <p className="text-black dark:text-white">{message.content}</p>
+          <p className="text-black dark:text-white">{typeof message.content === 'string' ? message.content : '[Imagen]'}</p>
         </div>
         {isUser && (
           <Avatar className="h-6 w-6">
