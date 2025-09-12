@@ -96,7 +96,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, database, assistant }: ContactsD
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full h-full max-w-none flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
+      <DialogContent className="w-full h-full max-w-none sm:max-w-xl flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FaAddressBook /> Contactos de "{assistant?.name || database.name}"
