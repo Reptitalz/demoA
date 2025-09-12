@@ -1,4 +1,3 @@
-
 // src/components/dashboard/AssistantMemoryCard.tsx
 "use client";
 
@@ -13,6 +12,7 @@ import { formatBytes } from "@/lib/utils";
 import ConversationsDialog from './ConversationsDialog'; // Import the new dialog
 import ContactsDialog from './ContactsDialog';
 import { useApp } from '@/providers/AppProvider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface AssistantMemoryCardProps {
   assistant: AssistantWithMemory;
@@ -21,7 +21,7 @@ interface AssistantMemoryCardProps {
 
 const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemoryCardProps) => {
   const { state } = useApp();
-  const MAX_MEMORY_BYTES = 50 * 1024 * 1024; // Example: 50MB per assistant
+  const MAX_MEMORY_BYTES = 50 * 1024 * 1024; // 50MB per assistant
   const memoryPercentage = Math.min((assistant.totalMemory / MAX_MEMORY_BYTES) * 100, 100);
   const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isContactsOpen, setIsContactsOpen] = useState(false);
@@ -45,16 +45,30 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => setIsContactsOpen(true)} title="Ver Imágenes y Contactos">
-                <FaImage className="mr-2 h-4 w-4" />
-                Imágenes
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setIsConversationsOpen(true)}>
-                <FaComments className="mr-2 h-4 w-4" />
-                Ver Chats
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="flex gap-2">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button size="icon" variant="outline" onClick={() => setIsContactsOpen(true)} className="h-8 w-8">
+                            <FaImage />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Ver Imágenes y Contactos</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button size="icon" variant="outline" onClick={() => setIsConversationsOpen(true)} className="h-8 w-8">
+                            <FaComments/>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Ver Chats</p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
       <ConversationsDialog
