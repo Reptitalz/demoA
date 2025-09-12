@@ -12,7 +12,7 @@ import { formatBytes } from "@/lib/utils";
 import ConversationsDialog from './ConversationsDialog'; // Import the new dialog
 import ContactsDialog from './ContactsDialog';
 import { useApp } from '@/providers/AppProvider';
-import { Tooltip, TooltipContent, TooltipProvider } from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface AssistantMemoryCardProps {
   assistant: AssistantWithMemory;
@@ -74,11 +74,11 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
         onOpenChange={setIsConversationsOpen}
         assistant={assistant}
       />
-       <ContactsDialog
+       {assistant && <ContactsDialog
           isOpen={isContactsOpen}
           onOpenChange={setIsContactsOpen}
           assistant={assistant}
-      />
+      />}
     </>
   );
 };
