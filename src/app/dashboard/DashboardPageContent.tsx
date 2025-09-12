@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -23,6 +24,7 @@ import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
+import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -299,15 +301,19 @@ const DashboardPageContent = () => {
                         ))}
                     </div>
                 ) : (
-                    <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
-                        <CardContent className="flex flex-col items-center gap-3">
-                            <Brain size={40} className="text-muted-foreground" />
-                            <h3 className="text-lg font-semibold">Sin Actividad de Memoria</h3>
-                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                                Tus asistentes aún no han almacenado ninguna conversación. La memoria se irá llenando a medida que interactúen.
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+                        {(profileToRender.assistants.length > 0 ? [profileToRender.assistants[0]] : []).map((asst, index) => (
+                             <AssistantMemoryCard key={asst.id} assistant={{...asst, totalMemory: 12345}} animationDelay={`${0.4 + index * 0.1}s`} />
+                        ))}
+                         <Card className="text-center py-6 bg-muted/50 border-dashed">
+                            <CardContent className="flex flex-col items-center gap-2">
+                                <h3 className="text-sm font-semibold">Esto es solo una vista previa</h3>
+                                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                                   La memoria real de tus asistentes aparecerá aquí cuando comiencen a interactuar.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
                 )}
             </div>
         </div>
