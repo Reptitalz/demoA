@@ -166,7 +166,7 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
         </CardHeader>
         <CardContent className="flex-grow space-y-3 text-sm">
            <p className="text-muted-foreground break-all">
-            Asistente: <span className="font-semibold text-foreground">{linkedAssistants[0]?.name || 'No asignado'}</span>
+            Asistente: <span className="font-semibold text-foreground">{linkedAssistant?.name || 'No asignado'}</span>
           </p>
           {database.source === 'google_sheets' && database.accessUrl && (
             <div className="flex items-center gap-1.5">

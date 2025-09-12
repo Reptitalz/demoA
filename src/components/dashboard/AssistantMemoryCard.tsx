@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { FaComments } from "react-icons/fa";
-import { AssistantWithMemory } from "@/types";
+import { FaComments, FaImage } from "react-icons/fa";
+import { AssistantWithMemory, DatabaseConfig } from "@/types";
 import { formatBytes } from "@/lib/utils";
 import ConversationsDialog from './ConversationsDialog'; // Import the new dialog
+import ContactsDialog from './ContactsDialog';
+import { useApp } from '@/providers/AppProvider';
 
 interface AssistantMemoryCardProps {
   assistant: AssistantWithMemory;
@@ -18,9 +20,13 @@ interface AssistantMemoryCardProps {
 }
 
 const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemoryCardProps) => {
+  const { state } = useApp();
   const MAX_MEMORY_BYTES = 50 * 1024 * 1024; // Example: 50MB per assistant
   const memoryPercentage = Math.min((assistant.totalMemory / MAX_MEMORY_BYTES) * 100, 100);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isConversationsOpen, setIsConversationsOpen] = useState(false);
+  const [isContactsOpen, setIsContactsOpen] = useState(false);
+  
+  const linkedDatabase: DatabaseConfig | undefined = assistant.databaseId ? state.userProfile.databases.find(db => db.id === assistant.databaseId) : undefined;
 
   return (
     <>
@@ -39,17 +45,31 @@ const AssistantMemoryCard = ({ assistant, animationDelay = "0s" }: AssistantMemo
               </div>
             </div>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setIsDialogOpen(true)}>
-            <FaComments className="mr-2 h-4 w-4" />
-            Ver Chats
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setIsContactsOpen(true)} title="Ver Imágenes y Contactos">
+                <FaImage className="mr-2 h-4 w-4" />
+                Imágenes
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setIsConversationsOpen(true)}>
+                <FaComments className="mr-2 h-4 w-4" />
+                Ver Chats
+            </Button>
+          </div>
         </CardContent>
       </Card>
       <ConversationsDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        isOpen={isConversationsOpen}
+        onOpenChange={setIsConversationsOpen}
         assistant={assistant}
       />
+      {linkedDatabase && (
+         <ContactsDialog
+            isOpen={isContactsOpen}
+            onOpenChange={setIsContactsOpen}
+            database={linkedDatabase}
+            assistant={assistant}
+        />
+      )}
     </>
   );
 };
