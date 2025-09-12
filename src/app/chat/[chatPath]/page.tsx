@@ -15,6 +15,8 @@ import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
 import { Paperclip } from 'lucide-react';
 import Image from 'next/image';
+import BusinessInfoSheet from '@/components/chat/BusinessInfoSheet';
+
 
 const DB_NAME = 'HeyManitoChatDB';
 const DB_VERSION = 1;
@@ -118,7 +120,7 @@ const DesktopChatPage = () => {
   const params = useParams();
   const { toast } = useToast();
   const chatPath = params.chatPath as string;
-  const [assistant, setAssistant] = useState<Partial<AssistantConfig> | null>(null);
+  const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -127,7 +129,8 @@ const DesktopChatPage = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
+  
+  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
@@ -177,7 +180,7 @@ const DesktopChatPage = () => {
         })
         .catch(err => {
             setError(err.message);
-            setAssistant({ name: "Asistente no encontrado" });
+            setAssistant({ name: "Asistente no encontrado" } as AssistantConfig);
              setMessages([{
                 role: 'model',
                 content: `Error: ${err.message}. No se pudo cargar el asistente.`,
@@ -360,111 +363,123 @@ const DesktopChatPage = () => {
   }
   
   return (
-    <div className="h-screen w-screen flex items-center justify-center">
-      <div className="w-full h-full flex">
-        {/* Sidebar Mockup */}
-        <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
-            <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
-                <Input placeholder="Buscar o empezar un chat nuevo" className="bg-white dark:bg-slate-700"/>
-            </header>
-            <div className="flex-grow overflow-y-auto">
-                <div className="flex items-center gap-3 p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-800/50">
-                    <Avatar className="h-12 w-12">
-                        <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-                        <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow overflow-hidden">
-                        <p className="font-semibold truncate">{assistant?.name}</p>
-                         <p className="text-sm text-muted-foreground truncate">
-                          {isSending ? assistantStatusMessage : "en línea"}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Main Chat Area */}
-        <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800 relative">
-           <div className="absolute inset-0 chat-background" />
-            <div className="relative h-full flex flex-col">
-              <header className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0">
-                 <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
-                   <Link href="/dashboard/assistants"><FaArrowLeft /></Link>
-                 </Button>
-                <Avatar className="h-10 w-10 mr-3 border-2 border-white/50">
-                    <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-                    <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold text-base">{assistant?.name || 'Asistente'}</h3>
-                  <p className="text-xs opacity-80">{error ? 'no disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
-                </div>
+    <>
+      <div className="h-screen w-screen flex items-center justify-center">
+        <div className="w-full h-full flex">
+          {/* Sidebar Mockup */}
+          <div className="w-1/3 bg-slate-100 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 hidden md:flex flex-col">
+              <header className="p-3 bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                  <Input placeholder="Buscar o empezar un chat nuevo" className="bg-white dark:bg-slate-700"/>
               </header>
-              <main className="flex-1 p-4 overflow-y-auto">
-                {messages.map((msg, index) => (
-                  <ChatBubble key={index} message={msg} isUser={msg.role === 'user'} time={msg.time || ''} />
-                ))}
-                 {isSending && (
-                    <div className="flex justify-start animate-fadeIn">
-                        <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-white dark:bg-slate-700">
-                           <div className="flex items-center gap-2">
-                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
-                           </div>
-                        </div>
-                    </div>
-                 )}
-                <div ref={chatEndRef} />
-              </main>
-              
-               <div className="shrink-0">
-                    <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 border-t border-black/10">
-                        <Button
-                        size="icon"
-                        variant="ghost"
-                        className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isSending || !!error}
-                        >
-                        <Paperclip className="h-5 w-5" />
-                        </Button>
-                        <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
-                        <Input
-                            type="text"
-                            placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
-                            value={currentMessage}
-                            onChange={(e) => setCurrentMessage(e.target.value)}
-                            className="bg-white dark:bg-slate-700 rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
-                            autoComplete="off"
-                            disabled={!!error || isSending}
-                        />
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            accept="image/*"
-                            />
-                        <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
-                            <FaPaperPlane className="h-5 w-5" />
-                        </Button>
-                        </form>
-                    </footer>
-                     <div className="bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
-                        <div className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
-                            <FaLock size={8} />
-                            <span>Los mensajes se guardan en este dispositivo.</span>
-                        </div>
-                         <div className="text-[9px] text-muted-foreground/50">
-                            Powered by {APP_NAME}
-                        </div>
-                    </div>
-                </div>
-            </div>
+              <div className="flex-grow overflow-y-auto">
+                  <div className="flex items-center gap-3 p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-800/50">
+                      <Avatar className="h-12 w-12">
+                          <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
+                          <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-grow overflow-hidden">
+                          <p className="font-semibold truncate">{assistant?.name}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {isSending ? assistantStatusMessage : "en línea"}
+                          </p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          {/* Main Chat Area */}
+          <div className="w-full md:w-2/3 flex flex-col bg-slate-200 dark:bg-slate-800 relative">
+            <div className="absolute inset-0 chat-background" />
+              <div className="relative h-full flex flex-col">
+                <header
+                  className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0 cursor-pointer"
+                  onClick={() => setIsInfoSheetOpen(true)}
+                >
+                  <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
+                    <Link href="/dashboard/assistants" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
+                  </Button>
+                  <Avatar className="h-10 w-10 mr-3 border-2 border-white/50">
+                      <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
+                      <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-semibold text-base">{assistant?.name || 'Asistente'}</h3>
+                    <p className="text-xs opacity-80">{error ? 'no disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
+                  </div>
+                </header>
+                <main className="flex-1 p-4 overflow-y-auto">
+                  {messages.map((msg, index) => (
+                    <ChatBubble key={index} message={msg} isUser={msg.role === 'user'} time={msg.time || ''} />
+                  ))}
+                  {isSending && (
+                      <div className="flex justify-start animate-fadeIn">
+                          <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-white dark:bg-slate-700">
+                            <div className="flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
+                            </div>
+                          </div>
+                      </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </main>
+                
+                <div className="shrink-0">
+                      <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 border-t border-black/10">
+                          <Button
+                          size="icon"
+                          variant="ghost"
+                          className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isSending || !!error}
+                          >
+                          <Paperclip className="h-5 w-5" />
+                          </Button>
+                          <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
+                          <Input
+                              type="text"
+                              placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
+                              value={currentMessage}
+                              onChange={(e) => setCurrentMessage(e.target.value)}
+                              className="bg-white dark:bg-slate-700 rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
+                              autoComplete="off"
+                              disabled={!!error || isSending}
+                          />
+                          <input
+                              type="file"
+                              ref={fileInputRef}
+                              onChange={handleImageUpload}
+                              className="hidden"
+                              accept="image/*"
+                              />
+                          <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
+                              <FaPaperPlane className="h-5 w-5" />
+                          </Button>
+                          </form>
+                      </footer>
+                      <div className="bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
+                          <div className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
+                              <FaLock size={8} />
+                              <span>Los mensajes se guardan en este dispositivo.</span>
+                          </div>
+                          <div className="text-[9px] text-muted-foreground/50">
+                              Powered by {APP_NAME}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
         </div>
       </div>
-    </div>
+      {assistant && (
+        <BusinessInfoSheet
+          assistant={assistant}
+          isOpen={isInfoSheetOpen}
+          onOpenChange={setIsInfoSheetOpen}
+        />
+      )}
+    </>
   );
 };
 
