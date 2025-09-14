@@ -43,26 +43,33 @@ export async function GET(request: NextRequest) {
             }
         },
         {
-            // Group by the destination (phone number or session ID)
+            $unwind: "$history" // Deconstruct the history array
+        },
+        {
+            // Group by destination to aggregate data per contact
             $group: {
-                _id: "$destination",
+                _id: "$userIdentifier",
                 // Sum the size of all messages in the conversation
-                conversationSize: { $sum: { $bsonSize: "$message" } },
+                conversationSize: { $sum: { $bsonSize: "$history" } },
                  // Collect all images from the messages
                 images: {
                     $push: {
                         $cond: [
-                            { $and: [
-                                { $isObject: "$message" },
-                                { $eq: [ { $ifNull: ["$message.type", ""] }, "image" ] }
-                            ]},
-                            {
-                                _id: { $toString: "$_id" }, // Using the message's own ID as a unique ID for the image
-                                url: "$message.url",
-                                receivedAt: "$createdAt",
-                                read: { $ifNull: ["$read", false] } // Default to false if 'read' field doesn't exist
+                             {
+                                $and: [
+                                    { $eq: ["$history.role", "user"] }, // Only user messages can contain images to moderate
+                                    { $eq: [{ $type: "$history.content" }, "object"] },
+                                    { $eq: ["$history.content.type", "image"] }
+                                ]
                             },
-                            "$$REMOVE" // Exclude non-image messages from the array
+                            {
+                                // Using the history's own sub-document ID if available, otherwise a new one
+                                _id: { $toString: { $ifNull: ["$history._id", new ObjectId()] } },
+                                url: "$history.content.url",
+                                receivedAt: "$createdAt", // Using the conversation's creation date for now
+                                read: { $ifNull: ["$history.read", false] } // Default to false
+                            },
+                            "$$REMOVE"
                         ]
                     }
                 }
@@ -71,7 +78,7 @@ export async function GET(request: NextRequest) {
         {
             // Reshape the output
             $project: {
-                _id: { $toString: "$_id" }, // Ensure _id is a string
+                _id: { $toString: "$_id" },
                 destination: "$_id",
                 name: "$_id", // Initially, name is the same as the identifier
                 conversationSize: 1,

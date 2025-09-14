@@ -334,10 +334,11 @@ const DesktopChatPage = () => {
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64String = reader.result as string;
+      const imageMessageContent = { type: 'image' as const, url: base64String };
       
       const userMessage: ChatMessage = {
         role: 'user',
-        content: { type: 'image', url: base64String },
+        content: imageMessageContent,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -347,7 +348,7 @@ const DesktopChatPage = () => {
       setIsSending(true);
       setAssistantStatusMessage('Analizando imagen...');
       
-      sendMessageToServer(base64String);
+      sendMessageToServer(imageMessageContent);
     };
     reader.readAsDataURL(file);
     
