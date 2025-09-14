@@ -5,7 +5,8 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { Conversation, UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
 
-const CONVERSATIONS_COLLECTION = 'conversations';
+// CORRECTED: Use the agent_memory collection as the source of truth for conversations
+const AGENT_MEMORY_COLLECTION = 'agent_memory';
 const PROFILES_COLLECTION = 'userProfiles';
 
 // GET all conversation summaries for a specific assistant
@@ -31,8 +32,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: 'Acceso no autorizado o el asistente no existe' }, { status: 403 });
     }
 
-    // 2. Fetch conversations from the 'conversations' collection
-    const conversations = await db.collection<Conversation>(CONVERSATIONS_COLLECTION).aggregate([
+    // 2. Fetch conversation summaries from the 'agent_memory' collection
+    const conversations = await db.collection<Conversation>(AGENT_MEMORY_COLLECTION).aggregate([
         {
             $match: {
                 assistantId: assistantId
@@ -50,8 +51,11 @@ export async function GET(request: NextRequest) {
                 assistantId: 1,
                 createdAt: 1,
                 updatedAt: 1,
-                // Get the last message from the history array
-                lastMessage: { $arrayElemAt: [ "$history.content", -1 ] } 
+                // Get the last message from the history array. Since history is an array of objects, we need to access the content.
+                lastMessage: { $let: {
+                    vars: { last: { $arrayElemAt: [ "$history", -1 ] } },
+                    in: "$$last.content"
+                }}
             }
         }
     ]).toArray();
@@ -75,8 +79,8 @@ export async function POST(request: NextRequest) {
     try {
         const { db } = await connectToDatabase();
         
-        // 1. Find the conversation
-        const conversation = await db.collection<Conversation>(CONVERSATIONS_COLLECTION).findOne({
+        // 1. Find the conversation in the agent_memory collection
+        const conversation = await db.collection<Conversation>(AGENT_MEMORY_COLLECTION).findOne({
             _id: new ObjectId(conversationId)
         });
 
@@ -93,9 +97,15 @@ export async function POST(request: NextRequest) {
         if (!userProfile) {
             return NextResponse.json({ message: 'Acceso no autorizado' }, { status: 403 });
         }
+        
+        // Convert _id to string for JSON compatibility
+        const conversationWithStrId = {
+            ...conversation,
+            _id: conversation._id.toString(),
+        };
 
         // 3. Return the full conversation object
-        return NextResponse.json(conversation);
+        return NextResponse.json(conversationWithStrId);
 
     } catch (error) {
         console.error('API Error (POST /api/assistants/conversations):', error);
