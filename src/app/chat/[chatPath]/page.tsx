@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Paperclip } from 'lucide-react';
 import Image from 'next/image';
 import BusinessInfoSheet from '@/components/chat/BusinessInfoSheet';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -88,7 +89,7 @@ const saveMessageToDB = async (message: ChatMessage, sessionId: string) => {
 
 // --- Component ---
 
-const ChatBubble = ({ message, isUser, time }: { message: ChatMessage; isUser: boolean; time: string }) => (
+const ChatBubble = ({ message, isUser, time, onImageClick }: { message: ChatMessage; isUser: boolean; time: string; onImageClick: (url: string) => void; }) => (
     <div className={cn("flex mb-2.5 animate-fadeIn", isUser ? "justify-end" : "justify-start")}>
       <div
         className={cn(
@@ -102,13 +103,15 @@ const ChatBubble = ({ message, isUser, time }: { message: ChatMessage; isUser: b
           <p>{message.content}</p>
         ) : (
           message.content.type === 'image' && (
-            <Image
-              src={message.content.url}
-              alt="Imagen enviada"
-              width={200}
-              height={200}
-              className="rounded-md"
-            />
+            <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
+                <Image
+                src={message.content.url}
+                alt="Imagen enviada"
+                width={200}
+                height={200}
+                className="rounded-md"
+                />
+            </div>
           )
         )}
         <p className="text-xs text-right mt-1.5 text-gray-500 dark:text-gray-400">{time}</p>
@@ -134,6 +137,7 @@ const DesktopChatPage = () => {
   const [sessionId, setSessionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const setupSessionAndMessages = async () => {
@@ -299,7 +303,9 @@ const DesktopChatPage = () => {
             chatPath: assistant.chatPath,
         })
     }).then(response => {
-        pollForResponse();
+        if(typeof messageContent === 'string') {
+            pollForResponse();
+        }
     }).catch(err => {
         console.error("Error sending message to proxy:", err);
     });
@@ -372,8 +378,7 @@ const DesktopChatPage = () => {
             setMessages(prev => [...prev, userMessage]);
             await saveMessageToDB(userMessage, sessionId);
             
-            setIsSending(true);
-            setAssistantStatusMessage('Analizando imagen...');
+            setIsSending(false); // Do not show spinner for images
             
             sendMessageToServer(imageMessageContent);
         };
@@ -439,7 +444,7 @@ const DesktopChatPage = () => {
                 </header>
                 <main className="flex-1 p-4 overflow-y-auto">
                   {messages.map((msg, index) => (
-                    <ChatBubble key={index} message={msg} isUser={msg.role === 'user'} time={msg.time || ''} />
+                    <ChatBubble key={index} message={msg} isUser={msg.role === 'user'} time={msg.time || ''} onImageClick={setSelectedImage} />
                   ))}
                   {isSending && (
                       <div className="flex justify-start animate-fadeIn">
@@ -508,6 +513,23 @@ const DesktopChatPage = () => {
           isOpen={isInfoSheetOpen}
           onOpenChange={setIsInfoSheetOpen}
         />
+      )}
+      
+      {selectedImage && (
+        <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+            <DialogContent className="max-w-4xl p-0 border-0">
+                <Image 
+                    src={selectedImage}
+                    alt="Vista detallada de la imagen"
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto object-contain rounded-t-lg"
+                />
+                 <DialogFooter className="p-4 bg-background rounded-b-lg flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setSelectedImage(null)}>Cerrar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       )}
     </>
   );
