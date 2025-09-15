@@ -1,4 +1,3 @@
-
 import type { AssistantPurpose, AuthProviderType } from '@/types';
 import { FaGoogle, FaUserCog, FaUsers, FaBrain, FaKey, FaPhone, FaBell } from 'react-icons/fa';
 import type React from 'react';
@@ -45,6 +44,8 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
 export const PRICE_PER_CREDIT = 65.00; // Precio base por crédito
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
+export const MONTHLY_PLAN_CREDIT_COST = 2.75; // Approx $179 MXN / $65
+export const UNLIMITED_MESSAGES_LIMIT = 1000000; // A high number to simulate unlimited
 
 export const CREDIT_PACKAGES = [
   { credits: 1, price: 65.00, name: "Básico" },

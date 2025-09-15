@@ -1,11 +1,10 @@
-
 "use client";
 import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown, FaExclamationTriangle } from "react-icons/fa";
-import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT } from "@/config/appConfig";
+import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MONTHLY_PLAN_CREDIT_COST, UNLIMITED_MESSAGES_LIMIT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -158,6 +157,34 @@ const AssistantCard = ({
     }
   };
 
+  const handleActivateMonthlyPlan = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/assistants/activate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: state.userProfile._id,
+          assistantId: assistant.id,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'No se pudo activar el plan.');
+      }
+      dispatch({ type: 'UPDATE_ASSISTANT', payload: result.updatedAssistant });
+      dispatch({ type: 'UPDATE_USER_PROFILE', payload: { credits: result.newCreditBalance } });
+      toast({
+        title: "¡Plan Activado!",
+        description: `Tu asistente ${assistant.name} ahora tiene mensajes ilimitados.`,
+      });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
 
   const handleShare = async () => {
     if (!assistant.isActive) {
@@ -210,19 +237,19 @@ const AssistantCard = ({
   // Trial logic
   const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
   const isTrialActive = !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
-  const isTrialExpired = !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
+  const isTrialExpired = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
 
   // Status logic refined
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
   
-  if (isTrialExpired && assistant.monthlyMessageLimit === 0) {
+  if (isTrialExpired && !assistant.isPlanActive) {
       badgeText = "Prueba Finalizada";
       badgeVariant = "destructive";
   } else if (isTrialActive) {
       badgeText = "Prueba Gratuita";
       badgeVariant = "default";
-  } else if (assistant.isActive) {
+  } else if (assistant.isActive || assistant.isPlanActive) {
       badgeText = "Activo";
       badgeVariant = "default";
   } else if (assistant.phoneLinked && !assistant.numberReady) {
@@ -233,13 +260,14 @@ const AssistantCard = ({
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      badgeText === "Activo" && "bg-brand-gradient text-primary-foreground",
+      (badgeText === "Activo" || assistant.isPlanActive) && "bg-brand-gradient text-primary-foreground",
       badgeText === "Prueba Gratuita" && "bg-gradient-to-r from-yellow-400 to-orange-500 text-white",
       badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
       {badgeText === "Activando" && <FaSpinner className="animate-spin mr-1 h-3 w-3" />}
       {badgeText === "Prueba Gratuita" && <FaCrown className="mr-1 h-3 w-3" />}
-      {badgeText}
+      {assistant.isPlanActive && <FaStar className="mr-1 h-3 w-3" />}
+      {assistant.isPlanActive ? "Plan Activo" : badgeText}
     </Badge>
   );
   
@@ -284,7 +312,7 @@ const AssistantCard = ({
                  <div className="flex items-center gap-2 pt-1">
                   {typeBadge}
                 </div>
-                {assistant.isActive ? (
+                {assistant.isActive || assistant.isPlanActive ? (
                     <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
                           {assistant.type === 'whatsapp' 
@@ -317,12 +345,12 @@ const AssistantCard = ({
           </div>
         </CardHeader>
         <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
-          {isTrialActive ? (
+          {isTrialActive || assistant.isPlanActive ? (
              <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 p-2.5 text-sm font-semibold text-gray-800 shadow-md">
               <FaCrown />
               <div>
                 <span>Modo Ilimitado</span>
-                  <span className="block text-xs font-normal opacity-90">Te quedan {trialDaysRemaining} días</span>
+                  {isTrialActive && <span className="block text-xs font-normal opacity-90">Te quedan {trialDaysRemaining} días</span>}
               </div>
             </div>
           ) : !isTrialExpired ? (
@@ -425,7 +453,7 @@ const AssistantCard = ({
                 </div>
             ) : (
                 <>
-                    {assistant.isActive || isTrialActive ? (
+                    {assistant.isActive || assistant.isPlanActive ? (
                         <div className="grid grid-cols-3 gap-2">
                              <Button
                                 size="sm"
@@ -513,11 +541,12 @@ const AssistantCard = ({
                     ) : badgeText === "Prueba Finalizada" ? (
                         <Button
                             size="sm"
-                            onClick={() => setIsMessageLimitDialogOpen(true)}
+                            onClick={handleActivateMonthlyPlan}
                             className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs animate-pulse-border"
+                            disabled={isProcessing}
                         >
-                            <FaExclamationTriangle size={13} className="mr-2" />
-                            Asignar Límite de Mensajes
+                            {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaStar size={13} className="mr-2" />}
+                            Activar Plan Mensual ($179 MXN)
                         </Button>
                     ) : assistant.type === 'whatsapp' ? (
                          <Button

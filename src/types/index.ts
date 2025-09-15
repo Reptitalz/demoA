@@ -1,4 +1,3 @@
-
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -80,6 +79,7 @@ export interface AssistantConfig {
   timezone?: string;
   isFirstDesktopAssistant?: boolean;
   trialStartDate?: string;
+  isPlanActive?: boolean;
 }
 
 export type AuthProviderType = "google" | "phone" | "email";
