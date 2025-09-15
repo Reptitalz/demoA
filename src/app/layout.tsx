@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   description: `Descubre ${APP_NAME}, la plataforma l\u00edder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicaci\u00f3n por WhatsApp, integra bases de datos y optimiza procesos.`,
   keywords: [
-    // Existing keywords
+    // Keywords en español
     'asistente virtual', 
     'IA', 
     'chatbot', 
@@ -39,27 +39,42 @@ export const metadata: Metadata = {
     'chatbot para WhatsApp', 
     'automatizaci\u00f3n para negocios', 
     'CRM con IA',
-    // New high-volume keywords
-    'virtual assistant',
-    'ai assistant',
-    'digital assistant',
-    'va assistant',
-    // New WhatsApp specific keywords
-    'WhatsApp virtual assistant',
-    'AI assistant for WhatsApp',
-    'Asistente inteligente WhatsApp para negocios',
-    // New long-tail commercial keywords
-    'WhatsApp assistant for customer support',
-    'WhatsApp AI assistant pricing',
+    'asistente inteligente WhatsApp para negocios',
     'automatizaci\u00f3n de mensajes WhatsApp',
-    'virtual assistant for small business',
-    // New local keywords
     'asistente virtual WhatsApp M\u00e9xico',
+    'asistente virtual para pymes',
+    'crear chatbot para WhatsApp',
+    'software de asistente virtual',
+    'plataforma de IA conversacional',
+    'agente virtual para atenci\u00f3n al cliente',
+    'automatizar WhatsApp Business',
+
+    // Keywords en inglés
+    'virtual assistant',
+    'AI assistant',
+    'digital assistant',
+    'chatbot for WhatsApp',
+    'WhatsApp automation',
+    'AI for customer service',
+    'conversational AI platform',
+    'virtual agent software',
+    'intelligent assistant',
+    
+    // Keywords de cola larga (long-tail)
+    'c\u00f3mo crear un asistente virtual para mi negocio',
+    'mejor plataforma para chatbots de WhatsApp',
+    'precio de asistente virtual para WhatsApp',
+    'automatizaci\u00f3n de ventas por WhatsApp',
+    'software para atenci\u00f3n al cliente con IA',
+    'virtual assistant for small business',
+    'how to build a WhatsApp chatbot',
+    
+    // Keywords locales
+    'asistente virtual en Guadalajara',
+    'automatizaci\u00f3n de WhatsApp en Monterrey',
+    'chatbot para negocios en CDMX',
     'asistente virtual WhatsApp Tepic',
     'asistente inteligente WhatsApp Nayarit',
-    // New voice-search oriented keywords
-    'c\u00f3mo funciona un asistente virtual en WhatsApp',
-    'asistente inteligente para WhatsApp qu\u00e9 hace'
   ],
   authors: [{ name: APP_NAME }],
   creator: APP_NAME,
