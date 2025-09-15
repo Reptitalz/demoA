@@ -30,11 +30,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: 'Acceso no autorizado o el asistente no existe' }, { status: 403 });
     }
 
-    const assistant = userProfile.assistants.find(a => a.id === assistantId);
-    if (!assistant) {
-        return NextResponse.json({ message: 'Configuración del asistente no encontrada' }, { status: 404 });
-    }
-
     // 2. Fetch contacts from agent_memory collection
     const contacts = await db.collection(AGENT_MEMORY_COLLECTION).aggregate([
         {
