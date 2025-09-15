@@ -386,7 +386,6 @@ const DesktopChatMockup = () => {
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const particlesContainerRef = useRef<HTMLDivElement>(null);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const { toast } = useToast();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
@@ -417,35 +416,6 @@ const HeroSection = () => {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-
-    // Create particles
-    const particlesContainer = particlesContainerRef.current;
-    if (particlesContainer) {
-        // Clear existing particles before creating new ones
-        particlesContainer.innerHTML = '';
-        const numberOfParticles = 20;
-        
-        // Get colors from CSS variables
-        const rootStyle = getComputedStyle(document.documentElement);
-        const primaryColor = `hsl(${rootStyle.getPropertyValue('--primary').trim()})`;
-        const accentColor = `hsl(${rootStyle.getPropertyValue('--accent').trim()})`;
-        const themeColors = [primaryColor, accentColor];
-
-        for (let i = 0; i < numberOfParticles; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'light-particle';
-            const size = Math.random() * 3 + 1;
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            particle.style.left = `${Math.random() * 100}%`;
-            particle.style.animationDuration = `${Math.random() * 5 + 5}s`; // 5-10 seconds
-            particle.style.animationDelay = `${Math.random() * 5}s`;
-            // Randomly assign a theme color
-            particle.style.backgroundColor = themeColors[Math.floor(Math.random() * themeColors.length)];
-            particlesContainer.appendChild(particle);
-        }
-    }
-
 
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
@@ -492,10 +462,6 @@ const HeroSection = () => {
              transform: 'scaleX(1.5)',
              opacity: 0.7
           }}
-        />
-        <div
-            ref={particlesContainerRef}
-            className="absolute inset-0 z-0 pointer-events-none"
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
@@ -829,6 +795,7 @@ export default function MarketingHomePage() {
                 <ul className="space-y-3 text-left text-sm text-muted-foreground mb-6">
                   <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Prueba prompts y lógica de IA sin costo inicial.</span></li>
                   <li className="flex items-start gap-3"><FaCheckCircle className="text-green-500 mt-1 shrink-0" /><span>Acceso inmediato con 30 días de prueba ilimitada.</span></li>
+                  <li className="flex items-start gap-3"><Code className="text-blue-400 mt-1 shrink-0 h-4 w-4" /><span>Potenciado por Gemini AI para respuestas inteligentes.</span></li>
                 </ul>
                 <Button asChild className={cn("mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
                   <Link href="/begin">Prueba Gratis</Link>
@@ -959,6 +926,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 

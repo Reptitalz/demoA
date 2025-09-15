@@ -1,4 +1,5 @@
 
+
 "use client"; 
 import type { ReactNode } from 'react';
 import Header from '@/components/layout/Header';
@@ -23,7 +24,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const isChatPage = pathname.startsWith('/chat');
   
   const layoutShouldBeFullWidth = pathname === '/';
-  const showCanvas = isMarketingPage || isLoginPage || isChatPage;
+  const showCanvas = isMarketingPage || isLoginPage;
   const showHeaderAndFooter = !isDashboardPage && !isDashboardDemoPage && !isCollaboratorDemoPage && !isLoginPage && !isChatPage;
   
   return (
