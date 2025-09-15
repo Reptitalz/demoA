@@ -327,28 +327,57 @@ const DesktopChatPage = () => {
     sendMessageToServer(messageToSend);
   };
   
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+ const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || isSending || error) return;
 
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-      const imageMessageContent = { type: 'image' as const, url: base64String };
-      
-      const userMessage: ChatMessage = {
-        role: 'user',
-        content: imageMessageContent,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
+    const MAX_SIZE = 800; // Max width/height 800px
+    const QUALITY = 0.7; // 70% JPEG quality
 
-      setMessages(prev => [...prev, userMessage]);
-      await saveMessageToDB(userMessage, sessionId);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = document.createElement('img');
+        img.onload = async () => {
+            const canvas = document.createElement('canvas');
+            let { width, height } = img;
+
+            if (width > height) {
+                if (width > MAX_SIZE) {
+                    height *= MAX_SIZE / width;
+                    width = MAX_SIZE;
+                }
+            } else {
+                if (height > MAX_SIZE) {
+                    width *= MAX_SIZE / height;
+                    height = MAX_SIZE;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', QUALITY);
+            
+            const imageMessageContent = { type: 'image' as const, url: dataUrl };
       
-      setIsSending(true);
-      setAssistantStatusMessage('Analizando imagen...');
-      
-      sendMessageToServer(imageMessageContent);
+            const userMessage: ChatMessage = {
+                role: 'user',
+                content: imageMessageContent,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            setMessages(prev => [...prev, userMessage]);
+            await saveMessageToDB(userMessage, sessionId);
+            
+            setIsSending(true);
+            setAssistantStatusMessage('Analizando imagen...');
+            
+            sendMessageToServer(imageMessageContent);
+        };
+        img.src = e.target?.result as string;
     };
     reader.readAsDataURL(file);
     
@@ -452,7 +481,7 @@ const DesktopChatPage = () => {
                               ref={fileInputRef}
                               onChange={handleImageUpload}
                               className="hidden"
-                              accept="image/*"
+                              accept="image/jpeg, image/png, image/webp"
                               />
                           <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
                               <FaPaperPlane className="h-5 w-5" />
