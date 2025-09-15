@@ -29,6 +29,11 @@ const Step1AssistantDetails = () => {
     dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: value || '' });
   };
 
+  const availablePurposes = assistantPurposesConfig.filter(purpose => 
+    isWhatsappAssistant || purpose.id !== 'notify_owner'
+  );
+
+
   return (
     <div className="w-full animate-fadeIn space-y-6">
       <div className="text-center">
@@ -50,7 +55,7 @@ const Step1AssistantDetails = () => {
           />
         </div>
 
-        {selectedPurposes.has('notify_owner') && (
+        {selectedPurposes.has('notify_owner') && isWhatsappAssistant && (
           <div className="space-y-2 animate-fadeIn bg-muted/30 p-4 rounded-lg">
             <Label htmlFor="ownerPhoneNumber" className="text-base font-medium flex items-center gap-2">
               <FaWhatsapp className="text-green-500" /> Tu WhatsApp para Notificaciones
@@ -71,7 +76,7 @@ const Step1AssistantDetails = () => {
         <div className="space-y-4">
           <Label className="text-base font-medium block">Propósitos del Asistente</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {assistantPurposesConfig.map((purpose) => {
+            {availablePurposes.map((purpose) => {
               const Icon = purpose.icon;
               const isChecked = selectedPurposes.has(purpose.id);
               
