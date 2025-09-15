@@ -3,7 +3,7 @@
 
 import { useApp } from "@/providers/AppProvider";
 import { FaRobot, FaPlus } from "react-icons/fa";
-import { Coins, Wallet, MessagesSquare } from 'lucide-react';
+import { Coins, Wallet, MessagesSquare, Star } from 'lucide-react';
 import { useState } from 'react';
 import RechargeCreditsDialog from './RechargeCreditsDialog';
 import { MESSAGES_PER_CREDIT } from "@/config/appConfig";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import MessagesInfoDialog from "./MessagesInfoDialog";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
+import PlansDialog from "./PlansDialog"; // Import the new dialog
 
 interface DashboardSummaryProps {
   currentPath: string;
@@ -18,11 +19,12 @@ interface DashboardSummaryProps {
 
 const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
   const { state } = useApp();
-  const { assistants, credits, isAuthenticated } = state.userProfile;
+  const { assistants, credits, isAuthenticated, purchasedUnlimitedPlans } = state.userProfile;
   const router = useRouter();
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [isMessagesInfoOpen, setIsMessagesInfoOpen] = useState(false);
+  const [isPlansOpen, setIsPlansOpen] = useState(false); // State for the new dialog
 
   const isDemoMode = !isAuthenticated;
 
@@ -40,6 +42,14 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
       setIsRechargeOpen(true);
     }
   }
+
+  const handlePlansClick = () => {
+    if (isDemoMode) {
+        router.push('/login');
+    } else {
+        setIsPlansOpen(true);
+    }
+  };
   
   // Hide all summary cards if on the databases page.
   if (currentPath.endsWith('/databases')) {
@@ -48,16 +58,17 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
 
   const allSummaryCards = [
     { id: 'assistants', title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
+    { id: 'plans', title: 'Planes', value: purchasedUnlimitedPlans || 0, description: 'Planes ilimitados', icon: Star, color: 'text-yellow-500', action: handlePlansClick },
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: Wallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="grid grid-cols-3 gap-2 mb-2">
         {allSummaryCards.map((card, index) => {
            const Icon = card.icon;
            
-           if (card.id === 'credits') {
+           if (card.id === 'credits' || card.id === 'plans') {
              return (
                <div key={index} className="relative p-0.5 rounded-lg bg-brand-gradient shiny-border cursor-pointer" onClick={card.action}>
                   <div 
@@ -115,6 +126,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
       
       <RechargeCreditsDialog isOpen={isRechargeOpen} onOpenChange={setIsRechargeOpen} />
       <MessagesInfoDialog isOpen={isMessagesInfoOpen} onOpenChange={setIsMessagesInfoOpen} />
+      <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
     </>
   );
 };

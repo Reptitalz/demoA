@@ -3,7 +3,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown, FaExclamationTriangle } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown, FaExclamationTriangle, FaStar } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MONTHLY_PLAN_CREDIT_COST, UNLIMITED_MESSAGES_LIMIT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -157,7 +157,7 @@ const AssistantCard = ({
     }
   };
 
-  const handleActivateMonthlyPlan = async () => {
+  const handleActivatePlan = async (action: 'purchase_and_assign' | 'assign_existing') => {
     setIsProcessing(true);
     try {
       const response = await fetch('/api/assistants/activate-plan', {
@@ -166,16 +166,27 @@ const AssistantCard = ({
         body: JSON.stringify({
           userId: state.userProfile._id,
           assistantId: assistant.id,
+          action: action,
         }),
       });
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.message || 'No se pudo activar el plan.');
       }
+      
+      const updatedProfile: Partial<UserProfile> = {};
+      if (result.newCreditBalance !== undefined) {
+        updatedProfile.credits = result.newCreditBalance;
+      }
+      if (result.newPurchasedPlans !== undefined) {
+          updatedProfile.purchasedUnlimitedPlans = result.newPurchasedPlans;
+      }
+
       dispatch({ type: 'UPDATE_ASSISTANT', payload: result.updatedAssistant });
-      dispatch({ type: 'UPDATE_USER_PROFILE', payload: { credits: result.newCreditBalance } });
+      dispatch({ type: 'UPDATE_USER_PROFILE', payload: updatedProfile });
+
       toast({
-        title: "¡Plan Activado!",
+        title: action === 'purchase_and_assign' ? "¡Plan Activado!" : "¡Plan Asignado!",
         description: `Tu asistente ${assistant.name} ahora tiene mensajes ilimitados.`,
       });
     } catch (error: any) {
@@ -236,7 +247,7 @@ const AssistantCard = ({
 
   // Trial logic
   const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
-  const isTrialActive = !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
+  const isTrialActive = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
   const isTrialExpired = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
 
   // Status logic refined
@@ -287,6 +298,9 @@ const AssistantCard = ({
       {assistant.type === 'whatsapp' ? 'WhatsApp' : 'Desktop'}
     </Badge>
   );
+  
+  const canAssignPlan = (state.userProfile.purchasedUnlimitedPlans || 0) > 0 && assistant.type === 'desktop' && !assistant.isPlanActive;
+
 
   return (
     <>
@@ -538,15 +552,15 @@ const AssistantCard = ({
                                 Verificar y Activar
                             </Button>
                         </div>
-                    ) : badgeText === "Prueba Finalizada" ? (
+                    ) : isTrialExpired ? (
                         <Button
                             size="sm"
-                            onClick={handleActivateMonthlyPlan}
+                            onClick={() => handleActivatePlan('purchase_and_assign')}
                             className="bg-brand-gradient text-primary-foreground hover:opacity-90 w-full text-xs animate-pulse-border"
                             disabled={isProcessing}
                         >
                             {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaStar size={13} className="mr-2" />}
-                            Activar Plan Mensual ($179 MXN)
+                            Activar Plan Mensual (${(MONTHLY_PLAN_CREDIT_COST * 65).toFixed(0)} MXN)
                         </Button>
                     ) : assistant.type === 'whatsapp' ? (
                          <Button
@@ -558,6 +572,19 @@ const AssistantCard = ({
                             Integrar número de teléfono
                         </Button>
                     ) : null }
+                    
+                     {canAssignPlan && (
+                        <Button
+                            size="sm"
+                            onClick={() => handleActivatePlan('assign_existing')}
+                            className="w-full text-xs bg-yellow-500 hover:bg-yellow-600 text-white"
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaCrown size={13} className="mr-2" />}
+                            Asignar Plan Ilimitado
+                        </Button>
+                     )}
+
                     <Button
                         size="sm"
                         onClick={handleReconfigureClick}

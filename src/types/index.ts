@@ -130,6 +130,7 @@ export interface UserProfile {
   pushSubscriptions?: any[];
   referredBy?: ObjectId; // Link to CollaboratorProfile
   ownerPhoneNumberForNotifications?: string;
+  purchasedUnlimitedPlans?: number;
 }
 
 export interface WizardState {

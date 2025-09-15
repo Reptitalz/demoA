@@ -39,6 +39,7 @@ const initialUserProfileState: UserProfile = {
   assistants: [],
   databases: [],
   credits: 0,
+  purchasedUnlimitedPlans: 0,
 };
 
 const initialLoadingStatus: LoadingStatus = {
