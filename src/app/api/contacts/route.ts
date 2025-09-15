@@ -38,46 +38,51 @@ export async function GET(request: NextRequest) {
             }
         },
         {
-            $unwind: "$history" // Deconstruct the history array
+            $addFields: {
+                conversationSize: { $bsonSize: "$$ROOT" } // Calculate size of the whole document
+            }
         },
         {
-            // Group by destination to aggregate data per contact
-            $group: {
-                _id: "$userIdentifier",
-                // Sum the size of all messages in the conversation
-                conversationSize: { $sum: { $bsonSize: "$history" } },
-                 // Collect all images from the messages
+            $project: {
+                _id: { $toString: "$_id" },
+                destination: "$userIdentifier",
+                name: "$userIdentifier", // Initially, name is the same as the identifier
+                conversationSize: 1,
+                // Extract images from history
                 images: {
-                    $push: {
-                        $cond: [
-                             {
-                                $and: [
-                                    { $eq: ["$history.role", "user"] }, // Only user messages can contain images to moderate
-                                    { $eq: [{ $type: "$history.content" }, "object"] },
-                                    { $eq: ["$history.content.type", "image"] }
-                                ]
-                            },
-                            {
-                                // Using the history's own sub-document ID if available, otherwise a new one
-                                _id: { $toString: { $ifNull: ["$history._id", new ObjectId()] } },
-                                url: "$history.content.url",
-                                receivedAt: "$createdAt", // Using the conversation's creation date for now
-                                read: { $ifNull: ["$history.read", false] } // Default to false
-                            },
-                            "$$REMOVE"
-                        ]
+                    $filter: {
+                        input: "$history",
+                        as: "msg",
+                        cond: { 
+                            $and: [
+                                { $eq: ["$$msg.role", "user"] },
+                                { $eq: [{ $type: "$$msg.content" }, "object"] },
+                                { $eq: ["$$msg.content.type", "image"] }
+                            ]
+                        }
                     }
                 }
             }
         },
         {
-            // Reshape the output
+            // Reshape the images array
             $project: {
-                _id: { $toString: "$_id" },
-                destination: "$_id",
-                name: "$_id", // Initially, name is the same as the identifier
-                conversationSize: 1,
-                images: 1
+                 _id: 1,
+                 destination: 1,
+                 name: 1,
+                 conversationSize: 1,
+                 images: {
+                     $map: {
+                         input: "$images",
+                         as: "imgMsg",
+                         in: {
+                             _id: { $toString: { $ifNull: ["$$imgMsg._id", new ObjectId()] } },
+                             url: "$$imgMsg.content.url",
+                             receivedAt: { $ifNull: ["$$imgMsg.time", "$createdAt"] },
+                             read: { $ifNull: ["$$imgMsg.read", false] }
+                         }
+                     }
+                 }
             }
         },
         {

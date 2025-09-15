@@ -41,9 +41,15 @@ export async function GET(request: NextRequest) {
             }
         },
         {
+            // Calculate the size of the entire document for each conversation
+            $addFields: {
+                docSize: { $bsonSize: "$$ROOT" }
+            }
+        },
+        {
             $group: {
                 _id: "$assistantId",
-                totalMemory: { $sum: { $bsonSize: "$message" } } 
+                totalMemory: { $sum: "$docSize" } // Sum the sizes of all documents for that assistant
             }
         },
         {

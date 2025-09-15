@@ -75,7 +75,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
     contact.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const ContactIdentifier = ({ contact, assistantType }: { contact: Contact, assistantType?: 'desktop' | 'whatsapp' }) => {
+  const ContactIdentifier = ({ contact, assistantType }: { contact: Contact; assistantType?: 'desktop' | 'whatsapp' }) => {
     if (assistantType === 'desktop') {
         return (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5" title={contact.destination}>
@@ -98,10 +98,10 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
       <DialogContent className="w-full h-full max-w-none sm:max-w-xl flex flex-col" onInteractOutside={e => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaAddressBook /> Contactos de "{assistant?.name}"
+            <FaAddressBook /> Imágenes y Contactos de "{assistant?.name}"
           </DialogTitle>
           <DialogDescription>
-            Visualiza los contactos y sesiones que han interactuado con tu asistente.
+            Visualiza los contactos y las imágenes que han enviado a tu asistente.
           </DialogDescription>
         </DialogHeader>
         

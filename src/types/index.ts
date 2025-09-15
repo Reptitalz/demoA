@@ -215,11 +215,11 @@ export interface ContactImage {
 }
 
 export interface Contact {
-  _id: string; // This will be the destination (phone or session ID)
-  name: string;
-  destination: string; // The raw destination value
+  _id: string; // This will be the _id of the conversation document
+  name: string; // This will be the userIdentifier
+  destination: string; // This will be the userIdentifier
   conversationSize: number; // in bytes
-  images?: ContactImage[]; // Images are not part of agent_memory, so this is optional
+  images?: ContactImage[]; // Images are now correctly populated
 }
 
 export interface AssistantMemory {
