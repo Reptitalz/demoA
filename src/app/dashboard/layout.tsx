@@ -42,30 +42,36 @@ export default function DashboardLayout({
     const swipeHandled = React.useRef(false);
 
     // State for page transition animation
-    const [animationClass, setAnimationClass] = React.useState('');
+    const [animationClass, setAnimationClass] = React.useState('animate-page-in-right');
 
     const handleRouteChange = (newPath: string) => {
         if (pathname === newPath) return;
 
         const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
         const newIndex = menuItems.findIndex(item => newPath.startsWith(item.path));
-        const direction = newIndex > currentIndex ? 'left' : 'right';
+        
+        if (currentIndex === -1 || newIndex === -1) {
+            router.push(newPath);
+            return;
+        }
 
+        const direction = newIndex > currentIndex ? 'left' : 'right';
         setAnimationClass(direction === 'left' ? 'animate-page-out-left' : 'animate-page-out-right');
 
+        // Allow the "out" animation to start before navigating
         setTimeout(() => {
             router.push(newPath);
-            // The animation class will be reset by the useEffect below
-        }, 300); // Match animation duration
+        }, 50); 
     };
     
-     React.useEffect(() => {
-        // When the new page loads (pathname changes), set the 'in' animation
+    React.useEffect(() => {
+        // Apply the "in" animation whenever the pathname changes.
+        // The direction is guessed based on the *previous* animation class.
         const lastDirection = animationClass.includes('left') ? 'left' : 'right';
         const inClass = lastDirection === 'left' ? 'animate-page-in-right' : 'animate-page-in-left';
         setAnimationClass(inClass);
 
-        // Clean up the animation class after it has finished
+        // Clean up animation class after it has finished to prevent re-triggering
         const timer = setTimeout(() => setAnimationClass(''), 300);
         return () => clearTimeout(timer);
     }, [pathname]);
