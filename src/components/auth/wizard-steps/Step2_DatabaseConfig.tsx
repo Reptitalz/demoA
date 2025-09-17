@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from "@/providers/AppProvider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FaGoogle, FaBrain, FaExclamationTriangle, FaCheckCircle, FaRegCircle, FaDatabase } from "react-icons/fa";
+import { FaGoogle, FaBrain, FaExclamationTriangle, FaCheckCircle, FaRegCircle, FaDatabase, FaDownload } from "react-icons/fa";
 import type { DatabaseSource } from "@/types";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ interface DatabaseOptionConfig {
 const allDatabaseOptionsConfig: DatabaseOptionConfig[] = [
   {
     id: "google_sheets" as DatabaseSource,
-    name: "Vincular Hoja de Google",
+    name: "Vincular Hoja de Google Existente",
     icon: FaGoogle,
     requiresAccessUrlInput: true,
     accessUrlLabel: "URL de la Hoja de Google",
@@ -52,14 +52,20 @@ const Step2DatabaseConfig = () => {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const dbOptions: DatabaseOptionConfig[] = [];
     if (selectedPurposes.has("import_spreadsheet")) {
-      setAvailableDbOptions(allDatabaseOptionsConfig.filter(opt => opt.id === "google_sheets"));
-    } else if (selectedPurposes.has("create_smart_db")) {
-      setAvailableDbOptions(allDatabaseOptionsConfig.filter(opt => opt.id === "smart_db"));
-    } else {
-      setAvailableDbOptions(allDatabaseOptionsConfig);
+        dbOptions.push(allDatabaseOptionsConfig.find(opt => opt.id === "google_sheets")!);
     }
-  }, [selectedPurposes]);
+    if (selectedPurposes.has("create_smart_db")) {
+        dbOptions.push(allDatabaseOptionsConfig.find(opt => opt.id === "smart_db")!);
+    }
+    setAvailableDbOptions(dbOptions);
+
+    // If only one option is available, select it automatically
+    if (dbOptions.length === 1 && databaseOption.type !== dbOptions[0].id) {
+        handleOptionChange(dbOptions[0].id);
+    }
+  }, [selectedPurposes, databaseOption.type]);
   
   useEffect(() => {
     if (databaseOption.accessUrl !== accessUrlValue) {
@@ -131,6 +137,19 @@ const Step2DatabaseConfig = () => {
   const handleSheetNameChange = (value: string) => {
     dispatch({ type: 'SET_DATABASE_OPTION', payload: { selectedSheetName: value, name: value } });
   };
+  
+  const handleDownloadTemplate = () => {
+    const templateContent = "columna_ejemplo_1,columna_ejemplo_2,columna_ejemplo_3\ndato1,dato2,dato3";
+    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "plantilla_heymanito.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const selectedDbConfig = allDatabaseOptionsConfig.find(opt => opt.id === databaseOption.type);
 
@@ -141,7 +160,7 @@ const Step2DatabaseConfig = () => {
         <p className="text-sm text-muted-foreground">
           {availableDbOptions.length > 0 
             ? "Elige cómo tu asistente almacenará y accederá a la información."
-            : "Vuelve al paso 1 y elige un propósito que requiera una base de datos."
+            : "Vuelve al paso anterior y elige un propósito que requiera una base de datos."
           }
         </p>
       </div>
@@ -149,7 +168,7 @@ const Step2DatabaseConfig = () => {
       <div className="space-y-6">
         {availableDbOptions.length > 0 ? (
           <div
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            className={cn("grid gap-4", availableDbOptions.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2")}
             role="radiogroup"
             aria-label="Opciones de Base de Datos"
           >
@@ -182,7 +201,7 @@ const Step2DatabaseConfig = () => {
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-8">
-            <p>Selecciona un propósito en el Paso 1 para ver las opciones aquí.</p>
+            <p>Selecciona un propósito en el paso anterior para ver las opciones aquí.</p>
           </div>
         )}
 
@@ -207,6 +226,11 @@ const Step2DatabaseConfig = () => {
             
             {selectedDbConfig.id === 'google_sheets' && (
               <div className="space-y-4">
+                 <Button onClick={handleDownloadTemplate} variant="outline" size="sm" className="w-full">
+                    <FaDownload className="mr-2" />
+                    Descargar Plantilla CSV para Google Sheets
+                </Button>
+
                 <div className="space-y-2">
                   <Label htmlFor="accessUrlInput" className="text-base">
                     {selectedDbConfig.accessUrlLabel || "URL de Acceso"}
@@ -264,3 +288,6 @@ const Step2DatabaseConfig = () => {
 export default Step2DatabaseConfig;
 
 
+
+
+    
