@@ -35,6 +35,7 @@ const MakePage = () => {
 
         // Reset wizard and populate with data from this page
         dispatch({ type: 'RESET_WIZARD' });
+        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' }); // Explicitly set as desktop
         dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: 'Mi Asistente (Generado)' }); // Placeholder name
         dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: prompt });
         
