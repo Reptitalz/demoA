@@ -49,35 +49,37 @@ const MakePage = () => {
     };
 
     return (
-        <PageContainer fullWidth>
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] text-center px-4 animate-fadeIn">
-                <Wand2 size={48} className="text-brand-gradient mb-4" />
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground">
+        <PageContainer>
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] text-center px-4 animate-fadeIn">
+                <Wand2 size={40} className="text-brand-gradient mb-3" />
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
                     Crea tu Asistente con un <span className="text-brand-gradient">Prompt</span>
                 </h1>
-                <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                <p className="mt-3 max-w-xl mx-auto text-base text-muted-foreground">
                     Describe en lenguaje natural cómo quieres que sea tu asistente. Nuestra IA se encargará del resto.
                 </p>
 
-                <Card className="w-full max-w-2xl mt-10 text-left animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                <Card className="w-full max-w-xl mt-8 text-left animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                    <CardHeader className="pb-4">
+                        <CardTitle className="flex items-center gap-2 text-lg">
                            <FaBrain /> Describe tu Asistente
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-xs">
                             Sé lo más detallado posible. Incluye su nombre, objetivo, personalidad y qué información debe manejar.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <Textarea
-                            placeholder="Ej: 'Quiero un asistente para mi pizzería llamado 'Tony'. Debe ser amigable, tomar pedidos de pizza, y responder preguntas sobre el menú. Debe saber los precios de la base de datos.'"
-                            className="min-h-[150px] text-base"
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                        />
+                    <CardContent className="space-y-4">
+                        <div className="relative p-0.5 rounded-lg transition-all bg-brand-gradient shiny-border">
+                            <Textarea
+                                placeholder="Ej: 'Quiero un asistente para mi pizzería llamado 'Tony'. Debe ser amigable, tomar pedidos de pizza, y responder preguntas sobre el menú...'"
+                                className="min-h-[120px] text-sm"
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                            />
+                        </div>
 
                         <div>
-                           <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                           <label className="text-xs font-medium flex items-center gap-2 mb-1.5">
                              <FaGoogle className="text-blue-500" /> URL de Google Sheet (Opcional)
                            </label>
                            <Input
@@ -85,13 +87,14 @@ const MakePage = () => {
                              placeholder="Pega la URL de una Hoja de Google para darle conocimiento"
                              value={sheetUrl}
                              onChange={(e) => setSheetUrl(e.target.value)}
+                             className="h-9 text-sm"
                            />
                         </div>
 
                         <Button 
                             size="lg" 
                             className={cn(
-                                "w-full text-lg",
+                                "w-full text-base",
                                 "bg-brand-gradient text-primary-foreground hover:opacity-90",
                                 "shiny-border"
                             )}
