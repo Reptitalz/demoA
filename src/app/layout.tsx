@@ -48,6 +48,14 @@ export const metadata: Metadata = {
     'plataforma de IA conversacional',
     'agente virtual para atenci\u00f3n al cliente',
     'automatizar WhatsApp Business',
+    'crear asistente inteligente',
+    'generador de chatbot',
+    'asistente de ia para negocios',
+    'crear chatbot con ia',
+    'ia para whatsapp',
+    'automatización con inteligencia artificial',
+    'generador de asistentes virtuales',
+    'chatbot desde prompt',
 
     // Keywords en inglés
     'virtual assistant',
@@ -59,6 +67,8 @@ export const metadata: Metadata = {
     'conversational AI platform',
     'virtual agent software',
     'intelligent assistant',
+    'AI chatbot builder',
+    'prompt-based AI generator',
     
     // Keywords de cola larga (long-tail)
     'c\u00f3mo crear un asistente virtual para mi negocio',
@@ -124,6 +134,14 @@ export default function RootLayout({
             gtag('config', 'G-B92V0NVLCC');
           `}
         </Script>
+
+        {/* Google AdSense Script - Reemplaza ca-pub-XXXXXXXXXXXXXXXX con tu ID de editor */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </head>
       <body className={`${inter.className} antialiased`}>
         <NextAuthSessionProvider>
