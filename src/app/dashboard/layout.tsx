@@ -42,20 +42,32 @@ export default function DashboardLayout({
     const swipeHandled = React.useRef(false);
 
     // State for page transition animation
-    const [isAnimating, setIsAnimating] = React.useState(false);
+    const [animationClass, setAnimationClass] = React.useState('');
 
     const handleRouteChange = (newPath: string) => {
-        if (pathname !== newPath) {
-            setIsAnimating(true);
-            setTimeout(() => {
-                router.push(newPath);
-                // The animation will reset when the pathname changes
-            }, 150); // Duration of fade-out animation
-        }
+        if (pathname === newPath) return;
+
+        const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
+        const newIndex = menuItems.findIndex(item => newPath.startsWith(item.path));
+        const direction = newIndex > currentIndex ? 'left' : 'right';
+
+        setAnimationClass(direction === 'left' ? 'animate-page-out-left' : 'animate-page-out-right');
+
+        setTimeout(() => {
+            router.push(newPath);
+            // The animation class will be reset by the useEffect below
+        }, 300); // Match animation duration
     };
     
-    React.useEffect(() => {
-        setIsAnimating(false);
+     React.useEffect(() => {
+        // When the new page loads (pathname changes), set the 'in' animation
+        const lastDirection = animationClass.includes('left') ? 'left' : 'right';
+        const inClass = lastDirection === 'left' ? 'animate-page-in-right' : 'animate-page-in-left';
+        setAnimationClass(inClass);
+
+        // Clean up the animation class after it has finished
+        const timer = setTimeout(() => setAnimationClass(''), 300);
+        return () => clearTimeout(timer);
     }, [pathname]);
 
 
@@ -121,8 +133,8 @@ export default function DashboardLayout({
                 </header>
             <main 
                 className={cn(
-                    "flex-grow overflow-y-auto pb-20 transition-opacity duration-150",
-                    isAnimating ? 'opacity-0' : 'opacity-100'
+                    "flex-grow overflow-y-auto pb-20",
+                    animationClass
                 )}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
