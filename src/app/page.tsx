@@ -758,15 +758,6 @@ export default function MarketingHomePage() {
         console.error('Could not copy text: ', err);
     });
   };
-  
-  const setupMouseEvent = (e: React.MouseEvent<HTMLElement>) => {
-    const target = e.currentTarget;
-    const rect = target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - top;
-    target.style.setProperty("--mouse-x", `${x}px`);
-    target.style.setProperty("--mouse-y", `${y}px`);
-  };
 
   return (
     <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
@@ -844,7 +835,7 @@ export default function MarketingHomePage() {
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Precios Flexibles y Transparentes</h2>
             <p className="mt-4 text-muted-foreground">Elige un plan de créditos que se ajuste a tus necesidades, sin compromisos a largo plazo.</p>
         </div>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8" onMouseMove={setupMouseEvent}>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <PayAsYouGoCalculator />
         </div>
       </section>
@@ -926,6 +917,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
