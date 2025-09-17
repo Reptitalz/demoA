@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaCrown, FaStar } from 'react-icons/fa';
-import { MONTHLY_PLAN_CREDIT_COST } from '@/config/appConfig';
+import { MONTHLY_PLAN_CREDIT_COST, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Separator } from '../ui/separator';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { Loader2 } from 'lucide-react';
+import PersonalInfoDialog from './PersonalInfoDialog';
 
 interface PlansDialogProps {
   isOpen: boolean;
@@ -24,6 +26,14 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
   
   const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [isPersonalInfoDialogOpen, setIsPersonalInfoDialogOpen] = useState(false);
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
+
+  const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY;
+  if (publicKey) {
+    initMercadoPago(publicKey, { locale: 'es-MX' });
+  }
 
   const hasUsedFreeTrial = useMemo(() => {
     return userProfile.assistants.some(a => a.isFirstDesktopAssistant);
@@ -32,33 +42,49 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
   const availableAssistantsToAssign = useMemo(() => {
     return userProfile.assistants.filter(a => a.type === 'desktop' && !a.isPlanActive && !(a.isFirstDesktopAssistant && (30 - (a.trialStartDate ? new Date().getDate() - new Date(a.trialStartDate).getDate() : 31)) > 0));
   }, [userProfile.assistants]);
+  
+  useEffect(() => {
+    if (!isOpen) {
+        setPreferenceId(null);
+        setIsProcessing(false);
+        setIsAssigning(false);
+        setSelectedAssistantId(null);
+    }
+  }, [isOpen]);
+
 
   const handlePurchasePlan = async () => {
-    setIsProcessing(true);
-    try {
-      const response = await fetch('/api/assistants/purchase-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userProfile._id }),
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || 'No se pudo comprar el plan.');
-      }
-      
-      dispatch({ type: 'UPDATE_USER_PROFILE', payload: { 
-          credits: result.newCreditBalance, 
-          purchasedUnlimitedPlans: result.newPurchasedPlans 
-      }});
+     if (!userProfile.firstName || !userProfile.lastName) {
       toast({
-        title: "¡Compra Exitosa!",
-        description: `Has comprado un plan ilimitado. Ahora puedes asignarlo a un asistente.`,
+        title: "Información Requerida",
+        description: "Completa tu información personal para poder comprar.",
+        variant: "default",
       });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setIsProcessing(false);
+      setIsPersonalInfoDialogOpen(true);
+      return;
     }
+
+    setIsProcessing(true);
+    setPreferenceId(null);
+    try {
+        const response = await fetch('/api/create-mercadopago-preference', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                purchaseType: 'plan', 
+                userDbId: userProfile._id?.toString() 
+            }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'No se pudo iniciar el pago.');
+        if (data.preferenceId) setPreferenceId(data.preferenceId);
+
+    } catch (error: any) {
+        toast({ title: 'Error al iniciar pago', description: error.message, variant: 'destructive' });
+        setIsProcessing(false);
+    }
+    // isProcessing will be set to false by the component rendering Wallet
   };
   
    const handleAssignPlan = async () => {
@@ -66,7 +92,7 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
         toast({ title: "Error", description: "Por favor, selecciona un asistente para asignar el plan.", variant: "destructive" });
         return;
     }
-    setIsProcessing(true);
+    setIsAssigning(true);
     try {
       const response = await fetch('/api/assistants/activate-plan', {
         method: 'POST',
@@ -74,7 +100,6 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
         body: JSON.stringify({
           userId: userProfile._id,
           assistantId: selectedAssistantId,
-          action: 'assign_existing',
         }),
       });
       const result = await response.json();
@@ -89,16 +114,17 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
         title: "¡Plan Asignado!",
         description: `El plan se ha asignado a tu asistente.`,
       });
-      setSelectedAssistantId(null); // Reset selection
+      setSelectedAssistantId(null);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
-      setIsProcessing(false);
+      setIsAssigning(false);
     }
   };
 
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
@@ -135,10 +161,20 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">Desbloquea mensajes ilimitados para un asistente de escritorio. Compra un plan y asígnalo cuando quieras.</p>
-                    <Button onClick={handlePurchasePlan} disabled={isProcessing || userProfile.credits < MONTHLY_PLAN_CREDIT_COST} className="w-full">
-                        {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
-                        Comprar por {MONTHLY_PLAN_CREDIT_COST} créditos (${(MONTHLY_PLAN_CREDIT_COST * 65).toFixed(0)} MXN)
-                    </Button>
+                     {preferenceId ? (
+                        <div className="animate-fadeIn flex flex-col items-center justify-center p-4 rounded-lg bg-muted/50">
+                            <Wallet 
+                                initialization={{ preferenceId: preferenceId }}
+                                customization={{ texts: { valueProp: 'smart_option'}}}
+                                onReady={() => setIsProcessing(false)}
+                            />
+                        </div>
+                    ) : (
+                        <Button onClick={handlePurchasePlan} disabled={isProcessing} className="w-full">
+                            {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
+                            Comprar Plan por ${Math.round(MONTHLY_PLAN_CREDIT_COST * PRICE_PER_CREDIT)} MXN
+                        </Button>
+                    )}
                 </CardContent>
             </Card>
 
@@ -166,8 +202,8 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
                                     )}
                                 </SelectContent>
                             </Select>
-                            <Button onClick={handleAssignPlan} disabled={isProcessing || !selectedAssistantId}>
-                                {isProcessing ? <FaSpinner className="animate-spin" /> : "Asignar"}
+                            <Button onClick={handleAssignPlan} disabled={isAssigning || !selectedAssistantId}>
+                                {isAssigning ? <FaSpinner className="animate-spin" /> : "Asignar"}
                             </Button>
                         </div>
                     </CardContent>
@@ -180,6 +216,11 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <PersonalInfoDialog
+        isOpen={isPersonalInfoDialogOpen}
+        onOpenChange={setIsPersonalInfoDialogOpen}
+    />
+    </>
   );
 };
 

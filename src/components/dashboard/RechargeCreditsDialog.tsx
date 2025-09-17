@@ -62,7 +62,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
     }
   }, [isOpen]);
 
-  const validateAndProceed = (callback: () => void) => {
+  const handleCreatePreference = async () => {
      if (!userProfile.firstName || !userProfile.lastName) {
       toast({
         title: "Información Requerida",
@@ -77,46 +77,39 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       toast({ title: "Selección Requerida", description: "Por favor, selecciona o ingresa una cantidad de créditos válida.", variant: "destructive" });
       return;
     }
-    callback();
-  }
+    
+    setIsProcessing(true);
+    setPreferenceId(null);
+    try {
+        const response = await fetch('/api/create-mercadopago-preference', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                purchaseType: 'credits',
+                credits: creditsToPurchase, 
+                userDbId: userProfile._id?.toString() 
+            }),
+        });
 
-  const handleCreatePreference = async () => {
-    validateAndProceed(async () => {
-        setIsProcessing(true);
-        setPreferenceId(null);
-        try {
-            const response = await fetch('/api/create-mercadopago-preference', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    credits: creditsToPurchase, 
-                    userDbId: userProfile._id?.toString() 
-                }),
-            });
+        const data = await response.json();
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'No se pudo iniciar el pago.');
-            }
-            
-            if (data.preferenceId) {
-                setPreferenceId(data.preferenceId);
-            } else {
-                // Fallback for redirect scenario if component fails
-                window.location.href = data.initPointUrl;
-            }
-
-        } catch (error: any) {
-            toast({
-                title: 'Error al iniciar pago',
-                description: error.message,
-                variant: 'destructive',
-            });
-        } finally {
-            setIsProcessing(false);
+        if (!response.ok) {
+            throw new Error(data.error || 'No se pudo iniciar el pago.');
         }
-    });
+        
+        if (data.preferenceId) {
+            setPreferenceId(data.preferenceId);
+        }
+
+    } catch (error: any) {
+        toast({
+            title: 'Error al iniciar pago',
+            description: error.message,
+            variant: 'destructive',
+        });
+    } finally {
+        setIsProcessing(false);
+    }
   };
   
   const handleClose = () => {
@@ -150,6 +143,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                      <Wallet 
                         initialization={{ preferenceId: preferenceId }}
                         customization={{ texts: { valueProp: 'smart_option'}}}
+                        onReady={() => setIsProcessing(false)}
                      />
                 </div>
             ) : (

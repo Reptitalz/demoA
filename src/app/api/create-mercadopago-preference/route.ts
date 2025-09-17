@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appConfig';
+import { APP_NAME, CREDIT_PACKAGES, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MONTHLY_PLAN_CREDIT_COST } from '@/config/appConfig';
 import { connectToDatabase } from '@/lib/mongodb';
 import { UserProfile } from '@/types';
 import { ObjectId } from 'mongodb';
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   console.log('--- Create Preference endpoint hit ---');
   
   try {
-    const { credits, userDbId } = await request.json();
+    const { purchaseType = 'credits', credits, userDbId } = await request.json();
     
     if (!userDbId || !ObjectId.isValid(userDbId)) {
         return NextResponse.json({ error: 'No autorizado. Se requiere identificación de usuario.' }, { status: 401 });
@@ -39,33 +39,48 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'ID de usuario interno no encontrado.' }, { status: 500 });
     }
 
-    if (!credits || typeof credits !== 'number' || credits <= 0) {
-      return NextResponse.json(
-        { error: 'La cantidad de créditos debe ser un número entero o flotante positivo.' },
-        { status: 400 }
-      );
+    let items, external_reference;
+
+    if (purchaseType === 'plan') {
+        const planPrice = MONTHLY_PLAN_CREDIT_COST * PRICE_PER_CREDIT;
+        items = [{
+            id: 'monthly-plan-1',
+            title: 'Plan Mensual Ilimitado',
+            description: `Acceso a mensajes ilimitados para un asistente de escritorio durante un mes en ${APP_NAME}.`,
+            category_id: "digital_goods",
+            quantity: 1,
+            unit_price: Math.round(planPrice), // Round to nearest integer for cleaner price
+            currency_id: 'MXN',
+        }];
+        external_reference = `${user._id.toString()}__plan__${Date.now()}`;
+    } else { // Default to 'credits'
+        if (!credits || typeof credits !== 'number' || credits <= 0) {
+          return NextResponse.json(
+            { error: 'La cantidad de créditos debe ser un número entero o flotante positivo.' },
+            { status: 400 }
+          );
+        }
+        
+        const selectedPackage = CREDIT_PACKAGES.find(p => p.credits === credits);
+        const finalPrice = selectedPackage ? selectedPackage.price : credits * PRICE_PER_CREDIT;
+        const finalTitle = selectedPackage 
+          ? `${selectedPackage.name} - ${Math.floor(credits * MESSAGES_PER_CREDIT)} mensajes`
+          : `${credits} Créditos Personalizados`;
+        
+        items = [{
+            id: `credits-${credits}`,
+            title: finalTitle,
+            description: `Recarga de ${credits} créditos en la plataforma ${APP_NAME}.`,
+            category_id: "digital_goods",
+            quantity: 1,
+            unit_price: finalPrice,
+            currency_id: 'MXN',
+        }];
+        external_reference = `${user._id.toString()}__credits_${credits}__${Date.now()}`;
     }
     
-    const selectedPackage = CREDIT_PACKAGES.find(p => p.credits === credits);
-    const finalPrice = selectedPackage ? selectedPackage.price : credits * PRICE_PER_CREDIT;
-    const finalTitle = selectedPackage 
-      ? `${selectedPackage.name} - ${Math.floor(credits * MESSAGES_PER_CREDIT)} mensajes`
-      : `${credits} Créditos Personalizados`;
-
-    const external_reference = `${user._id.toString()}__${credits}__${Date.now()}`;
-    
     const preferencePayload = {
-        items: [
-            {
-                id: `credits-${credits}`,
-                title: finalTitle,
-                description: `Recarga de ${credits} créditos en la plataforma ${APP_NAME}.`,
-                category_id: "digital_goods",
-                quantity: 1,
-                unit_price: finalPrice,
-                currency_id: 'MXN',
-            },
-        ],
+        items,
         payer: {
             name: user.firstName,
             surname: user.lastName,
@@ -81,9 +96,9 @@ export async function POST(request: NextRequest) {
             } : undefined
         },
         back_urls: {
-            success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=success`,
-            failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=failure`,
-            pending: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard?payment_status=pending`,
+            success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard/assistants?payment_status=success`,
+            failure: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard/assistants?payment_status=failure`,
+            pending: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.heymanito.com'}/dashboard/assistants?payment_status=pending`,
         },
         auto_return: 'approved',
         external_reference,
@@ -100,7 +115,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       preferenceId: result.id,
-      initPointUrl: result.init_point, // Fallback for redirection
+      initPointUrl: result.init_point,
     });
 
   } catch (error: any) {

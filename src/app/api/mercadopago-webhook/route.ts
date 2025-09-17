@@ -59,63 +59,96 @@ export async function POST(request: NextRequest) {
                     return NextResponse.json({ status: 'error', message: 'Missing external reference' }, { status: 400 });
                 }
                 
-                const [userId, creditsStr] = externalReference.split('__');
+                const [userId, purchaseType, ...rest] = externalReference.split('__');
 
-                if (!userId || !ObjectId.isValid(userId) || !creditsStr) {
+                if (!userId || !ObjectId.isValid(userId) || !purchaseType) {
                     console.error(`Error: Invalid external_reference format for order ${orderId}: ${externalReference}`);
                     return NextResponse.json({ status: 'error', message: 'Invalid external reference format' }, { status: 400 });
                 }
 
-                const creditsPurchased = parseFloat(creditsStr);
-                
                 const { db } = await connectToDatabase();
                 const userProfileCollection = db.collection<UserProfile>('userProfiles');
                 
-                // Idempotency check: see if this transaction has already been processed
+                // Idempotency check
                 const existingTransaction = await db.collection('transactions').findOne({ orderId: order.id?.toString() });
                 if (existingTransaction) {
                     console.log(`Order ${order.id} has already been processed. Skipping.`);
                     return NextResponse.json({ status: 'already_processed' }, { status: 200 });
                 }
 
-                // Update user credits
-                await userProfileCollection.updateOne(
-                    { _id: new ObjectId(userId) },
-                    { $inc: { credits: creditsPurchased } }
-                );
-                
-                // Create a transaction record to prevent reprocessing
+                if (purchaseType === 'plan') {
+                    // Handle plan purchase
+                    await userProfileCollection.updateOne(
+                        { _id: new ObjectId(userId) },
+                        { $inc: { purchasedUnlimitedPlans: 1 } }
+                    );
+
+                    // Create notification for the user
+                    const notification: Omit<AppNotification, '_id'> = {
+                        userId: userId,
+                        message: `¡Plan Ilimitado Comprado! Ahora puedes asignarlo a un asistente.`,
+                        type: 'success',
+                        read: false,
+                        createdAt: new Date().toISOString(),
+                        link: '/dashboard/assistants'
+                    };
+                    await db.collection<AppNotification>('notifications').insertOne(notification as AppNotification);
+
+                    // Send push notification
+                    await sendPushNotification(userId, {
+                        title: '¡Plan Comprado!',
+                        body: `Has comprado un plan de mensajes ilimitados.`,
+                        url: '/dashboard/assistants',
+                        tag: 'plan-purchased',
+                    });
+
+                     console.log(`✅ Successfully added 1 unlimited plan to user ${userId} for order ${order.id}.`);
+
+                } else {
+                    // Handle credits purchase
+                    const creditsStr = purchaseType.split('_')[1];
+                    const creditsPurchased = parseFloat(creditsStr);
+                    
+                    if (isNaN(creditsPurchased)) {
+                         console.error(`Error: Invalid credit amount in external_reference for order ${orderId}: ${externalReference}`);
+                        return NextResponse.json({ status: 'error', message: 'Invalid credits format' }, { status: 400 });
+                    }
+
+                    await userProfileCollection.updateOne(
+                        { _id: new ObjectId(userId) },
+                        { $inc: { credits: creditsPurchased } }
+                    );
+                    
+                    const notification: Omit<AppNotification, '_id'> = {
+                        userId: userId,
+                        message: `¡Recarga exitosa! Se han añadido ${creditsPurchased} créditos a tu cuenta.`,
+                        type: 'success',
+                        read: false,
+                        createdAt: new Date().toISOString(),
+                        link: '/dashboard'
+                    };
+                    await db.collection<AppNotification>('notifications').insertOne(notification as AppNotification);
+
+                    await sendPushNotification(userId, {
+                        title: '¡Recarga Exitosa!',
+                        body: `Se añadieron ${creditsPurchased} créditos a tu cuenta.`,
+                        url: '/dashboard',
+                        tag: 'credits-recharge',
+                    });
+
+                    console.log(`✅ Successfully added ${creditsPurchased} credits to user ${userId} for order ${order.id}.`);
+                }
+
+                // Create a generic transaction record for idempotency
                 await db.collection('transactions').insertOne({
                     userId: new ObjectId(userId),
                     orderId: order.id?.toString(),
-                    creditsPurchased,
                     amount: lastPayment.transaction_amount,
                     status: 'completed',
                     processedAt: new Date(),
-                    webhookPayload: body, // Store the original payload for auditing
+                    externalReference: externalReference, // Store original reference
+                    webhookPayload: body,
                 });
-                
-                // Create a notification for the user
-                 const notification: Omit<AppNotification, '_id'> = {
-                    userId: userId,
-                    message: `¡Recarga exitosa! Se han añadido ${creditsPurchased} créditos a tu cuenta.`,
-                    type: 'success',
-                    read: false,
-                    createdAt: new Date().toISOString(),
-                    link: '/dashboard'
-                };
-                await db.collection<AppNotification>('notifications').insertOne(notification as AppNotification);
-
-                // Send a push notification to trigger real-time update
-                await sendPushNotification(userId, {
-                    title: '¡Recarga Exitosa!',
-                    body: `Se añadieron ${creditsPurchased} créditos a tu cuenta.`,
-                    url: '/dashboard', // URL to open on click
-                    tag: 'credits-recharge', // To stack notifications and trigger refresh
-                });
-                
-
-                console.log(`✅ Successfully added ${creditsPurchased} credits to user ${userId} for order ${order.id}.`);
             }
         }
         

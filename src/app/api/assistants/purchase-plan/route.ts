@@ -6,6 +6,8 @@ import { ObjectId } from 'mongodb';
 import { MONTHLY_PLAN_CREDIT_COST } from '@/config/appConfig';
 import { sendPushNotification } from '@/services/pushService';
 
+// This endpoint is DEPRECATED as plan purchases now go through MercadoPago.
+// It is kept for potential future use or direct credit-based purchases if needed.
 export async function POST(request: NextRequest) {
   const { userId } = await request.json();
 
