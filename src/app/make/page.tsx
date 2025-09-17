@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -68,7 +69,7 @@ const MakePage = () => {
                         <p className="text-xs text-muted-foreground">
                             Sé lo más detallado posible. Incluye su nombre, objetivo, personalidad y qué información debe manejar.
                         </p>
-                        <div className="relative p-0.5 rounded-lg transition-all bg-brand-gradient shiny-border">
+                        <div className="relative p-0.5 rounded-lg transition-all bg-brand-gradient">
                             <Textarea
                                 placeholder="Ej: 'Quiero un asistente para mi pizzería llamado 'Tony'. Debe ser amigable, tomar pedidos de pizza, y responder preguntas sobre el menú...'"
                                 className="min-h-[120px] text-sm"
