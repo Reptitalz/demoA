@@ -12,6 +12,7 @@ import { FaBrain, FaShareAlt, FaGoogle } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Wand2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 const MakePage = () => {
     const { dispatch } = useApp();
@@ -59,16 +60,14 @@ const MakePage = () => {
                     Describe en lenguaje natural cómo quieres que sea tu asistente. Nuestra IA se encargará del resto.
                 </p>
 
-                <Card className="w-full max-w-xl mt-8 text-left animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                    <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="w-full max-w-xl mt-8 text-left space-y-6">
+                    <div className="space-y-2">
+                        <Label className="text-lg font-semibold flex items-center gap-2">
                            <FaBrain /> Describe tu Asistente
-                        </CardTitle>
-                        <CardDescription className="text-xs">
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
                             Sé lo más detallado posible. Incluye su nombre, objetivo, personalidad y qué información debe manejar.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                        </p>
                         <div className="relative p-0.5 rounded-lg transition-all bg-brand-gradient shiny-border">
                             <Textarea
                                 placeholder="Ej: 'Quiero un asistente para mi pizzería llamado 'Tony'. Debe ser amigable, tomar pedidos de pizza, y responder preguntas sobre el menú...'"
@@ -77,34 +76,33 @@ const MakePage = () => {
                                 onChange={(e) => setPrompt(e.target.value)}
                             />
                         </div>
+                    </div>
 
-                        <div>
-                           <label className="text-xs font-medium flex items-center gap-2 mb-1.5">
-                             <FaGoogle className="text-blue-500" /> URL de Google Sheet (Opcional)
-                           </label>
-                           <Input
-                             type="url"
-                             placeholder="Pega la URL de una Hoja de Google para darle conocimiento"
-                             value={sheetUrl}
-                             onChange={(e) => setSheetUrl(e.target.value)}
-                             className="h-9 text-sm"
-                           />
-                        </div>
+                    <div className="space-y-2">
+                       <Label className="font-medium flex items-center gap-2">
+                         <FaGoogle className="text-blue-500" /> URL de Google Sheet (Opcional)
+                       </Label>
+                       <Input
+                         type="url"
+                         placeholder="Pega la URL de una Hoja de Google para darle conocimiento"
+                         value={sheetUrl}
+                         onChange={(e) => setSheetUrl(e.target.value)}
+                         className="h-9 text-sm"
+                       />
+                    </div>
 
-                        <Button 
-                            size="lg" 
-                            className={cn(
-                                "w-full text-base",
-                                "bg-brand-gradient text-primary-foreground hover:opacity-90",
-                                "shiny-border"
-                            )}
-                            onClick={handleCreateAssistant}
-                            disabled={isCreating}
-                        >
-                            {isCreating ? 'Generando...' : 'Crear Asistente'}
-                        </Button>
-                    </CardContent>
-                </Card>
+                    <Button 
+                        size="lg" 
+                        className={cn(
+                            "w-full text-base",
+                            "bg-brand-gradient text-primary-foreground hover:opacity-90"
+                        )}
+                        onClick={handleCreateAssistant}
+                        disabled={isCreating}
+                    >
+                        {isCreating ? 'Generando...' : 'Crear Asistente'}
+                    </Button>
+                </div>
             </div>
         </PageContainer>
     );
