@@ -13,11 +13,7 @@ import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
 
 // Demo data
-const demoChats = [
-  { id: 1, name: 'Asistente de Ventas', lastMessage: 'Perfecto, tu pedido ha sido confirmado.', lastActive: new Date('2024-07-30T10:30:00Z'), unread: 2, avatar: 'https://picsum.photos/seed/asst1/100' },
-  { id: 2, name: 'Soporte Técnico', lastMessage: '¿Has intentado reiniciar el dispositivo?', lastActive: new Date('2024-07-30T09:15:00Z'), unread: 0, avatar: 'https://picsum.photos/seed/asst2/100' },
-  { id: 3, name: 'Pastelería "Dulces Sueños"', lastMessage: '¡Claro! Tenemos pasteles de chocolate y fresa.', lastActive: new Date('2024-07-29T18:00:00Z'), unread: 0, avatar: 'https://picsum.photos/seed/asst3/100' },
-];
+const demoChats: any[] = [];
 
 
 const ChatListPage = () => {
