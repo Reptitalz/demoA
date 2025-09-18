@@ -444,6 +444,23 @@ const HeroSection = () => {
       });
     }
   };
+  
+  const StoreButton = ({ icon, title, subtitle, className, onClick }: { icon: React.ReactNode, title: string, subtitle: string, className?: string, onClick?: () => void }) => (
+    <Button
+      variant="ghost"
+      onClick={onClick}
+      className={cn(
+        "h-auto px-4 py-2 rounded-lg border border-border/20 shadow-sm hover:bg-muted/80 flex items-center gap-3 w-48 text-left transition-transform transform hover:scale-105",
+        className
+      )}
+    >
+      {icon}
+      <div>
+        <p className="text-xs font-normal leading-none">{title}</p>
+        <p className="text-base font-bold leading-tight">{subtitle}</p>
+      </div>
+    </Button>
+  );
 
   return (
     <>
@@ -491,29 +508,22 @@ const HeroSection = () => {
                         <FcGoogle className="h-4 w-4" />
                         <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                     </div>
-                     <div className="flex items-center gap-3">
-                        <Button
+                     <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <StoreButton
                             onClick={handleDownloadClick}
-                            variant="ghost"
-                            className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
-                        >
-                            <div className="bg-white rounded-lg shadow-md p-1.5">
-                                <AppIcon className="h-6 w-6" />
-                            </div>
-                            <span className="text-sm font-semibold text-foreground/90">Descargar App</span>
-                        </Button>
-                        <Button
-                            asChild
-                            variant="ghost"
-                            className="h-auto px-4 py-2 rounded-full bg-brand-gradient border border-border/20 shadow-lg hover:opacity-90 flex items-center gap-3 shiny-border"
-                        >
-                            <Link href="/chat">
-                                <div className="bg-white/20 rounded-lg shadow-md p-1.5">
-                                    <AppIcon className="h-6 w-6 text-white"/>
-                                </div>
-                                <span className="text-sm font-semibold text-white">Hey Manito Chat</span>
-                            </Link>
-                        </Button>
+                            icon={<AppIcon className="h-8 w-8 text-foreground" />}
+                            title="Consíguelo en"
+                            subtitle="Nuestra App"
+                            className="bg-black text-white hover:bg-black/80"
+                         />
+                         <Link href="/chat">
+                             <StoreButton
+                                icon={<AppIcon className="h-8 w-8 text-white" />}
+                                title="Disponible en"
+                                subtitle="Hey Manito Chat"
+                                className="bg-brand-gradient text-white hover:opacity-90 shiny-border"
+                             />
+                         </Link>
                     </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
@@ -915,6 +925,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
