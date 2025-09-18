@@ -67,7 +67,7 @@ type Action =
   | { type: 'PREVIOUS_WIZARD_STEP' }
   | { type: 'SET_WIZARD_STEP'; payload: number }
   | { type: 'UPDATE_ASSISTANT_NAME'; payload: string }
-  | { type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' | 'whatsapp' }
+  | { type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' | 'whatsapp' | null }
   | { type: 'UPDATE_ASSISTANT_PROMPT'; payload: string }
   | { type: 'TOGGLE_ASSISTANT_PURPOSE'; payload: AssistantPurposeType }
   | { type: 'SET_DATABASE_OPTION'; payload: Partial<WizardState['databaseOption']> }
@@ -287,25 +287,29 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
   }
 }
 
-async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whatsapp'): Promise<UserProfile> {
-    const isDesktopAssistant = assistantType === 'desktop';
-    const assistantName = isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp";
+async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whatsapp' | null): Promise<UserProfile> {
+    
+    let newAssistants: AssistantConfig[] = [];
+    if (assistantType) {
+        const isDesktopAssistant = assistantType === 'desktop';
+        const assistantName = isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp";
 
-    const newAssistant: AssistantConfig = {
-      id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      name: assistantName,
-      type: assistantType,
-      prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
-      purposes: [],
-      isActive: isDesktopAssistant,
-      numberReady: isDesktopAssistant,
-      messageCount: 0,
-      monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
-      imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-      chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
-      isFirstDesktopAssistant: isDesktopAssistant,
-      trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
-    };
+        newAssistants.push({
+          id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          name: assistantName,
+          type: assistantType,
+          prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
+          purposes: [],
+          isActive: isDesktopAssistant,
+          numberReady: isDesktopAssistant,
+          messageCount: 0,
+          monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
+          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+          chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
+          isFirstDesktopAssistant: isDesktopAssistant,
+          trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
+        });
+    }
     
     const newUserProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
       firebaseUid: user.id, // from next-auth user object
@@ -313,9 +317,9 @@ async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whats
       email: user.email!,
       firstName: user.name?.split(' ')[0] || '',
       lastName: user.name?.split(' ').slice(1).join(' ') || '',
-      assistants: [newAssistant],
+      assistants: newAssistants,
       databases: [],
-      credits: isDesktopAssistant ? 1 : 0,
+      credits: 0,
     };
     
     const response = await fetch('/api/create-user-profile', {

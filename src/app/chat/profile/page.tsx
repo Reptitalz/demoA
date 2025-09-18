@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { User, Bell, Key, Shield, HelpCircle, LogOut } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { signOut, useSession, signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/providers/AppProvider';
@@ -92,7 +92,7 @@ const ChatProfilePage = () => {
             </div>
 
             {status !== 'authenticated' && (
-                <Button className="w-full" onClick={() => signOut()}>
+                <Button className="w-full" onClick={() => signIn('google')}>
                     <FcGoogle className="mr-2" /> Iniciar Sesión con Google
                 </Button>
             )}
