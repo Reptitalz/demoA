@@ -9,9 +9,11 @@ import { Separator } from '@/components/ui/separator';
 import { User, Bell, Key, Shield, HelpCircle, LogOut } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
+import { useToast } from '@/hooks/use-toast';
+import { useApp } from '@/providers/AppProvider';
 
-const ProfileLink = ({ icon: Icon, text, onClick }: { icon: React.ElementType, text: string, onClick?: () => void }) => (
-    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted cursor-pointer" onClick={onClick}>
+const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
+    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted cursor-pointer" onClick={!disabled ? onClick : undefined}>
         <Icon className="h-5 w-5 text-muted-foreground" />
         <span className="text-base">{text}</span>
     </div>
@@ -19,10 +21,56 @@ const ProfileLink = ({ icon: Icon, text, onClick }: { icon: React.ElementType, t
 
 const ChatProfilePage = () => {
   const { data: session, status } = useSession();
+  const { toast } = useToast();
+  const { state } = useApp();
 
   const handleLogout = () => {
-      signOut();
+      signOut({ callbackUrl: '/chat' });
   }
+
+  const handleEnableNotifications = async () => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      toast({ title: "No Soportado", description: "Tu navegador no soporta notificaciones push.", variant: "destructive" });
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      toast({ title: "Ya Activadas", description: "Las notificaciones ya están activadas." });
+      return;
+    }
+    
+    if (Notification.permission === "denied") {
+       toast({ title: "Bloqueadas", description: "Las notificaciones están bloqueadas. Habilítalas en la configuración de tu navegador.", variant: "destructive" });
+       return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Notification permission granted.');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        });
+        
+        // Send subscription to backend
+        await fetch('/api/save-push-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription, userDbId: state.userProfile._id?.toString() }),
+        });
+        
+        toast({ title: "¡Activadas!", description: "Recibirás notificaciones de ahora en adelante." });
+      } catch (error) {
+        console.error('Failed to subscribe the user: ', error);
+        toast({ title: "Error", description: "No se pudo suscribir a las notificaciones.", variant: "destructive" });
+      }
+    } else {
+      toast({ title: "Permiso Denegado", description: "No se podrán enviar notificaciones." });
+    }
+  };
+
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -54,7 +102,7 @@ const ChatProfilePage = () => {
             {/* Menu Options */}
             <div className="space-y-1">
                 <ProfileLink icon={User} text="Cuenta" />
-                <ProfileLink icon={Bell} text="Notificaciones" />
+                <ProfileLink icon={Bell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
                 <ProfileLink icon={Key} text="Privacidad" />
                 <ProfileLink icon={Shield} text="Seguridad" />
                 <ProfileLink icon={HelpCircle} text="Ayuda" />
