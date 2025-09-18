@@ -513,14 +513,14 @@ const HeroSection = () => {
                      <div className="flex flex-col sm:flex-row items-center gap-4">
                         <StoreButton
                             onClick={() => handleDownloadClick('/dashboard')}
-                            icon={<Laptop className="h-8 w-8 text-foreground" />}
-                            title="Consíguelo en"
-                            subtitle="App de Desarrollo"
-                            className="bg-black text-white hover:bg-black/80"
+                            icon={<AppIcon className="h-8 w-8 text-black dark:text-white" />}
+                            title="Disponible en"
+                            subtitle="Hey Manito Dev"
+                            className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                          />
                          <StoreButton
                             onClick={() => handleDownloadClick('/chat')}
-                            icon={<AppIcon className="h-8 w-8 text-black dark:text-white" />}
+                            icon={<AppIcon className="h-8 w-8" />}
                             title="Disponible en"
                             subtitle="Hey Manito Chat"
                             className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
@@ -926,3 +926,4 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
