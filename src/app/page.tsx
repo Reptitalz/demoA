@@ -491,16 +491,30 @@ const HeroSection = () => {
                         <FcGoogle className="h-4 w-4" />
                         <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                     </div>
-                     <Button
-                        onClick={handleDownloadClick}
-                        variant="ghost"
-                        className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
-                    >
-                         <div className="bg-white rounded-lg shadow-md p-1.5">
-                            <AppIcon className="h-6 w-6" />
-                        </div>
-                        <span className="text-sm font-semibold text-foreground/90">Descargar App</span>
-                    </Button>
+                     <div className="flex items-center gap-3">
+                        <Button
+                            onClick={handleDownloadClick}
+                            variant="ghost"
+                            className="h-auto px-4 py-2 rounded-full bg-muted/50 border border-border/20 shadow-sm hover:bg-muted flex items-center gap-3"
+                        >
+                            <div className="bg-white rounded-lg shadow-md p-1.5">
+                                <AppIcon className="h-6 w-6" />
+                            </div>
+                            <span className="text-sm font-semibold text-foreground/90">Descargar App</span>
+                        </Button>
+                        <Button
+                            asChild
+                            variant="ghost"
+                            className="h-auto px-4 py-2 rounded-full bg-brand-gradient border border-border/20 shadow-lg hover:opacity-90 flex items-center gap-3 shiny-border"
+                        >
+                            <Link href="/chat">
+                                <div className="bg-white/20 rounded-lg shadow-md p-1.5">
+                                    <AppIcon className="h-6 w-6 text-white"/>
+                                </div>
+                                <span className="text-sm font-semibold text-white">Hey Manito Chat</span>
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
                     <span className="font-bold text-brand-gradient">Registro Gratis</span>. Recarga cuando quieras.
@@ -725,22 +739,6 @@ const FaqSection = () => {
 
 export default function MarketingHomePage() {
   const { toast } = useToast();
-  const [transformStyle, setTransformStyle] = useState({});
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        const { innerWidth, innerHeight } = window;
-        const x = (clientX / innerWidth - 0.5) * 2; // -1 to 1
-        const y = (clientY / innerHeight - 0.5) * 2; // -1 to 1
-
-        setTransformStyle({
-            transform: `perspective(1000px) rotateX(${-y * 8}deg) rotateY(${x * 8}deg)`
-        });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
   
   const handleCopyEmail = () => {
     const email = 'contacto@heymanito.com';
@@ -773,7 +771,7 @@ export default function MarketingHomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             {/* Asistente Desktop */}
-             <div className="p-1 rounded-lg bg-brand-gradient shiny-border transition-all duration-300" style={transformStyle}>
+             <div className="p-1 rounded-lg bg-brand-gradient shiny-border transition-all duration-300">
               <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d chroma-card">
                 <div className="chroma-card-glow" />
                 <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
@@ -796,7 +794,7 @@ export default function MarketingHomePage() {
 
 
             {/* Asistente WhatsApp */}
-            <div className="transition-all duration-300" style={transformStyle}>
+            <div className="transition-all duration-300">
               <Card className="flex flex-col text-center p-6 shadow-lg h-full preserve-3d">
                 <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full self-center">
                   <FaWhatsapp size={32} className="text-primary" />
@@ -917,6 +915,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
