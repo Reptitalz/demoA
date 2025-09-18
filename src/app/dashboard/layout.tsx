@@ -61,7 +61,7 @@ export default function DashboardLayout({
         // Allow the "out" animation to start before navigating
         setTimeout(() => {
             router.push(newPath);
-        }, 50); 
+        }, 25); 
     };
     
     React.useEffect(() => {
@@ -72,7 +72,7 @@ export default function DashboardLayout({
         setAnimationClass(inClass);
 
         // Clean up animation class after it has finished to prevent re-triggering
-        const timer = setTimeout(() => setAnimationClass(''), 300);
+        const timer = setTimeout(() => setAnimationClass(''), 200);
         return () => clearTimeout(timer);
     }, [pathname]);
 

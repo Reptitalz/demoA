@@ -49,7 +49,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       // Allow the "out" animation to start before navigating
       setTimeout(() => {
           router.push(newPath);
-      }, 50); 
+      }, 25); 
   }, [pathname, router]);
   
   React.useEffect(() => {
@@ -59,7 +59,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       setAnimationClass(inClass);
 
       // Clean up animation class after it has finished
-      const timer = setTimeout(() => setAnimationClass(''), 300);
+      const timer = setTimeout(() => setAnimationClass(''), 200);
       return () => clearTimeout(timer);
   }, [pathname]);
 
