@@ -50,7 +50,7 @@ const MakePage = () => {
     return (
         <PageContainer>
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] text-center px-4 animate-fadeIn">
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground mb-2">
+                <h1 className="text-5xl sm:text-6xl font-extrabold text-foreground mb-2">
                     Crea tu Asistente con <span className="text-brand-gradient animate-text-glow">IA</span>
                 </h1>
 
@@ -78,24 +78,24 @@ const MakePage = () => {
                                     className="h-12 text-sm pl-10"
                                 />
                             </div>
-                        ) : (
-                            <Button variant="outline" className="w-full" onClick={() => setShowSheetInput(true)}>
-                                <FaGoogle className="mr-2" />
-                                Vincular Hoja de Google (Opcional)
-                            </Button>
-                        )}
+                        ) : null }
                         
-                        <Button 
-                            size="lg" 
-                            className={cn(
-                                "w-full text-base font-semibold",
-                                "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
-                            )}
-                            onClick={handleCreateAssistant}
-                            disabled={isCreating}
-                        >
-                            {isCreating ? 'Generando...' : <><Wand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                            <Button variant="outline" size="icon" onClick={() => setShowSheetInput(!showSheetInput)} title="Vincular Hoja de Google (Opcional)">
+                                <FaGoogle />
+                            </Button>
+                            <Button 
+                                size="lg" 
+                                className={cn(
+                                    "w-full sm:w-auto text-base font-semibold",
+                                    "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                                )}
+                                onClick={handleCreateAssistant}
+                                disabled={isCreating}
+                            >
+                                {isCreating ? 'Generando...' : <><Wand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
