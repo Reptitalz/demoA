@@ -1,24 +1,31 @@
 // src/app/chat/page.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search } from 'lucide-react';
+import { Search, MessageSquarePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import AddChatDialog from '@/components/chat/AddChatDialog';
 
 // Demo data
 const demoChats: any[] = [];
 
 
 const ChatListPage = () => {
+  const { data: session } = useSession();
+  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
+
   return (
-    <div className="flex flex-col h-full bg-background">
+    <>
+    <div className="flex flex-col h-full bg-background relative">
       <header className="p-4 border-b">
         <h1 className="text-2xl font-bold flex items-center gap-2">
             <AppIcon className="h-7 w-7"/>
@@ -65,7 +72,18 @@ const ChatListPage = () => {
            )}
         </div>
       </ScrollArea>
+       {session && (
+          <Button
+            onClick={() => setIsAddChatDialogOpen(true)}
+            className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+            size="icon"
+          >
+            <MessageSquarePlus className="h-6 w-6" />
+          </Button>
+        )}
     </div>
+    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+    </>
   );
 };
 
