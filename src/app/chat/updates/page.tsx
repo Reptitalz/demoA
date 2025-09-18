@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlusCircle, X, ChevronLeft, ChevronRight, Image as ImageIcon, Send } from 'lucide-react';
+import { PlusCircle, X, ChevronLeft, ChevronRight, Image as ImageIcon, Send, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -277,7 +277,7 @@ const UpdatesPage = () => {
       <ScrollArea className="flex-grow">
         <div className="p-4 space-y-6">
           {/* My Status */}
-          {session?.user && (
+          {session?.user ? (
             <div className="flex items-center gap-4 cursor-pointer" onClick={() => myStatus ? handleOpenStatus(myStatus) : setIsAddStatusOpen(true)}>
               <div className="relative">
                 <Avatar className="h-14 w-14 border-2 border-dashed border-muted-foreground">
@@ -293,6 +293,18 @@ const UpdatesPage = () => {
               <div>
                 <p className="font-semibold">Mi estado</p>
                 <p className="text-sm text-muted-foreground">{myStatus ? 'Haz clic para ver' : 'Añade una actualización'}</p>
+              </div>
+            </div>
+          ) : (
+             <div className="flex items-center gap-4">
+              <div className="relative">
+                <Avatar className="h-14 w-14">
+                  <AvatarFallback><User/></AvatarFallback>
+                </Avatar>
+              </div>
+              <div>
+                <p className="font-semibold text-muted-foreground">Inicia sesión</p>
+                <p className="text-sm text-muted-foreground">para poder subir estados.</p>
               </div>
             </div>
           )}
