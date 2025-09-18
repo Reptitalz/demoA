@@ -8,7 +8,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { FaGoogle } from 'react-icons/fa';
+import { FaGoogle, FaDatabase } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Wand2, Paperclip } from 'lucide-react';
@@ -70,7 +70,7 @@ const MakePage = () => {
         <PageContainer>
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] text-center px-4 animate-fadeIn">
                 
-                <h1 className="text-5xl sm:text-6xl font-extrabold mb-4 tracking-tight">
+                <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
                     <span className="text-foreground">Crea tu Asistente con </span>
                     <span className="text-brand-gradient animate-text-glow">IA</span>
                 </h1>
@@ -88,7 +88,7 @@ const MakePage = () => {
                             onChange={(e) => setPrompt(e.target.value)}
                         />
                         
-                        {showSheetInput ? (
+                        {showSheetInput && (
                             <div className="relative animate-fadeIn">
                                 <FaGoogle className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                                 <Input
@@ -99,7 +99,7 @@ const MakePage = () => {
                                     className="h-12 text-sm pl-10"
                                 />
                             </div>
-                        ) : null }
+                        )}
                         
                         <div className="pt-4 border-t">
                             <div className="flex items-center justify-end gap-2">
@@ -114,6 +114,7 @@ const MakePage = () => {
                                             <FaGoogle className="mr-2" /> Vincular Hoja de Google
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => handleMenuSelect('file')}>
+                                            <FaDatabase className="mr-2" />
                                             Importar Archivo
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
