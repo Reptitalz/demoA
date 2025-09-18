@@ -10,7 +10,7 @@ import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CR
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle, FaUser } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download, AppWindow, Code } from 'lucide-react';
+import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download, AppWindow, Code, Laptop } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -505,17 +505,17 @@ const HeroSection = () => {
                         <Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
                     </Button>
                 </div>
-                 <div className="mt-8 flex flex-col items-center lg:items-start gap-4 animate-fadeIn" style={{animationDelay: '0.4s'}}>
-                    <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
+                 <div className="mt-8 flex flex-col sm:flex-row items-center lg:items-start gap-4 animate-fadeIn" style={{animationDelay: '0.4s'}}>
+                    <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2 mb-4 sm:mb-0">
                         <FcGoogle className="h-4 w-4" />
                         <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
                     </div>
                      <div className="flex flex-col sm:flex-row items-center gap-4">
                         <StoreButton
-                            onClick={() => handleDownloadClick()}
-                            icon={<AppIcon className="h-8 w-8 text-foreground" />}
+                            onClick={() => handleDownloadClick('/dashboard')}
+                            icon={<Laptop className="h-8 w-8 text-foreground" />}
                             title="Consíguelo en"
-                            subtitle="Nuestra App"
+                            subtitle="App de Desarrollo"
                             className="bg-black text-white hover:bg-black/80"
                          />
                          <StoreButton
@@ -926,14 +926,3 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
-
-
-
-
-
-
-
-
-
-
-
