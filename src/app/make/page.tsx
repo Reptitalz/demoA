@@ -50,15 +50,16 @@ const MakePage = () => {
         <PageContainer>
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] text-center px-4 animate-fadeIn">
                 
-                <h1 className="text-5xl sm:text-6xl font-extrabold text-brand-gradient mb-4 tracking-tight animate-text-glow">
-                    Crea tu Asistente con IA
+                <h1 className="text-5xl sm:text-6xl font-extrabold mb-4 tracking-tight">
+                    <span className="text-foreground">Crea tu Asistente con </span>
+                    <span className="text-brand-gradient animate-text-glow">IA</span>
                 </h1>
 
-                <p className="mt-2 max-w-xl mx-auto text-lg text-muted-foreground">
+                <p className="mt-2 max-w-lg mx-auto text-lg text-muted-foreground">
                     Describe en lenguaje natural cómo quieres que sea tu asistente. Nuestra IA se encargará del resto.
                 </p>
 
-                <Card className="w-full max-w-xl mt-10 shadow-lg">
+                <Card className="w-full max-w-xl mt-10 shadow-lg border-border/20">
                    <CardContent className="p-6 space-y-4">
                     <Textarea
                         placeholder="Ej: 'Quiero un asistente para mi pizzería llamado 'Tony'. Debe ser amigable, tomar pedidos de pizza, y responder preguntas sobre el menú...'"
