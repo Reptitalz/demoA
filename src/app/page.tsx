@@ -420,14 +420,14 @@ const HeroSection = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const handleDownloadClick = async () => {
+  const handleDownloadClick = async (fallbackUrl?: string) => {
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       const { outcome } = await deferredInstallPrompt.userChoice;
       if (outcome === 'accepted') {
         toast({
           title: "Aplicación Instalada",
-          description: "¡Gracias por instalar Hey Manito!",
+          description: `¡Gracias por instalar ${APP_NAME}!`,
         });
       } else {
          toast({
@@ -435,6 +435,7 @@ const HeroSection = () => {
           description: "Puedes instalar la aplicación en cualquier momento desde el menú de tu navegador.",
           variant: "default"
         });
+        if (fallbackUrl) window.location.href = fallbackUrl;
       }
       setDeferredInstallPrompt(null);
     } else {
@@ -442,6 +443,7 @@ const HeroSection = () => {
         title: "Instalación no disponible",
         description: "Tu navegador no es compatible o la aplicación ya está instalada.",
       });
+      if (fallbackUrl) window.location.href = fallbackUrl;
     }
   };
   
@@ -510,20 +512,19 @@ const HeroSection = () => {
                     </div>
                      <div className="flex flex-col sm:flex-row items-center gap-4">
                         <StoreButton
-                            onClick={handleDownloadClick}
+                            onClick={() => handleDownloadClick()}
                             icon={<AppIcon className="h-8 w-8 text-foreground" />}
                             title="Consíguelo en"
                             subtitle="Nuestra App"
                             className="bg-black text-white hover:bg-black/80"
                          />
-                         <Link href="/chat">
-                             <StoreButton
-                                icon={<AppIcon className="h-8 w-8 text-white" />}
-                                title="Disponible en"
-                                subtitle="Hey Manito Chat"
-                                className="bg-brand-gradient text-white hover:opacity-90 shiny-border"
-                             />
-                         </Link>
+                         <StoreButton
+                            onClick={() => handleDownloadClick('/chat')}
+                            icon={<AppIcon className="h-8 w-8 text-white" />}
+                            title="Disponible en"
+                            subtitle="Hey Manito Chat"
+                            className="bg-brand-gradient text-white hover:opacity-90 shiny-border"
+                         />
                     </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4 animate-fadeIn" style={{animationDelay: '0.5s'}}>
@@ -925,6 +926,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
