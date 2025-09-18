@@ -25,11 +25,7 @@ interface Status {
   avatar?: string;
 }
 
-const initialDemoUpdates: Status[] = [
-  { id: 2, name: 'Asistente de Ventas', time: 'Hace 20 minutos', image: 'https://picsum.photos/seed/sales-status/600/800', avatar: 'https://i.pravatar.cc/150?u=sales', caption: '¡Promociones de fin de semana!' },
-  { id: 3, name: 'Soporte Técnico', time: 'Hace 1 hora', image: 'https://picsum.photos/seed/support-status/600/800', avatar: 'https://i.pravatar.cc/150?u=support', caption: 'Estamos para ayudarte' },
-  { id: 4, name: 'Juan Pérez', time: 'Hace 3 horas', image: 'https://picsum.photos/seed/juan-status/600/800', avatar: 'https://i.pravatar.cc/150?u=juan', caption: 'Disfrutando el paisaje' },
-];
+const initialDemoUpdates: Status[] = [];
 
 const StatusViewer = ({
   statuses,
@@ -302,29 +298,31 @@ const UpdatesPage = () => {
           )}
 
           {/* Recent Updates */}
-          <div>
-            <h2 className="text-sm font-semibold text-muted-foreground mb-2">Recientes</h2>
-            <div className="space-y-4">
-              {recentUpdates.map((update, index) => {
-                 const isViewed = viewedStatuses.has(update.id);
-                 return (
-                    <div key={update.id} className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenStatus(update)}>
-                      <Avatar className={cn(
-                          "h-14 w-14 border-2 p-0.5",
-                          isViewed ? "border-gray-400 dark:border-gray-600" : "border-primary"
-                      )}>
-                        <AvatarImage src={update.avatar} className="rounded-full" />
-                        <AvatarFallback>{update.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold">{update.name}</p>
-                        <p className="text-sm text-muted-foreground">{update.time}</p>
+          {recentUpdates.length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold text-muted-foreground mb-2">Recientes</h2>
+              <div className="space-y-4">
+                {recentUpdates.map((update, index) => {
+                  const isViewed = viewedStatuses.has(update.id);
+                  return (
+                      <div key={update.id} className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenStatus(update)}>
+                        <Avatar className={cn(
+                            "h-14 w-14 border-2 p-0.5",
+                            isViewed ? "border-gray-400 dark:border-gray-600" : "border-primary"
+                        )}>
+                          <AvatarImage src={update.avatar} className="rounded-full" />
+                          <AvatarFallback>{update.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold">{update.name}</p>
+                          <p className="text-sm text-muted-foreground">{update.time}</p>
+                        </div>
                       </div>
-                    </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </ScrollArea>
     </div>
