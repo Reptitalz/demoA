@@ -50,12 +50,14 @@ const MakePage = () => {
     return (
         <PageContainer>
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] text-center px-4 animate-fadeIn">
-                <h1 className="text-5xl sm:text-6xl font-extrabold text-foreground mb-2">
-                    Crea tu Asistente con <span className="text-brand-gradient animate-text-glow">IA</span>
+                
+                <h1 className="text-5xl sm:text-6xl font-extrabold text-foreground mb-4">
+                    <span>Crea tu Asistente con </span>
+                    <span className="text-brand-gradient animate-text-glow">IA</span>
                 </h1>
 
                 <p className="mt-2 max-w-lg mx-auto text-muted-foreground">
-                    Describe en lenguaje natural cómo quieres que sea tu asistente y nuestra IA se encargará del resto.
+                    Describe en lenguaje natural cómo quieres que sea tu asistente. Nuestra IA se encargará del resto.
                 </p>
 
                 <Card className="w-full max-w-xl mt-8">
@@ -80,21 +82,24 @@ const MakePage = () => {
                             </div>
                         ) : null }
                         
-                        <div className="flex items-center justify-end gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setShowSheetInput(!showSheetInput)} title="Vincular Hoja de Google (Opcional)">
-                                <FaGoogle />
-                            </Button>
-                            <Button 
-                                size="lg" 
-                                className={cn(
-                                    "w-full sm:w-auto text-base font-semibold",
-                                    "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
-                                )}
-                                onClick={handleCreateAssistant}
-                                disabled={isCreating}
-                            >
-                                {isCreating ? 'Generando...' : <><Wand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
-                            </Button>
+                        <div className="pt-4 border-t">
+                            <h3 className="text-lg font-semibold mb-4">Base de datos</h3>
+                            <div className="flex items-center justify-end gap-2">
+                                <Button variant="outline" size="icon" onClick={() => setShowSheetInput(!showSheetInput)} title="Vincular Hoja de Google (Opcional)">
+                                    <FaGoogle />
+                                </Button>
+                                <Button 
+                                    size="lg" 
+                                    className={cn(
+                                        "w-full sm:w-auto text-base font-semibold",
+                                        "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                                    )}
+                                    onClick={handleCreateAssistant}
+                                    disabled={isCreating}
+                                >
+                                    {isCreating ? 'Generando...' : <><Wand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
