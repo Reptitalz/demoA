@@ -114,7 +114,7 @@ export default function DashboardLayout({
     const handleLogout = async () => {
         try {
             dispatch({ type: 'LOGOUT_USER' });
-            await signOut({ callbackUrl: '/login' });
+            await signOut({ callbackUrl: '/' });
             toast({ title: "Sesión Cerrada", description: "Has cerrado sesión exitosamente." });
         } catch (error) {
             console.error("Logout Error:", error);

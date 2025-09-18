@@ -343,35 +343,29 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const fetchProfileCallback = useCallback(async (email: string, isNewUser = false, user: any = null) => {
+  const fetchProfileCallback = useCallback(async (email: string) => {
     dispatch({ type: 'SET_LOADING_STATUS', payload: { active: true, message: 'Cargando perfil...', progress: 75 } });
     try {
-      if (isNewUser) {
-          const newUserProfile = await createNewUserProfile(user, state.wizard.assistantType);
+      const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
+      
+      if (response.status === 404) {
+        // This is a new user signing in with Google
+        if (session?.user) {
+          const newUserProfile = await createNewUserProfile(session.user, state.wizard.assistantType || null);
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: newUserProfile });
-      } else {
-        const response = await fetch(`/api/user-profile?email=${encodeURIComponent(email)}`);
-        
-        if (response.status === 404) {
-          // This is a new user signing in with Google
-          const newUserProfile = await createNewUserProfile(session!.user!, state.wizard.assistantType);
-          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: newUserProfile });
-          router.replace('/dashboard/assistants');
-          return;
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.userProfile) {
-            dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
-            router.replace('/dashboard/assistants');
-          } else {
-            throw new Error('Perfil no encontrado, pero la respuesta fue exitosa.');
-          }
         } else {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Error del servidor: ${response.status}`);
+          throw new Error('Session data not available for new user.');
         }
+      } else if (response.ok) {
+        const data = await response.json();
+        if (data.userProfile) {
+          dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: data.userProfile });
+        } else {
+          throw new Error('Profile not found in API response.');
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
       }
     } catch (error: any) {
       console.error("Error fetching/handling profile:", error);
@@ -381,7 +375,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [router, state.wizard.assistantType, session]);
+  }, [state.wizard.assistantType, session]);
 
 
   useEffect(() => {

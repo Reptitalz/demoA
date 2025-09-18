@@ -12,11 +12,10 @@ export async function middleware(req: NextRequest) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 
-  // Define protected routes
+  // Define protected routes that STRICTLY require authentication
   const isProtectedRoute = 
-      pathname.startsWith('/dashboard') || 
-      pathname.startsWith('/app') ||
-      pathname.startsWith('/colaboradores/dashboard');
+      pathname.startsWith('/app') || // The assistant setup/reconfiguration process
+      pathname.startsWith('/colaboradores/dashboard'); // The collaborator dashboard
 
   if (isProtectedRoute) {
     const token = await getToken({ req, secret, raw: true });
@@ -32,13 +31,18 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Allow access to /dashboard and /chat for unauthenticated users,
+  // the pages themselves will handle showing demo content.
   return NextResponse.next();
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
+    // We still match dashboard and chat to run the middleware, 
+    // but the logic inside decides what to do.
     '/dashboard/:path*', 
+    '/chat/:path*',
     '/app/:path*',
     '/colaboradores/dashboard/:path*'
 ],

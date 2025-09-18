@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { signIn } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import {
   Accordion,
   AccordionContent,
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/accordion"
 import AppIcon from '@/components/shared/AppIcon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useRouter } from 'next/navigation';
 
 
 const HowItWorksDialog = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => {
@@ -768,6 +769,15 @@ const FaqSection = () => {
 
 export default function MarketingHomePage() {
   const { toast } = useToast();
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If the user is logged in, redirect to the dashboard.
+    if (session) {
+      router.replace('/dashboard/assistants');
+    }
+  }, [session, router]);
   
   const handleCopyEmail = () => {
     const email = 'contacto@heymanito.com';
@@ -944,5 +954,6 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 

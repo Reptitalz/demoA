@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, Suspense } from 'react';
@@ -20,8 +21,8 @@ function DashboardRouter() {
             if (userProfile.isAuthenticated) {
                 router.replace('/dashboard/assistants');
             } else {
-            // If the user is NOT authenticated, redirect them to the main login page.
-                router.replace('/login');
+            // If the user is NOT authenticated, show the demo dashboard.
+                router.replace('/dashboarddemo/assistants');
             }
         }
     }, [loadingStatus.active, userProfile.isAuthenticated, router]);

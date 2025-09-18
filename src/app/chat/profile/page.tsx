@@ -1,3 +1,4 @@
+
 // src/app/chat/profile/page.tsx
 "use client";
 
@@ -25,7 +26,7 @@ const ChatProfilePage = () => {
   const { state } = useApp();
 
   const handleLogout = () => {
-      signOut({ callbackUrl: '/chat' });
+      signOut({ callbackUrl: '/' });
   }
 
   const handleEnableNotifications = async () => {

@@ -56,18 +56,20 @@ const LoginPageContent = () => {
   const handleLogin = async (provider: 'google' | 'credentials') => {
     setIsLoggingIn(true);
     
+    // Default callback for dashboard login
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard/assistants';
+    
     let result;
     if (provider === 'credentials') {
         result = await signIn('credentials', {
-            redirect: false,
+            redirect: false, // Handle redirect manually
             email,
             password,
             userType: 'user',
         });
     } else {
-        result = await signIn('google', {
-            callbackUrl: '/dashboard/assistants'
-        });
+        // For Google, NextAuth handles the redirect via callbackUrl
+        await signIn('google', { callbackUrl });
         return; 
     }
     
@@ -79,7 +81,9 @@ const LoginPageContent = () => {
               description: "Correo electrónico o contraseña incorrectos.",
               variant: "destructive",
           });
-    } else if (!result?.ok) {
+    } else if (result?.ok) {
+        router.push(callbackUrl); // Manually redirect for credentials
+    } else {
         toast({
             title: "Error de inicio de sesión",
             description: "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
