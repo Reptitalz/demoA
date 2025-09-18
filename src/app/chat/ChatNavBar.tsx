@@ -14,21 +14,31 @@ const navItems = [
     { href: '/chat/profile', label: 'Perfil', icon: User },
 ];
 
-const NavItem = ({ href, label, icon: Icon }: typeof navItems[0]) => {
+interface NavItemProps {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  onNavigate: (path: string) => void;
+}
+
+const NavItem = ({ href, label, icon: Icon, onNavigate }: NavItemProps) => {
     const pathname = usePathname();
     const isActive = pathname === href;
 
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Link href={href} className={cn(
-                    "flex flex-col items-center justify-center h-full w-20 cursor-pointer transition-all duration-200",
-                    "text-muted-foreground hover:text-primary",
-                    isActive ? "text-primary" : ""
-                )}>
+                <div 
+                    onClick={() => onNavigate(href)}
+                    className={cn(
+                        "flex flex-col items-center justify-center h-full w-20 cursor-pointer transition-all duration-200",
+                        "text-muted-foreground hover:text-primary",
+                        isActive ? "text-primary" : ""
+                    )}
+                >
                     <Icon className={cn("h-6 w-6 transition-transform duration-200", isActive ? "scale-110" : "scale-100")} />
                     <span className={cn("text-xs mt-1 transition-opacity duration-200", isActive ? "opacity-100 font-semibold" : "opacity-80")}>{label}</span>
-                </Link>
+                </div>
             </TooltipTrigger>
             <TooltipContent>
                 <p>{label}</p>
@@ -37,12 +47,16 @@ const NavItem = ({ href, label, icon: Icon }: typeof navItems[0]) => {
     );
 };
 
-const ChatNavBar = () => {
+interface ChatNavBarProps {
+    onNavigate: (path: string) => void;
+}
+
+const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
     return (
         <TooltipProvider>
             <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t z-20 shrink-0">
                 <div className="flex justify-around items-center h-full max-w-md mx-auto">
-                    {navItems.map(item => <NavItem key={item.href} {...item} />)}
+                    {navItems.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
                 </div>
             </nav>
         </TooltipProvider>
