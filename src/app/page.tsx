@@ -448,12 +448,6 @@ const HeroSection = () => {
           title: "Aplicación Instalada",
           description: `¡Gracias por instalar ${APP_NAME}!`,
         });
-      } else {
-         toast({
-          title: "Instalación Cancelada",
-          description: "Puedes instalar la aplicación en cualquier momento desde el menú de tu navegador.",
-          variant: "default"
-        });
       }
       setDeferredInstallPrompt(null);
     } else {
@@ -952,6 +946,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
