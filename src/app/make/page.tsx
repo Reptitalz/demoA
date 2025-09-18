@@ -51,8 +51,8 @@ const MakePage = () => {
         <PageContainer>
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] text-center px-4 animate-fadeIn">
                 
-                <h1 className="text-5xl sm:text-6xl font-extrabold text-foreground mb-4">
-                    <span>Crea tu Asistente con </span>
+                <h1 className="text-5xl sm:text-6xl font-extrabold mb-4 tracking-tight">
+                    <span className="text-foreground">Crea tu Asistente con </span>
                     <span className="text-brand-gradient animate-text-glow">IA</span>
                 </h1>
 
@@ -83,7 +83,6 @@ const MakePage = () => {
                         ) : null }
                         
                         <div className="pt-4 border-t">
-                            <h3 className="text-lg font-semibold mb-4">Base de datos</h3>
                             <div className="flex items-center justify-end gap-2">
                                 <Button variant="outline" size="icon" onClick={() => setShowSheetInput(!showSheetInput)} title="Vincular Hoja de Google (Opcional)">
                                     <FaGoogle />
