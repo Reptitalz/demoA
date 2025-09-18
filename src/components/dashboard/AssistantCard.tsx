@@ -1,9 +1,10 @@
+
 "use client";
 import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown, FaExclamationTriangle, FaStar } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaPhoneAlt, FaDatabase, FaWhatsapp, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaKey, FaInfoCircle, FaMobileAlt, FaExchangeAlt, FaCrown, FaExclamationTriangle, FaStar, FaEllipsisV } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MONTHLY_PLAN_CREDIT_COST, UNLIMITED_MESSAGES_LIMIT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -21,6 +22,13 @@ import { MessagesSquare, AppWindow, Bot, Code, MessageCircle } from "lucide-reac
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { differenceInDays } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -334,13 +342,6 @@ const AssistantCard = ({
                             : 'Activo en la web'
                           }
                       </div>
-                       {assistant.type === 'whatsapp' && (
-                         <Button asChild size="sm" className="text-xs ml-2 h-7 px-2.5 py-1.5 bg-brand-gradient text-primary-foreground hover:opacity-90">
-                           <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                              <FaWhatsapp size={13} className="mr-1.5"/> Chatear
-                           </Link>
-                         </Button>
-                      )}
                     </CardDescription>
                 ) : badgeText === "Activando" ? (
                    <CardDescription className="flex items-center gap-2 text-xs sm:text-sm pt-1 text-muted-foreground">
@@ -468,70 +469,45 @@ const AssistantCard = ({
             ) : (
                 <>
                     {assistant.isActive || assistant.isPlanActive ? (
-                        <div className="grid grid-cols-3 gap-2">
-                             <Button
-                                size="sm"
-                                onClick={() => setIsBusinessInfoDialogOpen(true)}
-                                variant="secondary"
-                                className="transition-transform transform hover:scale-105 w-full text-xs"
-                                title="Información de Negocio"
-                            >
-                                <FaInfoCircle size={14} />
+                       <div className="flex items-center gap-2">
+                         {assistant.type === 'desktop' ? (
+                            <Button asChild size="sm" className="flex-1 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border transition-transform transform hover:scale-105">
+                                <Link href={desktopChatUrl}>
+                                    <MessageCircle size={14} /> Chatear
+                                </Link>
                             </Button>
-                             <Button
-                                size="sm"
-                                onClick={() => setIsMessageLimitDialogOpen(true)}
-                                variant="secondary"
-                                className="transition-transform transform hover:scale-105 w-full text-xs"
-                                title="Asignar Límite de Mensajes"
-                            >
-                                <MessagesSquare size={14} />
-                            </Button>
-                            {assistant.type === 'whatsapp' ? (
-                                <AlertDialog open={isReassignAlertOpen} onOpenChange={setIsReassignAlertOpen}>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      variant="secondary"
-                                      className="transition-transform transform hover:scale-105 w-full text-xs"
-                                      title="Reasignar Número"
-                                    >
-                                      <FaExchangeAlt size={14} />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>¿Reasignar número de teléfono?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Esta acción desvinculará el número actual de este asistente. Tendrás que integrar y verificar un nuevo número. El número anterior quedará libre. ¿Estás seguro?
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction onClick={handleReassignPhoneNumber} className="bg-destructive hover:bg-destructive/90">
-                                        Sí, reasignar
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                            ) : (
-                                <Button asChild size="sm" variant="secondary" className="transition-transform transform hover:scale-105 w-full text-xs" title="Chatear con Asistente">
-                                    <Link href={desktopChatUrl}>
-                                        <MessageCircle size={14} />
-                                    </Link>
+                        ) : (
+                             <Button asChild size="sm" className="flex-1 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border transition-transform transform hover:scale-105">
+                                <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                                  <FaWhatsapp size={14} /> Chatear
+                                </Link>
+                             </Button>
+                        )}
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="secondary" size="icon" className="h-9 w-9">
+                                    <FaEllipsisV />
                                 </Button>
-                            )}
-
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={handleShare}
-                                className="w-full text-xs col-span-3"
-                            >
-                                <FaShareAlt size={14} />
-                                Compartir
-                            </Button>
-                        </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setIsBusinessInfoDialogOpen(true)}>
+                                    <FaInfoCircle className="mr-2"/> Info. de Negocio
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setIsMessageLimitDialogOpen(true)}>
+                                    <MessagesSquare className="mr-2"/> Límite de Mensajes
+                                </DropdownMenuItem>
+                                {assistant.type === 'whatsapp' && (
+                                    <DropdownMenuItem onClick={() => setIsReassignAlertOpen(true)}>
+                                        <FaExchangeAlt className="mr-2"/> Reasignar Número
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleShare}>
+                                    <FaShareAlt className="mr-2"/> Compartir
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                       </div>
                     ) : badgeText === "Activando" ? (
                         <div className="space-y-3 animate-fadeIn p-2">
                             <p className="text-xs text-muted-foreground text-center">Ingresa el código de verificación para {assistant.phoneLinked}.</p>
@@ -616,8 +592,26 @@ const AssistantCard = ({
         onOpenChange={setIsApiInfoDialogOpen}
         assistant={assistant}
       />
+      <AlertDialog open={isReassignAlertOpen} onOpenChange={setIsReassignAlertOpen}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>¿Reasignar número de teléfono?</AlertDialogTitle>
+                <AlertDialogDescription>
+                Esta acción desvinculará el número actual de este asistente. Tendrás que integrar y verificar un nuevo número. El número anterior quedará libre. ¿Estás seguro?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReassignPhoneNumber} className="bg-destructive hover:bg-destructive/90">
+                Sí, reasignar
+                </AlertDialogAction>
+            </AlertDialogFooter>
+            </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
 
 export default AssistantCard;
+
+    
