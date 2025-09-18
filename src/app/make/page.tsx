@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -10,8 +11,14 @@ import { Input } from '@/components/ui/input';
 import { FaGoogle } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Wand2 } from 'lucide-react';
+import { Wand2, Paperclip } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const MakePage = () => {
     const { dispatch } = useApp();
@@ -46,6 +53,18 @@ const MakePage = () => {
 
         router.push('/try');
     };
+    
+    const handleMenuSelect = (option: 'google' | 'file') => {
+      if (option === 'google') {
+        setShowSheetInput(true);
+      }
+      if (option === 'file') {
+        toast({
+          title: "Próximamente",
+          description: "La importación de archivos estará disponible pronto.",
+        });
+      }
+    };
 
     return (
         <PageContainer>
@@ -68,7 +87,7 @@ const MakePage = () => {
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                         />
-
+                        
                         {showSheetInput ? (
                             <div className="relative animate-fadeIn">
                                 <FaGoogle className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -84,9 +103,22 @@ const MakePage = () => {
                         
                         <div className="pt-4 border-t">
                             <div className="flex items-center justify-end gap-2">
-                                <Button variant="outline" size="icon" onClick={() => setShowSheetInput(!showSheetInput)} title="Vincular Hoja de Google (Opcional)">
-                                    <FaGoogle />
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon" title="Adjuntar base de datos">
+                                            <Paperclip />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => handleMenuSelect('google')}>
+                                            <FaGoogle className="mr-2" /> Vincular Hoja de Google
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleMenuSelect('file')}>
+                                            Importar Archivo
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                
                                 <Button 
                                     size="lg" 
                                     className={cn(
