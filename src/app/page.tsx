@@ -409,6 +409,29 @@ const HeroSection = () => {
   const { toast } = useToast();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
 
+  const handleInstall = useCallback((appType: 'dev' | 'chat') => {
+    // In a real app, you would have logic to check which PWA manifest to use.
+    // For this example, we'll just trigger the single prompt if available.
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+        if (choiceResult.outcome === 'accepted') {
+          toast({
+            title: "Aplicación Instalada",
+            description: `¡Gracias por instalar Hey Manito ${appType === 'dev' ? 'Dev' : 'Chat'}!`,
+          });
+        }
+        setDeferredInstallPrompt(null);
+      });
+    } else {
+      toast({
+        title: "Instalación no disponible",
+        description: "Tu navegador no es compatible o la aplicación ya está instalada.",
+      });
+    }
+  }, [deferredInstallPrompt, toast]);
+
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -438,32 +461,13 @@ const HeroSection = () => {
 
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
-  const handleDownloadClick = async () => {
-    if (deferredInstallPrompt) {
-      deferredInstallPrompt.prompt();
-      const { outcome } = await deferredInstallPrompt.userChoice;
-      if (outcome === 'accepted') {
-        toast({
-          title: "Aplicación Instalada",
-          description: `¡Gracias por instalar ${APP_NAME}!`,
-        });
-      }
-      setDeferredInstallPrompt(null);
-    } else {
-       toast({
-        title: "Instalación no disponible",
-        description: "Tu navegador no es compatible o la aplicación ya está instalada.",
-      });
-    }
-  };
   
   const StoreButton = ({ icon, title, subtitle, className, onClick }: { icon: React.ReactNode, title: string, subtitle: string, className?: string, onClick?: () => void }) => (
     <Button
       variant="ghost"
       onClick={onClick}
       className={cn(
-        "h-auto px-4 py-2 rounded-lg border border-border/20 shadow-sm hover:bg-muted/80 flex items-center gap-3 w-48 text-left transition-transform transform hover:scale-105",
+        "h-auto px-4 py-2 rounded-lg border border-border/20 shadow-sm flex items-center gap-3 w-48 text-left transition-transform transform hover:scale-105",
         className
       )}
     >
@@ -523,18 +527,18 @@ const HeroSection = () => {
                     </div>
                      <div className="flex flex-col sm:flex-row items-center gap-4">
                         <StoreButton
-                            onClick={handleDownloadClick}
+                            onClick={() => handleInstall('dev')}
                             icon={<DevAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Dev"
                             className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                          />
                          <StoreButton
-                            onClick={handleDownloadClick}
+                            onClick={() => handleInstall('chat')}
                             icon={<ChatAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Chat"
-                            className="bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-gray-300"
+                            className="bg-black text-white hover:bg-black/80 dark:bg-black dark:text-white dark:hover:bg-gray-800"
                          />
                     </div>
                 </div>
@@ -946,6 +950,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
