@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import AppIcon from '@/components/shared/AppIcon';
+import { APP_NAME } from '@/config/appConfig';
 
 // Demo data
 const demoChats = [
@@ -21,7 +23,10 @@ const ChatListPage = () => {
   return (
     <div className="flex flex-col h-full bg-background">
       <header className="p-4 border-b">
-        <h1 className="text-2xl font-bold">Chats</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+            <AppIcon className="h-7 w-7"/>
+            <span>{APP_NAME}</span>
+        </h1>
         <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar chats..." className="pl-10" />
