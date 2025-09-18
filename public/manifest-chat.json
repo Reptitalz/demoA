@@ -1,20 +1,20 @@
 
 {
     "name": "Hey Manito Chat",
-    "short_name": "HeyManito Chat",
-    "description": "Aplicación de chat para interactuar con asistentes de Hey Manito.",
+    "short_name": "Hey Manito",
+    "description": "Chatea con tus asistentes inteligentes de IA de Hey Manito.",
     "start_url": "/chat",
     "display": "standalone",
-    "background_color": "#18181b",
-    "theme_color": "#8a4fff",
+    "background_color": "#25D366",
+    "theme_color": "#25D366",
     "icons": [
         {
-            "src": "/icons/icon-chat-192x192.png",
+            "src": "/icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/icons/icon-chat-512x512.png",
+            "src": "/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
         }
