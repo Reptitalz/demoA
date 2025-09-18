@@ -10,7 +10,7 @@ import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT, MAX_CUSTOM_CREDITS, CR
 import Link from 'next/link';
 import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaUserEdit, FaSimCard, FaCheckCircle, FaGoogle, FaArrowLeft, FaArrowRight, FaEnvelope, FaTiktok, FaSpinner, FaQuestionCircle, FaUser } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download, AppWindow, Code, Laptop } from 'lucide-react';
+import { MessagesSquare, CircleDollarSign, Coins, Send, ArrowRight, UserCog, Download, AppWindow, Code, Laptop, MessageCircle } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -384,6 +384,24 @@ const DesktopChatMockup = () => {
     );
 }
 
+const DevAppIcon = () => (
+    <div className="relative h-8 w-8">
+        <AppIcon className="text-black dark:text-white" />
+        <div className="absolute -bottom-1 -right-1 bg-background p-0.5 rounded-full shadow-md">
+            <Code className="h-3 w-3 text-foreground" />
+        </div>
+    </div>
+);
+
+const ChatAppIcon = () => (
+    <div className="relative h-8 w-8">
+        <AppIcon className="text-black dark:text-white" />
+        <div className="absolute -bottom-1 -right-1 bg-background p-0.5 rounded-full shadow-md">
+            <MessageCircle className="h-3 w-3 text-foreground" />
+        </div>
+    </div>
+);
+
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
@@ -513,17 +531,17 @@ const HeroSection = () => {
                      <div className="flex flex-col sm:flex-row items-center gap-4">
                         <StoreButton
                             onClick={() => handleDownloadClick('/dashboard')}
-                            icon={<AppIcon className="h-8 w-8 text-black dark:text-white" />}
+                            icon={<DevAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Dev"
                             className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                          />
                          <StoreButton
                             onClick={() => handleDownloadClick('/chat')}
-                            icon={<AppIcon className="h-8 w-8" />}
+                            icon={<ChatAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Chat"
-                            className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
+                            className="bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                          />
                     </div>
                 </div>
@@ -926,4 +944,5 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
