@@ -439,7 +439,7 @@ const HeroSection = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const handleDownloadClick = async (fallbackUrl?: string) => {
+  const handleDownloadClick = async () => {
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       const { outcome } = await deferredInstallPrompt.userChoice;
@@ -454,7 +454,6 @@ const HeroSection = () => {
           description: "Puedes instalar la aplicación en cualquier momento desde el menú de tu navegador.",
           variant: "default"
         });
-        if (fallbackUrl) window.location.href = fallbackUrl;
       }
       setDeferredInstallPrompt(null);
     } else {
@@ -462,7 +461,6 @@ const HeroSection = () => {
         title: "Instalación no disponible",
         description: "Tu navegador no es compatible o la aplicación ya está instalada.",
       });
-      if (fallbackUrl) window.location.href = fallbackUrl;
     }
   };
   
@@ -531,14 +529,14 @@ const HeroSection = () => {
                     </div>
                      <div className="flex flex-col sm:flex-row items-center gap-4">
                         <StoreButton
-                            onClick={() => handleDownloadClick('/dashboard')}
+                            onClick={handleDownloadClick}
                             icon={<DevAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Dev"
                             className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                          />
                          <StoreButton
-                            onClick={() => handleDownloadClick('/chat')}
+                            onClick={handleDownloadClick}
                             icon={<ChatAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Chat"
@@ -954,6 +952,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
