@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -72,7 +71,7 @@ const MakePage = () => {
                 
                 <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
                     <span className="text-foreground">Crea tu Asistente con </span>
-                    <span className="text-brand-gradient animate-text-glow">IA</span>
+                    <span className="text-brand-gradient">IA</span>
                 </h1>
 
                 <p className="mt-2 max-w-lg mx-auto text-muted-foreground">
