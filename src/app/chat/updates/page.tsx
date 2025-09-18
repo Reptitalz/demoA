@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlusCircle, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -87,6 +87,7 @@ const StatusViewer = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-black/90 border-none p-0 w-screen h-screen max-w-full max-h-screen sm:max-w-md sm:h-[90vh] sm:rounded-lg flex flex-col">
+        <DialogTitle className="sr-only">Visor de Estados - {currentStatus.name}</DialogTitle>
         <div className="relative flex-grow flex items-center justify-center overflow-hidden">
            <Image
               src={currentStatus.image}
