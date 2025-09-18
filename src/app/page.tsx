@@ -520,10 +520,10 @@ const HeroSection = () => {
                          />
                          <StoreButton
                             onClick={() => handleDownloadClick('/chat')}
-                            icon={<AppIcon className="h-8 w-8 text-white" />}
+                            icon={<AppIcon className="h-8 w-8 text-black dark:text-white" />}
                             title="Disponible en"
                             subtitle="Hey Manito Chat"
-                            className="bg-brand-gradient text-white hover:opacity-90 shiny-border"
+                            className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                          />
                     </div>
                 </div>
