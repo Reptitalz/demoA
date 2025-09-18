@@ -431,7 +431,7 @@ const DesktopChatPage = () => {
                   onClick={() => setIsInfoSheetOpen(true)}
                 >
                   <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
-                    <Link href="/dashboard/assistants" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
+                    <Link href="/chat" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
                   </Button>
                   <Avatar className="h-10 w-10 mr-3 border-2 border-white/50">
                       <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
