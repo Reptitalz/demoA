@@ -136,7 +136,7 @@ export interface UserProfile {
 export interface WizardState {
   currentStep: number;
   assistantName: string;
-  assistantType: 'desktop' | 'whatsapp';
+  assistantType: 'desktop' | 'whatsapp' | null;
   assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {
@@ -235,7 +235,7 @@ export interface AssistantWithMemory extends AssistantConfig {
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string | { type: 'image'; url: string };
-  time?: string;
+  time: string;
 }
 
 export interface Conversation {

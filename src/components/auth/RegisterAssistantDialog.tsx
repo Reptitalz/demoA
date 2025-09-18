@@ -91,11 +91,12 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const isWhatsappAssistant = useMemo(() => assistantType === 'whatsapp', [assistantType]);
 
   const effectiveMaxSteps = useMemo(() => {
-    // Desktop: Type -> Details -> Prompt -> Terms -> Auth (5)
-    if (!isWhatsappAssistant) return 5; 
-    // WhatsApp: Type -> Details -> Prompt -> DB? -> Terms -> Auth (5 or 6)
-    return dbNeeded ? 6 : 5;
-  }, [dbNeeded, isWhatsappAssistant]);
+    let baseSteps = 3; // Type, Details, Prompt
+    if (dbNeeded) baseSteps++; // DB config
+    baseSteps++; // Terms
+    baseSteps++; // Auth
+    return baseSteps;
+  }, [dbNeeded]);
 
 
   const getValidationMessageForStep = useCallback((step: number): string | null => {
@@ -114,24 +115,18 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
             return null;
         case 4:
-            if (isWhatsappAssistant) {
-                if (dbNeeded) { // Step 4 is DB for WA
-                    if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
-                    if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
-                    if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/d/'))) return "Proporciona una URL válida de Hoja de Google.";
-                    if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
-                } else { // Step 4 is Terms for WA (no DB)
-                    if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-                }
-            } else { // Step 4 is Terms for Desktop
+            if (dbNeeded) {
+                if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
+                if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
+                if (databaseOption.type === "google_sheets" && (!databaseOption.accessUrl?.trim() || !databaseOption.accessUrl.startsWith('https://docs.google.com/spreadsheets/d/'))) return "Proporciona una URL válida de Hoja de Google.";
+                if (databaseOption.type === "google_sheets" && !databaseOption.selectedSheetName) return "Por favor, selecciona una hoja del documento.";
+            } else {
                 if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
             }
             return null;
         case 5:
-             if (isWhatsappAssistant) {
-                if (dbNeeded) { // Step 5 is Terms for WA (with DB)
-                    if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
-                }
+             if (dbNeeded) {
+                 if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
              }
              return null;
         case 6:
@@ -158,8 +153,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     let nextStep = currentStep + 1;
 
-    // Skip DB config for WA assistant if not needed
-    if (isWhatsappAssistant && currentStep === 3 && !dbNeeded) {
+    // Skip DB config if not needed
+    if (currentStep === 3 && !dbNeeded) {
         nextStep = 5; 
     }
     
@@ -172,7 +167,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     if (currentStep > 1) {
         let prevStep = currentStep - 1;
         // Correctly go back from Terms to Prompt if DB was skipped
-        if (isWhatsappAssistant && currentStep === 5 && !dbNeeded) {
+        if (currentStep === 5 && !dbNeeded) {
             prevStep = 3; 
         }
         dispatch({ type: 'SET_WIZARD_STEP', payload: prevStep });
@@ -275,11 +270,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, [session, status, isOpen, currentStep, effectiveMaxSteps, createOrUpdateProfileAndFinalize]);
   
   const handleFinalize = useCallback(async (authProvider: 'google' | 'email') => {
-    // This function is now only for initiating the sign-in process
-    // The actual profile creation is handled by the useEffect above
     if (authProvider === 'google') {
        signIn('google', {
-         callbackUrl: `/app?action=add` // Redirect back to this flow
+         callbackUrl: `/dashboard/assistants`
        });
     }
   }, []);
@@ -300,23 +293,16 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       );
     }
     
-    if (currentStep === effectiveMaxSteps) {
-        return <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />;
-    }
+    const stepMap: Record<number, React.ReactNode> = {
+        1: <Step0AssistantType />,
+        2: <Step1AssistantDetails />,
+        3: <Step2AssistantPrompt />,
+        4: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
+        5: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+    };
 
-    switch(currentStep) {
-        case 1: return <Step0AssistantType />;
-        case 2: return <Step1AssistantDetails />;
-        case 3: return <Step2AssistantPrompt />;
-        case 4:
-            if (isWhatsappAssistant) {
-                return dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />;
-            }
-            return <Step5TermsAndConditions />;
-        case 5: 
-            return (isWhatsappAssistant && dbNeeded) ? <Step5TermsAndConditions /> : null;
-        default: return null;
-    }
+    return stepMap[currentStep] || null;
   };
   
   const handleDialogClose = (open: boolean) => {
