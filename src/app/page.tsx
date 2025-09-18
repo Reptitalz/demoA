@@ -503,7 +503,7 @@ const HeroSection = () => {
                         <Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link>
                     </Button>
                 </div>
-                 <div className="mt-8 flex flex-col items-center lg:items-start gap-3 animate-fadeIn" style={{animationDelay: '0.4s'}}>
+                 <div className="mt-8 flex flex-col items-center lg:items-start gap-4 animate-fadeIn" style={{animationDelay: '0.4s'}}>
                     <div className="inline-flex items-center gap-2 bg-muted/50 border border-border/20 shadow-sm rounded-full px-4 py-2">
                         <FcGoogle className="h-4 w-4" />
                         <span className="text-xs text-foreground/80">Autenticación segura con Google</span>
@@ -925,6 +925,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
