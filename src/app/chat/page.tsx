@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import AppIcon from '@/components/shared/AppIcon';
 import { APP_NAME } from '@/config/appConfig';
+import Link from 'next/link';
 
 // Demo data
 const demoChats = [
@@ -36,26 +37,28 @@ const ChatListPage = () => {
       <ScrollArea className="flex-grow">
         <div className="p-2 space-y-1">
           {demoChats.map((chat) => (
-            <div key={chat.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={chat.avatar} alt={chat.name} />
-                <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-grow overflow-hidden">
-                <div className="flex justify-between items-center">
-                    <p className="font-semibold truncate">{chat.name}</p>
-                    <p className="text-xs text-muted-foreground shrink-0">{formatDistanceToNow(chat.lastActive, { locale: es, addSuffix: true })}</p>
-                </div>
-                <div className="flex justify-between items-start">
-                    <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
-                    {chat.unread > 0 && (
-                        <span className="flex items-center justify-center h-5 w-5 text-xs font-bold rounded-full bg-primary text-primary-foreground">
-                            {chat.unread}
-                        </span>
-                    )}
-                </div>
-              </div>
-            </div>
+            <Link key={chat.id} href={`/chat/demo-chat-${chat.id}`} legacyBehavior>
+                <a className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
+                    <Avatar className="h-12 w-12">
+                        <AvatarImage src={chat.avatar} alt={chat.name} />
+                        <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow overflow-hidden">
+                        <div className="flex justify-between items-center">
+                            <p className="font-semibold truncate">{chat.name}</p>
+                            <p className="text-xs text-muted-foreground shrink-0">{formatDistanceToNow(chat.lastActive, { locale: es, addSuffix: true })}</p>
+                        </div>
+                        <div className="flex justify-between items-start">
+                            <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                            {chat.unread > 0 && (
+                                <span className="flex items-center justify-center h-5 w-5 text-xs font-bold rounded-full bg-primary text-primary-foreground">
+                                    {chat.unread}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </a>
+            </Link>
           ))}
           
            {demoChats.length === 0 && (
