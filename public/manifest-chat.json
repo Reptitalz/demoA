@@ -1,21 +1,37 @@
+
 {
-  "name": "Hey Manito Chat",
-  "short_name": "Chat",
-  "description": "Chatea con tus asistentes de IA de Hey Manito.",
-  "start_url": "/chat",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#008069",
-  "icons": [
-    {
-      "src": "/icon-chat-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-chat-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "theme_color": "#25D366",
+    "background_color": "#0a0c1e",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/chat",
+    "name": "Hey Manito Chat",
+    "short_name": "HeyManitoChat",
+    "description": "Chatea con tus asistentes inteligentes o inicia nuevas conversaciones.",
+    "icons": [
+        {
+            "src": "/icon-chat-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-chat-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-chat-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-chat-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
 }

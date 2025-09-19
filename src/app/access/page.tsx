@@ -7,49 +7,8 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, MessageCircle, Code } from 'lucide-react';
+import { Bot, MessageCircle } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
-import { cn } from '@/lib/utils';
-
-// New component for the Dev app icon
-const DevAppIcon = () => (
-    <div className="relative h-8 w-8">
-        <AppIcon className="text-black dark:text-white" />
-        <div className="absolute -bottom-1 -right-1 bg-background p-0.5 rounded-full shadow-md">
-            <Code className="h-3 w-3 text-foreground" />
-        </div>
-    </div>
-);
-
-// New component for the Chat app icon
-const ChatAppIcon = () => (
-    <div className="relative h-8 w-8">
-        <AppIcon className="text-black dark:text-white" />
-        <div className="absolute -bottom-1 -right-1 bg-background p-0.5 rounded-full shadow-md">
-            <MessageCircle className="h-3 w-3 text-foreground" />
-        </div>
-    </div>
-);
-
-
-const StoreButton = ({ icon, title, subtitle, className, onClick }: { icon: React.ReactNode, title: string, subtitle: string, className?: string, onClick?: () => void }) => (
-    <Button
-      variant="ghost"
-      onClick={onClick}
-      className={cn(
-        "h-auto px-4 py-2 rounded-lg border border-border/20 shadow-sm flex items-center gap-3 w-full text-left transition-transform transform hover:scale-105",
-        "bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-gray-300",
-        className
-      )}
-    >
-      {icon}
-      <div>
-        <p className="text-xs font-normal leading-none">{title}</p>
-        <p className="text-base font-bold leading-tight">{subtitle}</p>
-      </div>
-    </Button>
-);
-
 
 const AccessPage = () => {
     const router = useRouter();
