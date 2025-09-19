@@ -7,7 +7,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, MessageCircle } from 'lucide-react';
+import { Bot, MessageCircle, Download } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
 
 const AccessPage = () => {
@@ -99,7 +99,8 @@ const AccessPage = () => {
                         <Button 
                             className="w-full bg-green-500 hover:bg-green-600"
                         >
-                            Abrir Chat
+                            <Download className="mr-2 h-4 w-4" />
+                            Instalar Hey Manito Chat
                         </Button>
                     </CardContent>
                 </Card>
