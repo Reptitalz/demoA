@@ -410,8 +410,7 @@ const HeroSection = () => {
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
 
   const handleInstall = useCallback((appType: 'dev' | 'chat') => {
-    // In a real app, you would have logic to check which PWA manifest to use.
-    // For this example, we'll just trigger the single prompt if available.
+    // This function will only trigger the install prompt and will not redirect.
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
@@ -950,6 +949,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
