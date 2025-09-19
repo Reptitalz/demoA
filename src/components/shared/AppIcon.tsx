@@ -9,28 +9,15 @@ interface AppIconProps extends SVGProps<SVGSVGElement> {
 const AppIcon = ({ className, ...props }: AppIconProps) => {
   return (
     <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
+      viewBox="0 0 768 768"
       xmlns="http://www.w3.org/2000/svg"
       className={cn(className)}
       {...props}
     >
-      <path
-        d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12M21 12V21H3V12"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9 12V15M12 9V15M15 12V15"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path fill="#000" d="M223.8 190c-16 0-29 13-29 29v330c0 16 13 29 29 29h320c16 0 29-13 29-29V219c0-16-13-29-29-29H223.8z"/>
+      <path fill="#f8f8f5" d="M287 560c-36 0-65-29-65-65V273c0-36 29-65 65-65h194c36 0 65 29 65 65v222c0 36-29 65-65 65H287z"/>
+      <path fill="#000" d="M340 390c0 20-16 36-36 36s-36-16-36-36 16-36 36-36 36 16 36 36zm96 0c0 20-16 36-36 36s-36-16-36-36 16-36 36-36 36 16 36 36z"/>
+      <path fill="#000" d="M276 495h216v30H276z"/>
     </svg>
   );
 };
