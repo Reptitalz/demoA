@@ -411,7 +411,6 @@ const HeroSection = () => {
   const router = useRouter();
 
   const handleInstall = useCallback((appType: 'dev' | 'chat') => {
-    // This function will only trigger the install prompt.
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
@@ -424,11 +423,12 @@ const HeroSection = () => {
         setDeferredInstallPrompt(null);
       });
     } else {
-      // If install not available, then navigate.
-      const path = appType === 'dev' ? '/dashboard' : '/chat';
-      router.push(path);
+        toast({
+          title: "Instalación no disponible",
+          description: "No se puede instalar la app en este navegador o ya está instalada.",
+        });
     }
-  }, [deferredInstallPrompt, toast, router]);
+  }, [deferredInstallPrompt, toast]);
 
 
   useEffect(() => {
@@ -467,6 +467,7 @@ const HeroSection = () => {
       onClick={onClick}
       className={cn(
         "h-auto px-4 py-2 rounded-lg border border-border/20 shadow-sm flex items-center gap-3 w-48 text-left transition-transform transform hover:scale-105",
+        "bg-card/60 backdrop-blur-sm",
         className
       )}
     >
@@ -530,14 +531,14 @@ const HeroSection = () => {
                             icon={<DevAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Dev"
-                            className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
+                            className="text-foreground"
                          />
                          <StoreButton
                             onClick={() => handleInstall('chat')}
                             icon={<ChatAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Chat"
-                            className="bg-black text-white hover:bg-black/80 dark:bg-black dark:text-white dark:hover:bg-gray-800"
+                            className="text-foreground"
                          />
                     </div>
                 </div>
@@ -949,6 +950,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
