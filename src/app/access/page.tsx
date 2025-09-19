@@ -71,10 +71,12 @@ const AccessPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button
-                            className="w-full"
-                        >
-                            Abrir Dashboard
+                        <Button className="w-full bg-gray-800 text-white hover:bg-gray-700 h-14 border border-gray-600">
+                            <AppIcon className="h-8 w-8 mr-3" />
+                            <div className="text-left">
+                                <p className="text-xs">Disponible en la</p>
+                                <p className="text-lg font-semibold leading-tight">App Web</p>
+                            </div>
                         </Button>
                     </CardContent>
                 </Card>
