@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -69,7 +70,7 @@ const FeatureCard = ({ title, desc, icon: Icon }: { title: string, desc: string,
       className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm"
     >
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-primary"><Icon size={24} /></div>
+        <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center text-primary"><Icon size={28} /></div>
         <div>
           <h4 className="font-semibold text-white">{title}</h4>
           <p className="text-slate-300 text-sm mt-1">{desc}</p>
