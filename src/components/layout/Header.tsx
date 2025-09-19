@@ -1,25 +1,52 @@
+
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { Button } from '@/components/ui/button';
-import { Menu as MenuIcon } from 'lucide-react';
-import React from 'react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { Download } from 'lucide-react';
 
 interface HeaderProps {
   fullWidth?: boolean;
 }
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+        if (choiceResult.outcome === 'accepted') {
+          toast({
+            title: "¡Aplicación Instalada!",
+            description: "Gracias por instalar Hey Manito.",
+          });
+        }
+        setDeferredInstallPrompt(null);
+      });
+    } else {
+      router.push('/access');
+    }
+  };
+
   return (
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -31,40 +58,11 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                 <p className="text-xs text-slate-300 -mt-1">PWA · Asistentes Inteligentes · Ventas y Control de Medios</p>
             </div>
         </Link>
-        <nav className="hidden md:flex gap-6 text-sm text-slate-300">
-          <a className="hover:text-white" href="#features">Funciones</a>
-          <a className="hover:text-white" href="#ui">Interfaz</a>
-          <a className="hover:text-white" href="#pricing">Precios</a>
-          <a className="hover:text-white" href="#contact">Contacto</a>
-        </nav>
-        <div className="md:hidden">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <MenuIcon />
-                    <span className="sr-only">Abrir menú de navegación</span>
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                    <a href="#features">Funciones</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <a href="#ui">Interfaz</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <a href="#pricing">Precios</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <a href="#contact">Contacto</a>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/login">Acceder</Link>
-                </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
+        
+        <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+          <Download className="mr-2 h-4 w-4" />
+          Instalar App Web
+        </Button>
       </header>
   );
 };
