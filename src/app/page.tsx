@@ -408,27 +408,27 @@ const HeroSection = () => {
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const { toast } = useToast();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const router = useRouter();
 
   const handleInstall = useCallback((appType: 'dev' | 'chat') => {
-    // This function will only trigger the install prompt and will not redirect.
+    // This function will only trigger the install prompt.
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
         if (choiceResult.outcome === 'accepted') {
           toast({
             title: "Aplicación Instalada",
-            description: `¡Gracias por instalar Hey Manito ${appType === 'dev' ? 'Dev' : 'Chat'}!`,
+            description: `¡Gracias por instalar Hey Manito ${appType === 'dev' ? 'Admin' : 'Chat'}!`,
           });
         }
         setDeferredInstallPrompt(null);
       });
     } else {
-      toast({
-        title: "Instalación no disponible",
-        description: "Tu navegador no es compatible o la aplicación ya está instalada.",
-      });
+      // If install not available, then navigate.
+      const path = appType === 'dev' ? '/dashboard' : '/chat';
+      router.push(path);
     }
-  }, [deferredInstallPrompt, toast]);
+  }, [deferredInstallPrompt, toast, router]);
 
 
   useEffect(() => {
@@ -764,15 +764,15 @@ const FaqSection = () => {
 
 export default function MarketingHomePage() {
   const { toast } = useToast();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     // If the user is logged in, redirect to the dashboard.
-    if (session) {
+    if (status === 'authenticated') {
       router.replace('/dashboard/assistants');
     }
-  }, [session, router]);
+  }, [status, router]);
   
   const handleCopyEmail = () => {
     const email = 'contacto@heymanito.com';
@@ -949,6 +949,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 

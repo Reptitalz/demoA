@@ -1,11 +1,11 @@
 {
-  "name": "Hey Manito Dev",
-  "short_name": "Hey Manito",
-  "description": "Panel de control para tus asistentes de IA.",
+  "name": "Hey Manito Admin",
+  "short_name": "HeyManito",
+  "description": "Gestiona tus asistentes, bases de datos y configuraciones.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#8a4fff",
-  "theme_color": "#8a4fff",
+  "background_color": "#111827",
+  "theme_color": "hsl(262 80% 58%)",
   "icons": [
     {
       "src": "/icon-dev-192x192.png",

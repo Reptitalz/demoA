@@ -14,9 +14,9 @@ import { cn } from '@/lib/utils';
 // New component for the Dev app icon
 const DevAppIcon = () => (
     <div className="relative h-8 w-8">
-        <AppIcon className="text-white" />
-        <div className="absolute -bottom-1 -right-1 bg-black p-0.5 rounded-full shadow-md">
-            <Code className="h-3 w-3 text-white" />
+        <AppIcon className="text-black dark:text-white" />
+        <div className="absolute -bottom-1 -right-1 bg-background p-0.5 rounded-full shadow-md">
+            <Code className="h-3 w-3 text-foreground" />
         </div>
     </div>
 );
@@ -24,9 +24,9 @@ const DevAppIcon = () => (
 // New component for the Chat app icon
 const ChatAppIcon = () => (
     <div className="relative h-8 w-8">
-        <AppIcon className="text-white" />
-        <div className="absolute -bottom-1 -right-1 bg-black p-0.5 rounded-full shadow-md">
-            <MessageCircle className="h-3 w-3 text-white" />
+        <AppIcon className="text-black dark:text-white" />
+        <div className="absolute -bottom-1 -right-1 bg-background p-0.5 rounded-full shadow-md">
+            <MessageCircle className="h-3 w-3 text-foreground" />
         </div>
     </div>
 );
@@ -116,6 +116,7 @@ const AccessPage = () => {
                             icon={<DevAppIcon />}
                             title="Disponible en"
                             subtitle="Hey Manito Admin"
+                             className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                         />
                     </CardContent>
                 </Card>

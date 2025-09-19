@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google'; // Using Inter for a more modern feel
 import '@/app/globals.css';
@@ -92,8 +93,8 @@ export const metadata: Metadata = {
   publisher: APP_NAME,
   // manifest is now handled dynamically
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
+    icon: '/icon-dev-192x192.png',
+    shortcut: '/icon-dev-192x192.png',
     apple: '/apple-touch-icon.png',
   },
 
@@ -124,9 +125,9 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#8a4fff" />
+        <meta name="theme-color" content="hsl(var(--primary))" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon-dev-192x192.png" type="image/png" />
         <link rel="manifest" href={manifest} />
         
         {/* Google Analytics Script */}
