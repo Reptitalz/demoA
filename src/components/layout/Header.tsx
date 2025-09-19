@@ -49,6 +49,9 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
+                <Link href="/access">Acceder / Instalar</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href="/begin">Crear Asistente</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

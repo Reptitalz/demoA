@@ -42,7 +42,7 @@ const TopBar = ({ fullWidth = false }: TopBarProps) => {
         !fullWidth && "max-w-7xl"
       )}>
         <div className="flex items-center gap-4">
-           <Link href="/login" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+           <Link href="/access" className="flex items-center gap-1.5 hover:text-primary transition-colors">
             <FaUserCircle />
             <span>Acceder</span>
           </Link>
