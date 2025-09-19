@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -24,12 +23,12 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   return (
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-400 via-fuchsia-500 to-cyan-300 shadow-lg flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-white/10 shadow-lg flex items-center justify-center">
                 <AppIcon className="w-5 h-5 text-white" />
             </div>
             <div>
                 <h1 className="text-white font-bold">{APP_NAME}</h1>
-                <p className="text-xs text-slate-300 -mt-1">PWA · Smart Assistants · Sales & Media Control</p>
+                <p className="text-xs text-slate-300 -mt-1">PWA · Asistentes Inteligentes · Ventas y Control de Medios</p>
             </div>
         </Link>
         <nav className="hidden md:flex gap-6 text-sm text-slate-300">
