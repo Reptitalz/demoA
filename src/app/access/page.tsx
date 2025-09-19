@@ -112,12 +112,11 @@ const AccessPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <StoreButton
-                            icon={<DevAppIcon />}
-                            title="Disponible en"
-                            subtitle="Hey Manito Admin"
-                             className="bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-300"
-                        />
+                        <Button
+                            className="w-full"
+                        >
+                            Abrir Dashboard
+                        </Button>
                     </CardContent>
                 </Card>
 
@@ -138,11 +137,11 @@ const AccessPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <StoreButton
-                            icon={<ChatAppIcon />}
-                            title="Disponible en"
-                            subtitle="Hey Manito Chat"
-                        />
+                        <Button 
+                            className="w-full bg-green-500 hover:bg-green-600"
+                        >
+                            Abrir Chat
+                        </Button>
                     </CardContent>
                 </Card>
             </div>
