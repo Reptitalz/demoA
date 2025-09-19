@@ -1,15 +1,13 @@
-
-
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave } from 'react-icons/fa';
-import { Send } from 'lucide-react';
+import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaHandshake, FaUserTie } from 'react-icons/fa';
+import { Send, Bot, Database, Workflow, CheckCircle, Rocket, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from "framer-motion";
@@ -26,10 +24,10 @@ const PhoneChatMockup = () => {
             >
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center">💬</div>
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center"><Bot size={24} className="text-white"/></div>
                   <div>
-                    <p className="text-sm font-semibold text-white">Hey Manito</p>
-                    <p className="text-xs text-slate-400">Activo</p>
+                    <p className="text-sm font-semibold text-white">Asistente de Ventas</p>
+                    <p className="text-xs text-slate-400">en línea</p>
                   </div>
                 </div>
                 <div className="text-slate-400 text-xs">—</div>
@@ -38,15 +36,15 @@ const PhoneChatMockup = () => {
               <div className="px-4 pb-6">
                 <div className="mt-2 space-y-3">
                   <div className="flex justify-end">
-                    <div className="max-w-[70%] bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white p-3 rounded-2xl">Hola 👋 ¿En qué puedo ayudarte hoy?</div>
+                    <div className="max-w-[70%] bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white p-3 rounded-2xl">¡Hola! 👋 Soy tu asistente virtual. ¿Cómo puedo ayudarte hoy?</div>
                   </div>
 
                   <div className="flex">
-                    <div className="max-w-[70%] bg-slate-800 text-slate-200 p-3 rounded-2xl">Quiero ver mi reporte de ventas y las imágenes autorizadas.</div>
+                    <div className="max-w-[70%] bg-slate-800 text-slate-200 p-3 rounded-2xl">Quiero ver el inventario de productos y generar un reporte de ventas.</div>
                   </div>
 
                   <div className="flex justify-end">
-                    <div className="max-w-[70%] bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white p-3 rounded-2xl">Genial — te muestro un resumen con asistentes.</div>
+                    <div className="max-w-[70%] bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white p-3 rounded-2xl">Claro, consultando la base de datos... Tu reporte está listo. ¿Te lo envío?</div>
                   </div>
                 </div>
               </div>
@@ -61,7 +59,7 @@ const PhoneChatMockup = () => {
     );
 };
 
-const FeatureCard = ({ title, desc, icon }: { title: string, desc: string, icon: React.FC }) => {
+const FeatureCard = ({ title, desc, icon: Icon }: { title: string, desc: string, icon: React.FC | React.ElementType }) => {
   return (
     <motion.div
       initial={{ y: 8, opacity: 0 }}
@@ -71,7 +69,7 @@ const FeatureCard = ({ title, desc, icon }: { title: string, desc: string, icon:
       className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm"
     >
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-primary">{icon()}</div>
+        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-primary"><Icon size={24} /></div>
         <div>
           <h4 className="font-semibold text-white">{title}</h4>
           <p className="text-slate-300 text-sm mt-1">{desc}</p>
@@ -88,14 +86,14 @@ const UIShowcase = ({ title, badge }: { title: string, badge: string }) => {
         <p className="font-semibold text-white">{title}</p>
         <span className="text-xs px-2 py-1 rounded-md bg-white/10 text-white">{badge}</span>
       </div>
-      <div className="mt-4 h-36 rounded-lg border border-white/10 bg-gradient-to-b from-slate-900/60 to-slate-900/30 flex items-center justify-center text-slate-400">Interfaz demo</div>
+      <div className="mt-4 h-36 rounded-lg border border-white/10 bg-gradient-to-b from-slate-900/60 to-slate-900/30 flex items-center justify-center text-slate-400">Interfaz de {title}</div>
     </div>
   );
 }
 
-const PricingCard = ({ name, price, features, recommended }: { name: string, price: string, features: string[], recommended?: boolean }) => {
+const PricingCard = ({ name, price, description, features, recommended, buttonText, buttonLink }: { name: string, price: string, description: string, features: string[], recommended?: boolean, buttonText: string, buttonLink: string }) => {
   return (
-    <div className={`p-6 rounded-xl border ${recommended ? "border-primary scale-[1.02] bg-gradient-to-br from-white/10 to-white/10 backdrop-blur-sm" : "border-white/10"}`}>
+    <div className={`p-6 rounded-xl border flex flex-col ${recommended ? "border-primary scale-[1.02] bg-gradient-to-br from-white/10 to-white/10 backdrop-blur-sm" : "border-white/10"}`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="font-semibold text-white">{name}</p>
@@ -103,15 +101,17 @@ const PricingCard = ({ name, price, features, recommended }: { name: string, pri
         </div>
         {recommended && <div className="text-xs px-3 py-1 rounded-full bg-primary text-white">Recomendado</div>}
       </div>
-
+      <p className="text-sm text-slate-400 mt-4 flex-grow">{description}</p>
       <ul className="mt-4 text-slate-300 space-y-2">
-        {features.map((f) => (
-          <li key={f}>• {f}</li>
+        {features.map((f, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <CheckCircle className="h-4 w-4 text-green-400 mt-1 shrink-0" />
+            <span>{f}</span>
+          </li>
         ))}
       </ul>
-
       <div className="mt-6">
-        <Link href="/begin" className={`inline-block w-full text-center px-4 py-3 rounded-full ${recommended ? "bg-primary text-white" : "bg-white/10 text-white"}`}>Seleccionar</Link>
+        <Link href={buttonLink} className={`inline-block w-full text-center px-4 py-3 rounded-full ${recommended ? "bg-primary text-white" : "bg-white/10 text-white"}`}>{buttonText}</Link>
       </div>
     </div>
   );
@@ -139,9 +139,9 @@ export default function MarketingHomePage() {
                 transition={{ delay: 0.12, duration: 0.6 }}
                 className="mt-6 text-slate-300 max-w-xl"
                 >
-                {APP_NAME} es una PWA con interfaz tipo mensajería —como WhatsApp— pero potenciada
-                con asistentes inteligentes que automatizan ventas, gestionan clientes, almacenan
-                chats y controlan imágenes mediante autorizaciones al propietario.
+                {APP_NAME} es una PWA con interfaz tipo mensajería, potenciada
+                con asistentes inteligentes que automatizan ventas, gestionan clientes y almacenan
+                chats. Todo configurable desde un simple prompt.
                 </motion.p>
 
                 <div className="mt-8 flex gap-4">
@@ -149,7 +149,7 @@ export default function MarketingHomePage() {
                     href="/begin"
                     className="inline-flex items-center gap-3 bg-brand-gradient px-5 py-3 rounded-xl font-medium shadow-lg hover:scale-[1.02] transition-transform text-primary-foreground"
                 >
-                    Instalar PWA
+                    Comenzar Ahora
                 </Link>
                 <a
                     href="#features"
@@ -161,12 +161,12 @@ export default function MarketingHomePage() {
 
                 <div className="mt-8 grid grid-cols-2 gap-4 max-w-sm">
                 <div className="p-3 rounded-lg bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10">
-                    <p className="text-xs text-slate-300">Asistentes inteligentes</p>
+                    <p className="text-xs text-slate-300">Asistentes Inteligentes</p>
                     <p className="font-semibold text-white">Automatiza respuestas y ventas</p>
                 </div>
                 <div className="p-3 rounded-lg bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10">
-                    <p className="text-xs text-slate-300">Control de imágenes</p>
-                    <p className="font-semibold text-white">Permisos por propietario</p>
+                    <p className="text-xs text-slate-300">Integra con WhatsApp</p>
+                    <p className="font-semibold text-white">Atención 24/7</p>
                 </div>
                 </div>
             </div>
@@ -191,40 +191,40 @@ export default function MarketingHomePage() {
 
                 <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <FeatureCard
-                    title="Asistentes inteligentes"
-                    desc="Automatiza respuestas, crea flujos de venta y asigna tareas a asistentes personalizados."
-                    icon={() => <FaCogs size={24} />}
+                    title="Asistentes por Prompt"
+                    desc="Crea y personaliza el comportamiento de tus asistentes usando lenguaje natural."
+                    icon={Workflow}
                     />
                     <FeatureCard
-                    title="Almacenamiento de chats"
-                    desc="Historial seguro y exportable — busca, etiqueta y retoma conversaciones en segundos."
-                    icon={() => <FaBrain size={24} />}
+                    title="Integración WhatsApp"
+                    desc="Conecta un número de teléfono y automatiza tu comunicación en la plataforma de mensajería más grande."
+                    icon={FaWhatsapp}
                     />
                     <FeatureCard
-                    title="Control de imágenes"
-                    desc="Autoriza quién puede ver o usar imágenes; todo controlado por el propietario."
-                    icon={() => <FaShieldAlt size={24} />}
+                    title="Bases de Datos Inteligentes"
+                    desc="Tu asistente aprende y responde basándose en el conocimiento que le proporcionas, ya sea desde un archivo o una Hoja de Google."
+                    icon={FaBrain}
                     />
                 </div>
 
                 <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
-                    <h4 className="font-semibold text-white">Gestión de ventas y ganancias</h4>
-                    <p className="text-slate-300 mt-2">Reportes en tiempo real y paneles resumidos para ver comisiones, ventas y tendencias.</p>
+                    <h4 className="font-semibold text-white">Panel de Control Centralizado</h4>
+                    <p className="text-slate-300 mt-2">Gestiona todos tus asistentes, bases de datos, planes y créditos desde una interfaz unificada e intuitiva.</p>
                     <ul className="mt-4 space-y-2 text-slate-300">
-                        <li>• Resumen diario y mensual</li>
-                        <li>• Exportar a CSV</li>
-                        <li>• Integración con pasarelas (simulada/real)</li>
+                        <li>• Vista general de consumo</li>
+                        <li>• Configuración detallada</li>
+                        <li>• Acceso a historial de chats</li>
                     </ul>
                     </div>
 
                     <div className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
-                    <h4 className="font-semibold text-white">Privacidad y permisos</h4>
-                    <p className="text-slate-300 mt-2">El propietario de la imagen define permisos por medio de autorizaciones —auditables desde el panel.</p>
+                    <h4 className="font-semibold text-white">Programa de Colaboradores</h4>
+                    <p className="text-slate-300 mt-2">Gana comisiones recurrentes recomendando Hey Manito a otros negocios. Te damos las herramientas para triunfar.</p>
                     <ul className="mt-4 space-y-2 text-slate-300">
-                        <li>• Registros de autorización</li>
-                        <li>• Revocación instantánea</li>
-                        <li>• Descargas con firma</li>
+                        <li>• Enlace de referido único</li>
+                        <li>• Panel de seguimiento de ganancias</li>
+                        <li>• Material de marketing</li>
                     </ul>
                     </div>
                 </div>
@@ -235,30 +235,52 @@ export default function MarketingHomePage() {
                 <p className="text-slate-300 mt-2 max-w-2xl">Diseñada para ser familiar y rápida — la transición desde aplicaciones de mensajería es natural y la PWA permite instalar la app para uso offline y notificaciones.</p>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <UIShowcase title="Chat" badge="Rápido" />
-                    <UIShowcase title="Panel de ventas" badge="Analítica" />
-                    <UIShowcase title="Control de imágenes" badge="Seguro" />
+                    <UIShowcase title="Dashboard" badge="Gestión" />
+                    <UIShowcase title="Cerebro" badge="Conocimiento" />
+                    <UIShowcase title="Chat" badge="Comunicación" />
                 </div>
             </section>
 
             <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-white">Planes</h3>
-                <p className="text-slate-300 mt-2 max-w-2xl">Planes pensados para negocios pequeños y medianos; comienza gratis y escala según tus necesidades.</p>
+                <h3 className="text-2xl font-bold text-white">Planes Flexibles</h3>
+                <p className="text-slate-300 mt-2 max-w-2xl">Comienza gratis y escala según tus necesidades. Sin contratos, sin complicaciones.</p>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <PricingCard name="Gratis" price="0" features={["Chat básico", "1 asistente", "100MB media"]} />
-                    <PricingCard name="Pro" price="$9 / mes" features={["Asistentes ilimitados", "Historial completo", "1GB media"]} recommended />
-                    <PricingCard name="Empresa" price="Contactar" features={["SLA", "Integraciones", "Control avanzado"]} />
+                    <PricingCard 
+                        name="Asistente Desktop" 
+                        price="Prueba Gratuita por 30 Días" 
+                        description="Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono."
+                        features={["Mensajes ilimitados", "Configuración completa", "Acceso vía web"]}
+                        buttonText="Comenzar Prueba"
+                        buttonLink="/begin"
+                    />
+                    <PricingCard 
+                        name="Asistente WhatsApp" 
+                        price="Pago por Uso"
+                        description="Paga solo por lo que necesitas. Compra créditos y asígnalos a tus asistentes de WhatsApp."
+                        features={["Atención 24/7 en WhatsApp", "Requiere un número de teléfono nuevo", "Sistema de recarga de créditos flexible"]}
+                        recommended 
+                        buttonText="Crear Asistente"
+                        buttonLink="/begin"
+                    />
+                    <PricingCard 
+                        name="Programa de Aliados" 
+                        price="Gana Comisiones" 
+                        description="Únete a nuestro programa de colaboradores y obtén ingresos recurrentes por cada cliente que refieras."
+                        features={["Panel de seguimiento exclusivo", "Comisiones por recargas", "Soporte para tus clientes"]}
+                        buttonText="Más Información"
+                        buttonLink="/colaboradores"
+                    />
                 </div>
             </section>
 
             <section id="get" className="max-w-6xl mx-auto px-6 py-20 text-center">
                 <h3 className="text-2xl font-bold text-white">¿Listo para probar {APP_NAME}?</h3>
-                <p className="text-slate-300 mt-2">Prueba la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.</p>
+                <p className="text-slate-300 mt-2">Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.</p>
 
                 <div className="mt-6 flex items-center justify-center gap-4">
-                    <Link href="/begin" className="px-6 py-3 rounded-full bg-brand-gradient text-white font-medium">Instalar PWA</Link>
-                    <Link href="#contact" className="px-6 py-3 rounded-full border border-white/10 text-white">Contactar ventas</Link>
+                    <Link href="/begin" className="px-6 py-3 rounded-full bg-brand-gradient text-white font-medium">Crear mi Primer Asistente</Link>
+                    <Link href="#contact" className="px-6 py-3 rounded-full border border-white/10 text-white">Contactar</Link>
                 </div>
             </section>
         </main>
