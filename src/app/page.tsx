@@ -81,13 +81,53 @@ const FeatureCard = ({ title, desc, icon: Icon }: { title: string, desc: string,
 }
 
 const UIShowcase = ({ title, badge }: { title: string, badge: string }) => {
+  const renderPreview = () => {
+    switch (title) {
+      case 'Dashboard':
+        return (
+          <div className="p-2 space-y-1">
+            <div className="h-4 bg-slate-700/50 rounded w-1/2"></div>
+            <div className="flex gap-1">
+              <div className="h-8 w-1/3 bg-slate-700/50 rounded"></div>
+              <div className="h-8 w-1/3 bg-slate-700/50 rounded"></div>
+              <div className="h-8 w-1/3 bg-slate-700/50 rounded"></div>
+            </div>
+            <div className="h-10 bg-slate-700/50 rounded-md"></div>
+          </div>
+        );
+      case 'Cerebro':
+        return (
+           <div className="p-2 space-y-1">
+              <div className="h-4 bg-slate-700/50 rounded w-1/2"></div>
+              <div className="h-20 bg-slate-700/50 rounded-md flex items-center justify-center">
+                 <FaBrain className="text-slate-600/80" size={24}/>
+              </div>
+              <div className="h-10 bg-slate-700/50 rounded-md"></div>
+          </div>
+        );
+      case 'Chat':
+        return (
+          <div className="p-2 space-y-1">
+            <div className="flex justify-end"><div className="h-4 w-2/3 bg-primary/40 rounded-full"></div></div>
+            <div className="flex justify-start"><div className="h-4 w-1/2 bg-slate-700/80 rounded-full"></div></div>
+            <div className="flex justify-end"><div className="h-4 w-1/3 bg-primary/40 rounded-full"></div></div>
+            <div className="absolute bottom-2 left-2 right-2 h-5 bg-slate-800 rounded-full"></div>
+          </div>
+        );
+      default:
+        return <p className="text-slate-400">Interfaz de {title}</p>;
+    }
+  };
+  
   return (
     <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <p className="font-semibold text-white">{title}</p>
         <span className="text-xs px-2 py-1 rounded-md bg-white/10 text-white">{badge}</span>
       </div>
-      <div className="mt-4 h-36 rounded-lg border border-white/10 bg-gradient-to-b from-slate-900/60 to-slate-900/30 flex items-center justify-center text-slate-400">Interfaz de {title}</div>
+      <div className="mt-4 h-36 rounded-lg border border-white/10 bg-gradient-to-b from-slate-900/60 to-slate-900/30 flex-col items-center justify-center text-slate-400 relative overflow-hidden">
+        {renderPreview()}
+      </div>
     </div>
   );
 }
