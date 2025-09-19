@@ -10,7 +10,8 @@ interface Particle {
   radius: number;
   vx: number;
   vy: number;
-  color: string;
+  hue: number;
+  alpha: number;
 }
 
 const DynamicCanvasBackground: React.FC = () => {
@@ -20,100 +21,90 @@ const DynamicCanvasBackground: React.FC = () => {
   const particlesArray = useRef<Particle[]>([]);
   const mousePosition = useRef({ x: 0, y: 0 });
 
-  const getThemeColors = useCallback(() => {
-    if (typeof window === 'undefined') {
-      return {
-        primary: 'hsl(260 70% 60%)',
-        accent: 'hsl(30 100% 55%)',
-        grid: resolvedTheme === 'dark' ? 'hsla(0, 0%, 100%, 0.12)' : 'hsla(0, 0%, 0%, 0.12)',
-      };
-    }
-    const rootStyle = getComputedStyle(document.documentElement);
-    return {
-      primary: `hsl(${rootStyle.getPropertyValue('--primary').trim()})`,
-      accent: `hsl(${rootStyle.getPropertyValue('--accent').trim()})`,
-      grid: resolvedTheme === 'dark' ? 'hsla(210, 30%, 95%, 0.12)' : 'hsla(220, 10%, 10%, 0.12)',
-    };
-  }, [resolvedTheme]);
-
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.scale(dpr, dpr);
 
-    const themeColors = getThemeColors();
-    const particleColors = [themeColors.primary, themeColors.accent];
-    
+    const rand = (min: number, max: number) => Math.random() * (max - min) + min;
+
     particlesArray.current = [];
-    const numberOfParticles = Math.floor((canvas.width * canvas.height) / 25000); // Adjust density
+    const numberOfParticles = Math.floor((canvas.clientWidth * canvas.clientHeight) / 25000); 
 
     for (let i = 0; i < numberOfParticles; i++) {
-      const radius = Math.random() * 1.5 + 0.5; // Smaller particles
-      const x = Math.random() * (canvas.width - radius * 2) + radius;
-      const y = Math.random() * (canvas.height - radius * 2) + radius;
-      const vx = (Math.random() - 0.5) * 0.3; // Slower movement
-      const vy = (Math.random() - 0.5) * 0.3;
-      const color = particleColors[Math.floor(Math.random() * particleColors.length)];
-      particlesArray.current.push({ x, y, radius, vx, vy, color });
+      particlesArray.current.push({
+        x: rand(0, canvas.clientWidth),
+        y: rand(0, canvas.clientHeight),
+        vx: rand(-0.15, 0.15),
+        vy: rand(-0.2, 0.2),
+        radius: rand(6, 20),
+        hue: rand(180, 280),
+        alpha: rand(0.15, 0.45),
+      });
     }
-  }, [getThemeColors]);
+  }, []);
 
   const drawGrid = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-    const gridSize = 40;
-    const themeColors = getThemeColors();
-    ctx.strokeStyle = themeColors.grid;
-    ctx.lineWidth = 0.6; // Increased from 0.5
-
-    // Calculate grid offset based on mouse position for parallax effect
-    const offsetX = (mousePosition.current.x / canvas.width - 0.5) * gridSize * 0.5;
-    const offsetY = (mousePosition.current.y / canvas.height - 0.5) * gridSize * 0.5;
-
-    for (let x = -offsetX % gridSize; x <= canvas.width; x += gridSize) {
+    const gridSize = 48;
+    ctx.strokeStyle = "hsla(0, 0%, 100%, 0.06)";
+    ctx.lineWidth = 1;
+    const time = Date.now() * 0.0006;
+    for (let x = 0; x < canvas.clientWidth; x += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.moveTo((x + Math.sin(time + x * 0.01) * 10) % canvas.clientWidth, 0);
+        ctx.lineTo((x + Math.cos(time + x * 0.01) * 10) % canvas.clientWidth, canvas.clientHeight);
         ctx.stroke();
     }
-    for (let y = -offsetY % gridSize; y <= canvas.height; y += gridSize) {
+    for (let y = 0; y < canvas.clientHeight; y += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.moveTo(0, (y + Math.cos(time + y * 0.01) * 10) % canvas.clientHeight);
+        ctx.lineTo(canvas.clientWidth, (y + Math.sin(time + y * 0.01) * 10) % canvas.clientHeight);
         ctx.stroke();
     }
-  }, [getThemeColors]);
+  }, []);
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid(ctx, canvas);
+    // subtle gradient backdrop
+    const g = ctx.createLinearGradient(0, 0, canvas.clientWidth, canvas.clientHeight);
+    g.addColorStop(0, "rgba(10,12,30,0.9)");
+    g.addColorStop(1, "rgba(8,10,20,0.75)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-    particlesArray.current.forEach(particle => {
-      // Update position
-      particle.x += particle.vx;
-      particle.y += particle.vy;
+    particlesArray.current.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
 
-      // Boundary check (bounce)
-      if (particle.x + particle.radius > canvas.width || particle.x - particle.radius < 0) {
-        particle.vx = -particle.vx;
-      }
-      if (particle.y + particle.radius > canvas.height || particle.y - particle.radius < 0) {
-        particle.vy = -particle.vy;
-      }
+      if (p.x < -50) p.x = canvas.clientWidth + 50;
+      if (p.x > canvas.clientWidth + 50) p.x = -50;
+      if (p.y < -50) p.y = canvas.clientHeight + 50;
+      if (p.y > canvas.clientHeight + 50) p.y = -50;
 
-      // Draw particle
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius * 2);
+      grd.addColorStop(0, `hsla(${p.hue},80%,60%,${p.alpha})`);
+      grd.addColorStop(0.4, `hsla(${(p.hue + 60) % 360},70%,40%,${p.alpha * 0.6})`);
+      grd.addColorStop(1, `rgba(0,0,0,0)`);
+
       ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2, false);
-      ctx.fillStyle = particle.color;
+      ctx.fillStyle = grd;
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       ctx.fill();
     });
+
+    drawGrid(ctx, canvas);
 
     animationFrameId.current = requestAnimationFrame(animate);
   }, [drawGrid]);
@@ -123,24 +114,17 @@ const DynamicCanvasBackground: React.FC = () => {
     animate();
 
     const handleResize = () => {
-      initCanvas(); // Re-initialize particles and canvas size
-    };
-    
-    const handleMouseMove = (event: MouseEvent) => {
-      mousePosition.current = { x: event.clientX, y: event.clientY };
+      initCanvas();
     };
 
     window.addEventListener('resize', handleResize);
-    window.addEventListener('mousemove', handleMouseMove);
-
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouseMove);
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [initCanvas, animate, resolvedTheme]); // Re-run on theme change to pick up new grid color
+  }, [initCanvas, animate, resolvedTheme]);
 
   return (
     <canvas
@@ -151,9 +135,10 @@ const DynamicCanvasBackground: React.FC = () => {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -1, // Ensure it's behind all content
-        pointerEvents: 'none', // Allow clicks to pass through
+        zIndex: -10,
+        pointerEvents: 'none',
       }}
+      aria-hidden
     />
   );
 };

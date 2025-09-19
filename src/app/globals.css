@@ -9,67 +9,59 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme Variables */
-    --background: 0 0% 98%; /* Almost white */
-    --foreground: 240 10% 3.9%; /* Dark gray */
+    /* New Dark/Futuristic Theme */
+    --background: 224 71% 4%; /* Near black */
+    --foreground: 210 40% 98%; /* White */
 
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 240 10% 3.9%;
+    --card: 224 40% 10%; /* Dark blue-ish */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
 
     --primary: 262 80% 58%; /* Vibrant Purple */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 0 0% 94%; /* Light Gray */
-    --secondary-foreground: 240 5% 25%;
+    --secondary: 220 14% 20%; /* Darker gray */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 0 0% 90%; /* Lighter Gray */
-    --muted-foreground: 240 5% 45%;
+    --muted: 220 14% 15%; /* Even darker gray */
+    --muted-foreground: 210 40% 60%; /* Lighter gray for text */
 
     --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
     --accent-foreground: 0 0% 100%; /* White for violet */
 
-    --destructive: 0 84.2% 60.2%; /* Standard destructive red */
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 89.8%; /* Light border */
-    --input: 0 0% 93.3%; /* Light input background */
+    --border: 217 33% 17%; /* Dark blue border */
+    --input: 217 28% 12%; /* Dark input */
     --ring: 262 80% 58%; /* New primary purple for focus rings */
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Slightly larger radius */
   }
 
   .dark {
-    /* Dark Theme Variables */
-    --background: 220 10% 10%; /* Dark Slate Blue/Near Black */
-    --foreground: 210 30% 95%; /* Very Light Gray/Almost White */
-
-    --card: 220 10% 15%;
-    --card-foreground: 210 30% 95%;
-
-    --popover: 220 10% 12%;
-    --popover-foreground: 210 30% 95%;
-
-    --primary: 262 80% 58%; /* Vibrant Purple */
-    --primary-foreground: 0 0% 100%; /* White */
-
-    --secondary: 220 10% 25%; /* Darker Gray for secondary elements */
-    --secondary-foreground: 210 30% 85%;
-
-    --muted: 220 10% 20%;
-    --muted-foreground: 210 30% 60%;
-
-    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
-    --accent-foreground: 0 0% 100%; /* White for violet */
-
-    --destructive: 0 70% 55%; /* Adjusted Red */
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 220 10% 30%;
-    --input: 220 10% 22%;
-    --ring: 262 80% 58%; /* New primary purple for focus rings */
+    /* The dark theme is now the default, but we'll keep this for potential future use or toggling */
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+    --card: 224 40% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262 80% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 14% 15%;
+    --muted-foreground: 210 40% 60%;
+    --accent: 300 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 28% 12%;
+    --ring: 262 80% 58%;
   }
 }
 
@@ -289,3 +281,4 @@ body {
       opacity: 0.08;
   }
 }
+

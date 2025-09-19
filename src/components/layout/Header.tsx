@@ -6,10 +6,8 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
 import AppIcon from '@/components/shared/AppIcon';
 import { Button } from '@/components/ui/button';
-import { Download, Menu as MenuIcon } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import { useApp } from '@/providers/AppProvider';
+import { Menu as MenuIcon } from 'lucide-react';
+import React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FaBars } from 'react-icons/fa';
-import NotificationsBell from '../notifications/NotificationsBell';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -26,50 +22,51 @@ interface HeaderProps {
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
   return (
-    <header className="bg-card shadow-sm sticky top-0 z-50">
-      <div className={cn(
-        "container mx-auto px-4 py-3 flex items-center justify-between",
-        !fullWidth && "max-w-7xl"
-      )}>
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <AppIcon 
-            className="h-7 w-7"
-            aria-label={`${APP_NAME} Icon`} 
-          />
-          <h1 className="text-xl font-bold text-brand-gradient">{APP_NAME}</h1>
+    <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-400 via-fuchsia-500 to-cyan-300 shadow-lg flex items-center justify-center">
+                <AppIcon className="w-5 h-5 text-sky-900" />
+            </div>
+            <div>
+                <h1 className="text-white font-bold">{APP_NAME}</h1>
+                <p className="text-xs text-slate-300 -mt-1">PWA · Smart Assistants · Sales & Media Control</p>
+            </div>
         </Link>
-        <div className="flex items-center gap-2">
-          <NotificationsBell />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <FaBars />
-                <span className="sr-only">Abrir menú de navegación</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/access">Acceder / Instalar</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/begin">Crear Asistente</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/#pricing">Precios</Link>
-              </DropdownMenuItem>
-               <DropdownMenuItem asChild>
-                <Link href="/colaboradores">Colaboradores</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center justify-between">
-                <span>Alternar Tema</span>
-                <ThemeToggle />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <nav className="hidden md:flex gap-6 text-sm text-slate-300">
+          <a className="hover:text-white" href="#features">Funciones</a>
+          <a className="hover:text-white" href="#ui">Interfaz</a>
+          <a className="hover:text-white" href="#pricing">Precios</a>
+          <a className="hover:text-white" href="#contact">Contacto</a>
+        </nav>
+        <div className="md:hidden">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <MenuIcon />
+                    <span className="sr-only">Abrir menú de navegación</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                    <a href="#features">Funciones</a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <a href="#ui">Interfaz</a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <a href="#pricing">Precios</a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <a href="#contact">Contacto</a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/login">Acceder</Link>
+                </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
-      </div>
-    </header>
+      </header>
   );
 };
 

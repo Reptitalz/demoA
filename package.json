@@ -46,6 +46,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "firebase": "10.12.3",
+    "framer-motion": "^11.3.11",
     "genkit": "^1.6.2",
     "googleapis": "^140.0.1",
     "libphonenumber-js": "^1.11.4",
@@ -81,5 +82,3 @@
     "typescript": "^5"
   }
 }
-
-    

@@ -1,8 +1,8 @@
+
 "use client";
 import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { FaFacebook, FaTiktok } from 'react-icons/fa';
 
 interface FooterProps {
   fullWidth?: boolean;
@@ -10,34 +10,20 @@ interface FooterProps {
 
 const Footer = ({ fullWidth = false }: FooterProps) => {
   return (
-    <footer className="bg-card border-t border-border mt-auto">
-      <div className={cn(
-        "container mx-auto px-4 py-4 text-center text-muted-foreground text-xs sm:text-sm",
-        !fullWidth && "max-w-7xl" 
-      )}>
-        <div className="flex justify-center items-center gap-4 mb-2">
-            <a href="https://www.facebook.com/share/1MF3DaQi6M/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <FaFacebook size={20} />
-            </a>
-            <a href="https://www.tiktok.com/@hey.manito?_t=ZS-8z0tVEG5w3O&_r=1" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <FaTiktok size={20} />
-            </a>
-        </div>
-        <p>&copy; {new Date().getFullYear()} {APP_NAME}. Todos los derechos reservados.</p>
-        <div className="flex justify-center gap-4 mt-1">
-          <Link href="/privacy" className="hover:text-primary hover:underline">
-            Política de Privacidad
-          </Link>
-          <Link href="/terms" className="hover:text-primary hover:underline">
-            Términos y Condiciones
-          </Link>
-           <Link href="/colaboradores" className="hover:text-primary hover:underline">
-            Colaboradores
-          </Link>
-        </div>
-      </div>
+    <footer className="relative z-20 max-w-6xl mx-auto px-6 py-12 text-slate-300 w-full" id="contact">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <p className="font-bold text-white">{APP_NAME}</p>
+              <p className="text-sm">PWA · Soporta asistentes inteligentes · Gestión de ventas</p>
+            </div>
+            <div className="text-sm">
+              <p>Correo: hola@heymanito.app</p>
+              <p className="mt-1">© {new Date().getFullYear()} {APP_NAME}</p>
+            </div>
+          </div>
     </footer>
   );
 };
 
 export default Footer;
+
