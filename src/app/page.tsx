@@ -423,9 +423,10 @@ const HeroSection = () => {
         setDeferredInstallPrompt(null);
       });
     } else {
+        const appName = appType === 'dev' ? 'Hey Manito Dev' : 'Hey Manito Chat';
         toast({
-          title: "Instalación no disponible",
-          description: "No se puede instalar la app en este navegador o ya está instalada.",
+          title: `Instalación de ${appName} no disponible`,
+          description: "No se puede instalar en este navegador o la aplicación ya está instalada.",
         });
     }
   }, [deferredInstallPrompt, toast]);
@@ -467,7 +468,7 @@ const HeroSection = () => {
       onClick={onClick}
       className={cn(
         "h-auto px-4 py-2 rounded-lg border border-border/20 shadow-sm flex items-center gap-3 w-48 text-left transition-transform transform hover:scale-105",
-        "bg-card/60 backdrop-blur-sm",
+        "bg-card/60 backdrop-blur-sm glow-card",
         className
       )}
     >
@@ -950,6 +951,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
 
     
+
 
 
 
