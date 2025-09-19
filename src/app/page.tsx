@@ -13,6 +13,7 @@ import { Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from "framer-motion";
+import AppIcon from '@/components/shared/AppIcon';
 
 
 const PhoneChatMockup = () => {
