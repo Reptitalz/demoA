@@ -9,7 +9,7 @@ interface AppIconProps extends SVGProps<SVGSVGElement> {
 const AppIcon = ({ className, ...props }: AppIconProps) => {
   return (
     <svg
-      viewBox="0 0 768 768"
+      viewBox="90 100 600 600"
       xmlns="http://www.w3.org/2000/svg"
       className={cn(className)}
       {...props}
