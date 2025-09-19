@@ -17,7 +17,7 @@ const Footer = ({ fullWidth = false }: FooterProps) => {
               <p className="text-sm">PWA · Soporta asistentes inteligentes · Gestión de ventas</p>
             </div>
             <div className="text-sm">
-              <p>Correo: hola@heymanito.app</p>
+              <p>Correo: contacto@heymanito.com</p>
               <p className="mt-1">© {new Date().getFullYear()} {APP_NAME}</p>
             </div>
           </div>
@@ -26,4 +26,3 @@ const Footer = ({ fullWidth = false }: FooterProps) => {
 };
 
 export default Footer;
-
