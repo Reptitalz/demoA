@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -42,7 +43,7 @@ export default function DashboardLayout({
     };
     
     return (
-        <div className="flex flex-col h-screen bg-muted/30">
+        <div className="flex flex-col h-screen bg-transparent">
              <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
                     <Link href="/dashboard/assistants" className="flex items-center gap-2 font-semibold">
                          <AppIcon className="h-6 w-6" />

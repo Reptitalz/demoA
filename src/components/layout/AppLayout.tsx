@@ -1,5 +1,4 @@
 
-
 "use client"; 
 import type { ReactNode } from 'react';
 import Header from '@/components/layout/Header';
@@ -16,18 +15,12 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
   const isMarketingPage = ['/', '/begin', '/terms', '/privacy', '/colaboradores', '/make', '/try', '/access'].includes(pathname);
-  const isDashboardPage = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
-  const isDashboardDemoPage = pathname.startsWith('/dashboarddemo');
-  const isCollaboratorDemoPage = pathname.startsWith('/democolaborator');
-  const isLoginPage = pathname.startsWith('/login') || pathname.startsWith('/colaboradores/login');
-  const isChatPage = pathname.startsWith('/chat');
   
-  const showCanvas = isMarketingPage || isLoginPage;
   const showHeaderAndFooter = isMarketingPage;
   
   return (
-    <div className={cn("min-h-screen flex flex-col bg-background text-foreground")}>
-      {showCanvas && <DynamicCanvasBackground />}
+    <div className={cn("min-h-screen flex flex-col text-foreground")}>
+      <DynamicCanvasBackground />
       <div className="relative z-10 flex flex-col min-h-screen">
         {showHeaderAndFooter && <Header fullWidth />}
         <div className={cn("flex-grow w-full")}>
