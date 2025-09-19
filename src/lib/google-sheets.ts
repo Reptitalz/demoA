@@ -18,7 +18,7 @@ async function getSheetsClient() {
       type: "service_account",
       project_id: "reptitalz-413408",
       private_key_id: "17c535f6b299c34bd0c4ef3d5a31debb0e748686",
-      private_key: `-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDeE4i5l1uPusTn\nFGRumXyifCWj8VGz2NoIk8eaxTzWtMEj+bBAoDQQU55ixWlOZnhFILhlkytLk5Ap\npNZ3RL2H4fOHHjq45SMsj8e/FCx1QKpD3Ee4hrTVWiBmIeJO2pMis0He10wywLEb\njIYIcFvDaaR2rziwOjMW8mow6q35pxMPj7Tj6tdkYz7MioxYTZVjn6joUrjYSk4N\n8BlO9od0x8EJWhT2mXxOSuOOwsGnK6u8tJJNZgLusZy1OkjfxQwnpf861/v8Owec\nGPXk0IQ608JxKvdid4HHneVnVvSA5KvDtJbRIYrb6vEBzwJe+iqOSb4X4ONxSfEx\nqlH1BEzTAgMBAAECggEADekeVYsaw/2N1kW2PCFRfSIWqiwfEzYVrkIyLMqHEuc+\no+triW4fj22VdxgTjm19F3jDDtscSVR5zB9UWc3iALrRai4lZ9iJOVeGSmdP7kZP\nLrID12taCh/mS097DA0ao1VO3npmU6rd99z3tlvyEOMIrMXcC1nnQlw2n6V2TAl3\ntUFPzByI7oN6HQ+PpoNByQFfrxkG9Ho+syGzc13JYSTcKi1e6Ez1ojkdqMNEaAer\n9BaeTMYHt4SoGbG6IaAu1saTO/mzi5b23M9/9EAilAkaRX5S7fRFaxM96ED4Fd94\n/5xwkC5wyfOisMpa86XVHUU3Bg32e37qOXgr+mz0BQKBgQD9tmzIuwbbwk18U7/+\nyro2CpLxBjat7hAbpqdP/XM3nj1C+IeV5DgaxG6jpXd3n3YjknLIH2rjMSSaeEX5\n5p9y5uXx/uKDmakVEXmjyqF33UzEwYSGouiJd5RzYtO3ZkhuvU0Y525UzOXWaox8\nc/rJC6Frw5SNIULTRSQW0TRdfwKBgQDgFBd/MzYWkeCBnVgmYisOWJfFMEaMYqSt\nOuPPL72H4jVPQwp9oyCVDBhPYl8ZTt4ueXtAYVMYKR682cKQ7bcecm+gfB8S4rsJ\nGU0c90mdN88KKaGyCF9gSZfore7SCnniw3GCt60krV5CkYpmMnSPg/z1IrZLrsfO\nq8emf2nirQKBgQCFQud6u7nLfhBjCD5lXyhVsFIkJSZdTxjI3U0uV6rIAOaeoZnd\n4kSR0rFmZUgN3gUYhBikAtSKxso6FIh0zWzc1mjbJgzmILTN6yLgJFORePyUsCyi\n5ziK0/N2c+dOgnvzJp0zQoQSKJlkeQyXZffI18IOr2j8hAbsn3loPrRpkwKBgQDC\nDGQ0wXKLpRSY6luWEdlbeRklqKLPm/UkFyWFHMCzVg/4bgQ9vPDQYkMDLBtS3VvH\nP2ie3imJeMKnpKS7wUCdW1iT0ClQv4xdWs3O0c+sGNJw6JCgjmOaDOFCnK1+s5fN\n6pb4LnwAkSpZ15PU4MjUJ+b9mmvnqppZvaUN6LUXmQKBgQCStjh+4fQvu0arBpbh\nhd3tc9/egyYEG0hX0kG0lTi66tlw8Ww3NBO4DgR8l6WmV+CGKKGPHDiIZfMCE7dX\nEEl3Eeb1VjkEWeta0H+S7myDfKzwEr5ZdsAIuUTC8rFTdEiGcDJEmRYG3uTsNMiV\nTd0h4uTNZDQoD1bP31XhxBmpig==\n-----END PRIVATE KEY-----\n`,
+      private_key: `-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDeE4i5l1uPusTn\nFGRumXyifCWj8VGz2NoIk8eaxTzWtMEj+bBAoDQQU55ixWlOZnhFILhlkytLk5Ap\npNZ3RL2H4fOHHjq45SMsj8e/FCx1QKpD3Ee4hrTVWiBmIeJO2pMis0He10wywLEb\njIYIcFvDaaR2rziwOjMW8mow6q35pxMPj7Tj6tdkYz7MioxYTZVjn6joUrjYSk4N\n8BlO9od0x8EJWhT2mXxOSuOOwsGnK6u8tJJNZgLusZy1OkjfxQwnpf861/v8Owec\nGPXk0IQ608JxKvdid4HHneVnVvSA5KvDtJbRIYrb6vEBzwJe+iqOSb4X4ONxSfEx\nqlH1BEzTAgMBAAECggEADekeVYsaw/2N1kW2PCFRfSIWqiwfEzYVrkIyLMqHEuc+\no+triW4fj22VdxgTjm19F3jDDtscSVR5zB9UWc3iALrRai4lZ9iJOVeGSmdP7kZP\nLrID12taCh/mS097DA0ao1VO3npmU6rd99z3tlvyEOMIrMXcC1nnQlw2n6V2TAl3\ntUFPzByI7oN6HQ+PpoNByQFfrxkG9Ho+syGzc13JYSTcKi1e6Ez1ojkdqMNEaAer\n9BaeTMYHt4SoGbG6IaAu1saTO/mzi5b23M9/9EAilAkaRX5S7fRFaxM96ED4Fd94\n/5xwkC5wyfOisMpa86XVHUU3Bg32e37qOXgr+mz0BQKBgQD9tmzIuwbbwk18U7/+\nyro2CpLxBjat7hAbpqdP/XM3nj1C+IeV5DaxG6jpXd3n3YjknLIH2rjMSSaeEX5\n5p9y5uXx/uKDmakVEXmjyqF33UzEwYSGouiJd5RzYtO3ZkhuvU0Y525UzOXWaox8\nc/rJC6Frw5SNIULTRSQW0TRdfwKBgQDiFBd/MzYWkeCBnVgmYisOWJfFMEaMYqSt\nOuPPL72H4jVPQwp9oyCVDBhPYl8ZTt4ueXtAYVMYKR682cKQ7bcecm+gfB8S4rsJ\nGU0c90mdN88KKaGyCF9gSZfore7SCnniw3GCt60krV5CkYpmMnSPg/z1IrZLrsfO\nq8emf2nirQKBgQCFQud6u7nLfhBjCD5lXyhVsFIkJSZdTxjI3U0uV6rIAOaeoZnd\n4kSR0rFmZUgN3gUYhBikAtSKxso6FIh0zWzc1mjbJgzmILTN6yLgJFORePyUsCyi\n5ziK0/N2c+dOgnvzJp0zQoQSKJlkeQyXZffI18IOr2j8hAbsn3loPrRpkwKBgQDC\nDGQ0wXKLpRSY6luWEdlbeRklqKLPm/UkFyWFHMCzVg/4bgQ9vPDQYkMDLBtS3VvH\nP2ie3imJeMKnpKS7wUCdW1iT0ClQv4xdWs3O0c+sGNJw6JCgjmOaDOFCnK1+s5fN\n6pb4LnwAkSpZ15PU4MjUJ+b9mmvnqppZvaUN6LUXmQKBgQCStjh+4fQvu0arBpbh\nhd3tc9/egyYEG0hX0kG0lTi66tlw8Ww3NBO4DgR8l6WmV+CGKKGPHDiIZfMCE7dX\nEEl3Eeb1VjkEWeta0H+S7myDfKzwEr5ZdsAIuUTC8rFTdEiGcDJEmRYG3uTsNMiV\nTd0h4uTNZDQoD1bP31XhxBmpig==\n-----END PRIVATE KEY-----\n`,
       client_email: "excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com",
       client_id: "103633657615530363104",
       auth_uri: "https://accounts.google.com/o/oauth2/auth",
@@ -30,7 +30,7 @@ async function getSheetsClient() {
 
     try {
         const auth = google.auth.fromJSON(credentials);
-        auth.scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+        auth.scopes = ['https://www.googleapis.com/auth/spreadsheets']; // Changed to read/write
         
         sheets = google.sheets({ version: 'v4', auth });
         
@@ -41,6 +41,59 @@ async function getSheetsClient() {
         let errorMessage = `No se pudo autenticar con las credenciales de la cuenta de servicio. Error: ${error.message}`;
         console.error("Error during Google Sheets API authentication or client creation:", errorMessage);
         throw new Error(errorMessage);
+    }
+}
+
+export async function createSheet(title: string): Promise<string> {
+  const client = await getSheetsClient();
+  const resource = {
+    properties: {
+      title,
+    },
+  };
+  try {
+    const spreadsheet = await client.spreadsheets.create({
+      resource,
+      fields: 'spreadsheetUrl',
+    });
+    const url = spreadsheet.data.spreadsheetUrl;
+    if (!url) {
+      throw new Error('No se pudo obtener la URL de la nueva hoja.');
+    }
+    // Share the sheet with the service account
+    const drive = google.drive({ version: 'v3', auth: client.auth });
+    const spreadsheetId = url.split('/d/')[1].split('/')[0];
+    await drive.permissions.create({
+      fileId: spreadsheetId,
+      requestBody: {
+        role: 'writer',
+        type: 'user',
+        emailAddress: 'excel-sheets-writer@reptitalz-413408.iam.gserviceaccount.com',
+      },
+    });
+    return url;
+  } catch (err: any) {
+    console.error('API Error (createSheet):', err);
+    throw new Error(`No se pudo crear la Hoja de Google: ${err.message}`);
+  }
+}
+
+export async function updateSheet(spreadsheetId: string, data: any[][]): Promise<any> {
+    const client = await getSheetsClient();
+    const resource = {
+      values: data,
+    };
+    try {
+      const result = await client.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'A1',
+        valueInputOption: 'USER_ENTERED',
+        resource,
+      });
+      return result.data;
+    } catch (err: any) {
+        console.error('API Error (updateSheet):', err);
+        throw new Error(`No se pudo actualizar la Hoja de Google: ${err.message}`);
     }
 }
 
@@ -126,3 +179,5 @@ export async function getSheetData(sheetId: string): Promise<any[][]> {
         throw new Error(`No se pudo conectar con la Hoja de Google. Detalle: ${err.message}`);
     }
 }
+
+    

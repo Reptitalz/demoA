@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { FaGoogle, FaDatabase } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Wand2, Paperclip } from 'lucide-react';
+import { Wand2, Paperclip, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -27,6 +28,8 @@ const MakePage = () => {
     const [sheetUrl, setSheetUrl] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [showSheetInput, setShowSheetInput] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleCreateAssistant = () => {
         if (!prompt.trim()) {
@@ -53,15 +56,44 @@ const MakePage = () => {
         router.push('/try');
     };
     
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        toast({ title: 'Procesando Archivo...', description: 'Creando una Hoja de Google con tus datos. Esto puede tardar un momento.' });
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const fileContent = e.target?.result as string;
+            try {
+                const response = await fetch('/api/sheets/create-from-upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileName: file.name, fileContent }),
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+
+                setSheetUrl(result.sheetUrl);
+                setShowSheetInput(true); // Show the input with the new URL
+                toast({ title: '¡Éxito!', description: 'Tu archivo ha sido convertido a una Hoja de Google.' });
+            } catch (error: any) {
+                toast({ title: 'Error de Importación', description: error.message, variant: 'destructive' });
+            } finally {
+                setIsUploading(false);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     const handleMenuSelect = (option: 'google' | 'file') => {
       if (option === 'google') {
         setShowSheetInput(true);
       }
       if (option === 'file') {
-        toast({
-          title: "Próximamente",
-          description: "La importación de archivos estará disponible pronto.",
-        });
+        fileInputRef.current?.click();
       }
     };
 
@@ -104,8 +136,8 @@ const MakePage = () => {
                             <div className="flex items-center justify-end gap-2">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon" title="Adjuntar base de datos">
-                                            <Paperclip />
+                                        <Button variant="outline" size="icon" title="Adjuntar base de datos" disabled={isUploading}>
+                                            {isUploading ? <Loader2 className="animate-spin" /> : <Paperclip />}
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -114,10 +146,17 @@ const MakePage = () => {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => handleMenuSelect('file')}>
                                             <FaDatabase className="mr-2" />
-                                            Importar Archivo
+                                            Importar Archivo (.csv)
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept=".csv"
+                                    onChange={handleFileChange}
+                                />
                                 
                                 <Button 
                                     size="lg" 
@@ -126,7 +165,7 @@ const MakePage = () => {
                                         "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
                                     )}
                                     onClick={handleCreateAssistant}
-                                    disabled={isCreating}
+                                    disabled={isCreating || isUploading}
                                 >
                                     {isCreating ? 'Generando...' : <><Wand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
                                 </Button>
@@ -140,3 +179,5 @@ const MakePage = () => {
 };
 
 export default MakePage;
+
+    
