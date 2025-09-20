@@ -69,6 +69,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
     "@ducanh2912/next-pwa": "^10.2.7",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
