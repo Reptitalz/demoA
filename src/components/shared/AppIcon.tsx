@@ -14,17 +14,16 @@ const AppIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => {
       strokeLinejoin="round"
       {...props}
     >
-        {/* Chat bubble */}
-        <path d="M20 80C10 80 10 65 10 55C10 30 25 15 50 15C75 15 90 30 90 55C90 70 85 80 75 80L65 80L50 90L35 80L20 80Z" />
-
-        {/* Hand */}
-        <path d="M35 65V45C35 40 40 35 45 35H55" />
-        <path d="M55 35L65 45" />
-        <path d="M55 35L65 25" />
-
-        {/* Snap lines */}
-        <path d="M70 20L75 25" />
-        <path d="M70 50L75 45" />
+      {/* Chat bubble */}
+      <path d="M15 80 C 5 80, 5 65, 5 55 S 20 10, 50 10 s 45 15, 45 45 s -5 25, -15 25 h -15 l -15 10 z" />
+      
+      {/* Waving Hand */}
+      <path d="M65,60 V40 C65,35 60,30 55,30 H45" />
+      <path d="M45,30 C40,30 35,35 35,40 V60" />
+      <path d="M35,48 l-5,5" />
+      <path d="M65,48 l5,5" />
+      <path d="M35,40 l-5,-5" />
+      <path d="M65,40 l5,-5" />
     </svg>
   );
 };
