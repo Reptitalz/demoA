@@ -61,7 +61,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         
         <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
           <Download className="mr-2 h-4 w-4" />
-          Instalar App Web
+          Instalar
         </Button>
       </header>
   );
