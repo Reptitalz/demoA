@@ -7,8 +7,8 @@ interface AppIconProps extends SVGProps<SVGSVGElement> {
 
 const AppIcon = ({ className, ...props }: AppIconProps) => {
   return (
-    <svg 
-        viewBox="0 0 100 100" 
+    <svg
+        viewBox="0 0 100 100"
         xmlns="http://www.w3.org/2000/svg"
         className={cn(className)}
         {...props}
@@ -19,15 +19,24 @@ const AppIcon = ({ className, ...props }: AppIconProps) => {
           <stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 1 }} />
         </linearGradient>
       </defs>
-      <g strokeWidth="3" stroke="url(#iconGradient)" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M37.3,60.8c-2.8-1.5-5.8-2.6-8.9-3.3c-0.6-0.1-1.2-0.5-1.5-1c-0.5-0.7-0.4-1.6,0.2-2.2l4-4.5c0.8-0.9,0.7-2.3-0.2-3.1 c-2.9-2.6-4.8-6.2-5.4-10.2c-0.2-1.3-1.4-2.2-2.7-1.9c-3.8,0.8-7.3,2.7-10,5.4c-1.3,1.3-3.1,2-4.9,2c-2.3,0-4.4-1-5.9-2.8 l-0.2-0.2c-0.8-1-0.8-2.5,0-3.5L14,24.8c1.6-1.7,3.8-2.7,6.1-2.8h1.9c3.9,0.3,7.6,1.9,10.4,4.5c1.4,1.3,3.5,1.4,5,0.3l1-0.8 c3.7-3,8.3-4.8,13.2-4.8c4.9,0,9.6,1.8,13.2,4.8c1.5,1.2,3.7,1.1,5-0.3l3.6-3.8c1.6-1.7,3.8-2.7,6.1-2.8h1.9 c1.9,0,3.7,0.7,5.1,2.1l11.1,11.7c0.8,0.9,0.9,2.2,0.1,3.2c-2.8,3.2-4.5,7.2-4.8,11.5c-0.1,1.3-1.2,2.3-2.5,2.2 c-4-0.4-7.8-2-11.1-4.6c-0.9-0.8-2.3-0.7-3.1,0.2l-4.1,4.5c-0.6,0.6-0.8,1.5-0.4,2.3c1,2.1,1.5,4.3,1.5,6.6c0,3.3-0.8,6.5-2.4,9.3 c-0.5,0.9-1.5,1.3-2.5,1.1c-3.1-0.7-6-2.2-8.5-4.4c-0.9-0.8-2.2-0.7-3.1,0.2l-3.3,3.6C40.9,61.9,39,62.3,37.3,60.8z" />
-        <path d="M42.3,23.3l-3.9-3.9 M49.5,21.5l-2.4-2.4 M35.1,21.5l-2.4-2.4" />
-        <g transform="scale(0.85) translate(10, -15)">
-            <path d="M85,38.3c0-6.4-5.2-11.6-11.6-11.6H60.3c-6.4,0-11.6,5.2-11.6,11.6v11.6c0,6.4,5.2,11.6,11.6,11.6h2.2l8.1,8.1 c0.6,0.6,1.4,0.9,2.2,0.9s1.6-0.3,2.2-0.9l8.1-8.1h2.2c6.4,0,11.6-5.2,11.6-11.6V38.3z" />
-            <circle cx="62" cy="40" r="2.5" fill="url(#iconGradient)"/>
-            <circle cx="69" cy="40" r="2.5" fill="url(#iconGradient)"/>
-            <circle cx="76" cy="40" r="2.5" fill="url(#iconGradient)"/>
-        </g>
+      <g strokeWidth="5" stroke="url(#iconGradient)" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        {/* Snap lines */}
+        <path d="M35 22 L30 18" />
+        <path d="M42 16 L42 10" />
+        <path d="M49 22 L54 18" />
+
+        {/* Hand */}
+        <path d="M28,85 C18,85 15,75 18,65 L25,40 C26,35 30,33 33,35 L48,45 C50,46 51,49 49,51 L35,78 C33,82 30,85 28,85 Z" fill="hsl(var(--background))"/>
+        <path d="M33,35 C35,30 42,28 46,31 L55,37" />
+        <path d="M68,52 C68,45 65,42 61,42 L55,37" />
+        <path d="M75,58 C75,51 72,48 68,48 L68,52" />
+        <path d="M82,64 C82,57 79,54 75,54 L75,58" />
+        
+        {/* Speech Bubble */}
+        <path d="M60,20 C55,20 50,25 50,30 L50,40 C50,45 55,50 60,50 L70,50 L65,58 L75,50 L85,50 C90,50 95,45 95,40 L95,30 C95,25 90,20 85,20 Z" fill="hsl(var(--background))"/>
+        <circle cx="65" cy="35" r="3" stroke="none" fill="url(#iconGradient)"/>
+        <circle cx="75" cy="35" r="3" stroke="none" fill="url(#iconGradient)"/>
+        <circle cx="85" cy="35" r="3" stroke="none" fill="url(#iconGradient)"/>
       </g>
     </svg>
   );
