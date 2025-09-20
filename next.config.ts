@@ -87,12 +87,6 @@ const nextConfig = {
     ];
   },
   webpack: (config, { isServer }) => {
-    // For SVG handling
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack'],
-    });
-
     if (!isServer) {
       // Exclude server-only modules from client-side bundle
       config.resolve.fallback = {

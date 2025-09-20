@@ -1,37 +1,21 @@
-
 {
-    "theme_color": "#7c3aed",
-    "background_color": "#0a0c1e",
-    "display": "standalone",
-    "scope": "/",
-    "start_url": "/dashboard",
-    "name": "Hey Manito Admin",
-    "short_name": "HeyManitoAdmin",
-    "description": "Gestiona tus asistentes de IA, bases de datos y configuraciones.",
-    "icons": [
-        {
-            "src": "/icon-dev-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icon-dev-256x256.png",
-            "sizes": "256x256",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icon-dev-384x384.png",
-            "sizes": "384x384",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icon-dev-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
-        }
-    ]
+  "name": "Hey Manito! Dashboard",
+  "short_name": "HeyManito",
+  "description": "Gestiona tus asistentes de IA, bases de datos y configuraciones.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#8B5CF6",
+  "icons": [
+    {
+      "src": "/icon-dev-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-dev-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
