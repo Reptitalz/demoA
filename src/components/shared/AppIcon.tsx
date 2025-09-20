@@ -1,44 +1,20 @@
-import type { SVGProps } from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
-interface AppIconProps extends SVGProps<SVGSVGElement> {
+interface AppIconProps {
   className?: string;
 }
 
 const AppIcon = ({ className, ...props }: AppIconProps) => {
   return (
-    <svg
-        viewBox="0 0 100 100"
-        xmlns="http://www.w3.org/2000/svg"
-        className={cn(className)}
-        {...props}
-    >
-      <defs>
-        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} />
-          <stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 1 }} />
-        </linearGradient>
-      </defs>
-      <g strokeWidth="5" stroke="url(#iconGradient)" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        {/* Snap lines */}
-        <path d="M35 22 L30 18" />
-        <path d="M42 16 L42 10" />
-        <path d="M49 22 L54 18" />
-
-        {/* Hand */}
-        <path d="M28,85 C18,85 15,75 18,65 L25,40 C26,35 30,33 33,35 L48,45 C50,46 51,49 49,51 L35,78 C33,82 30,85 28,85 Z" fill="hsl(var(--background))"/>
-        <path d="M33,35 C35,30 42,28 46,31 L55,37" />
-        <path d="M68,52 C68,45 65,42 61,42 L55,37" />
-        <path d="M75,58 C75,51 72,48 68,48 L68,52" />
-        <path d="M82,64 C82,57 79,54 75,54 L75,58" />
-        
-        {/* Speech Bubble */}
-        <path d="M60,20 C55,20 50,25 50,30 L50,40 C50,45 55,50 60,50 L70,50 L65,58 L75,50 L85,50 C90,50 95,45 95,40 L95,30 C95,25 90,20 85,20 Z" fill="hsl(var(--background))"/>
-        <circle cx="65" cy="35" r="3" stroke="none" fill="url(#iconGradient)"/>
-        <circle cx="75" cy="35" r="3" stroke="none" fill="url(#iconGradient)"/>
-        <circle cx="85" cy="35" r="3" stroke="none" fill="url(#iconGradient)"/>
-      </g>
-    </svg>
+    <Image
+      src="/heymanito-icon.svg"
+      alt="Hey Manito Icon"
+      width={100}
+      height={100}
+      className={cn(className)}
+      {...props}
+    />
   );
 };
 

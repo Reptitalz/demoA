@@ -38,15 +38,6 @@ const securityHeaders = [
   },
 ];
 
-const withPWA = require('@ducanh2912/next-pwa').default({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-});
-
 const nextConfig = {
   env: {
     NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
@@ -96,6 +87,12 @@ const nextConfig = {
     ];
   },
   webpack: (config, { isServer }) => {
+    // For SVG handling
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+
     if (!isServer) {
       // Exclude server-only modules from client-side bundle
       config.resolve.fallback = {
@@ -115,4 +112,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = nextConfig;
