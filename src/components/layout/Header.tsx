@@ -51,7 +51,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 rounded-2xl bg-white/10 shadow-lg flex items-center justify-center">
-                <AppIcon className="w-5 h-5 text-white" />
+                <AppIcon className="w-8 h-8 text-white" />
             </div>
             <div>
                 <h1 className="text-white font-bold">{APP_NAME}</h1>
@@ -59,7 +59,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
             </div>
         </Link>
         
-        <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+        <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
           <Download className="mr-2 h-4 w-4" />
           Instalar App Web
         </Button>
