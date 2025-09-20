@@ -152,7 +152,7 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased overflow-x-hidden`}>
         <NextAuthSessionProvider>
             <ThemeProvider
             attribute="class"
