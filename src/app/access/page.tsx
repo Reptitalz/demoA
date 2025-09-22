@@ -33,7 +33,7 @@ const AccessPage = () => {
                 if (choiceResult.outcome === 'accepted') {
                     toast({
                         title: "Aplicación Instalada",
-                        description: `¡Gracias por instalar Hey Manito ${appType === 'admin' ? 'Admin' : 'Chat'}!`,
+                        description: `¡Gracias por instalar Hey Manito!`,
                     });
                 }
                 setDeferredInstallPrompt(null);
@@ -71,12 +71,9 @@ const AccessPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full bg-gray-800 text-white hover:bg-gray-700 h-14 border border-gray-600">
-                            <AppIcon className="h-8 w-8 mr-3" />
-                            <div className="text-left">
-                                <p className="text-xs">Disponible en la</p>
-                                <p className="text-lg font-semibold leading-tight">App Web</p>
-                            </div>
+                         <Button className="w-full h-12">
+                            {deferredInstallPrompt ? <Download className="mr-2 h-4 w-4" /> : null}
+                            {deferredInstallPrompt ? 'Instalar' : 'Acceder'}
                         </Button>
                     </CardContent>
                 </Card>
@@ -98,12 +95,9 @@ const AccessPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full bg-gray-800 text-white hover:bg-gray-700 h-14 border border-gray-600">
-                            <AppIcon className="h-8 w-8 mr-3" />
-                            <div className="text-left">
-                                <p className="text-xs">Disponible en la</p>
-                                <p className="text-lg font-semibold leading-tight">App Web</p>
-                            </div>
+                        <Button className="w-full h-12">
+                            {deferredInstallPrompt ? <Download className="mr-2 h-4 w-4" /> : null}
+                            {deferredInstallPrompt ? 'Instalar' : 'Acceder'}
                         </Button>
                     </CardContent>
                 </Card>
