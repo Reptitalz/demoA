@@ -9,7 +9,6 @@ import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
 import NextAuthSessionProvider from '@/providers/SessionProvider';
-import { headers } from 'next/headers';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -91,7 +90,7 @@ export const metadata: Metadata = {
   authors: [{ name: APP_NAME }],
   creator: APP_NAME,
   publisher: APP_NAME,
-  // manifest is now handled dynamically
+  manifest: '/manifest.json', // Simplified manifest path
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -116,19 +115,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const heads = headers();
-  const pathname = heads.get('next-url') || '';
-  
-  const isChat = pathname.startsWith('/chat');
-  const manifest = isChat ? '/manifest-chat.json' : '/manifest-dashboard.json';
-
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="hsl(var(--primary))" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="manifest" href={manifest} />
         
         {/* Google Analytics Script */}
         <Script

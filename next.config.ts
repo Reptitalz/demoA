@@ -43,6 +43,7 @@ const pwaConfig = withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
+  start_url: '/chat', // Set the start URL to /chat
 });
 
 const nextConfig = {
