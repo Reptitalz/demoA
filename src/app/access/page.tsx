@@ -292,4 +292,124 @@ export default function AccessPage(): JSX.Element {
       const trays = traysRef.current;
       for (const tray of trays) {
         const tx = tray.x - tray.w / 2;
-        const ty = tray.y - tray.h /
+        const ty = tray.y - tray.h / 2;
+        if (pos.x >= tx && pos.x <= tx + tray.w && pos.y >= ty && pos.y <= ty + tray.h) {
+          handleInstall(tray.id as AppType);
+          break;
+        }
+      }
+      draggingRef.current = null;
+    };
+
+    const onMoveDrag = (evt: PointerEvent) => {
+      const d = draggingRef.current;
+      if (!d) return;
+      const pos = getPos(evt);
+      const trays = traysRef.current;
+      const tray = trays.find((t) => t.id === d.id);
+      if (!tray) return;
+      tray.x = pos.x - d.ox;
+      tray.y = pos.y - d.oy;
+      tray.x = Math.max(tray.w / 2 + 24, Math.min(CANVAS_WIDTH - tray.w / 2 - 24, tray.x));
+      tray.y = Math.max(tray.h / 2 + 24, Math.min(CANVAS_HEIGHT - tray.h / 2 - 24, tray.y));
+    };
+
+    canvas.addEventListener('pointermove', onMove);
+    canvas.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    canvas.addEventListener('pointermove', onMoveDrag);
+
+    return () => {
+      canvas.removeEventListener('pointermove', onMove);
+      canvas.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      canvas.removeEventListener('pointermove', onMoveDrag);
+    };
+  }, [handleInstall]);
+
+  return (
+    <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-6">
+      <div className="flex items-center gap-4 mb-4">
+        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold">HM</div>
+        <div className="text-left">
+          <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">Hey Manito</span></h1>
+          <p className="text-sm text-slate-300">Instala las apps PWA o ábrelas directamente desde la web</p>
+        </div>
+      </div>
+
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/5">
+            <canvas ref={canvasRef} />
+          </div>
+
+          <div className="mt-3 flex gap-3">
+            <button
+              className="flex-1 py-2 px-3 rounded-md border border-white/6 bg-transparent text-sm"
+              onClick={() => showToast('Tip', 'Arrastra las bandejas y haz clic para instalar o abrir.')}
+            >
+              ¿Cómo funciona?
+            </button>
+
+            <button
+              className="flex-1 py-2 px-3 rounded-md border border-white/6 text-sm"
+              onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+            >
+              Ver más opciones
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="p-4 rounded-xl border border-white/6 shadow-md bg-gradient-to-b from-slate-900 to-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-indigo-800/30">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 10L20 4" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div>
+                  <div className="font-semibold">Hey Manito Admin</div>
+                  <div className="text-xs text-slate-400">Gestiona asistentes, bases de datos y configuraciones.</div>
+                </div>
+              </div>
+              <div>
+                <button className="py-2 px-3 rounded-md bg-indigo-600 text-white text-sm" onClick={() => handleInstall('admin')}>
+                  {isInstallable ? 'Instalar' : 'Abrir'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-white/6 shadow-md bg-gradient-to-b from-slate-900 to-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-emerald-800/30">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#34d399" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div>
+                  <div className="font-semibold">Hey Manito Chat</div>
+                  <div className="text-xs text-slate-400">Chatea con tus asistentes o inicia nuevas conversaciones.</div>
+                </div>
+              </div>
+              <div>
+                <button className="py-2 px-3 rounded-md bg-emerald-600 text-white text-sm" onClick={() => handleInstall('chat')}>
+                  {isInstallable ? 'Instalar' : 'Abrir'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-400">Consejo: Si usas Chrome/Edge en móvil, verás la opción "Añadir a pantalla de inicio" cuando la PWA esté lista para instalar.</div>
+        </div>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-slate-800/90 text-white p-3 rounded-md shadow-xl">
+          <div className="font-semibold">{toast.title}</div>
+          {toast.description && <div className="text-sm text-slate-200">{toast.description}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
