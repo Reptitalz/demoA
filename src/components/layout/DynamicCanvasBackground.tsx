@@ -57,14 +57,14 @@ const DynamicCanvasBackground: React.FC = () => {
     const time = Date.now() * 0.0006;
     for (let x = 0; x < canvas.clientWidth; x += gridSize) {
         ctx.beginPath();
-        ctx.moveTo((x + Math.sin(time + x * 0.01) * 10) % canvas.clientWidth, 0);
-        ctx.lineTo((x + Math.cos(time + x * 0.01) * 10) % canvas.clientWidth, canvas.clientHeight);
+        ctx.moveTo((x + Math.sin(time + x * 0.01) * 10), 0);
+        ctx.lineTo((x + Math.cos(time + x * 0.01) * 10), canvas.clientHeight);
         ctx.stroke();
     }
     for (let y = 0; y < canvas.clientHeight; y += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(0, (y + Math.cos(time + y * 0.01) * 10) % canvas.clientHeight);
-        ctx.lineTo(canvas.clientWidth, (y + Math.sin(time + y * 0.01) * 10) % canvas.clientHeight);
+        ctx.moveTo(0, (y + Math.cos(time + y * 0.01) * 10));
+        ctx.lineTo(canvas.clientWidth, (y + Math.sin(time + y * 0.01) * 10));
         ctx.stroke();
     }
   }, []);
@@ -135,7 +135,7 @@ const DynamicCanvasBackground: React.FC = () => {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -10,
+        zIndex: 0,
         pointerEvents: 'none',
       }}
       aria-hidden

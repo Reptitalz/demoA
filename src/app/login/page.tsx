@@ -94,7 +94,7 @@ const LoginPageContent = () => {
   
   if (status === 'loading' || (status === 'authenticated' && !state.userProfile.isAuthenticated)) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-transparent">
         <LoadingStatus status={state.loadingStatus} />
       </div>
     );
