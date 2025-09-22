@@ -16,10 +16,42 @@ interface HeaderProps {
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
   const router = useRouter();
+  const { toast } = useToast();
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      setDeferredInstallPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   const handleInstallClick = () => {
-    // Always navigate to /access, which will now handle the installation logic.
-    router.push('/access');
+    if (deferredInstallPrompt) {
+      // Show the install prompt
+      deferredInstallPrompt.prompt();
+      // Wait for the user to respond to the prompt
+      deferredInstalltopprompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+        if (choiceResult.outcome === 'accepted') {
+          toast({
+            title: "¡Aplicación Instalada!",
+            description: "Gracias por instalar Hey Manito.",
+          });
+        }
+        setDeferredInstallPrompt(null);
+      });
+    } else {
+      // If no prompt is available, just navigate to the access page
+      router.push('/access');
+    }
   };
 
   return (
