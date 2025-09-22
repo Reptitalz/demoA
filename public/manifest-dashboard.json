@@ -1,21 +1,22 @@
+
 {
-  "name": "Hey Manito! Dashboard",
-  "short_name": "HeyManito",
-  "description": "Gestiona tus asistentes de IA, bases de datos y configuraciones.",
-  "start_url": "/dashboard",
-  "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#8B5CF6",
-  "icons": [
-    {
-      "src": "/icon-dev-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-dev-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "name": "Hey Manito Dashboard",
+    "short_name": "Hey Manito",
+    "description": "Gestiona tus asistentes de IA, bases de datos y configuraciones.",
+    "start_url": "/dashboard/assistants",
+    "display": "standalone",
+    "background_color": "#0d1117",
+    "theme_color": "#8a2be2",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
 }

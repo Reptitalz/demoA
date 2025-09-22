@@ -1,3 +1,4 @@
+
 // src/app/chat/profile/page.tsx
 "use client";
 
