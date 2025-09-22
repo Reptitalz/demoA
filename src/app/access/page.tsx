@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import AppIcon from '@/components/shared/AppIcon'; // Import the icon
+import Image from 'next/image';
 
 /*
   Fixed AccessPage
@@ -329,7 +329,7 @@ export default function AccessPage(): JSX.Element {
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-6">
       <div className="flex items-center gap-4 mb-4">
         <div className="h-12 w-12 rounded-xl bg-brand-gradient flex items-center justify-center text-white p-2">
-            <AppIcon />
+            <Image src="/icon.svg" alt="App Icon" width={32} height={32} />
         </div>
         <div className="text-left">
           <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-brand-gradient">Hey Manito</span></h1>
@@ -420,5 +420,3 @@ export default function AccessPage(): JSX.Element {
     </div>
   );
 }
-
-    

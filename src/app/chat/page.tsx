@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, MessageSquarePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import AppIcon from '@/components/shared/AppIcon';
+import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -29,7 +29,7 @@ const ChatListPage = () => {
     <div className="flex flex-col h-full bg-transparent relative">
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-            <AppIcon className="h-7 w-7"/>
+            <Image src="/icon.svg" alt="App Icon" width={28} height={28} />
             <span>{APP_NAME}</span>
         </h1>
         <div className="relative mt-2">

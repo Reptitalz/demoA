@@ -21,33 +21,33 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: `${APP_NAME} | Asistentes Virtuales IA y Automatizaci\u00f3n WhatsApp`,
+    default: `${APP_NAME} | Asistentes Virtuales IA y Automatización WhatsApp`,
     template: `%s | ${APP_NAME}`,
   },
-  description: `Descubre ${APP_NAME}, la plataforma l\u00edder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicaci\u00f3n por WhatsApp, integra bases de datos y optimiza procesos.`,
+  description: `Descubre ${APP_NAME}, la plataforma líder para crear y gestionar asistentes virtuales con IA. Automatiza tu comunicación por WhatsApp, integra bases de datos y optimiza procesos.`,
   keywords: [
     // Keywords en español
     'asistente virtual', 
     'IA', 
     'chatbot', 
     'WhatsApp', 
-    'automatizaci\u00f3n', 
+    'automatización', 
     'CRM', 
     'inteligencia artificial', 
     APP_NAME, 
-    'gesti\u00f3n de clientes', 
+    'gestión de clientes', 
     'Hey Manito', 
     'chatbot para WhatsApp', 
-    'automatizaci\u00f3n para negocios', 
+    'automatización para negocios', 
     'CRM con IA',
     'asistente inteligente WhatsApp para negocios',
-    'automatizaci\u00f3n de mensajes WhatsApp',
-    'asistente virtual WhatsApp M\u00e9xico',
+    'automatización de mensajes WhatsApp',
+    'asistente virtual WhatsApp México',
     'asistente virtual para pymes',
     'crear chatbot para WhatsApp',
     'software de asistente virtual',
     'plataforma de IA conversacional',
-    'agente virtual para atenci\u00f3n al cliente',
+    'agente virtual para atención al cliente',
     'automatizar WhatsApp Business',
     'crear asistente inteligente',
     'generador de chatbot',
@@ -72,17 +72,17 @@ export const metadata: Metadata = {
     'prompt-based AI generator',
     
     // Keywords de cola larga (long-tail)
-    'c\u00f3mo crear un asistente virtual para mi negocio',
+    'cómo crear un asistente virtual para mi negocio',
     'mejor plataforma para chatbots de WhatsApp',
     'precio de asistente virtual para WhatsApp',
-    'automatizaci\u00f3n de ventas por WhatsApp',
-    'software para atenci\u00f3n al cliente con IA',
+    'automatización de ventas por WhatsApp',
+    'software para atención al cliente con IA',
     'virtual assistant for small business',
     'how to build a WhatsApp chatbot',
     
     // Keywords locales
     'asistente virtual en Guadalajara',
-    'automatizaci\u00f3n de WhatsApp en Monterrey',
+    'automatización de WhatsApp en Monterrey',
     'chatbot para negocios en CDMX',
     'asistente virtual WhatsApp Tepic',
     'asistente inteligente WhatsApp Nayarit',
@@ -92,8 +92,8 @@ export const metadata: Metadata = {
   publisher: APP_NAME,
   manifest: '/manifest.json', // Simplified manifest path
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
     apple: '/apple-touch-icon.png',
   },
 
@@ -120,7 +120,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="hsl(var(--primary))" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         
         {/* Google Analytics Script */}
         <Script

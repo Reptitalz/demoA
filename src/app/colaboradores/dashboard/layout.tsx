@@ -10,7 +10,7 @@ import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import AppIcon from '@/components/shared/AppIcon';
+import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
 import { signOut, useSession } from 'next-auth/react';
 
@@ -49,7 +49,7 @@ export default function CollaboratorDashboardLayout({
         <div className="flex flex-col h-screen bg-transparent">
              <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
                 <Link href={isDemoMode ? "/democolaborator" : "/colaboradores/dashboard"} className="flex items-center gap-2 font-semibold">
-                    <AppIcon className="h-6 w-6" />
+                    <Image src="/icon.svg" alt="App Icon" width={24} height={24} />
                     <span className="font-bold text-lg">{APP_NAME} <span className="text-sm font-normal text-muted-foreground">Colaboradores {isDemoMode ? '(Demo)' : ''}</span></span>
                 </Link>
                 <div className="flex items-center gap-1.5">

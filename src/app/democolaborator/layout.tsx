@@ -8,7 +8,7 @@ import { FaChartBar, FaUser, FaSignInAlt, FaUserFriends, FaNewspaper } from 'rea
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import AppIcon from '@/components/shared/AppIcon';
+import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
 
 const menuItems = [
@@ -30,7 +30,7 @@ export default function CollaboratorDemoLayout({
         <div className="flex flex-col h-screen bg-muted/30">
              <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
                 <Link href="/democolaborator" className="flex items-center gap-2 font-semibold">
-                    <AppIcon className="h-6 w-6" />
+                    <Image src="/icon.svg" alt="App Icon" width={24} height={24} />
                     <span className="font-bold text-lg">{APP_NAME} <span className="text-sm font-normal text-muted-foreground">Colaboradores (Demo)</span></span>
                 </Link>
                 <div className="flex items-center gap-1.5">

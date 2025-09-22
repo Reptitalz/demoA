@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
-import AppIcon from '@/components/shared/AppIcon';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -57,8 +57,8 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   return (
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 shadow-lg flex items-center justify-center">
-                <AppIcon className="w-8 h-8 text-white" />
+            <div className="w-10 h-10 rounded-2xl bg-white/10 shadow-lg flex items-center justify-center p-1.5">
+                <Image src="/icon.svg" alt="App Icon" width={32} height={32} />
             </div>
             <div>
                 <h1 className="text-white font-bold">{APP_NAME}</h1>
