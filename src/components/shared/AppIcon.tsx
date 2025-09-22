@@ -2,12 +2,13 @@
 
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import Icon from '@/public/icon.svg';
 
 const AppIcon = ({ className, ...props }: Omit<React.ComponentProps<typeof Image>, 'src' | 'alt'>) => (
     <Image 
-        src={Icon} 
+        src="/icon.svg" 
         alt="App Icon"
+        width={50}
+        height={50}
         className={cn('h-auto w-full', className)} 
         {...props} 
     />
