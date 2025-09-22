@@ -269,8 +269,8 @@ const UpdatesPage = () => {
 
   return (
     <>
-    <div className="flex flex-col h-full bg-background">
-      <header className="p-4 border-b flex justify-between items-center">
+    <div className="flex flex-col h-full bg-transparent">
+      <header className="p-4 border-b flex justify-between items-center bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold">Novedades</h1>
       </header>
 

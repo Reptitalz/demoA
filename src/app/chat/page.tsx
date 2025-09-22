@@ -25,15 +25,15 @@ const ChatListPage = () => {
 
   return (
     <>
-    <div className="flex flex-col h-full bg-background relative">
-      <header className="p-4 border-b">
+    <div className="flex flex-col h-full bg-transparent relative">
+      <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold flex items-center gap-2">
             <AppIcon className="h-7 w-7"/>
             <span>{APP_NAME}</span>
         </h1>
         <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar chats..." className="pl-10" />
+            <Input placeholder="Buscar chats..." className="pl-10 bg-background/50" />
         </div>
       </header>
 

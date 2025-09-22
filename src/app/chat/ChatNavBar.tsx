@@ -54,7 +54,7 @@ interface ChatNavBarProps {
 const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
     return (
         <TooltipProvider>
-            <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t z-20 shrink-0">
+            <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-sm border-t z-20 shrink-0">
                 <div className="flex justify-around items-center h-full max-w-md mx-auto">
                     {navItems.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
                 </div>

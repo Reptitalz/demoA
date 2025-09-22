@@ -95,8 +95,8 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
         className={cn(
           "rounded-xl px-4 py-2.5 max-w-[85%] shadow-md text-sm leading-relaxed",
           message.role === 'user'
-            ? "bg-[#dcf8c6] dark:bg-[#054740] text-gray-800 dark:text-gray-100"
-            : "bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-100"
+            ? "bg-primary text-primary-foreground"
+            : "bg-card/80 text-card-foreground"
         )}
       >
         {typeof message.content === 'string' ? (
@@ -114,7 +114,7 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
             </div>
           )
         )}
-        <p className="text-xs text-right mt-1.5 text-gray-500 dark:text-gray-400">{message.time}</p>
+        <p className="text-xs text-right mt-1.5 text-muted-foreground">{message.time}</p>
       </div>
     </div>
   );
@@ -394,22 +394,21 @@ const DesktopChatPage = () => {
 
 
   if (isLoading) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-muted"><LoadingSpinner size={40} /></div>;
+    return <div className="h-screen w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
   
   return (
     <>
-      <div className="h-screen w-screen flex flex-col bg-slate-200 dark:bg-slate-800 relative">
-        <div className="absolute inset-0 chat-background" />
+      <div className="h-screen w-screen flex flex-col bg-transparent relative">
           <div className="relative h-full flex flex-col">
             <header
-              className="bg-[#008069] dark:bg-slate-800 text-white p-3 flex items-center shadow-md z-10 shrink-0 cursor-pointer"
+              className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 cursor-pointer border-b"
               onClick={() => setIsInfoSheetOpen(true)}
             >
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
                 <Link href="/chat" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
               </Button>
-              <Avatar className="h-10 w-10 mr-3 border-2 border-white/50">
+              <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50">
                   <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
                   <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
               </Avatar>
@@ -424,7 +423,7 @@ const DesktopChatPage = () => {
               ))}
               {isSending && (
                   <div className="flex justify-start animate-fadeIn">
-                      <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-white dark:bg-slate-700">
+                      <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-card">
                         <div className="flex items-center gap-2">
                             <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                             <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
@@ -437,7 +436,7 @@ const DesktopChatPage = () => {
             </main>
             
             <div className="shrink-0">
-                  <footer className="p-3 bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm flex items-center gap-3 border-t border-black/10">
+                  <footer className="p-3 bg-background/80 backdrop-blur-sm flex items-center gap-3 border-t">
                       <Button
                       size="icon"
                       variant="ghost"
@@ -453,7 +452,7 @@ const DesktopChatPage = () => {
                           placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
                           value={currentMessage}
                           onChange={(e) => setCurrentMessage(e.target.value)}
-                          className="bg-white dark:bg-slate-700 rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
+                          className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                           autoComplete="off"
                           disabled={!!error || isSending}
                       />
@@ -464,12 +463,12 @@ const DesktopChatPage = () => {
                           className="hidden"
                           accept="image/jpeg, image/png, image/webp"
                           />
-                      <Button type="submit" size="icon" className="rounded-full bg-[#008069] dark:bg-primary hover:bg-[#006a58] dark:hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
+                      <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
                           <FaPaperPlane className="h-5 w-5" />
                       </Button>
                       </form>
                   </footer>
-                  <div className="bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
+                  <div className="bg-background/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
                       <div className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
                           <FaLock size={8} />
                           <span>Los mensajes se guardan en este dispositivo.</span>

@@ -1,4 +1,3 @@
-
 // src/app/chat/profile/page.tsx
 "use client";
 
@@ -14,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/providers/AppProvider';
 
 const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
-    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted cursor-pointer" onClick={!disabled ? onClick : undefined}>
+    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-card/80 cursor-pointer" onClick={!disabled ? onClick : undefined}>
         <Icon className="h-5 w-5 text-muted-foreground" />
         <span className="text-base">{text}</span>
     </div>
@@ -74,8 +73,8 @@ const ChatProfilePage = () => {
 
 
   return (
-    <div className="flex flex-col h-full bg-background">
-       <header className="p-4 border-b">
+    <div className="flex flex-col h-full bg-transparent">
+       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold">Perfil</h1>
       </header>
       <ScrollArea className="flex-grow">
@@ -93,7 +92,7 @@ const ChatProfilePage = () => {
             </div>
 
             {status !== 'authenticated' && (
-                <Button className="w-full" onClick={() => signIn('google')}>
+                <Button className="w-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20" onClick={() => signIn('google')}>
                     <FcGoogle className="mr-2" /> Iniciar Sesión con Google
                 </Button>
             )}
