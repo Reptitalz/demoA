@@ -93,8 +93,8 @@ export const metadata: Metadata = {
   publisher: APP_NAME,
   // manifest is now handled dynamically
   icons: {
-    icon: '/icon-dev-192x192.png',
-    shortcut: '/icon-dev-192x192.png',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
     apple: '/apple-touch-icon.png',
   },
 
@@ -127,7 +127,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="hsl(var(--primary))" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="icon" href="/icon-dev-192x192.png" type="image/png" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="manifest" href={manifest} />
         
         {/* Google Analytics Script */}
@@ -152,7 +152,7 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased overflow-x-hidden`}>
         <NextAuthSessionProvider>
             <ThemeProvider
             attribute="class"
