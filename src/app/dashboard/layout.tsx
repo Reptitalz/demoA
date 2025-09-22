@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaDatabase, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaDatabase, FaUser, FaSignOutAlt, FaDownload } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,15 @@ export default function DashboardLayout({
     const { state, dispatch } = useApp();
     const { userProfile } = state;
     const isDemoMode = !userProfile.isAuthenticated;
+    
+    const [isPWA, setIsPWA] = React.useState(false);
+
+    React.useEffect(() => {
+        // Check if the app is running in standalone mode (as a PWA)
+        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+            setIsPWA(true);
+        }
+    }, []);
     
     // State for swipe navigation
     const touchStartX = React.useRef(0);
@@ -131,6 +140,12 @@ export default function DashboardLayout({
                     </Link>
                     <div className="flex items-center gap-1.5">
                         {!isDemoMode && <NotificationsBell />}
+                        {!isPWA && (
+                            <Button variant="outline" size="sm" onClick={() => router.push('/access')} className="text-xs px-2 py-1">
+                                <FaDownload size={12} className="mr-1" />
+                                Instalar
+                            </Button>
+                        )}
                         <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2 py-1"> 
                             <FaSignOutAlt size={12} className="mr-1" /> 
                             Cerrar Sesión
