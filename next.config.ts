@@ -1,3 +1,4 @@
+import withPWA from '@ducanh2912/next-pwa';
 
 const securityHeaders = [
   // Prevents browsers from incorrectly guessing content types.
@@ -38,7 +39,7 @@ const securityHeaders = [
   },
 ];
 
-const withPWA = require('@ducanh2912/next-pwa')({
+const pwaConfig = withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
@@ -112,4 +113,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = pwaConfig(nextConfig);
