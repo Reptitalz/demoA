@@ -176,7 +176,7 @@ const PricingCard = ({ name, price, description, features, recommended, buttonTe
 export default function MarketingHomePage() {
 
   return (
-    <PageContainer className="flex flex-col items-center py-0 animate-fadeIn" fullWidth={true}>
+    <PageContainer className="flex flex-col items-center py-0 animate-fadeIn overflow-hidden" fullWidth={true}>
         <main className="relative z-20 w-full">
             <section className="max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
@@ -343,5 +343,3 @@ export default function MarketingHomePage() {
     </PageContainer>
   );
 }
-
-    
