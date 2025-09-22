@@ -371,7 +371,7 @@ export default function AccessPage(): JSX.Element {
                     <path d="M22 22v-2" />
                     <path d="M22 16v-2" />
                     <path d="M18 22h2" />
-                    <path d: "M18 16h2" />
+                    <path d="M18 16h2" />
                   </svg>
                 </div>
                 <div>
