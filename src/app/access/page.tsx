@@ -1,109 +1,295 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import PageContainer from '@/components/layout/PageContainer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { Bot, MessageCircle, Download } from 'lucide-react';
-import AppIcon from '@/components/shared/AppIcon';
+import React, { useEffect, useRef, useState } from 'react';
 
-const AccessPage = () => {
-    const router = useRouter();
-    const { toast } = useToast();
-    const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+/*
+  Fixed AccessPage
+  - Rewritten to be self-contained and defensively coded to avoid runtime errors.
+  - Ensures all JSX tags are properly closed (fixes Unterminated JSX contents error).
+  - Avoids attaching custom properties to DOM nodes (no canvas._dragging).
+  - Uses refs for mutable tray state and dragging state to prevent stale closures.
+  - Guards against missing browser APIs (beforeinstallprompt) and null contexts.
+*/
 
-    useEffect(() => {
-        const handleBeforeInstallPrompt = (e: Event) => {
-            e.preventDefault();
-            setDeferredInstallPrompt(e);
-        };
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        };
-    }, []);
+type AppType = 'admin' | 'chat';
+const CANVAS_WIDTH = 920;
+const CANVAS_HEIGHT = 420;
 
-    const handleAction = (appType: 'admin' | 'chat') => {
-        if (deferredInstallPrompt) {
-            deferredInstallPrompt.prompt();
-            deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
-                if (choiceResult.outcome === 'accepted') {
-                    toast({
-                        title: "Aplicación Instalada",
-                        description: `¡Gracias por instalar Hey Manito!`,
-                    });
-                }
-                setDeferredInstallPrompt(null);
-            });
-        } else {
-             // If PWA installation is not available, just navigate
-            const path = appType === 'admin' ? '/dashboard' : '/chat';
-            router.push(path);
-        }
+export default function AccessPage(): JSX.Element {
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [toast, setToast] = useState<{ title: string; description?: string } | null>(null);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  // traysRef keeps mutable state of trays so animation loop can read/write without re-rendering
+  const traysRef = useRef([
+    {
+      id: 'admin',
+      title: 'Hey Manito Admin',
+      description: 'Gestiona asistentes y configuraciones',
+      color: '#6366f1',
+      x: CANVAS_WIDTH * 0.22,
+      y: CANVAS_HEIGHT * 0.5,
+      w: 300,
+      h: 260,
+      hover: false,
+    },
+    {
+      id: 'chat',
+      title: 'Hey Manito Chat',
+      description: 'Chatea y crea conversaciones',
+      color: '#10b981',
+      x: CANVAS_WIDTH * 0.78,
+      y: CANVAS_HEIGHT * 0.5,
+      w: 300,
+      h: 260,
+      hover: false,
+    },
+  ] as any[]);
+
+  // draggingRef stores current drag info if any
+  const draggingRef = useRef<null | { id: string; ox: number; oy: number }>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      try { e.preventDefault(); } catch (err) {}
+      setDeferredInstallPrompt(e);
+      setIsInstallable(true);
     };
-    
-    return (
-        <PageContainer className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] text-center animate-fadeIn">
-            <AppIcon className="h-16 w-16 mb-4" />
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-2">
-                Bienvenido a <span className="text-brand-gradient">Hey Manito</span>
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8">Elige cómo quieres acceder.</p>
+    if (typeof window !== 'undefined' && 'addEventListener' in window) {
+      window.addEventListener('beforeinstallprompt', handler);
+    }
 
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Admin App Card */}
-                <Card 
-                    className="cursor-pointer transition-all border-2 border-transparent overflow-hidden shadow-lg hover:shadow-primary/20 glow-card"
-                    onClick={() => handleAction('admin')}
-                >
-                    <CardHeader>
-                        <div className="flex justify-center mb-3">
-                            <div className="p-3 bg-primary/10 rounded-full border border-primary/20">
-                                <Bot size={28} className="text-primary" />
-                            </div>
-                        </div>
-                        <CardTitle className="text-xl">Hey Manito Admin</CardTitle>
-                        <CardDescription>
-                            Gestiona tus asistentes, bases de datos y configuraciones.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Button className="w-full h-12">
-                            {deferredInstallPrompt ? <Download className="mr-2 h-4 w-4" /> : null}
-                            {deferredInstallPrompt ? 'Instalar' : 'Acceder'}
-                        </Button>
-                    </CardContent>
-                </Card>
+    try {
+      if (typeof window !== 'undefined' && (window as any).matchMedia && (window as any).matchMedia('(display-mode: standalone)').matches) {
+        setIsInstallable(false);
+      }
+    } catch (err) {
+      // ignore
+    }
 
-                {/* Chat App Card */}
-                 <Card 
-                    className="cursor-pointer transition-all border-2 border-transparent overflow-hidden shadow-lg hover:shadow-green-500/20 glow-card"
-                    onClick={() => handleAction('chat')}
-                >
-                    <CardHeader>
-                        <div className="flex justify-center mb-3">
-                           <div className="p-3 bg-green-500/10 rounded-full border border-green-500/20">
-                                <MessageCircle size={28} className="text-green-500" />
-                            </div>
-                        </div>
-                        <CardTitle className="text-xl">Hey Manito Chat</CardTitle>
-                        <CardDescription>
-                            Chatea con tus asistentes o inicia nuevas conversaciones.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button className="w-full h-12">
-                            {deferredInstallPrompt ? <Download className="mr-2 h-4 w-4" /> : null}
-                            {deferredInstallPrompt ? 'Instalar' : 'Acceder'}
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
-        </PageContainer>
-    );
-};
+    return () => {
+      if (typeof window !== 'undefined' && 'removeEventListener' in window) {
+        window.removeEventListener('beforeinstallprompt', handler);
+      }
+    };
+  }, []);
 
-export default AccessPage;
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const showToast = (title: string, description?: string) => setToast({ title, description });
+
+  const handleInstall = async (appType: AppType) => {
+    if (deferredInstallPrompt && typeof deferredInstallPrompt.prompt === 'function') {
+      try {
+        deferredInstallPrompt.prompt();
+        if (deferredInstallPrompt.userChoice && typeof deferredInstallPrompt.userChoice.then === 'function') {
+          const choice = await deferredInstallPrompt.userChoice;
+          if (choice && choice.outcome === 'accepted') {
+            showToast('Aplicación instalada', `${appType === 'admin' ? 'Admin' : 'Chat'} instalado.`);
+          } else {
+            showToast('Instalación cancelada', 'El usuario rechazó o cerró el diálogo.');
+          }
+        } else {
+          showToast('Instalación', 'Se ha mostrado el diálogo de instalación.');
+        }
+      } catch (err) {
+        showToast('Error', 'No fue posible iniciar la instalación.');
+      }
+      setDeferredInstallPrompt(null);
+      setIsInstallable(false);
+    } else {
+      // fallback: navigate to route (replace with your router if desired)
+      window.location.href = appType === 'admin' ? '/dashboard' : '/chat';
+    }
+  };
+
+  // Helper to draw rounded rect
+  const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r = 12) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+
+  // animation loop
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // device pixel ratio handling
+    const dpr = typeof window !== 'undefined' && window.devicePixelRatio ? window.devicePixelRatio : 1;
+    canvas.width = CANVAS_WIDTH * dpr;
+    canvas.height = CANVAS_HEIGHT * dpr;
+    canvas.style.width = `${CANVAS_WIDTH}px`;
+    canvas.style.height = `${CANVAS_HEIGHT}px`;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+
+    let last = 0;
+    const loop = (t: number) => {
+      const trays = traysRef.current;
+      const w = CANVAS_WIDTH;
+      const h = CANVAS_HEIGHT;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // background
+      const bg = ctx.createLinearGradient(0, 0, w, 0);
+      bg.addColorStop(0, '#071029');
+      bg.addColorStop(1, '#031225');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // subtle particles
+      for (let i = 0; i < 28; i++) {
+        const px = ((i * 67) % w) + Math.sin(t / (700 + i * 10)) * 6;
+        const py = ((i * 53) % h) + Math.cos(t / (900 + i * 7)) * 6;
+        ctx.fillStyle = `rgba(255,255,255,${0.01 + Math.abs(Math.sin(t / 800 + i)) * 0.03})`;
+        ctx.fillRect(px, py, 1.2, 1.2);
+      }
+
+      // draw trays
+      trays.forEach((tray) => {
+        const float = Math.sin(t / 600 + (tray.id === 'admin' ? 0 : 1.3)) * 6;
+        const tilt = Math.sin(t / 900 + (tray.id === 'admin' ? 0 : 1.3)) * 0.02;
+        const x = tray.x - tray.w / 2;
+        const y = tray.y - tray.h / 2 + float;
+
+        ctx.save();
+        ctx.translate(tray.x, tray.y + float);
+        ctx.rotate(tilt);
+        ctx.translate(-tray.x, -(tray.y + float));
+
+        // shadow
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,0,0,0.24)';
+        drawRoundedRect(ctx, x + 6, y + 12, tray.w - 12, tray.h - 20, 20);
+        ctx.fill();
+        ctx.restore();
+
+        // phone body
+        drawRoundedRect(ctx, x, y, tray.w, tray.h, 20);
+        ctx.fillStyle = '#0d1b26';
+        ctx.fill();
+
+        // screen
+        drawRoundedRect(ctx, x + 12, y + 14, tray.w - 24, tray.h - 44, 14);
+        const sg = ctx.createLinearGradient(x + 12, y + 14, x + tray.w - 12, y + tray.h - 34);
+        sg.addColorStop(0, '#04141b');
+        sg.addColorStop(1, '#062230');
+        ctx.fillStyle = sg;
+        ctx.fill();
+
+        // colored header
+        ctx.fillStyle = tray.color;
+        drawRoundedRect(ctx, x + 22, y + 26, tray.w - 64, 36, 8);
+        ctx.fill();
+
+        // title
+        ctx.font = '600 14px sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.fillText(tray.title, x + 36, y + 50);
+
+        // mock bubbles
+        const itemY = y + 84;
+        for (let i = 0; i < 4; i++) {
+          const bubbleW = 40 + ((i + 2) * 30) % (tray.w - 110);
+          const bubbleX = i % 2 === 0 ? x + 28 : x + tray.w - 28 - bubbleW;
+          const bubbleH = 16 + ((i * 7) % 22);
+          ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)';
+          drawRoundedRect(ctx, bubbleX, itemY + i * 36, bubbleW, bubbleH, 8);
+          ctx.fill();
+        }
+
+        // install pill
+        const pillX = x + 22;
+        const pillY = y + tray.h - 68;
+        drawRoundedRect(ctx, pillX, pillY, 140, 36, 36);
+        ctx.fillStyle = tray.hover ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)';
+        ctx.fill();
+        ctx.font = '700 13px sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.fillText(isInstallable ? 'Instalar PWA' : 'Abrir', pillX + 18, pillY + 24);
+
+        // small badge
+        ctx.beginPath();
+        ctx.arc(x + tray.w - 42, y + 44, 16, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.fill();
+        ctx.fillStyle = tray.color;
+        ctx.font = '700 16px sans-serif';
+        ctx.fillText(tray.id === 'admin' ? 'A' : 'C', x + tray.w - 46, y + 50);
+
+        ctx.restore();
+      });
+
+      // hint text
+      ctx.font = '600 15px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fillText('Interactúa con las bandejas — arrastra, pasa el cursor y haz clic para instalar / abrir', 20, 34);
+
+      last = t;
+      rafRef.current = requestAnimationFrame(loop);
+    };
+
+    rafRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [isInstallable]);
+
+  // interactions
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const getPos = (evt: PointerEvent | MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = (evt as any).clientX ?? 0;
+      const clientY = (evt as any).clientY ?? 0;
+      return { x: (clientX - rect.left) * (CANVAS_WIDTH / rect.width), y: (clientY - rect.top) * (CANVAS_HEIGHT / rect.height) };
+    };
+
+    const onMove = (evt: PointerEvent) => {
+      const pos = getPos(evt);
+      const trays = traysRef.current;
+      trays.forEach((tray) => {
+        const tx = tray.x - tray.w / 2;
+        const ty = tray.y - tray.h / 2;
+        tray.hover = pos.x >= tx && pos.x <= tx + tray.w && pos.y >= ty && pos.y <= ty + tray.h;
+      });
+    };
+
+    const onDown = (evt: PointerEvent) => {
+      const pos = getPos(evt);
+      const trays = traysRef.current;
+      for (const tray of trays) {
+        const tx = tray.x - tray.w / 2;
+        const ty = tray.y - tray.h / 2;
+        if (pos.x >= tx && pos.x <= tx + tray.w && pos.y >= ty && pos.y <= ty + tray.h) {
+          draggingRef.current = { id: tray.id, ox: pos.x - tray.x, oy: pos.y - tray.y };
+          break;
+        }
+      }
+    };
+
+    const onUp = (evt: PointerEvent) => {
+      const pos = getPos(evt);
+      const trays = traysRef.current;
+      for (const tray of trays) {
+        const tx = tray.x - tray.w / 2;
+        const ty = tray.y - tray.h /
