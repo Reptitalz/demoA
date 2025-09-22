@@ -39,7 +39,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
       // Show the install prompt
       deferredInstallPrompt.prompt();
       // Wait for the user to respond to the prompt
-      deferredInstalltopprompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+      deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
         if (choiceResult.outcome === 'accepted') {
           toast({
             title: "¡Aplicación Instalada!",
