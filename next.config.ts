@@ -1,5 +1,3 @@
-import withPWA from '@ducanh2912/next-pwa';
-
 const securityHeaders = [
   // Prevents browsers from incorrectly guessing content types.
   {
@@ -39,7 +37,7 @@ const securityHeaders = [
   },
 ];
 
-const pwaConfig = withPWA({
+const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
   skipWaiting: true,
@@ -94,9 +92,22 @@ const nextConfig = {
       },
     ];
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Exclude server-only modules from client-side bundle
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: ['@svgr/webpack'],
+    })
+
+    if (!config.externals) {
+      config.externals = [];
+    }
+    
+    if (!config.resolve.fallback) {
+        config.resolve.fallback = {};
+    }
+
+    if (!config.isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         "mongodb-client-encryption": false,
@@ -110,8 +121,8 @@ const nextConfig = {
         "fs": false,
       };
     }
-    return config;
+    return config
   },
 };
 
-module.exports = pwaConfig(nextConfig);
+module.exports = withPWA(nextConfig);

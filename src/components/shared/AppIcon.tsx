@@ -1,18 +1,10 @@
 "use client";
 
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import Icon from '@/public/icon.svg';
 
-const AppIcon = ({ className, ...props }: React.ComponentProps<typeof Image>) => (
-    <Image
-        src="/icon.svg"
-        alt="Hey Manito App Icon"
-        width={props.width || 48}
-        height={props.height || 48}
-        className={cn(className)}
-        {...props}
-        unoptimized // Necessary for SVGs in Next.js Image component if not using a loader
-    />
+const AppIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+    <Icon className={cn('h-auto w-full', className)} {...props} />
 );
 
 export default AppIcon;
