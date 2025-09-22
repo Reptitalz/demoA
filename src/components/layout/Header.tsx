@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -9,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Download } from 'lucide-react';
+import AppIcon from '@/components/shared/AppIcon';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -58,7 +58,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 rounded-2xl bg-white/10 shadow-lg flex items-center justify-center p-1.5">
-                <Image src="/icon.svg" alt="App Icon" width={32} height={32} />
+                <AppIcon />
             </div>
             <div>
                 <h1 className="text-white font-bold">{APP_NAME}</h1>

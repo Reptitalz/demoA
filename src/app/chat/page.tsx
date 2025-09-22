@@ -1,4 +1,3 @@
-
 // src/app/chat/page.tsx
 "use client";
 
@@ -15,6 +14,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import AddChatDialog from '@/components/chat/AddChatDialog';
+import AppIcon from '@/components/shared/AppIcon';
 
 // Demo data
 const demoChats: any[] = [];
@@ -29,7 +29,7 @@ const ChatListPage = () => {
     <div className="flex flex-col h-full bg-transparent relative">
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Image src="/icon.svg" alt="App Icon" width={28} height={28} />
+            <AppIcon className="h-7 w-7" />
             <span>{APP_NAME}</span>
         </h1>
         <div className="relative mt-2">

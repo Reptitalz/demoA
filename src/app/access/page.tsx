@@ -1,8 +1,8 @@
-
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import Image from 'next/image';
+import AppIcon from '@/components/shared/AppIcon';
+import { UserCog } from 'lucide-react';
 
 /*
   Fixed AccessPage
@@ -329,7 +329,7 @@ export default function AccessPage(): JSX.Element {
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-6">
       <div className="flex items-center gap-4 mb-4">
         <div className="h-12 w-12 rounded-xl bg-brand-gradient flex items-center justify-center text-white p-2">
-            <Image src="/icon.svg" alt="App Icon" width={32} height={32} />
+            <AppIcon />
         </div>
         <div className="text-left">
           <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-brand-gradient">Hey Manito</span></h1>
@@ -365,14 +365,7 @@ export default function AccessPage(): JSX.Element {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-primary/20">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z" />
-                    <path d="M19.34 14.66a7 7 0 0 0-4.66-4.66" />
-                    <path d="M22 22v-2" />
-                    <path d="M22 16v-2" />
-                    <path d="M18 22h2" />
-                    <path d="M18 16h2" />
-                  </svg>
+                  <UserCog stroke="hsl(var(--primary))" strokeWidth="1.5" />
                 </div>
                 <div>
                   <div className="font-semibold">Hey Manito Admin</div>

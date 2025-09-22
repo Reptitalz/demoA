@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -15,6 +14,7 @@ import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
 import { signOut } from 'next-auth/react';
 import { Bot, Brain } from 'lucide-react';
+import AppIcon from '@/components/shared/AppIcon';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: Bot, label: 'Asistentes' },
@@ -135,7 +135,7 @@ export default function DashboardLayout({
         <div className="flex flex-col h-screen bg-transparent">
              <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
                     <Link href="/dashboard/assistants" className="flex items-center gap-2 font-semibold">
-                         <Image src="/icon.svg" alt="App Icon" width={24} height={24} />
+                         <AppIcon className="h-6 w-6" />
                         <span className="font-bold text-lg">{APP_NAME}</span>
                     </Link>
                     <div className="flex items-center gap-1.5">

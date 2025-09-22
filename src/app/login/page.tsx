@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -18,6 +17,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import AppIcon from '@/components/shared/AppIcon';
 
 const APP_NAME = "Hey Manito!";
 
@@ -106,7 +106,7 @@ const LoginPageContent = () => {
       <div className="w-full max-w-md space-y-6 animate-fadeIn">
         <div className="text-center mb-6 flex flex-col items-center">
           <Link href="/">
-            <Image src="/icon.svg" alt="App Icon" width={56} height={56} className="mb-3" />
+            <AppIcon className="h-14 w-14 mb-3" />
           </Link>
           <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>

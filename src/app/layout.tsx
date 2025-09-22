@@ -120,7 +120,6 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="hsl(var(--primary))" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         
         {/* Google Analytics Script */}
         <Script
