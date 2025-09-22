@@ -31,7 +31,7 @@ export default function AccessPage(): JSX.Element {
       id: 'admin',
       title: 'Hey Manito Admin',
       description: 'Gestiona asistentes y configuraciones',
-      color: '#6366f1',
+      color: 'hsl(262, 80%, 58%)', // --primary
       x: CANVAS_WIDTH * 0.22,
       y: CANVAS_HEIGHT * 0.5,
       w: 300,
@@ -42,7 +42,7 @@ export default function AccessPage(): JSX.Element {
       id: 'chat',
       title: 'Hey Manito Chat',
       description: 'Chatea y crea conversaciones',
-      color: '#10b981',
+      color: 'hsl(300, 85%, 60%)', // --accent
       x: CANVAS_WIDTH * 0.78,
       y: CANVAS_HEIGHT * 0.5,
       w: 300,
@@ -331,12 +331,12 @@ export default function AccessPage(): JSX.Element {
   return (
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-6">
       <div className="flex items-center gap-4 mb-4">
-        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white p-2">
+        <div className="h-12 w-12 rounded-xl bg-brand-gradient flex items-center justify-center text-white p-2">
             <AppIcon />
         </div>
         <div className="text-left">
-          <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">Hey Manito</span></h1>
-          <p className="text-sm text-slate-300">Instala las apps PWA o ábrelas directamente desde la web</p>
+          <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-brand-gradient">Hey Manito</span></h1>
+          <p className="text-sm text-muted-foreground">Instala las apps PWA o ábrelas directamente desde la web</p>
         </div>
       </div>
 
@@ -367,16 +367,16 @@ export default function AccessPage(): JSX.Element {
           <div className="p-4 rounded-xl border border-white/6 shadow-md bg-gradient-to-b from-slate-900 to-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-indigo-800/30">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 10L20 4" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div className="p-2 rounded-full bg-primary/20">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 10L20 4" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
                 <div>
                   <div className="font-semibold">Hey Manito Admin</div>
-                  <div className="text-xs text-slate-400">Gestiona asistentes, bases de datos y configuraciones.</div>
+                  <div className="text-xs text-muted-foreground">Gestiona asistentes, bases de datos y configuraciones.</div>
                 </div>
               </div>
               <div>
-                <button className="py-2 px-3 rounded-md bg-indigo-600 text-white text-sm" onClick={() => handleInstall('admin')}>
+                <button className="py-2 px-3 rounded-md bg-primary text-primary-foreground text-sm" onClick={() => handleInstall('admin')}>
                   {isInstallable ? 'Instalar' : 'Abrir'}
                 </button>
               </div>
@@ -386,16 +386,16 @@ export default function AccessPage(): JSX.Element {
           <div className="p-4 rounded-xl border border-white/6 shadow-md bg-gradient-to-b from-slate-900 to-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-emerald-800/30">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#34d399" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div className="p-2 rounded-full bg-accent/20">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="hsl(var(--accent))" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
                 <div>
                   <div className="font-semibold">Hey Manito Chat</div>
-                  <div className="text-xs text-slate-400">Chatea con tus asistentes o inicia nuevas conversaciones.</div>
+                  <div className="text-xs text-muted-foreground">Chatea con tus asistentes o inicia nuevas conversaciones.</div>
                 </div>
               </div>
               <div>
-                <button className="py-2 px-3 rounded-md bg-emerald-600 text-white text-sm" onClick={() => handleInstall('chat')}>
+                <button className="py-2 px-3 rounded-md bg-accent text-accent-foreground text-sm" onClick={() => handleInstall('chat')}>
                   {isInstallable ? 'Instalar' : 'Abrir'}
                 </button>
               </div>
@@ -416,3 +416,5 @@ export default function AccessPage(): JSX.Element {
     </div>
   );
 }
+
+    
