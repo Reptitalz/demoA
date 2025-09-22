@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
+import AppIcon from '@/components/shared/AppIcon'; // Import the icon
 
 /*
   Fixed AccessPage
@@ -330,7 +331,9 @@ export default function AccessPage(): JSX.Element {
   return (
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-6">
       <div className="flex items-center gap-4 mb-4">
-        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold">HM</div>
+        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white p-2">
+            <AppIcon />
+        </div>
         <div className="text-left">
           <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">Hey Manito</span></h1>
           <p className="text-sm text-slate-300">Instala las apps PWA o ábrelas directamente desde la web</p>
