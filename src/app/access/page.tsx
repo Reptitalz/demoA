@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import AppIcon from '@/components/shared/AppIcon'; // Import the icon
 
 /*
@@ -31,7 +31,7 @@ export default function AccessPage(): JSX.Element {
       id: 'admin',
       title: 'Hey Manito Admin',
       description: 'Gestiona asistentes y configuraciones',
-      color: 'hsl(262, 80%, 58%)', // --primary
+      color: 'hsl(var(--primary))', // --primary
       x: CANVAS_WIDTH * 0.22,
       y: CANVAS_HEIGHT * 0.5,
       w: 300,
@@ -42,7 +42,7 @@ export default function AccessPage(): JSX.Element {
       id: 'chat',
       title: 'Hey Manito Chat',
       description: 'Chatea y crea conversaciones',
-      color: 'hsl(300, 85%, 60%)', // --accent
+      color: 'hsl(var(--accent))', // --accent
       x: CANVAS_WIDTH * 0.78,
       y: CANVAS_HEIGHT * 0.5,
       w: 300,
@@ -87,30 +87,27 @@ export default function AccessPage(): JSX.Element {
 
   const showToast = (title: string, description?: string) => setToast({ title, description });
 
-  const handleInstall = async (appType: AppType) => {
+  const handleInstall = useCallback(async (appType: AppType) => {
     if (deferredInstallPrompt && typeof deferredInstallPrompt.prompt === 'function') {
       try {
         deferredInstallPrompt.prompt();
-        if (deferredInstallPrompt.userChoice && typeof deferredInstallPrompt.userChoice.then === 'function') {
-          const choice = await deferredInstallPrompt.userChoice;
-          if (choice && choice.outcome === 'accepted') {
-            showToast('Aplicación instalada', `${appType === 'admin' ? 'Admin' : 'Chat'} instalado.`);
-          } else {
-            showToast('Instalación cancelada', 'El usuario rechazó o cerró el diálogo.');
-          }
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          showToast('Aplicación instalada', `${appType === 'admin' ? 'Admin' : 'Chat'} instalado.`);
         } else {
-          showToast('Instalación', 'Se ha mostrado el diálogo de instalación.');
+          showToast('Instalación cancelada', 'El usuario rechazó o cerró el diálogo.');
         }
       } catch (err) {
         showToast('Error', 'No fue posible iniciar la instalación.');
+      } finally {
+        setDeferredInstallPrompt(null);
+        setIsInstallable(false);
       }
-      setDeferredInstallPrompt(null);
-      setIsInstallable(false);
     } else {
-      // fallback: navigate to route (replace with your router if desired)
+      // fallback: navigate to route
       window.location.href = appType === 'admin' ? '/dashboard' : '/chat';
     }
-  };
+  }, [deferredInstallPrompt]);
 
   // Helper to draw rounded rect
   const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r = 12) => {
@@ -416,5 +413,3 @@ export default function AccessPage(): JSX.Element {
     </div>
   );
 }
-
-    
