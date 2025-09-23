@@ -1,4 +1,3 @@
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -11,6 +10,7 @@ const AppIcon = ({ className, ...props }: Omit<React.ComponentProps<typeof Image
         width={100}
         height={100}
         className={cn('h-auto w-full', className)}
+        unoptimized
         {...props}
     />
 );
