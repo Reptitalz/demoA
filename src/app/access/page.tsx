@@ -328,8 +328,8 @@ export default function AccessPage(): JSX.Element {
   return (
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center p-6">
       <div className="flex items-center gap-4 mb-4">
-        <div className="h-12 w-12 rounded-xl bg-brand-gradient flex items-center justify-center text-white p-2">
-            <AppIcon className="text-white"/>
+        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center p-2">
+            <AppIcon />
         </div>
         <div className="text-left">
           <h1 className="text-2xl font-extrabold">Bienvenido a <span className="text-brand-gradient">Hey Manito</span></h1>
@@ -413,3 +413,5 @@ export default function AccessPage(): JSX.Element {
     </div>
   );
 }
+
+    
