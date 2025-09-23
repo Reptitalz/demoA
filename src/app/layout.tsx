@@ -92,8 +92,8 @@ export const metadata: Metadata = {
   publisher: APP_NAME,
   manifest: '/manifest.json', // Simplified manifest path
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
+    icon: '/heymanito.svg',
+    shortcut: '/heymanito.svg',
     apple: '/apple-touch-icon.png',
   },
 
