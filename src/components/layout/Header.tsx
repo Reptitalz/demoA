@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Download } from 'lucide-react';
+import { Download, LogIn } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
 
 interface HeaderProps {
@@ -18,8 +19,14 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   const router = useRouter();
   const { toast } = useToast();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [isPWA, setIsPWA] = useState(false);
 
   useEffect(() => {
+    // Check if running as a PWA
+    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
+      setIsPWA(true);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
@@ -66,10 +73,17 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
             </div>
         </Link>
         
-        <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
-          <Download className="mr-2 h-4 w-4" />
-          Instalar
-        </Button>
+        {isPWA ? (
+          <Button onClick={() => router.push('/login')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+            <LogIn className="mr-2 h-4 w-4" />
+            Iniciar sesión
+          </Button>
+        ) : (
+          <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+            <Download className="mr-2 h-4 w-4" />
+            Instalar
+          </Button>
+        )}
       </header>
   );
 };
