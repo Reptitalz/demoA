@@ -1,4 +1,3 @@
-
 // src/app/chat/ChatNavBar.tsx
 "use client";
 
@@ -13,6 +12,7 @@ const navItems = [
     { href: '/chat', label: 'Chats', icon: MessageSquare },
     { href: '/chat/updates', label: 'Novedades', icon: Camera },
     { href: '/chat/profile', label: 'Perfil', icon: User },
+    { href: '/chat/admin', label: 'Admin', icon: Settings },
 ];
 
 interface NavItemProps {

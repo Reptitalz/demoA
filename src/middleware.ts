@@ -15,6 +15,7 @@ export async function middleware(req: NextRequest) {
   // Define protected routes that STRICTLY require authentication
   const isProtectedRoute = 
       pathname.startsWith('/app') || // The assistant setup/reconfiguration process
+      pathname.startsWith('/chat/admin') || // The new admin section in chat
       pathname.startsWith('/colaboradores/dashboard'); // The collaborator dashboard
 
   if (isProtectedRoute) {
@@ -31,7 +32,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Allow access to /dashboard and /chat for unauthenticated users,
+  // Allow access to /dashboard and base /chat for unauthenticated users,
   // the pages themselves will handle showing demo content.
   return NextResponse.next();
 }

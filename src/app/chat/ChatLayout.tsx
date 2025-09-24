@@ -1,4 +1,3 @@
-
 // src/app/chat/ChatLayout.tsx
 "use client";
 
@@ -7,12 +6,13 @@ import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User } from 'lucide-react';
+import { MessageSquare, Camera, User, Settings } from 'lucide-react';
 
 const menuItems = [
     { path: '/chat', icon: MessageSquare, label: 'Chats' },
     { path: '/chat/updates', icon: Camera, label: 'Novedades' },
     { path: '/chat/profile', icon: User, label: 'Perfil' },
+    { path: '/chat/admin', icon: Settings, label: 'Admin' },
 ];
 
 // This component provides the main structure for the chat dashboard.
@@ -88,10 +88,10 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
           const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
           if (currentIndex === -1) return;
 
-          if (deltaX < 0) { // Swiped left (e.g., from Chats to Updates)
+          if (deltaX < 0) { // Swiped left
               const nextIndex = (currentIndex + 1) % menuItems.length;
               handleRouteChange(menuItems[nextIndex].path);
-          } else { // Swiped right (e.g., from Updates to Chats)
+          } else { // Swiped right
               const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
               handleRouteChange(menuItems[prevIndex].path);
           }
