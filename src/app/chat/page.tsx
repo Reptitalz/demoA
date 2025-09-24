@@ -1,3 +1,4 @@
+
 // src/app/chat/page.tsx
 "use client";
 
@@ -17,6 +18,7 @@ import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import { useApp } from '@/providers/AppProvider';
 import { Bot } from 'lucide-react';
+import type { AssistantConfig } from '@/types';
 
 
 const ChatListPage = () => {
@@ -27,11 +29,30 @@ const ChatListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // We only care about desktop assistants that can be chatted with via the web UI.
-  const availableChats = userProfile.assistants.filter(assistant => 
+  let availableChats = userProfile.assistants.filter(assistant => 
     assistant.type === 'desktop' && 
     assistant.chatPath &&
     assistant.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const demoAssistant: AssistantConfig = {
+      id: 'demo-asst-1',
+      name: 'Asistente de Demostración',
+      type: 'desktop',
+      chatPath: 'demo-assistant',
+      imageUrl: 'https://i.imgur.com/8p8Yf9u.png',
+      isActive: true,
+      numberReady: true,
+      messageCount: 0,
+      monthlyMessageLimit: 1000,
+      purposes: [],
+  };
+
+  // If no chats are available and user is not authenticated, show demo chat
+  if (availableChats.length === 0 && !userProfile.isAuthenticated) {
+      availableChats = [demoAssistant];
+  }
+
 
   return (
     <>
