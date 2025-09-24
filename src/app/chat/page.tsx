@@ -1,4 +1,3 @@
-
 // src/app/chat/page.tsx
 "use client";
 
@@ -6,8 +5,8 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, MessageSquarePlus } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Search, MessageSquarePlus, Bot, Star, Crown } from 'lucide-react';
+import { formatDistanceToNow, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
@@ -17,8 +16,51 @@ import { Button } from '@/components/ui/button';
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import { useApp } from '@/providers/AppProvider';
-import { Bot } from 'lucide-react';
 import type { AssistantConfig } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { FaSpinner } from 'react-icons/fa';
+
+const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
+    const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
+    const isTrialActive = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
+    const isTrialExpired = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
+
+    let badgeText = "Inactivo";
+    let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+    let Icon = null;
+
+    if (isTrialExpired && !assistant.isPlanActive) {
+        badgeText = "Prueba Finalizada";
+        badgeVariant = "destructive";
+    } else if (isTrialActive) {
+        badgeText = "Prueba Gratuita";
+        badgeVariant = "default";
+        Icon = Crown;
+    } else if (assistant.isPlanActive) {
+        badgeText = "Plan Activo";
+        badgeVariant = "default";
+        Icon = Star;
+    } else if (assistant.isActive) {
+        badgeText = "Activo";
+        badgeVariant = "default";
+    } else if (assistant.phoneLinked && !assistant.numberReady) {
+        badgeText = "Activando";
+        badgeVariant = "outline";
+        Icon = () => <FaSpinner className="animate-spin" />;
+    }
+    
+    if (badgeText === 'Inactivo' && assistant.type === 'desktop' && !assistant.isFirstDesktopAssistant && !assistant.isPlanActive) {
+        return null; // Don't show inactive badge for non-trial desktop assistants without a plan
+    }
+
+    return (
+        <Badge variant={badgeVariant} className={cn("text-xs h-5", badgeVariant === 'default' && 'bg-primary/80')}>
+            {Icon && <Icon className="mr-1 h-3 w-3" />}
+            {badgeText}
+        </Badge>
+    );
+};
 
 
 const ChatListPage = () => {
@@ -46,6 +88,8 @@ const ChatListPage = () => {
       messageCount: 0,
       monthlyMessageLimit: 1000,
       purposes: [],
+      isFirstDesktopAssistant: true, // For demo, show as if in trial
+      trialStartDate: new Date().toISOString(),
   };
 
   // If no chats are available and user is not authenticated, show demo chat
@@ -85,7 +129,10 @@ const ChatListPage = () => {
                     <div className="flex-grow overflow-hidden">
                         <div className="flex justify-between items-center">
                             <p className="font-semibold truncate">{chat.name}</p>
-                            <p className="text-xs text-muted-foreground shrink-0">Ahora</p>
+                            <div className="text-right shrink-0">
+                                <AssistantStatusBadge assistant={chat} />
+                                <p className="text-xs text-muted-foreground mt-0.5">Ahora</p>
+                            </div>
                         </div>
                         <div className="flex justify-between items-start">
                             <p className="text-sm text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
