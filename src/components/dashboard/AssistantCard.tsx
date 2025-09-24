@@ -613,5 +613,3 @@ const AssistantCard = ({
 };
 
 export default AssistantCard;
-
-    
