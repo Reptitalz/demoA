@@ -32,7 +32,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const MIN_SWIPE_DISTANCE = 50;
 
   // State for page transition animation
-  const [animationClass, setAnimationClass] = React.useState('animate-page-in-right');
+  const [animationClass, setAnimationClass] = React.useState('');
 
   const handleRouteChange = useCallback((newPath: string) => {
       if (pathname === newPath) return;
@@ -48,22 +48,27 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       const direction = newIndex > currentIndex ? 'left' : 'right';
       setAnimationClass(direction === 'left' ? 'animate-page-out-left' : 'animate-page-out-right');
 
+      // Set the "in" animation for the *next* page render
+      const inClass = direction === 'left' ? 'animate-page-in-right' : 'animate-page-in-left';
+
       // Allow the "out" animation to start before navigating
       setTimeout(() => {
+          // Set a temporary state or use another mechanism if needed
+          // For now, we'll rely on the useEffect for the new page to pick up its "in" animation
           router.push(newPath);
-      }, 25); 
+      }, 150); // Match animation duration
   }, [pathname, router]);
   
   React.useEffect(() => {
-      // Apply the "in" animation whenever the pathname changes.
-      const lastDirection = animationClass.includes('left') ? 'left' : 'right';
-      const inClass = lastDirection === 'left' ? 'animate-page-in-right' : 'animate-page-in-left';
-      setAnimationClass(inClass);
+    // This effect runs when the page component mounts.
+    // We apply an 'in' animation. The specific animation depends on a state
+    // that should be set by the navigation trigger.
+    // For now, we'll default to a generic 'in' animation if not specified.
+    setAnimationClass('animate-fadeIn');
 
-      // Clean up animation class after it has finished
-      const timer = setTimeout(() => setAnimationClass(''), 200);
-      return () => clearTimeout(timer);
-  }, [pathname]);
+    const timer = setTimeout(() => setAnimationClass(''), 300); // Animation duration
+    return () => clearTimeout(timer);
+}, [pathname]);
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
