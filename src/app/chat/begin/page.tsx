@@ -5,7 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, AppWindow } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,7 @@ import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 const BeginPage = () => {
     const { dispatch } = useApp();
+    const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
@@ -26,7 +27,7 @@ const BeginPage = () => {
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
-        dispatch({ type: 'SET_WIZARD_STEP', payload: 2}); // Set to step 2 as type is selected
+        dispatch({ type: 'SET_WIZARD_STEP', payload: 2}); // Set to step 2 for assistant details
         setIsRegisterOpen(true);
     }, [dispatch]);
     
@@ -92,9 +93,28 @@ const BeginPage = () => {
         }
     ];
 
-    return (
-        <>
-        <PageContainer className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)] animate-fadeIn">
+    const renderStep1 = () => (
+        <div className="text-center animate-fadeIn">
+            <Card className="max-w-2xl mx-auto p-6 sm:p-8 bg-card/70 backdrop-blur-sm">
+                <CardHeader>
+                    <CardTitle className="text-3xl font-extrabold flex items-center justify-center gap-2">
+                        <Info size={28}/> ¿Qué es Hey Manito?
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground text-lg mb-6">
+                        Es una plataforma para crear asistentes de IA para tu negocio. Automatiza ventas, da soporte y gestiona clientes en WhatsApp o en una página web.
+                    </p>
+                    <Button size="lg" onClick={() => setStep(2)}>
+                        Siguiente <ArrowRight className="ml-2" />
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    );
+
+    const renderStep2 = () => (
+        <div className="animate-fadeIn w-full">
             <div className="text-center mb-8">
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
                     Elige tu Primer <span className="text-brand-gradient">Asistente</span>
@@ -104,7 +124,7 @@ const BeginPage = () => {
                 </p>
             </div>
 
-            <div className="w-full max-w-sm md:max-w-md">
+            <div className="w-full max-w-sm md:max-w-md mx-auto">
                 <div 
                     className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
                     ref={scrollContainerRef}
@@ -166,10 +186,22 @@ const BeginPage = () => {
                     ))}
                 </div>
             </div>
-            
-             <p className="text-center text-sm text-muted-foreground mt-8">
-               ¿Ya tienes una cuenta? <Link href="/login" className="font-semibold text-primary hover:underline">Inicia sesión aquí.</Link>
-            </p>
+             <div className="flex justify-between items-center mt-8 w-full max-w-md mx-auto">
+                 <Button variant="outline" onClick={() => setStep(1)}>
+                    <ArrowLeft className="mr-2" /> Atrás
+                </Button>
+                <p className="text-center text-sm text-muted-foreground">
+                    ¿Ya tienes una cuenta? <Link href="/login" className="font-semibold text-primary hover:underline">Inicia sesión aquí.</Link>
+                </p>
+             </div>
+        </div>
+    );
+
+    return (
+        <>
+        <PageContainer className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)]">
+            {step === 1 && renderStep1()}
+            {step === 2 && renderStep2()}
         </PageContainer>
         <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={handleDialogChange} />
         </>
