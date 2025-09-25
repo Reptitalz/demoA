@@ -184,7 +184,7 @@ export default function MarketingHomePage() {
                 initial={{ y: 16, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6 }}
-                className="text-4xl md:text-5xl font-extrabold leading-tight text-white"
+                className="text-4xl md:text-5xl font-extrabold leading-tight text-foreground"
                 >
                 Tu centro de atención al cliente, ahora <span className="text-brand-gradient">inteligente.</span>
                 </motion.h2>
