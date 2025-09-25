@@ -5,7 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Info } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import AppIcon from '@/components/shared/AppIcon';
+import { Slider } from '@/components/ui/slider';
 
 const BeginPage = () => {
     const { dispatch } = useApp();
@@ -204,7 +205,7 @@ const BeginPage = () => {
 
     return (
         <>
-        <PageContainer className={cn("flex flex-col", step === 1 ? 'p-0' : 'items-center justify-center')}>
+        <PageContainer className={cn("flex flex-col h-full", step === 1 ? 'p-0' : 'items-center justify-center')}>
             {step === 1 ? renderStep1() : renderStep2()}
         </PageContainer>
         <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={handleDialogChange} />
