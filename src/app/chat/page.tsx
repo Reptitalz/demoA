@@ -26,7 +26,7 @@ const ChatLandingPage = () => {
     };
     
     const handleStart = () => {
-        router.push('/begin');
+        router.push('/chat/begin');
     };
 
     return (
