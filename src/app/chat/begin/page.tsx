@@ -1,19 +1,18 @@
+
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, Info, AppWindow } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, AppWindow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { APP_NAME, PRICE_PER_CREDIT, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { useApp } from '@/providers/AppProvider';
 import { FaWhatsapp } from 'react-icons/fa';
 import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
-
 
 const BeginPage = () => {
     const { dispatch } = useApp();
@@ -21,20 +20,77 @@ const BeginPage = () => {
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
 
+    const [activeIndex, setActiveIndex] = useState(0);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
         dispatch({ type: 'SET_WIZARD_STEP', payload: 2}); // Set to step 2 as type is selected
         setIsRegisterOpen(true);
     }, [dispatch]);
-
+    
     const handleDialogChange = (open: boolean) => {
         setIsRegisterOpen(open);
         if (!open) {
-            // Reset wizard when dialog is closed without completing
             dispatch({ type: 'RESET_WIZARD' });
         }
     }
+
+    const handleScroll = () => {
+        const container = scrollContainerRef.current;
+        if (container) {
+            const scrollLeft = container.scrollLeft;
+            const cardWidth = container.offsetWidth;
+            const newIndex = Math.round(scrollLeft / cardWidth);
+            if (newIndex !== activeIndex) {
+                setActiveIndex(newIndex);
+            }
+        }
+    };
+    
+    const scrollToCard = (index: number) => {
+        const container = scrollContainerRef.current;
+        if(container) {
+            container.scrollTo({
+                left: index * container.offsetWidth,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    const cards = [
+        {
+            type: 'desktop' as const,
+            badge: '30 DÍAS GRATIS',
+            badgeColor: 'from-yellow-400 to-orange-500',
+            image: '/4.jpeg',
+            imageHint: 'chatbot browser',
+            title: 'Asistente en Navegador',
+            icon: AppWindow,
+            description: 'Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono.',
+            features: [
+                'Prueba ilimitada por 30 días.',
+                'Configuración y acceso instantáneo.'
+            ],
+            buttonText: 'Comenzar Prueba Gratis'
+        },
+        {
+            type: 'whatsapp' as const,
+            badge: 'PAGO POR USO',
+            badgeColor: 'primary',
+            image: '/1.jpeg',
+            imageHint: 'whatsapp chat',
+            title: 'Asistente en WhatsApp',
+            icon: FaWhatsapp,
+            description: 'Automatiza ventas y soporte en la plataforma de mensajería más grande del mundo.',
+            features: [
+                'Atención al cliente 24/7.',
+                'Requiere un número de teléfono nuevo.'
+            ],
+            buttonText: 'Crear Asistente WhatsApp'
+        }
+    ];
 
     return (
         <>
@@ -48,78 +104,67 @@ const BeginPage = () => {
                 </p>
             </div>
 
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Desktop Assistant Card */}
-                <Card 
-                    onClick={() => handleSelectOption('desktop')}
-                    className={cn(
-                        "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20",
-                        selectedOption === 'desktop' ? "border-primary" : "border-transparent",
-                        "glow-card"
-                    )}
+            <div className="w-full max-w-sm md:max-w-md">
+                <div 
+                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+                    ref={scrollContainerRef}
+                    onScroll={handleScroll}
                 >
-                    <CardHeader className="p-0">
-                        <div className="relative aspect-video w-full">
-                            <Image
-                                src="/4.jpeg"
-                                alt="Asistente en navegador"
-                                layout="fill"
-                                className="object-cover"
-                                data-ai-hint="chatbot browser"
-                            />
-                            <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6">
-                                30 DÍAS GRATIS
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-6 text-center">
-                        <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><AppWindow size={22}/> Asistente en Navegador</CardTitle>
-                        <CardDescription className="mb-4 text-sm">Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono.</CardDescription>
-                        <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
-                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Prueba ilimitada por 30 días.</span></li>
-                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Configuración y acceso instantáneo.</span></li>
-                        </ul>
-                        <Button size="lg" className="w-full font-bold">
-                            Comenzar Prueba Gratis <ArrowRight className="ml-2" size={16}/>
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                {/* WhatsApp Assistant Card */}
-                <Card 
-                    onClick={() => handleSelectOption('whatsapp')}
-                    className={cn(
-                        "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20",
-                        selectedOption === 'whatsapp' ? "border-primary" : "border-transparent",
-                        "glow-card"
-                    )}
-                >
-                    <CardHeader className="p-0">
-                         <div className="relative aspect-video w-full">
-                             <Image
-                                src="/1.jpeg"
-                                alt="Asistente en WhatsApp"
-                                layout="fill"
-                                className="object-cover"
-                                data-ai-hint="whatsapp chat"
-                            />
-                            <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                                PAGO POR USO
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-6 text-center">
-                        <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><FaWhatsapp size={22}/> Asistente en WhatsApp</CardTitle>
-                        <CardDescription className="mb-4 text-sm">Automatiza ventas y soporte en la plataforma de mensajería más grande del mundo.</CardDescription>
-                         <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
-                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Atención al cliente 24/7.</span></li>
-                            <li className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>Requiere un número de teléfono nuevo.</span></li>
-                        </ul>
-                        <Button size="lg" className="w-full font-bold">
-                            Crear Asistente WhatsApp <ArrowRight className="ml-2" size={16}/>
-                        </Button>
-                    </CardContent>
-                </Card>
+                    {cards.map((card, index) => (
+                         <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                             <Card 
+                                onClick={() => handleSelectOption(card.type)}
+                                className={cn(
+                                    "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
+                                    "glow-card"
+                                )}
+                            >
+                                <CardHeader className="p-0">
+                                    <div className="relative aspect-video w-full">
+                                        <Image
+                                            src={card.image}
+                                            alt={card.title}
+                                            layout="fill"
+                                            className="object-cover"
+                                            data-ai-hint={card.imageHint}
+                                        />
+                                        <div className={cn(
+                                            "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6",
+                                            card.badgeColor === 'primary' ? 'bg-primary' : `bg-gradient-to-r ${card.badgeColor}`
+                                        )}>
+                                            {card.badge}
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-6 text-center">
+                                    <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
+                                    <CardDescription className="mb-4 text-sm">{card.description}</CardDescription>
+                                    <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+                                        {card.features.map((feature, i) => (
+                                            <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
+                                        ))}
+                                    </ul>
+                                    <Button size="lg" className="w-full font-bold">
+                                        {card.buttonText} <ArrowRight className="ml-2" size={16}/>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                         </div>
+                    ))}
+                </div>
+                 <div className="flex justify-center mt-4 space-x-2">
+                    {cards.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => scrollToCard(index)}
+                            className={cn(
+                                "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                                activeIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/30"
+                            )}
+                            aria-label={`Ir a la tarjeta ${index + 1}`}
+                        />
+                    ))}
+                </div>
             </div>
             
              <p className="text-center text-sm text-muted-foreground mt-8">
