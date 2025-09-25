@@ -1,4 +1,3 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -10,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Download, LogIn } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
+import { ThemeToggle } from '../shared/ThemeToggle';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -73,17 +73,20 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
             </div>
         </Link>
         
-        {isPWA ? (
-          <Button onClick={() => router.push('/login')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
-            <LogIn className="mr-2 h-4 w-4" />
-            Iniciar sesión
-          </Button>
-        ) : (
-          <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
-            <Download className="mr-2 h-4 w-4" />
-            Instalar
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {isPWA ? (
+            <Button onClick={() => router.push('/login')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+                <LogIn className="mr-2 h-4 w-4" />
+                Iniciar sesión
+            </Button>
+            ) : (
+            <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+                <Download className="mr-2 h-4 w-4" />
+                Instalar
+            </Button>
+            )}
+        </div>
       </header>
   );
 };
