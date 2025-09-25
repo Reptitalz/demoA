@@ -46,7 +46,7 @@ const ChatLandingPage = () => {
             <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full max-w-sm">
                 <Button 
                     size="lg" 
-                    className="w-full text-lg py-6 bg-brand-gradient text-primary-foreground hover:opacity-90"
+                    className="w-full py-6 bg-brand-gradient text-primary-foreground hover:opacity-90"
                     onClick={handleStart}
                 >
                     Empezar <ArrowRight className="ml-2" />
@@ -54,7 +54,7 @@ const ChatLandingPage = () => {
                 <Button 
                     size="lg" 
                     variant="outline" 
-                    className="w-full text-lg py-6"
+                    className="w-full py-6"
                     onClick={handleGoogleSignIn}
                 >
                     <FcGoogle className="mr-3 h-6 w-6" /> ¿Ya tienes cuenta?
