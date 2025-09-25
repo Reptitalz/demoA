@@ -33,8 +33,9 @@ const DynamicCanvasBackground: React.FC = () => {
     // Theme-aware gradient backdrop
     const g = ctx.createLinearGradient(0, 0, w, h);
     if (isDark) {
-        g.addColorStop(0, "rgba(10,12,30,0.9)");
-        g.addColorStop(1, "rgba(8,10,20,0.75)");
+        // Lighter, more transparent gradient for dark mode
+        g.addColorStop(0, "rgba(20, 22, 45, 0.85)");
+        g.addColorStop(1, "rgba(15, 18, 35, 0.8)");
     } else {
         g.addColorStop(0, "rgba(240, 245, 255, 0.9)");
         g.addColorStop(1, "rgba(230, 235, 250, 0.75)");
