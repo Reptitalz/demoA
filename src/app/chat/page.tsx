@@ -1,3 +1,4 @@
+
 // src/app/chat/page.tsx
 "use client";
 
@@ -43,7 +44,7 @@ const ChatLandingPage = () => {
                 Tu centro de mando para conversaciones inteligentes. Inicia sesión para acceder a tus asistentes o empieza a crear uno nuevo.
             </p>
             
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+            <div className="mt-12 flex flex-col sm:flex-row gap-4 w-full max-w-sm">
                 <Button 
                     size="lg" 
                     className="w-full py-6 bg-brand-gradient text-primary-foreground hover:opacity-90"
