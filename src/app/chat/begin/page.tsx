@@ -97,8 +97,8 @@ const BeginPage = () => {
         <div className="flex flex-col h-full animate-fadeIn">
             <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
                  <div className="w-full max-w-2xl">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground flex items-center justify-center gap-2 mb-4">
-                        <Info size={32} className="text-primary"/> ¿Qué es Hey Manito?
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground justify-center gap-2 mb-4">
+                        <Info size={32} className="text-primary inline-block mr-2"/> ¿Qué es Hey Manito?
                     </h1>
                      <p className="text-muted-foreground text-lg">
                         Es una plataforma para crear asistentes de IA para tu negocio. Automatiza ventas, da soporte y gestiona clientes en WhatsApp o en una página web.
