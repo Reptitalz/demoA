@@ -13,6 +13,7 @@ import { useApp } from '@/providers/AppProvider';
 import { FaWhatsapp } from 'react-icons/fa';
 import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
+import AppIcon from '@/components/shared/AppIcon';
 
 const BeginPage = () => {
     const { dispatch } = useApp();
@@ -97,6 +98,7 @@ const BeginPage = () => {
         <div className="flex flex-col h-full animate-fadeIn">
             <div className="flex-grow flex flex-col items-center justify-center p-4 text-center">
                 <div className="w-full max-w-2xl">
+                    <AppIcon className="h-20 w-20 mb-4 mx-auto" />
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
                         ¿Qué es Hey Manito?
                     </h1>
