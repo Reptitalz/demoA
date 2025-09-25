@@ -9,7 +9,7 @@ import { MessageSquare, Camera, User, Settings } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navItems = [
-    { href: '/chat', label: 'Chats', icon: MessageSquare },
+    { href: '/chat/dashboard', label: 'Chats', icon: MessageSquare },
     { href: '/chat/updates', label: 'Novedades', icon: Camera },
     { href: '/chat/profile', label: 'Perfil', icon: User },
     { href: '/chat/admin', label: 'Admin', icon: Settings },
@@ -24,7 +24,9 @@ interface NavItemProps {
 
 const NavItem = ({ href, label, icon: Icon, onNavigate }: NavItemProps) => {
     const pathname = usePathname();
-    const isActive = pathname === href;
+    // Check if the current path starts with the nav item's href.
+    // This makes the 'Chats' icon active for both /chat and /chat/dashboard
+    const isActive = pathname.startsWith(href);
 
     return (
         <Tooltip>

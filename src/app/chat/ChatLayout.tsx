@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { MessageSquare, Camera, User, Settings } from 'lucide-react';
 
 const menuItems = [
-    { path: '/chat', icon: MessageSquare, label: 'Chats' },
+    { path: '/chat/dashboard', icon: MessageSquare, label: 'Chats' },
     { path: '/chat/updates', icon: Camera, label: 'Novedades' },
     { path: '/chat/profile', icon: User, label: 'Perfil' },
     { path: '/chat/admin', icon: Settings, label: 'Admin' },
@@ -21,7 +21,8 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   // The individual chat view ([chatPath]) should not have the swipe/nav bar logic.
-  const isBaseChatView = menuItems.some(item => item.path === pathname);
+  const isBaseChatView = menuItems.some(item => pathname === item.path) || pathname === '/chat';
+
 
   // State for swipe navigation
   const touchStartX = React.useRef(0);
@@ -61,9 +62,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   
   React.useEffect(() => {
     // This effect runs when the page component mounts.
-    // We apply an 'in' animation. The specific animation depends on a state
-    // that should be set by the navigation trigger.
-    // For now, we'll default to a generic 'in' animation if not specified.
+    // We apply an 'in' animation.
     setAnimationClass('animate-fadeIn');
 
     const timer = setTimeout(() => setAnimationClass(''), 300); // Animation duration

@@ -93,16 +93,9 @@ const nextConfig = {
       },
     ];
   },
-  webpack(config) {
-    if (!config.externals) {
-      config.externals = [];
-    }
-    
-    if (!config.resolve.fallback) {
-        config.resolve.fallback = {};
-    }
-
-    if (!config.isServer) {
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Exclude server-only modules from client-side bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
         "mongodb-client-encryption": false,
@@ -116,7 +109,7 @@ const nextConfig = {
         "fs": false,
       };
     }
-    return config
+    return config;
   },
 };
 

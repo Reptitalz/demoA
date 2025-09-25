@@ -1,173 +1,67 @@
 // src/app/chat/page.tsx
 "use client";
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, MessageSquarePlus, Bot, Star, Crown } from 'lucide-react';
-import { formatDistanceToNow, differenceInDays } from 'date-fns';
-import { es } from 'date-fns/locale';
-import Image from 'next/image';
-import { APP_NAME } from '@/config/appConfig';
-import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import AddChatDialog from '@/components/chat/AddChatDialog';
+import { FcGoogle } from 'react-icons/fc';
+import { ArrowRight } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 import AppIcon from '@/components/shared/AppIcon';
-import { useApp } from '@/providers/AppProvider';
-import type { AssistantConfig } from '@/types';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { FaSpinner } from 'react-icons/fa';
 
-const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
-    const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
-    const isTrialActive = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
-    const isTrialExpired = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
+const ChatLandingPage = () => {
+    const { toast } = useToast();
+    const router = useRouter();
 
-    let badgeText = "Inactivo";
-    let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let Icon = null;
-
-    if (isTrialExpired && !assistant.isPlanActive) {
-        badgeText = "Prueba Finalizada";
-        badgeVariant = "destructive";
-    } else if (isTrialActive) {
-        badgeText = "Prueba Gratuita";
-        badgeVariant = "default";
-        Icon = Crown;
-    } else if (assistant.isPlanActive) {
-        badgeText = "Plan Activo";
-        badgeVariant = "default";
-        Icon = Star;
-    } else if (assistant.isActive) {
-        badgeText = "Activo";
-        badgeVariant = "default";
-    } else if (assistant.phoneLinked && !assistant.numberReady) {
-        badgeText = "Activando";
-        badgeVariant = "outline";
-        Icon = () => <FaSpinner className="animate-spin" />;
-    }
+    const handleGoogleSignIn = () => {
+        signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
+            toast({
+                title: 'Error de Inicio de Sesión',
+                description: 'No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.',
+                variant: 'destructive'
+            });
+        });
+    };
     
-    if (badgeText === 'Inactivo' && assistant.type === 'desktop' && !assistant.isFirstDesktopAssistant && !assistant.isPlanActive) {
-        return null; // Don't show inactive badge for non-trial desktop assistants without a plan
-    }
+    const handleStart = () => {
+        // Placeholder for the new multi-step process
+        toast({
+            title: 'Próximamente',
+            description: 'El nuevo proceso de configuración se añadirá aquí.',
+        });
+        // router.push('/chat/setup'); // Example of where it might go
+    };
 
     return (
-        <Badge variant={badgeVariant} className={cn("text-xs h-5", badgeVariant === 'default' && 'bg-primary/80')}>
-            {Icon && <Icon className="mr-1 h-3 w-3" />}
-            {badgeText}
-        </Badge>
+        <div className="flex flex-col items-center justify-center h-full text-center p-4 animate-fadeIn">
+            <AppIcon className="h-20 w-20 mb-4" />
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
+                Bienvenido a <span className="text-brand-gradient">Hey Manito! Chat</span>
+            </h1>
+            <p className="mt-3 max-w-lg mx-auto text-muted-foreground">
+                Tu centro de mando para conversaciones inteligentes. Inicia sesión para acceder a tus asistentes o empieza a crear uno nuevo.
+            </p>
+            
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+                <Button 
+                    size="lg" 
+                    className="w-full text-lg py-6 bg-brand-gradient text-primary-foreground hover:opacity-90"
+                    onClick={handleStart}
+                >
+                    Empezar <ArrowRight className="ml-2" />
+                </Button>
+                <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="w-full text-lg py-6"
+                    onClick={handleGoogleSignIn}
+                >
+                    <FcGoogle className="mr-3 h-6 w-6" /> ¿Ya tienes cuenta?
+                </Button>
+            </div>
+        </div>
     );
 };
 
-
-const ChatListPage = () => {
-  const { data: session } = useSession();
-  const { state } = useApp();
-  const { userProfile } = state;
-  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // We only care about desktop assistants that can be chatted with via the web UI.
-  let availableChats = userProfile.assistants.filter(assistant => 
-    assistant.type === 'desktop' && 
-    assistant.chatPath &&
-    assistant.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  const demoAssistant: AssistantConfig = {
-      id: 'demo-asst-1',
-      name: 'Asistente de Demostración',
-      type: 'desktop',
-      chatPath: 'demo-assistant',
-      imageUrl: 'https://i.imgur.com/8p8Yf9u.png',
-      isActive: true,
-      numberReady: true,
-      messageCount: 0,
-      monthlyMessageLimit: 1000,
-      purposes: [],
-      isFirstDesktopAssistant: true, // For demo, show as if in trial
-      trialStartDate: new Date().toISOString(),
-  };
-
-  // If no chats are available and user is not authenticated, show demo chat
-  if (availableChats.length === 0 && !userProfile.isAuthenticated) {
-      availableChats = [demoAssistant];
-  }
-
-
-  return (
-    <>
-    <div className="flex flex-col h-full bg-transparent relative">
-      <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-            <AppIcon className="h-7 w-7" />
-            <span>{APP_NAME}</span>
-        </h1>
-        <div className="relative mt-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Buscar chats..." 
-              className="pl-10 bg-background/50" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-        </div>
-      </header>
-
-      <ScrollArea className="flex-grow">
-        <div className="p-2 space-y-1">
-          {availableChats.length > 0 ? availableChats.map((chat) => (
-            <Link key={chat.id} href={`/chat/${chat.chatPath}`} legacyBehavior>
-                <a className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
-                    <Avatar className="h-12 w-12">
-                        <AvatarImage src={chat.imageUrl} alt={chat.name} />
-                        <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow overflow-hidden">
-                        <div className="flex justify-between items-center">
-                            <p className="font-semibold truncate">{chat.name}</p>
-                            <div className="text-right shrink-0">
-                                <AssistantStatusBadge assistant={chat} />
-                                <p className="text-xs text-muted-foreground mt-0.5">Ahora</p>
-                            </div>
-                        </div>
-                        <div className="flex justify-between items-start">
-                            <p className="text-sm text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
-                        </div>
-                    </div>
-                </a>
-            </Link>
-          )) : (
-             <div className="text-center py-20 px-4 text-muted-foreground">
-                <Bot className="mx-auto h-12 w-12 mb-4" />
-                <p className="font-semibold">No tienes asistentes de escritorio.</p>
-                <p className="text-sm">
-                    {userProfile.isAuthenticated 
-                      ? "Crea un nuevo asistente de escritorio para chatear aquí."
-                      : "Inicia sesión para crear y chatear con tus asistentes."
-                    }
-                </p>
-            </div>
-           )}
-        </div>
-      </ScrollArea>
-       {session && (
-          <Button
-            onClick={() => setIsAddChatDialogOpen(true)}
-            className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
-            size="icon"
-            title="Iniciar chat con ID"
-          >
-            <MessageSquarePlus className="h-6 w-6" />
-          </Button>
-        )}
-    </div>
-    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
-    </>
-  );
-};
-
-export default ChatListPage;
+export default ChatLandingPage;
