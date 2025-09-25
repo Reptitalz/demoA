@@ -13,7 +13,7 @@ import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 const initialWizardState: WizardState = {
   currentStep: 1,
   assistantName: '',
-  assistantType: 'desktop',
+  assistantType: null,
   assistantPrompt: '',
   selectedPurposes: new Set(),
   databaseOption: { type: null, name: '', accessUrl: '', sheetNames: [], selectedSheetName: '', selectedColumns: [], relevantColumnsDescription: '' },
@@ -303,7 +303,7 @@ async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whats
           isActive: isDesktopAssistant,
           numberReady: isDesktopAssistant,
           messageCount: 0,
-          monthlyMessageLimit: isDesktopAssistant ? 1000 : 0,
+          monthlyMessageLimit: isDesktopAssistant ? 10000 : 0,
           imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
           chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
           isFirstDesktopAssistant: isDesktopAssistant,

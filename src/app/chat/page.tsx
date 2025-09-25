@@ -26,12 +26,7 @@ const ChatLandingPage = () => {
     };
     
     const handleStart = () => {
-        // Placeholder for the new multi-step process
-        toast({
-            title: 'Próximamente',
-            description: 'El nuevo proceso de configuración se añadirá aquí.',
-        });
-        // router.push('/chat/setup'); // Example of where it might go
+        router.push('/begin');
     };
 
     return (

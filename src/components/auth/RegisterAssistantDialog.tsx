@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
-import Step0AssistantType from './wizard-steps/Step0_AssistantType';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
@@ -91,7 +90,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const isWhatsappAssistant = useMemo(() => assistantType === 'whatsapp', [assistantType]);
 
   const effectiveMaxSteps = useMemo(() => {
-    let baseSteps = 3; // Type, Details, Prompt
+    let baseSteps = 2; // Details, Prompt
     if (dbNeeded) baseSteps++; // DB config
     baseSteps++; // Terms
     baseSteps++; // Auth
@@ -101,9 +100,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   const getValidationMessageForStep = useCallback((step: number): string | null => {
     switch (step) {
-        case 1:
-            if (!assistantType) return "Por favor, selecciona un tipo de asistente.";
-            return null;
         case 2:
             if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
             if (isWhatsappAssistant) {
@@ -164,13 +160,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 2) { // Changed from 1 to 2
         let prevStep = currentStep - 1;
         // Correctly go back from Terms to Prompt if DB was skipped
         if (currentStep === 5 && !dbNeeded) {
             prevStep = 3; 
         }
         dispatch({ type: 'SET_WIZARD_STEP', payload: prevStep });
+    } else {
+        onOpenChange(false);
     }
   };
   
@@ -294,7 +292,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
     
     const stepMap: Record<number, React.ReactNode> = {
-        1: <Step0AssistantType />,
         2: <Step1AssistantDetails />,
         3: <Step2AssistantPrompt />,
         4: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
@@ -343,7 +340,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         
         {currentStep < effectiveMaxSteps && (
           <div className="flex justify-between items-center p-6 border-t mt-auto bg-background/80 backdrop-blur-sm">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105">
+            <Button variant="outline" onClick={handlePrevious} disabled={isFinalizingSetup} className="transition-transform transform hover:scale-105">
                 <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
             </Button>
 

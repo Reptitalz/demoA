@@ -25,6 +25,7 @@ const BeginPage = () => {
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
+        dispatch({ type: 'SET_WIZARD_STEP', payload: 2}); // Set to step 2 as type is selected
         setIsRegisterOpen(true);
     }, [dispatch]);
 
