@@ -94,22 +94,25 @@ const BeginPage = () => {
     ];
 
     const renderStep1 = () => (
-        <div className="text-center animate-fadeIn">
-            <Card className="max-w-2xl mx-auto p-6 sm:p-8 bg-card/70 backdrop-blur-sm">
-                <CardHeader>
-                    <CardTitle className="text-3xl font-extrabold flex items-center justify-center gap-2">
-                        <Info size={28}/> ¿Qué es Hey Manito?
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground text-lg mb-6">
+        <div className="flex flex-col h-full animate-fadeIn">
+            <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
+                 <div className="w-full max-w-2xl">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground flex items-center justify-center gap-2 mb-4">
+                        <Info size={32} className="text-primary"/> ¿Qué es Hey Manito?
+                    </h1>
+                     <p className="text-muted-foreground text-lg">
                         Es una plataforma para crear asistentes de IA para tu negocio. Automatiza ventas, da soporte y gestiona clientes en WhatsApp o en una página web.
                     </p>
-                    <Button size="lg" onClick={() => setStep(2)}>
+                 </div>
+            </div>
+            <div className="w-full p-4 border-t border-border bg-card/80 backdrop-blur-sm">
+                <div className="flex justify-between items-center">
+                    <div className="text-sm text-muted-foreground">Paso 1 de 2</div>
+                     <Button size="lg" onClick={() => setStep(2)}>
                         Siguiente <ArrowRight className="ml-2" />
                     </Button>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 
@@ -199,9 +202,8 @@ const BeginPage = () => {
 
     return (
         <>
-        <PageContainer className="flex flex-col items-center justify-center min-h-[calc(100vh-150px)]">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
+        <PageContainer className={cn("flex flex-col", step === 1 ? 'p-0' : 'items-center justify-center')}>
+            {step === 1 ? renderStep1() : renderStep2()}
         </PageContainer>
         <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={handleDialogChange} />
         </>
