@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -68,8 +69,8 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                 <AppIcon />
             </div>
             <div>
-                <h1 className="text-white font-bold">{APP_NAME}</h1>
-                <p className="text-xs text-slate-300 -mt-1">PWA · Asistentes Inteligentes · Ventas y Control de Medios</p>
+                <h1 className="font-bold text-foreground">{APP_NAME}</h1>
+                <p className="text-xs text-muted-foreground -mt-1">PWA · Asistentes Inteligentes · Ventas y Control de Medios</p>
             </div>
         </Link>
         

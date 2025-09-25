@@ -193,7 +193,7 @@ export default function MarketingHomePage() {
                 initial={{ y: 12, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.12, duration: 0.6 }}
-                className="mt-6 text-slate-300 max-w-xl"
+                className="mt-6 text-muted-foreground max-w-xl"
                 >
                 {APP_NAME} es una PWA con interfaz tipo mensajería, potenciada
                 con asistentes inteligentes que automatizan ventas, gestionan clientes y almacenan
@@ -242,8 +242,8 @@ export default function MarketingHomePage() {
             </section>
 
             <section id="features" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-white">Funciones destacadas</h3>
-                <p className="text-slate-300 mt-2 max-w-2xl">Todo lo que necesitas para administrar clientes y ventas desde una sola PWA ligera.</p>
+                <h3 className="text-2xl font-bold text-foreground">Funciones destacadas</h3>
+                <p className="text-muted-foreground mt-2 max-w-2xl">Todo lo que necesitas para administrar clientes y ventas desde una sola PWA ligera.</p>
 
                 <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <FeatureCard
@@ -287,8 +287,8 @@ export default function MarketingHomePage() {
             </section>
 
             <section id="ui" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-white">Interfaz y experiencia</h3>
-                <p className="text-slate-300 mt-2 max-w-2xl">Diseñada para ser familiar y rápida — la transición desde aplicaciones de mensajería es natural y la PWA permite instalar la app para uso offline y notificaciones.</p>
+                <h3 className="text-2xl font-bold text-foreground">Interfaz y experiencia</h3>
+                <p className="text-muted-foreground mt-2 max-w-2xl">Diseñada para ser familiar y rápida — la transición desde aplicaciones de mensajería es natural y la PWA permite instalar la app para uso offline y notificaciones.</p>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <UIShowcase title="Dashboard" badge="Gestión" />
@@ -298,8 +298,8 @@ export default function MarketingHomePage() {
             </section>
 
             <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-white">Planes Flexibles</h3>
-                <p className="text-slate-300 mt-2 max-w-2xl">Comienza gratis y escala según tus necesidades. Sin contratos, sin complicaciones.</p>
+                <h3 className="text-2xl font-bold text-foreground">Planes Flexibles</h3>
+                <p className="text-muted-foreground mt-2 max-w-2xl">Comienza gratis y escala según tus necesidades. Sin contratos, sin complicaciones.</p>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <PricingCard 
@@ -331,8 +331,8 @@ export default function MarketingHomePage() {
             </section>
 
             <section id="get" className="max-w-6xl mx-auto px-6 py-20 text-center">
-                <h3 className="text-2xl font-bold text-white">¿Listo para probar {APP_NAME}?</h3>
-                <p className="text-slate-300 mt-2">Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.</p>
+                <h3 className="text-2xl font-bold text-foreground">¿Listo para probar {APP_NAME}?</h3>
+                <p className="text-muted-foreground mt-2">Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.</p>
 
                 <div className="mt-6 flex items-center justify-center gap-4">
                     <Link href="/begin" className="px-6 py-3 rounded-full bg-brand-gradient text-white font-medium">Crear mi Primer Asistente</Link>
