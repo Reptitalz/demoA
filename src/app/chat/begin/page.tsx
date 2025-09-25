@@ -95,9 +95,9 @@ const BeginPage = () => {
 
     const renderStep1 = () => (
         <div className="flex flex-col h-full animate-fadeIn">
-            <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
-                 <div className="w-full max-w-2xl">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground justify-center gap-2 mb-4">
+            <div className="flex-grow flex flex-col items-center justify-center p-4">
+                 <div className="w-full max-w-2xl text-center">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
                         <Info size={32} className="text-primary inline-block mr-2"/> ¿Qué es Hey Manito?
                     </h1>
                      <p className="text-muted-foreground text-lg">
