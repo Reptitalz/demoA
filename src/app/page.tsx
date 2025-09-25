@@ -67,13 +67,13 @@ const FeatureCard = ({ title, desc, icon: Icon }: { title: string, desc: string,
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm"
+      className="p-6 rounded-xl bg-gradient-to-br from-card to-card/80 border border-border backdrop-blur-sm"
     >
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center text-primary"><Icon size={28} /></div>
+        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Icon size={28} /></div>
         <div>
-          <h4 className="font-semibold text-white">{title}</h4>
-          <p className="text-slate-300 text-sm mt-1">{desc}</p>
+          <h4 className="font-semibold text-foreground">{title}</h4>
+          <p className="text-muted-foreground text-sm mt-1">{desc}</p>
         </div>
       </div>
     </motion.div>
@@ -86,36 +86,36 @@ const UIShowcase = ({ title, badge }: { title: string, badge: string }) => {
       case 'Dashboard':
         return (
           <div className="p-2 space-y-1">
-            <div className="h-3 bg-slate-700/50 rounded w-1/2"></div>
+            <div className="h-3 bg-muted rounded w-1/2"></div>
             <div className="flex gap-1">
-              <div className="h-6 w-1/3 bg-slate-700/50 rounded"></div>
-              <div className="h-6 w-1/3 bg-slate-700/50 rounded"></div>
-              <div className="h-6 w-1/3 bg-slate-700/50 rounded"></div>
+              <div className="h-6 w-1/3 bg-muted rounded"></div>
+              <div className="h-6 w-1/3 bg-muted rounded"></div>
+              <div className="h-6 w-1/3 bg-muted rounded"></div>
             </div>
-            <div className="h-12 bg-slate-700/50 rounded-md flex items-end p-1 gap-0.5">
+            <div className="h-12 bg-muted rounded-md flex items-end p-1 gap-0.5">
                 <div className="w-1/4 h-1/2 bg-primary/40 rounded-t-sm"></div>
                 <div className="w-1/4 h-3/4 bg-primary/40 rounded-t-sm"></div>
                 <div className="w-1/4 h-1/3 bg-primary/40 rounded-t-sm"></div>
                 <div className="w-1/4 h-full bg-primary/40 rounded-t-sm"></div>
             </div>
-             <div className="h-8 bg-slate-700/50 rounded-md"></div>
+             <div className="h-8 bg-muted rounded-md"></div>
           </div>
         );
       case 'Cerebro':
         return (
            <div className="p-2 space-y-1">
-              <div className="h-3 bg-slate-700/50 rounded w-1/2"></div>
-              <div className="h-8 bg-slate-700/50 rounded-md flex items-center p-1 gap-1">
+              <div className="h-3 bg-muted rounded w-1/2"></div>
+              <div className="h-8 bg-muted rounded-md flex items-center p-1 gap-1">
                 <div className="h-full w-6 bg-primary/40 rounded"></div>
-                <div className="h-2/3 w-2/3 bg-slate-600/80 rounded-sm"></div>
+                <div className="h-2/3 w-2/3 bg-muted-foreground/20 rounded-sm"></div>
               </div>
-              <div className="h-8 bg-slate-700/50 rounded-md flex items-center p-1 gap-1">
+              <div className="h-8 bg-muted rounded-md flex items-center p-1 gap-1">
                 <div className="h-full w-6 bg-primary/40 rounded"></div>
-                <div className="h-2/3 w-1/2 bg-slate-600/80 rounded-sm"></div>
+                <div className="h-2/3 w-1/2 bg-muted-foreground/20 rounded-sm"></div>
               </div>
-              <div className="h-8 bg-slate-700/50 rounded-md flex items-center p-1 gap-1">
+              <div className="h-8 bg-muted rounded-md flex items-center p-1 gap-1">
                  <div className="h-full w-6 bg-primary/40 rounded"></div>
-                <div className="h-2/3 w-3/4 bg-slate-600/80 rounded-sm"></div>
+                <div className="h-2/3 w-3/4 bg-muted-foreground/20 rounded-sm"></div>
               </div>
           </div>
         );
@@ -123,24 +123,24 @@ const UIShowcase = ({ title, badge }: { title: string, badge: string }) => {
         return (
           <div className="p-2 space-y-1">
             <div className="flex justify-end"><div className="h-3 w-2/3 bg-primary/40 rounded-full"></div></div>
-            <div className="flex justify-start"><div className="h-3 w-1/2 bg-slate-700/80 rounded-full"></div></div>
-            <div className="flex justify-start"><div className="h-3 w-1/3 bg-slate-700/80 rounded-full"></div></div>
+            <div className="flex justify-start"><div className="h-3 w-1/2 bg-muted-foreground/30 rounded-full"></div></div>
+            <div className="flex justify-start"><div className="h-3 w-1/3 bg-muted-foreground/30 rounded-full"></div></div>
             <div className="flex justify-end"><div className="h-3 w-3/4 bg-primary/40 rounded-full"></div></div>
-            <div className="absolute bottom-2 left-2 right-2 h-4 bg-slate-800 rounded-full"></div>
+            <div className="absolute bottom-2 left-2 right-2 h-4 bg-muted rounded-full"></div>
           </div>
         );
       default:
-        return <p className="text-slate-400">Interfaz de {title}</p>;
+        return <p className="text-muted-foreground">Interfaz de {title}</p>;
     }
   };
   
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
+    <div className="p-4 rounded-xl bg-card border border-border backdrop-blur-sm">
       <div className="flex items-center justify-between">
-        <p className="font-semibold text-white">{title}</p>
-        <span className="text-xs px-2 py-1 rounded-md bg-white/10 text-white">{badge}</span>
+        <p className="font-semibold text-foreground">{title}</p>
+        <span className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground">{badge}</span>
       </div>
-      <div className="mt-4 h-36 rounded-lg border border-white/10 bg-gradient-to-b from-slate-900/60 to-slate-900/30 flex-col items-center justify-center text-slate-400 relative overflow-hidden">
+      <div className="mt-4 h-36 rounded-lg border border-border/50 bg-background/30 flex-col items-center justify-center text-muted-foreground relative overflow-hidden">
         {renderPreview()}
       </div>
     </div>
@@ -149,25 +149,25 @@ const UIShowcase = ({ title, badge }: { title: string, badge: string }) => {
 
 const PricingCard = ({ name, price, description, features, recommended, buttonText, buttonLink }: { name: string, price: string, description: string, features: string[], recommended?: boolean, buttonText: string, buttonLink: string }) => {
   return (
-    <div className={`p-6 rounded-xl border flex flex-col ${recommended ? "border-primary scale-[1.02] bg-gradient-to-br from-white/10 to-white/10 backdrop-blur-sm" : "border-white/10"}`}>
+    <div className={`p-6 rounded-xl border flex flex-col ${recommended ? "border-primary scale-[1.02] bg-card backdrop-blur-sm" : "border-border"}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-semibold text-white">{name}</p>
-          <p className="text-slate-300 text-sm mt-1">{price}</p>
+          <p className="font-semibold text-foreground">{name}</p>
+          <p className="text-muted-foreground text-sm mt-1">{price}</p>
         </div>
-        {recommended && <div className="text-xs px-3 py-1 rounded-full bg-primary text-white">Recomendado</div>}
+        {recommended && <div className="text-xs px-3 py-1 rounded-full bg-primary text-primary-foreground">Recomendado</div>}
       </div>
-      <p className="text-sm text-slate-400 mt-4 flex-grow">{description}</p>
-      <ul className="mt-4 text-slate-300 space-y-2">
+      <p className="text-sm text-muted-foreground mt-4 flex-grow">{description}</p>
+      <ul className="mt-4 text-muted-foreground space-y-2">
         {features.map((f, i) => (
           <li key={i} className="flex items-start gap-2">
             <CheckCircle className="h-4 w-4 text-green-400 mt-1 shrink-0" />
-            <span>{f}</span>
+            <span className="text-foreground">{f}</span>
           </li>
         ))}
       </ul>
       <div className="mt-6">
-        <Link href={buttonLink} className={`inline-block w-full text-center px-4 py-3 rounded-full ${recommended ? "bg-primary text-white" : "bg-white/10 text-white"}`}>{buttonText}</Link>
+        <Link href={buttonLink} className={`inline-block w-full text-center px-4 py-3 rounded-full ${recommended ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-primary/10"}`}>{buttonText}</Link>
       </div>
     </div>
   );
@@ -209,34 +209,34 @@ export default function MarketingHomePage() {
                 </Link>
                 <a
                     href="#features"
-                    className="inline-flex items-center gap-3 border border-slate-700 px-4 py-3 rounded-xl text-slate-200 hover:bg-white/5 transition"
+                    className="inline-flex items-center gap-3 border border-border px-4 py-3 rounded-xl text-foreground hover:bg-muted transition"
                 >
                     Ver funciones
                 </a>
                 </div>
 
                 <div className="mt-8 grid grid-cols-2 gap-4 max-w-sm">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10">
-                    <p className="text-xs text-slate-300">Asistentes Inteligentes</p>
-                    <p className="font-semibold text-white">Automatiza respuestas y ventas</p>
+                <div className="p-3 rounded-lg bg-card border border-border/80">
+                    <p className="text-xs text-muted-foreground">Asistentes Inteligentes</p>
+                    <p className="font-semibold text-foreground">Automatiza respuestas y ventas</p>
                 </div>
-                <div className="p-3 rounded-lg bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/10">
-                    <p className="text-xs text-slate-300">Integra con WhatsApp</p>
-                    <p className="font-semibold text-white">Atención 24/7</p>
+                <div className="p-3 rounded-lg bg-card border border-border/80">
+                    <p className="text-xs text-muted-foreground">Integra con WhatsApp</p>
+                    <p className="font-semibold text-foreground">Atención 24/7</p>
                 </div>
                 </div>
             </div>
 
-            <div className="relative">
+            <div className="relative hidden md:block">
                 <PhoneChatMockup />
-                <div className="absolute -top-8 -right-8 w-44 p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 hidden md:block">
-                    <p className="text-xs text-slate-300">Ventas hoy</p>
-                    <p className="font-bold text-white">$3,420</p>
+                <div className="absolute -top-8 -right-8 w-44 p-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border">
+                    <p className="text-xs text-muted-foreground">Ventas hoy</p>
+                    <p className="font-bold text-foreground">$3,420</p>
                 </div>
 
-                <div className="absolute -bottom-12 -left-8 w-48 p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 hidden md:block">
-                    <p className="text-xs text-slate-300">Clientes nuevos</p>
-                    <p className="font-bold text-white">+12</p>
+                <div className="absolute -bottom-12 -left-8 w-48 p-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border">
+                    <p className="text-xs text-muted-foreground">Clientes nuevos</p>
+                    <p className="font-bold text-foreground">+12</p>
                 </div>
             </div>
             </section>
@@ -264,23 +264,23 @@ export default function MarketingHomePage() {
                 </div>
 
                 <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
-                    <h4 className="font-semibold text-white">Panel de Control Centralizado</h4>
-                    <p className="text-slate-300 mt-2">Gestiona todos tus asistentes, bases de datos, planes y créditos desde una interfaz unificada e intuitiva.</p>
-                    <ul className="mt-4 space-y-2 text-slate-300">
-                        <li>• Vista general de consumo</li>
-                        <li>• Configuración detallada</li>
-                        <li>• Acceso a historial de chats</li>
+                    <div className="p-6 rounded-xl bg-card border border-border">
+                    <h4 className="font-semibold text-foreground">Panel de Control Centralizado</h4>
+                    <p className="text-muted-foreground mt-2">Gestiona todos tus asistentes, bases de datos, planes y créditos desde una interfaz unificada e intuitiva.</p>
+                    <ul className="mt-4 space-y-2 text-muted-foreground">
+                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Vista general de consumo</span></li>
+                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Configuración detallada</span></li>
+                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Acceso a historial de chats</span></li>
                     </ul>
                     </div>
 
-                    <div className="p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm">
-                    <h4 className="font-semibold text-white">Programa de Colaboradores</h4>
-                    <p className="text-slate-300 mt-2">Gana comisiones recurrentes recomendando Hey Manito a otros negocios. Te damos las herramientas para triunfar.</p>
-                    <ul className="mt-4 space-y-2 text-slate-300">
-                        <li>• Enlace de referido único</li>
-                        <li>• Panel de seguimiento de ganancias</li>
-                        <li>• Material de marketing</li>
+                    <div className="p-6 rounded-xl bg-card border border-border">
+                    <h4 className="font-semibold text-foreground">Programa de Colaboradores</h4>
+                    <p className="text-muted-foreground mt-2">Gana comisiones recurrentes recomendando Hey Manito a otros negocios. Te damos las herramientas para triunfar.</p>
+                    <ul className="mt-4 space-y-2 text-muted-foreground">
+                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Enlace de referido único</span></li>
+                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Panel de seguimiento de ganancias</span></li>
+                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Material de marketing</span></li>
                     </ul>
                     </div>
                 </div>
@@ -335,8 +335,8 @@ export default function MarketingHomePage() {
                 <p className="text-muted-foreground mt-2">Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.</p>
 
                 <div className="mt-6 flex items-center justify-center gap-4">
-                    <Link href="/begin" className="px-6 py-3 rounded-full bg-brand-gradient text-white font-medium">Crear mi Primer Asistente</Link>
-                    <Link href="#contact" className="px-6 py-3 rounded-full border border-white/10 text-white">Contactar</Link>
+                    <Link href="/begin" className="px-6 py-3 rounded-full bg-brand-gradient text-primary-foreground font-medium">Crear mi Primer Asistente</Link>
+                    <Link href="#contact" className="px-6 py-3 rounded-full border border-border text-foreground">Contactar</Link>
                 </div>
             </section>
         </main>
