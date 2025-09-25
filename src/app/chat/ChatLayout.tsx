@@ -20,8 +20,8 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // The individual chat view ([chatPath]) should not have the swipe/nav bar logic.
-  const isBaseChatView = menuItems.some(item => pathname === item.path) || pathname === '/chat';
+  // The individual chat view ([chatPath]) or the main landing page should not have the swipe/nav bar logic.
+  const isBaseChatView = menuItems.some(item => pathname === item.path);
 
 
   // State for swipe navigation
@@ -30,7 +30,6 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const touchStartY = React.useRef(0);
   const touchEndY = React.useRef(0);
   const swipeHandled = React.useRef(false);
-  const MIN_SWIPE_DISTANCE = 50;
 
   // State for page transition animation
   const [animationClass, setAnimationClass] = React.useState('');
@@ -48,26 +47,26 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 
       const direction = newIndex > currentIndex ? 'left' : 'right';
       setAnimationClass(direction === 'left' ? 'animate-page-out-left' : 'animate-page-out-right');
-
-      // Set the "in" animation for the *next* page render
-      const inClass = direction === 'left' ? 'animate-page-in-right' : 'animate-page-in-left';
-
-      // Allow the "out" animation to start before navigating
+      
+      // We'll set the *next* page's animation class in a way it can be picked up.
+      // This is tricky without a shared state manager just for animations.
+      // A simple approach is to use a very short timeout for navigation.
       setTimeout(() => {
-          // Set a temporary state or use another mechanism if needed
-          // For now, we'll rely on the useEffect for the new page to pick up its "in" animation
           router.push(newPath);
       }, 150); // Match animation duration
+
   }, [pathname, router]);
   
   React.useEffect(() => {
     // This effect runs when the page component mounts.
-    // We apply an 'in' animation.
-    setAnimationClass('animate-fadeIn');
+    // We apply an 'in' animation. The direction depends on the previous action.
+    const lastDirection = animationClass.includes('left') ? 'left' : 'right';
+    const inClass = lastDirection === 'left' ? 'animate-page-in-right' : 'animate-page-in-left';
+    setAnimationClass(inClass);
 
     const timer = setTimeout(() => setAnimationClass(''), 300); // Animation duration
     return () => clearTimeout(timer);
-}, [pathname]);
+}, [pathname]); // Re-run this effect on every route change within the layout
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -88,7 +87,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       const deltaY = touchEndY.current - touchStartY.current;
 
       // Ensure it's a horizontal swipe and not a vertical scroll or small tap
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > MIN_SWIPE_DISTANCE) {
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
           const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
           if (currentIndex === -1) return;
 
