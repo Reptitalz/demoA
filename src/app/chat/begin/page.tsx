@@ -105,8 +105,8 @@ const BeginPage = () => {
                     </p>
                  </div>
             </div>
-            <div className="w-full p-4 border-t border-border bg-card/80 backdrop-blur-sm">
-                <div className="flex justify-between items-center">
+            <div className="fixed bottom-0 left-0 right-0 w-full p-4 border-t border-border bg-card/80 backdrop-blur-sm z-10">
+                <div className="flex justify-between items-center max-w-lg mx-auto">
                     <div className="text-sm text-muted-foreground">Paso 1 de 2</div>
                      <Button size="lg" onClick={() => setStep(2)}>
                         Siguiente <ArrowRight className="ml-2" />
