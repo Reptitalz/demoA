@@ -126,7 +126,7 @@ const BeginPage = () => {
         if (step === 2) {
              return (
                 <>
-                    <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
+                    <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 50]}
                             max={100}
@@ -137,7 +137,7 @@ const BeginPage = () => {
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 2</p>
                     </div>
                     <div className="animate-fadeIn w-full flex-grow flex flex-col">
-                        <div className="text-center mb-4">
+                        <div className="text-center mb-6">
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                                 ¿Quieres tener tu primer asistente?
                             </h1>
@@ -146,67 +146,65 @@ const BeginPage = () => {
                             </p>
                         </div>
 
-                        <div className="w-full max-w-sm md:max-w-md mx-auto">
-                            <div className="flex justify-center mb-6 space-x-2">
-                                {cards.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => scrollToCard(index)}
+                        <div className="flex justify-center mb-6 space-x-2">
+                            {cards.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => scrollToCard(index)}
+                                    className={cn(
+                                        "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                                        activeIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/30"
+                                    )}
+                                    aria-label={`Ir a la tarjeta ${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                        <div 
+                            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+                            ref={scrollContainerRef}
+                            onScroll={handleScroll}
+                        >
+                            {cards.map((card, index) => (
+                                <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                                    <Card 
+                                        onClick={() => handleSelectOption(card.type)}
                                         className={cn(
-                                            "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                                            activeIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/30"
+                                            "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
+                                            "glow-card"
                                         )}
-                                        aria-label={`Ir a la tarjeta ${index + 1}`}
-                                    />
-                                ))}
-                            </div>
-                            <div 
-                                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-                                ref={scrollContainerRef}
-                                onScroll={handleScroll}
-                            >
-                                {cards.map((card, index) => (
-                                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                                        <Card 
-                                            onClick={() => handleSelectOption(card.type)}
-                                            className={cn(
-                                                "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
-                                                "glow-card"
-                                            )}
-                                        >
-                                            <CardHeader className="p-0">
-                                                <div className="relative aspect-video w-full">
-                                                    <Image
-                                                        src={card.image}
-                                                        alt={card.title}
-                                                        layout="fill"
-                                                        className="object-cover"
-                                                        data-ai-hint={card.imageHint}
-                                                    />
-                                                    <div className={cn(
-                                                        "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6",
-                                                        card.badgeColor === 'primary' ? 'bg-primary' : `bg-gradient-to-r ${card.badgeColor}`
-                                                    )}>
-                                                        {card.badge}
-                                                    </div>
+                                    >
+                                        <CardHeader className="p-0">
+                                            <div className="relative aspect-video w-full">
+                                                <Image
+                                                    src={card.image}
+                                                    alt={card.title}
+                                                    layout="fill"
+                                                    className="object-cover"
+                                                    data-ai-hint={card.imageHint}
+                                                />
+                                                <div className={cn(
+                                                    "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6",
+                                                    card.badgeColor === 'primary' ? 'bg-primary' : `bg-gradient-to-r ${card.badgeColor}`
+                                                )}>
+                                                    {card.badge}
                                                 </div>
-                                            </CardHeader>
-                                            <CardContent className="p-6 text-center">
-                                                <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
-                                                <CardDescription className="mb-4 text-sm">{card.description}</CardDescription>
-                                                <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
-                                                    {card.features.map((feature, i) => (
-                                                        <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
-                                                    ))}
-                                                </ul>
-                                                <Button size="lg" className="w-full font-bold">
-                                                    {card.buttonText} <ArrowRight className="ml-2" size={16}/>
-                                                </Button>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                ))}
-                            </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="p-6 text-center">
+                                            <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
+                                            <CardDescription className="mb-4 text-sm">{card.description}</CardDescription>
+                                            <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+                                                {card.features.map((feature, i) => (
+                                                    <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
+                                                ))}
+                                            </ul>
+                                            <Button size="lg" className="w-full font-bold">
+                                                {card.buttonText} <ArrowRight className="ml-2" size={16}/>
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </>
@@ -217,7 +215,7 @@ const BeginPage = () => {
 
     return (
         <>
-        <PageContainer className="flex flex-col h-full items-center p-0 sm:p-6 sm:pt-8 sm:pb-24">
+        <PageContainer className="flex flex-col h-full items-center p-0 sm:p-6 sm:pt-8 sm:pb-24 overflow-y-auto">
             
             {renderStepContent()}
 
