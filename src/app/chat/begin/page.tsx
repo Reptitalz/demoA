@@ -433,7 +433,7 @@ const BeginPage = () => {
                             <div className="flex-grow">
                                 <div className="flex items-center gap-1.5">
                                   <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
-                                   {wizardAccountType === 'business' && (
+                                   {accountType === 'business' && (
                                      <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
@@ -534,7 +534,13 @@ const BeginPage = () => {
                         disabled={!isStepValid(step)}
                         className="bg-brand-gradient text-primary-foreground hover:opacity-90"
                     >
-                        {step === 5 ? "Finalizar" : "Siguiente"} <ArrowRight className="ml-2" />
+                        {step === 5 ? (
+                            <>
+                                <FcGoogle className="mr-2" /> Iniciar con Google
+                            </>
+                        ) : (
+                           <> Siguiente <ArrowRight className="ml-2" /> </>
+                        )}
                     </Button>
                 </div>
             </div>
@@ -545,3 +551,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
