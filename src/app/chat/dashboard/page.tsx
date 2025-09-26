@@ -1,3 +1,4 @@
+
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -34,9 +35,7 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
         badgeText = "Prueba Finalizada";
         badgeVariant = "destructive";
     } else if (isTrialActive) {
-        badgeText = "Prueba Gratuita";
-        badgeVariant = "default";
-        Icon = Crown;
+        return null; // Don't show the badge during the free trial
     } else if (assistant.isPlanActive) {
         badgeText = "Plan Activo";
         badgeVariant = "default";
@@ -122,7 +121,7 @@ const ChatListPage = () => {
           {availableChats.length > 0 ? availableChats.map((chat) => (
             <Link key={chat.id} href={`/chat/${chat.chatPath}`} legacyBehavior>
                 <Card className="cursor-pointer glow-card hover:shadow-primary/10">
-                    <CardContent className="p-2 flex items-center gap-3">
+                    <CardContent className="p-3 flex items-center gap-4">
                          <motion.div
                             animate={{ y: [-1, 1, -1] }}
                             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
