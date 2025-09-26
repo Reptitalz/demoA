@@ -142,7 +142,7 @@ const BeginPage = () => {
                                 ¿Quieres tener tu primer asistente?
                             </h1>
                             <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground">
-                                Comienza con una prueba gratuita en el navegador o ve directamente a la automatización de WhatsApp.
+                                Elige una opción para crear un asistente que responda a tus clientes de manera inteligente, 24/7, y automatice tus ventas.
                             </p>
                         </div>
 
