@@ -81,7 +81,7 @@ const BeginPage = () => {
         {
             type: 'me',
             icon: User,
-            title: 'Yo seré el Asistente',
+            title: 'Yo responderé solamente',
             description: 'Tú responderás personalmente a todos los mensajes en tu chat.',
             badge: false,
         },
