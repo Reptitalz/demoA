@@ -28,41 +28,29 @@ const DynamicCanvasBackground: React.FC = () => {
     ctx.scale(dpr, dpr);
     
     const { clientWidth: w, clientHeight: h } = canvas;
-    const isDark = resolvedTheme === 'dark';
 
     // Theme-aware gradient backdrop
     const g = ctx.createLinearGradient(0, 0, w, h);
-    if (isDark) {
-        // Lighter, more transparent gradient for dark mode
-        g.addColorStop(0, "rgba(20, 22, 45, 0.85)");
-        g.addColorStop(1, "rgba(15, 18, 35, 0.8)");
-    } else {
-        g.addColorStop(0, "rgba(240, 245, 255, 0.9)");
-        g.addColorStop(1, "rgba(230, 235, 250, 0.75)");
-    }
+    g.addColorStop(0, "rgba(240, 245, 255, 0.9)");
+    g.addColorStop(1, "rgba(230, 235, 250, 0.75)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
     const rand = (min: number, max: number) => Math.random() * (max - min) + min;
-    const numberOfParticles = Math.floor((w * h) / (isDark ? 25000 : 35000)); 
+    const numberOfParticles = Math.floor((w * h) / 35000); 
 
-    // Draw static particles with theme-aware colors
+    // Draw static particles with light theme colors
     for (let i = 0; i < numberOfParticles; i++) {
         const p = {
             x: rand(0, w),
             y: rand(0, h),
-            radius: rand(6, isDark ? 20 : 15),
-            hue: rand(isDark ? 180 : 200, isDark ? 280 : 260),
-            alpha: rand(isDark ? 0.15 : 0.2, isDark ? 0.45 : 0.5),
+            radius: rand(6, 15),
+            hue: rand(200, 260),
+            alpha: rand(0.2, 0.5),
         };
         const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius * 2);
-        if (isDark) {
-            grd.addColorStop(0, `hsla(${p.hue},80%,60%,${p.alpha})`);
-            grd.addColorStop(0.4, `hsla(${(p.hue + 60) % 360},70%,40%,${p.alpha * 0.6})`);
-        } else {
-            grd.addColorStop(0, `hsla(${p.hue},80%,70%,${p.alpha})`);
-            grd.addColorStop(0.4, `hsla(${(p.hue + 40) % 360},70%,60%,${p.alpha * 0.5})`);
-        }
+        grd.addColorStop(0, `hsla(${p.hue},80%,70%,${p.alpha})`);
+        grd.addColorStop(0.4, `hsla(${(p.hue + 40) % 360},70%,60%,${p.alpha * 0.5})`);
         grd.addColorStop(1, `rgba(0,0,0,0)`);
         ctx.beginPath();
         ctx.fillStyle = grd;
@@ -70,9 +58,9 @@ const DynamicCanvasBackground: React.FC = () => {
         ctx.fill();
     }
     
-    // Draw static grid with theme-aware colors
+    // Draw static grid with light theme colors
     const gridSize = 48;
-    ctx.strokeStyle = isDark ? "hsla(0, 0%, 100%, 0.06)" : "hsla(220, 40%, 50%, 0.08)";
+    ctx.strokeStyle = "hsla(220, 40%, 50%, 0.08)";
     ctx.lineWidth = 0.5;
     for (let x = 0; x < w; x += gridSize) {
         ctx.beginPath();
@@ -87,7 +75,7 @@ const DynamicCanvasBackground: React.FC = () => {
         ctx.stroke();
     }
 
-  }, [resolvedTheme]);
+  }, []);
 
   useEffect(() => {
     drawScene();
@@ -95,7 +83,7 @@ const DynamicCanvasBackground: React.FC = () => {
     return () => {
       window.removeEventListener('resize', drawScene);
     };
-  }, [drawScene, resolvedTheme]);
+  }, [drawScene]);
 
   return (
     <canvas

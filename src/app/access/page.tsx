@@ -70,8 +70,6 @@ export default function AccessPage(): JSX.Element {
   }, [isInstallable, deferredInstallPrompt, toast]);
 
   const drawIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
-      const isDark = resolvedTheme === 'dark';
-      
       // Create a glow effect
       const glow = ctx.createRadialGradient(x, y, size * 0.4, x, y, size * 0.7);
       glow.addColorStop(0, 'hsla(var(--primary), 0.3)');
@@ -80,17 +78,17 @@ export default function AccessPage(): JSX.Element {
       ctx.fillRect(x - size, y - size, size * 2, size * 2);
 
       // Draw main body (simulating AppIcon)
-      ctx.fillStyle = isDark ? 'white' : 'hsl(var(--primary))';
+      ctx.fillStyle = 'hsl(var(--primary))';
       ctx.beginPath();
       ctx.roundRect(x - size/2, y - size/2, size, size, size * 0.2);
       ctx.fill();
 
       // Simple "H"
-      ctx.fillStyle = isDark ? 'hsl(var(--primary))' : 'white';
+      ctx.fillStyle = 'white';
       ctx.fillRect(x - size/4, y - size/4, size/6, size/2);
       ctx.fillRect(x + size/12, y - size/4, size/6, size/2);
       ctx.fillRect(x - size/4, y - size/12, size/2, size/6);
-  }, [resolvedTheme]);
+  }, []);
 
 
   useEffect(() => {
@@ -114,15 +112,15 @@ export default function AccessPage(): JSX.Element {
 
       ctx.clearRect(0, 0, w, h);
 
-      // Background gradient
+      // Background gradient (always light)
       const bg = ctx.createLinearGradient(0, 0, w, h);
-      bg.addColorStop(0, '#040811');
-      bg.addColorStop(1, '#081021');
+      bg.addColorStop(0, '#f0f5ff'); // Light blue start
+      bg.addColorStop(1, '#e6ebfa'); // Light blue end
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
       // Draw subtle grid
-      ctx.strokeStyle = 'hsla(var(--primary), 0.05)';
+      ctx.strokeStyle = 'hsla(var(--primary), 0.1)';
       ctx.lineWidth = 0.5;
       for (let i = 0; i < w; i += 40) {
         ctx.beginPath();
@@ -252,5 +250,3 @@ export default function AccessPage(): JSX.Element {
     </div>
   );
 }
-
-    
