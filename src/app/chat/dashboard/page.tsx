@@ -5,14 +5,14 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Bot, User, MessageSquarePlus, Trash2, XCircle } from 'lucide-react';
+import { Search, Bot, User, MessageSquarePlus, Trash2, XCircle, HardDrive } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import type { AssistantConfig } from '@/types';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,8 +39,9 @@ const ChatListPage = () => {
   const { userProfile } = state;
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
-  const [activeSwipeId, setActiveSwipeId] = useState<string | null>(null);
-  const dragConstraints = { left: -160, right: 0 };
+  
+  const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
+
   const isDragging = useRef(false);
 
   let availableChats = userProfile.assistants.filter(assistant => 
@@ -99,13 +100,15 @@ const ChatListPage = () => {
       <ScrollArea className="flex-grow">
         <div className="p-2 space-y-2">
           {availableChats.length > 0 ? availableChats.map((chat) => {
-            const isSwiped = activeSwipeId === chat.id;
+            const isLeftSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'left';
+            const isRightSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'right';
+            
             return (
-            <div key={chat.id} className="relative rounded-lg overflow-hidden">
+            <div key={chat.id} className="relative rounded-lg overflow-hidden bg-muted/30">
                 <AnimatePresence>
-                    {isSwiped && (
+                    {isLeftSwiped && (
                          <motion.div
-                            key="actions"
+                            key="actions-left"
                             initial={{ opacity: 0, x: 50 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 50 }}
@@ -122,23 +125,39 @@ const ChatListPage = () => {
                             </Button>
                         </motion.div>
                     )}
+                    {isRightSwiped && (
+                         <motion.div
+                            key="actions-right"
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-y-0 left-0 flex items-center"
+                        >
+                            <Button variant="ghost" className="h-full w-28 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none">
+                                <HardDrive size={20}/>
+                                <span className="text-xs mt-1">Memoria</span>
+                                <span className="text-[10px] font-bold">{formatBytes(123456)}</span>
+                            </Button>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
                  <motion.div
                     drag="x"
-                    dragConstraints={dragConstraints}
-                    onDragStart={() => {
-                        isDragging.current = true;
-                    }}
+                    dragConstraints={{ left: -160, right: 112 }}
+                    onDragStart={() => { isDragging.current = true; }}
                     onDragEnd={(event, info) => {
-                        setTimeout(() => {
-                            isDragging.current = false;
-                        }, 100);
+                        setTimeout(() => { isDragging.current = false; }, 100);
 
-                        const isSwipe = Math.abs(info.offset.x) > 50;
-                        if (isSwipe && info.offset.x < 0) {
-                            setActiveSwipeId(chat.id);
+                        const isSwipeLeft = info.offset.x < -50;
+                        const isSwipeRight = info.offset.x > 50;
+
+                        if (isSwipeLeft) {
+                            setActiveSwipe({ id: chat.id, direction: 'left' });
+                        } else if (isSwipeRight) {
+                            setActiveSwipe({ id: chat.id, direction: 'right' });
                         } else {
-                            setActiveSwipeId(null);
+                            setActiveSwipe(null);
                         }
                     }}
                     onClick={() => {
@@ -146,7 +165,9 @@ const ChatListPage = () => {
                             router.push(`/chat/${chat.chatPath}`);
                         }
                     }}
-                    animate={{ x: isSwiped ? dragConstraints.left : 0 }}
+                    animate={{ 
+                        x: isLeftSwiped ? -160 : isRightSwiped ? 112 : 0 
+                    }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative z-10 cursor-grab active:cursor-grabbing"
                 >
