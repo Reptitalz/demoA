@@ -5,12 +5,12 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { FaWhatsapp, FaCheckCircle } from 'react-icons/fa';
+import { FaWhatsapp } from 'react-icons/fa';
 import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import AppIcon from '@/components/shared/AppIcon';
@@ -218,7 +218,7 @@ const BeginPage = () => {
                                                         </div>
                                                         {card.badge && (
                                                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                                                                <FaCheckCircle className="mr-1.5 h-3 w-3"/>
+                                                                <Award className="mr-1.5 h-3 w-3"/>
                                                                 Verificado
                                                             </Badge>
                                                         )}
@@ -358,3 +358,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
