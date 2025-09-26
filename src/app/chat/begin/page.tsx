@@ -339,12 +339,12 @@ const BeginPage = () => {
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
                     <div className="animate-fadeIn w-full flex-grow flex flex-col">
-                        <div className="text-center mb-6">
+                        <div className="text-center mb-6 px-4">
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                                 ¿Quieres tener tu primer asistente?
                             </h1>
                             <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground">
-                                Elige una opción para crear un asistente que responda a tus clientes de manera inteligente, 24/7, y automatice tus ventas.
+                                Crea un asistente para responder a tus clientes de manera inteligente, 24/7, y automatizar tus ventas.
                             </p>
                         </div>
 
@@ -447,5 +447,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
