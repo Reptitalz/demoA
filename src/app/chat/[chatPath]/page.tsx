@@ -14,10 +14,12 @@ import { AssistantConfig, ChatMessage } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
-import { Paperclip } from 'lucide-react';
+import { Paperclip, User } from 'lucide-react';
 import Image from 'next/image';
 import BusinessInfoSheet from '@/components/chat/BusinessInfoSheet';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { useApp } from '@/providers/AppProvider';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -122,6 +124,7 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
 
 const DesktopChatPage = () => {
   const params = useParams();
+  const { state } = useApp();
   const { toast } = useToast();
   const chatPath = params.chatPath as string;
   const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
@@ -415,10 +418,24 @@ const DesktopChatPage = () => {
               </Button>
               <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50">
                   <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-                  <AvatarFallback>{assistant?.name?.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <User />}</AvatarFallback>
               </Avatar>
-              <div>
-                <h3 className="font-semibold text-base">{assistant?.name || 'Asistente'}</h3>
+              <div className="overflow-hidden">
+                <div className="flex items-center gap-1.5">
+                    <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
+                    {state.userProfile.accountType === 'business' && (
+                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                            </svg>
+                        </Badge>
+                    )}
+                    {assistant?.isActive && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+                    )}
+                </div>
                 <p className="text-xs opacity-80">{error ? 'no disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
               </div>
             </header>
