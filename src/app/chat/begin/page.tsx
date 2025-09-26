@@ -29,7 +29,7 @@ const BeginPage = () => {
     const router = useRouter();
 
     const [accountType, setAccountType] = useState<'business' | 'personal'>('business');
-    const [chatMode, setChatMode] = useState<'me' | 'ia' | 'separate'>('ia');
+    const [chatMode, setChatMode] = useState<'me' | 'ia'>('ia');
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
@@ -80,13 +80,6 @@ const BeginPage = () => {
             description: 'Tú responderás personalmente a todos los mensajes en tu chat.',
             badge: false,
         },
-        {
-            type: 'separate',
-            icon: UserPlus,
-            title: 'Crear un Asistente Aparte',
-            description: 'Mantén tu chat personal y crea un asistente separado con su propio chat.',
-            badge: true,
-        }
     ];
     
     useEffect(() => {
@@ -112,7 +105,7 @@ const BeginPage = () => {
                 const scrollLeft = chatModeScrollRef.current.scrollLeft;
                 const cardWidth = chatModeScrollRef.current.offsetWidth;
                 const newIndex = Math.round(scrollLeft / cardWidth);
-                setChatMode(chatModeCards[newIndex].type as 'me' | 'ia' | 'separate');
+                setChatMode(chatModeCards[newIndex].type as 'me' | 'ia');
             }
         };
 
@@ -146,7 +139,7 @@ const BeginPage = () => {
     const renderStepContent = () => {
         if (step === 1) {
             return (
-                <>
+                <div className="flex-grow flex flex-col items-center p-4 text-center animate-fadeIn">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
                             value={[step * 25]}
@@ -168,12 +161,12 @@ const BeginPage = () => {
                             </p>
                         </div>
                     </div>
-                </>
+                </div>
             )
         }
         if (step === 2) {
             return (
-                <>
+                <div className="flex-grow flex flex-col items-center animate-fadeIn w-full">
                      <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
                             value={[step * 25]}
@@ -187,12 +180,12 @@ const BeginPage = () => {
                      <div className="animate-fadeIn w-full flex flex-col items-center">
                        <Step2_UserDetails />
                     </div>
-                </>
+                </div>
             );
         }
         if (step === 3) {
             return (
-                <>
+                <div className="flex-grow flex flex-col items-center animate-fadeIn w-full">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 25]}
@@ -319,12 +312,12 @@ const BeginPage = () => {
                             </div>
                         </motion.div>
                     </div>
-                </>
+                </div>
             );
         }
         if (step === 4) {
              return (
-                <>
+                <div className="flex-grow flex flex-col items-center animate-fadeIn w-full">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 25]}
@@ -440,7 +433,7 @@ const BeginPage = () => {
                             </div>
                         </motion.div>
                     </div>
-                </>
+                </div>
             );
         }
         return null;
