@@ -173,7 +173,7 @@ const BeginPage = () => {
                             value={[step * 20]}
                             max={100}
                             step={20}
-                            className="[&>span:first-child]:bg-transparent"
+                            className="[&>span:first-child]:bg-transparent h-2"
                             disabled
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
