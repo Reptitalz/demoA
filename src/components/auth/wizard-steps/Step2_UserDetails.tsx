@@ -57,17 +57,22 @@ const Step2_UserDetails = () => {
       </div>
 
       <div className="space-y-6">
-         <div className="flex flex-col items-center gap-4">
-            <Avatar className="h-24 w-24 border-4 border-primary/20 shadow-lg">
-                <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
-                <AvatarFallback className="text-3xl bg-muted">
-                    {firstName ? firstName.charAt(0) : <User />}
-                </AvatarFallback>
-            </Avatar>
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <ImageIcon className="mr-2 h-4 w-4"/>
-                Cambiar Foto
-            </Button>
+        <div className="flex items-center gap-4">
+            <div 
+                className="relative cursor-pointer group"
+                onClick={() => fileInputRef.current?.click()}
+            >
+                <Avatar className="h-20 w-20 border-4 border-primary/20 shadow-lg">
+                    <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
+                    <AvatarFallback className="text-3xl bg-muted">
+                        {firstName ? firstName.charAt(0) : <User />}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ImageIcon className="text-white h-8 w-8" />
+                </div>
+            </div>
+            
             <Input 
                 id="user-image"
                 type="file"
@@ -76,21 +81,21 @@ const Step2_UserDetails = () => {
                 accept="image/png, image/jpeg, image/webp"
                 onChange={handleImageChange}
             />
-         </div>
          
-        <div className="space-y-2">
-          <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-2">
-            <User className="h-4 w-4" /> Nombre de Usuario
-          </Label>
-          <Input
-            id="firstName"
-            name="firstName"
-            placeholder="Tu nombre de usuario"
-            value={firstName}
-            onChange={handleInputChange}
-            aria-required="true"
-            className="py-6"
-          />
+            <div className="space-y-2 flex-grow">
+                <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-2">
+                    <User className="h-4 w-4" /> Nombre de Usuario
+                </Label>
+                <Input
+                    id="firstName"
+                    name="firstName"
+                    placeholder="Tu nombre de usuario"
+                    value={firstName}
+                    onChange={handleInputChange}
+                    aria-required="true"
+                    className="py-6"
+                />
+            </div>
         </div>
       </div>
     </div>
