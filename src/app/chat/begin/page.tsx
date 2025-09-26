@@ -5,17 +5,18 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp, FaCheckCircle } from 'react-icons/fa';
 import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import { Slider } from '@/components/ui/slider';
 import Step2_UserDetails from '@/components/auth/wizard-steps/Step2_UserDetails';
+import { Badge } from '@/components/ui/badge';
 
 const BeginPage = () => {
     const { state, dispatch } = useApp();
@@ -72,9 +73,26 @@ const BeginPage = () => {
         }
     ];
 
+    const accountTypeCards = [
+        {
+            type: 'business',
+            icon: Building,
+            title: 'Cuenta de Negocio',
+            description: 'Accede a funciones avanzadas, gestión de equipos y soporte prioritario.',
+            badge: true,
+        },
+        {
+            type: 'personal',
+            icon: User,
+            title: 'Cuenta Personal',
+            description: 'Ideal para probar la plataforma, proyectos personales y uso individual.',
+            badge: false,
+        },
+    ];
+
     const isStepValid = (currentStep: number) => {
       if (currentStep === 2) {
-        return firstName.trim() !== '' && lastName.trim() !== '';
+        return firstName.trim() !== '';
       }
       return true; // Other steps are implicitly valid or handled by button disabled state
     }
@@ -94,13 +112,13 @@ const BeginPage = () => {
                 <>
                     <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
-                            value={[step * 33.3]}
+                            value={[step * 25]}
                             max={100}
-                            step={33.3}
+                            step={25}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 3</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-4 text-center animate-fadeIn">
                         <div className="w-full max-w-2xl">
@@ -121,13 +139,13 @@ const BeginPage = () => {
                 <>
                      <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
-                            value={[step * 33.3]}
+                            value={[step * 25]}
                             max={100}
-                            step={33.3}
+                            step={25}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 3</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
                      <div className="animate-fadeIn w-full flex-grow flex flex-col items-center justify-center">
                        <Step2_UserDetails />
@@ -136,17 +154,80 @@ const BeginPage = () => {
             );
         }
         if (step === 3) {
+            return (
+                <>
+                    <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
+                        <Slider
+                            value={[step * 25]}
+                            max={100}
+                            step={25}
+                            className="[&>span:first-child]:bg-transparent"
+                            disabled
+                        />
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
+                    </div>
+                    <div className="animate-fadeIn w-full flex-grow flex flex-col items-center justify-center">
+                         <div className="text-center mb-6">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+                                ¿Eres un usuario o un negocio?
+                            </h1>
+                            <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground">
+                                Elige el tipo de cuenta que mejor se adapte a tus necesidades.
+                            </p>
+                        </div>
+                        <div className="w-full max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {accountTypeCards.map((card, index) => {
+                                    const Icon = card.icon;
+                                    return (
+                                        <Card 
+                                            key={index}
+                                            onClick={() => {
+                                                // Placeholder for future logic
+                                            }}
+                                            className={cn(
+                                                "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
+                                                "glow-card"
+                                            )}
+                                        >
+                                            <CardHeader className="p-6 pb-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="p-3 bg-primary/10 rounded-full">
+                                                        <Icon className="h-6 w-6 text-primary"/>
+                                                    </div>
+                                                    {card.badge && (
+                                                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+                                                            <FaCheckCircle className="mr-1.5 h-3 w-3"/>
+                                                            Verificado
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="p-6 pt-0">
+                                                <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
+                                                <CardDescription className="text-sm">{card.description}</CardDescription>
+                                            </CardContent>
+                                        </Card>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+        if (step === 4) {
              return (
                 <>
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
-                            value={[step * 33.3]}
+                            value={[step * 25]}
                             max={100}
-                            step={33.3}
+                            step={25}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 3</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
                     <div className="animate-fadeIn w-full flex-grow flex flex-col">
                         <div className="text-center mb-6">
@@ -223,7 +304,7 @@ const BeginPage = () => {
                     <Button 
                         size="lg" 
                         onClick={handleNext} 
-                        disabled={step === 3 || !isStepValid(step)}
+                        disabled={step === 4 || !isStepValid(step)}
                         className="bg-brand-gradient text-primary-foreground hover:opacity-90"
                     >
                         Siguiente <ArrowRight className="ml-2" />
@@ -237,3 +318,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
