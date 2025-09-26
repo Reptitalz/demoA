@@ -137,7 +137,7 @@ const BeginPage = () => {
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 2</p>
                     </div>
                     <div className="animate-fadeIn w-full flex-grow flex flex-col">
-                        <div className="text-center mb-8">
+                        <div className="text-center mb-4">
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                                 ¿Quieres tener tu primer asistente?
                             </h1>
@@ -147,7 +147,7 @@ const BeginPage = () => {
                         </div>
 
                         <div className="w-full max-w-sm md:max-w-md mx-auto">
-                            <div className="flex justify-center mb-4 space-x-2">
+                            <div className="flex justify-center mb-6 space-x-2">
                                 {cards.map((_, index) => (
                                     <button
                                         key={index}
