@@ -436,7 +436,7 @@ const DesktopChatPage = () => {
                         <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                     )}
                 </div>
-                <p className="text-xs opacity-80">{error ? 'no disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
+                <p className="text-xs opacity-80">{error ? 'No disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
               </div>
             </header>
             <main className="flex-1 p-4 overflow-y-auto">
