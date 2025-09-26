@@ -115,7 +115,7 @@ const BeginPage = () => {
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
                                 ¿Qué es Hey Manito?
                             </h1>
-                            <p className="text-muted-foreground">
+                            <p className="text-muted-foreground text-sm">
                                 Es una plataforma para crear asistentes de IA para tu negocio. Automatiza ventas, da soporte y gestiona clientes en WhatsApp o en una página web.
                             </p>
                         </div>
