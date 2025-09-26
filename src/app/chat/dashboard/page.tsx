@@ -26,13 +26,13 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
     const isTrialActive = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
     const isTrialExpired = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
 
-    let badgeText = "Inactivo";
-    let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let Icon = null;
-
     if (isTrialActive) {
         return null; // Don't show any badge during free trial
     }
+
+    let badgeText = "Inactivo";
+    let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+    let Icon = null;
 
     if (isTrialExpired && !assistant.isPlanActive) {
         badgeText = "Prueba Finalizada";
@@ -53,6 +53,9 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
     if (badgeText === 'Inactivo' && assistant.type === 'desktop' && !assistant.isFirstDesktopAssistant && !assistant.isPlanActive) {
         return null; // Don't show inactive badge for non-trial desktop assistants without a plan
     }
+    
+    // Don't render if it's just the default "Activo" badge, as the "IA" badge will cover this.
+    if (badgeText === "Activo") return null;
 
     return (
         <Badge variant={badgeVariant} className={cn("text-[10px] h-4", badgeVariant === 'default' && 'bg-primary/80')}>
@@ -146,6 +149,9 @@ const ChatListPage = () => {
                                                 <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
                                             </svg>
                                         </Badge>
+                                      )}
+                                      {chat.isActive && (
+                                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                                       )}
                                 </div>
                                 <AssistantStatusBadge assistant={chat} />
