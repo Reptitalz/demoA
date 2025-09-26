@@ -1,4 +1,3 @@
-
 // src/app/chat/admin/page.tsx
 "use client";
 
@@ -6,68 +5,108 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import AppIcon from '@/components/shared/AppIcon';
+import { Search, Settings, User } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
+import { Card, CardContent } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+
+// Demo data for admin chat trays
+const demoAdminChats = [
+    {
+        id: 'user-1',
+        name: 'Cliente A - Asistente de Ventas',
+        status: 'en línea',
+        lastMessage: 'Sí, me gustaría confirmar el pedido.',
+        timestamp: 'Ahora',
+        avatarUrl: 'https://i.imgur.com/8p8Yf9u.png'
+    },
+    {
+        id: 'user-2',
+        name: 'Usuario B - Asistente de Soporte',
+        status: 'en línea',
+        lastMessage: 'Gracias por la ayuda, se ha solucionado.',
+        timestamp: 'Hace 5m',
+        avatarUrl: 'https://i.imgur.com/8p8Yf9u.png'
+    },
+];
 
 const AdminChatInterface = () => {
-  const [messages, setMessages] = useState([
-    {
-      role: 'system',
-      content: 'Esta es una interfaz de chat para la sección de administración. Puedes modificarla para añadir nuevas funciones.'
-    }
-  ]);
-  const [input, setInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    // Lógica para manejar el mensaje enviado
-    console.log("Admin message sent:", input);
-    setInput('');
-  };
+  const filteredChats = demoAdminChats.filter(chat =>
+    chat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      <header className="p-4 border-b bg-card/80 backdrop-blur-sm flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Settings className="h-6 w-6 text-primary" />
+      <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Settings className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+              <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
+              <p className="text-sm text-muted-foreground">Supervisión de Chats</p>
+          </div>
         </div>
-        <div>
-            <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-            <p className="text-sm text-muted-foreground">Panel de control de chat</p>
+        <div className="relative mt-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por cliente o asistente..."
+              className="pl-10 bg-background/50"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
         </div>
       </header>
 
-      <ScrollArea className="flex-grow p-4">
-        <div className="space-y-4">
-          {messages.map((msg, index) => (
-            <div key={index} className="flex items-start gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback><AppIcon/></AvatarFallback>
-              </Avatar>
-              <div className="bg-card p-3 rounded-lg max-w-lg">
-                <p className="text-sm">{msg.content}</p>
-              </div>
+      <ScrollArea className="flex-grow">
+         <div className="p-2 space-y-2">
+          {filteredChats.length > 0 ? filteredChats.map((chat) => (
+            <Link key={chat.id} href="#" legacyBehavior>
+                <Card className="cursor-pointer glow-card hover:shadow-primary/10">
+                    <CardContent className="p-3 flex items-center gap-3">
+                         <motion.div
+                            animate={{ y: [-1, 1, -1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                         >
+                            <Avatar className="h-12 w-12 border-2 border-primary/30">
+                                <AvatarImage src={chat.avatarUrl} alt={chat.name} />
+                                <AvatarFallback className="text-lg bg-muted">
+                                    {chat.name ? chat.name.charAt(0) : <User />}
+                                </AvatarFallback>
+                            </Avatar>
+                        </motion.div>
+                        <div className="flex-grow overflow-hidden">
+                           <div className="flex items-center justify-between">
+                                <p className="font-semibold truncate text-sm">{chat.name}</p>
+                           </div>
+                           <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                    </span>
+                                    <p className="text-xs text-muted-foreground">{chat.status}</p>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{chat.timestamp}</p>
+                           </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </Link>
+          )) : (
+             <div className="text-center py-20 px-4 text-muted-foreground">
+                <p className="font-semibold">No se encontraron chats.</p>
+                <p className="text-sm">
+                    {searchTerm ? "Intenta con otra búsqueda." : "Los chats activos de los clientes aparecerán aquí."}
+                </p>
             </div>
-          ))}
+           )}
         </div>
       </ScrollArea>
-
-      <footer className="p-4 border-t bg-card/80 backdrop-blur-sm">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-          <Input
-            placeholder="Escribe un comando o mensaje..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-grow"
-          />
-          <Button type="submit" size="icon">
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </footer>
     </div>
   );
 };
