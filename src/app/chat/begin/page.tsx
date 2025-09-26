@@ -139,7 +139,7 @@ const BeginPage = () => {
     const renderStepContent = () => {
         if (step === 1) {
             return (
-                <div className="flex-grow flex flex-col items-center p-4 text-center animate-fadeIn">
+                <div className="flex flex-col items-center p-4 text-center animate-fadeIn">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
                             value={[step * 25]}
@@ -166,7 +166,7 @@ const BeginPage = () => {
         }
         if (step === 2) {
             return (
-                <div className="flex-grow flex flex-col items-center animate-fadeIn w-full">
+                <div className="flex flex-col items-center animate-fadeIn w-full">
                      <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
                             value={[step * 25]}
@@ -185,7 +185,7 @@ const BeginPage = () => {
         }
         if (step === 3) {
             return (
-                <div className="flex-grow flex flex-col items-center animate-fadeIn w-full">
+                <div className="flex flex-col items-center animate-fadeIn w-full">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 25]}
@@ -317,7 +317,7 @@ const BeginPage = () => {
         }
         if (step === 4) {
              return (
-                <div className="flex-grow flex flex-col items-center animate-fadeIn w-full">
+                <div className="flex flex-col items-center animate-fadeIn w-full">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 25]}
@@ -333,7 +333,7 @@ const BeginPage = () => {
                              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                                ¿Cómo quieres usar tu chat?
                             </h1>
-                            <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground">
+                            <p className="mt-3 max-w-md mx-auto text-sm text-muted-foreground px-4">
                                 Elige cómo funcionará tu perfil de chat principal.
                             </p>
                         </div>
@@ -415,6 +415,15 @@ const BeginPage = () => {
                                 <div className="flex-grow">
                                     <div className="flex items-center gap-1.5">
                                       <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
+                                      {accountType === 'business' && (
+                                         <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                            </svg>
+                                        </Badge>
+                                      )}
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <span className="relative flex h-2 w-2">
