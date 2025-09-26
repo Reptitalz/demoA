@@ -136,7 +136,7 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 2</p>
                     </div>
-                    <div className="animate-fadeIn w-full flex-grow flex flex-col justify-center">
+                    <div className="animate-fadeIn w-full flex-grow flex flex-col">
                         <div className="text-center mb-8">
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
                                 Elige tu Primer <span className="text-brand-gradient">Asistente</span>
