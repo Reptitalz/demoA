@@ -1,3 +1,4 @@
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -123,6 +124,7 @@ export interface UserProfile {
   password?: string;
   firstName?: string;
   lastName?: string;
+  imageUrl?: string;
   address?: UserAddress;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
@@ -153,6 +155,7 @@ export interface WizardState {
   firstName: string;
   lastName: string;
   email: string;
+  imageUrl?: string;
   address: UserAddress;
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;

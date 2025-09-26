@@ -15,16 +15,15 @@ import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import { Slider } from '@/components/ui/slider';
+import Step2_UserDetails from '@/components/auth/wizard-steps/Step2_UserDetails';
 
 const BeginPage = () => {
-    const { dispatch } = useApp();
+    const { state, dispatch } = useApp();
+    const { firstName, lastName } = state.wizard;
     const [step, setStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
-
-    const [activeIndex, setActiveIndex] = useState(0);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -37,28 +36,6 @@ const BeginPage = () => {
         setIsRegisterOpen(open);
         if (!open) {
             dispatch({ type: 'RESET_WIZARD' });
-        }
-    }
-
-    const handleScroll = () => {
-        const container = scrollContainerRef.current;
-        if (container) {
-            const scrollLeft = container.scrollLeft;
-            const cardWidth = container.offsetWidth;
-            const newIndex = Math.round(scrollLeft / cardWidth);
-            if (newIndex !== activeIndex) {
-                setActiveIndex(newIndex);
-            }
-        }
-    };
-    
-    const scrollToCard = (index: number) => {
-        const container = scrollContainerRef.current;
-        if(container) {
-            container.scrollTo({
-                left: index * container.offsetWidth,
-                behavior: 'smooth'
-            });
         }
     }
 
@@ -95,19 +72,35 @@ const BeginPage = () => {
         }
     ];
 
+    const isStepValid = (currentStep: number) => {
+      if (currentStep === 2) {
+        return firstName.trim() !== '' && lastName.trim() !== '';
+      }
+      return true; // Other steps are implicitly valid or handled by button disabled state
+    }
+
+    const handleNext = () => {
+        if (isStepValid(step)) {
+            setStep(step + 1);
+        } else {
+            // Optionally, show a toast message for invalid fields.
+        }
+    };
+
+
     const renderStepContent = () => {
         if (step === 1) {
             return (
                 <>
                     <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
-                            value={[step * 50]}
+                            value={[step * 33.3]}
                             max={100}
-                            step={50}
+                            step={33.3}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 2</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 3</p>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-4 text-center animate-fadeIn">
                         <div className="w-full max-w-2xl">
@@ -124,17 +117,36 @@ const BeginPage = () => {
             )
         }
         if (step === 2) {
+            return (
+                <>
+                     <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
+                        <Slider
+                            value={[step * 33.3]}
+                            max={100}
+                            step={33.3}
+                            className="[&>span:first-child]:bg-transparent"
+                            disabled
+                        />
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 3</p>
+                    </div>
+                     <div className="animate-fadeIn w-full flex-grow flex flex-col items-center justify-center">
+                       <Step2_UserDetails />
+                    </div>
+                </>
+            );
+        }
+        if (step === 3) {
              return (
                 <>
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
-                            value={[step * 50]}
+                            value={[step * 33.3]}
                             max={100}
-                            step={50}
+                            step={33.3}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 2</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 3</p>
                     </div>
                     <div className="animate-fadeIn w-full flex-grow flex flex-col">
                         <div className="text-center mb-6">
@@ -146,27 +158,11 @@ const BeginPage = () => {
                             </p>
                         </div>
 
-                        <div className="flex justify-center mb-6 space-x-2">
-                            {cards.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => scrollToCard(index)}
-                                    className={cn(
-                                        "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                                        activeIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/30"
-                                    )}
-                                    aria-label={`Ir a la tarjeta ${index + 1}`}
-                                />
-                            ))}
-                        </div>
-                        <div 
-                            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-                            ref={scrollContainerRef}
-                            onScroll={handleScroll}
-                        >
-                            {cards.map((card, index) => (
-                                <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                         <div className="w-full max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {cards.map((card, index) => (
                                     <Card 
+                                        key={index}
                                         onClick={() => handleSelectOption(card.type)}
                                         className={cn(
                                             "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
@@ -193,7 +189,7 @@ const BeginPage = () => {
                                         <CardContent className="p-6 text-center">
                                             <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
                                             <CardDescription className="text-sm">{card.description}</CardDescription>
-                                            <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+                                            <ul className="text-left text-sm text-muted-foreground space-y-2 mt-4 mb-6">
                                                 {card.features.map((feature, i) => (
                                                     <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
                                                 ))}
@@ -203,8 +199,8 @@ const BeginPage = () => {
                                             </Button>
                                         </CardContent>
                                     </Card>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </>
@@ -226,8 +222,8 @@ const BeginPage = () => {
                     </Button>
                     <Button 
                         size="lg" 
-                        onClick={() => setStep(step + 1)} 
-                        disabled={step === 2}
+                        onClick={handleNext} 
+                        disabled={step === 3 || !isStepValid(step)}
                         className="bg-brand-gradient text-primary-foreground hover:opacity-90"
                     >
                         Siguiente <ArrowRight className="ml-2" />

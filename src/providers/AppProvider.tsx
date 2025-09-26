@@ -21,6 +21,7 @@ const initialWizardState: WizardState = {
   firstName: '',
   lastName: '',
   email: '',
+  imageUrl: '',
   address: {},
   ownerPhoneNumberForNotifications: '',
   isReconfiguring: false,
@@ -35,6 +36,7 @@ const initialUserProfileState: UserProfile = {
   email: '',
   firstName: undefined,
   lastName: undefined,
+  imageUrl: undefined,
   address: undefined,
   assistants: [],
   databases: [],
@@ -74,7 +76,7 @@ type Action =
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
-  | { type: 'UPDATE_WIZARD_USER_DETAILS'; payload: { field: keyof UserProfile; value: string | UserAddress } }
+  | { type: 'UPDATE_WIZARD_USER_DETAILS'; payload: { field: keyof WizardState; value: string | UserAddress } }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
   | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
@@ -287,24 +289,24 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
   }
 }
 
-async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whatsapp' | null): Promise<UserProfile> {
+async function createNewUserProfile(user: any, wizardState: WizardState): Promise<UserProfile> {
     
     let newAssistants: AssistantConfig[] = [];
-    if (assistantType) {
-        const isDesktopAssistant = assistantType === 'desktop';
-        const assistantName = isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp";
+    if (wizardState.assistantType) {
+        const isDesktopAssistant = wizardState.assistantType === 'desktop';
+        const assistantName = wizardState.assistantName || (isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp");
 
         newAssistants.push({
           id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           name: assistantName,
-          type: assistantType,
-          prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
-          purposes: [],
+          type: wizardState.assistantType,
+          prompt: wizardState.assistantPrompt || "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
+          purposes: Array.from(wizardState.selectedPurposes),
           isActive: isDesktopAssistant,
           numberReady: isDesktopAssistant,
           messageCount: 0,
           monthlyMessageLimit: isDesktopAssistant ? 10000 : 0,
-          imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+          imageUrl: wizardState.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
           chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
           isFirstDesktopAssistant: isDesktopAssistant,
           trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
@@ -315,8 +317,9 @@ async function createNewUserProfile(user: any, assistantType: 'desktop' | 'whats
       firebaseUid: user.id, // from next-auth user object
       authProvider: 'google',
       email: user.email!,
-      firstName: user.name?.split(' ')[0] || '',
-      lastName: user.name?.split(' ').slice(1).join(' ') || '',
+      firstName: wizardState.firstName || user.name?.split(' ')[0] || '',
+      lastName: wizardState.lastName || user.name?.split(' ').slice(1).join(' ') || '',
+      imageUrl: wizardState.imageUrl || user.image || undefined,
       assistants: newAssistants,
       databases: [],
       credits: 0,
@@ -351,7 +354,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
       if (response.status === 404) {
         // This is a new user signing in with Google
         if (session?.user) {
-          const newUserProfile = await createNewUserProfile(session.user, state.wizard.assistantType || null);
+          const newUserProfile = await createNewUserProfile(session.user, state.wizard);
           dispatch({ type: 'SYNC_PROFILE_FROM_API', payload: newUserProfile });
         } else {
           throw new Error('Session data not available for new user.');
@@ -375,7 +378,7 @@ const AppProviderInternal = ({ children }: { children: ReactNode }) => {
     } finally {
       dispatch({ type: 'SET_LOADING_STATUS', payload: { active: false, progress: 100 } });
     }
-  }, [state.wizard.assistantType, session]);
+  }, [state.wizard, session]);
 
 
   useEffect(() => {
