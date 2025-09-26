@@ -23,6 +23,12 @@ import { motion } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 
+const GeminiIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary">
+        <path d="M12 1.3335L14.6667 8.00016L22.6667 9.3335L17.3333 14.6668L18.6667 22.6668L12 19.3335L5.33333 22.6668L6.66667 14.6668L1.33333 9.3335L9.33333 8.00016L12 1.3335Z" fill="currentColor"/>
+    </svg>
+);
+
 
 const BeginPage = () => {
     const { toast } = useToast();
@@ -73,7 +79,7 @@ const BeginPage = () => {
     const chatModeCards = [
         {
             type: 'ia',
-            icon: Brain,
+            icon: GeminiIcon,
             title: 'Quiero un Asistente IA',
             description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
             badge: true,
@@ -378,7 +384,7 @@ const BeginPage = () => {
                                             <CardHeader className="p-6 pb-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="p-3 bg-primary/10 rounded-full">
-                                                        <Icon className="h-6 w-6 text-primary"/>
+                                                        <Icon />
                                                     </div>
                                                 </div>
                                             </CardHeader>
