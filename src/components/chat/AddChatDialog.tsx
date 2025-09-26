@@ -1,3 +1,4 @@
+
 // src/components/chat/AddChatDialog.tsx
 "use client";
 
@@ -29,9 +30,14 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
       });
       return;
     }
+    // For now, we just show a success message and close the dialog.
+    // The chat will appear implicitly when navigated to, or could be added to a local list.
+    toast({
+        title: "Contacto Agregado",
+        description: "El nuevo chat aparecerá en tu lista.",
+    });
     onOpenChange(false);
-    // Navigate to the chat page using the provided path, which will also effectively add them to the "recents"
-    router.push(`/chat/${chatPath.trim()}`);
+    // router.push(`/chat/${chatPath.trim()}`); // This line is removed to prevent navigation.
   };
 
   return (
@@ -42,7 +48,7 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
             <UserPlus /> Agregar Nuevo Contacto
           </DialogTitle>
           <DialogDescription>
-            Ingresa el ID de chat (chat path) del contacto que quieres agregar.
+            Ingresa el ID de chat (chat path) del contacto que quieres agregar a tu lista.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-2">
