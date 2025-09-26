@@ -147,6 +147,19 @@ const BeginPage = () => {
                         </div>
 
                         <div className="w-full max-w-sm md:max-w-md mx-auto">
+                            <div className="flex justify-center mb-4 space-x-2">
+                                {cards.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => scrollToCard(index)}
+                                        className={cn(
+                                            "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                                            activeIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/30"
+                                        )}
+                                        aria-label={`Ir a la tarjeta ${index + 1}`}
+                                    />
+                                ))}
+                            </div>
                             <div 
                                 className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
                                 ref={scrollContainerRef}
@@ -192,19 +205,6 @@ const BeginPage = () => {
                                             </CardContent>
                                         </Card>
                                     </div>
-                                ))}
-                            </div>
-                            <div className="flex justify-center mt-4 space-x-2">
-                                {cards.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => scrollToCard(index)}
-                                        className={cn(
-                                            "w-2.5 h-2.5 rounded-full transition-all duration-300",
-                                            activeIndex === index ? "bg-primary scale-125" : "bg-muted-foreground/30"
-                                        )}
-                                        aria-label={`Ir a la tarjeta ${index + 1}`}
-                                    />
                                 ))}
                             </div>
                         </div>
