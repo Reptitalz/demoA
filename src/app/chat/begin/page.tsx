@@ -5,7 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -29,8 +29,10 @@ const BeginPage = () => {
     const router = useRouter();
 
     const [accountType, setAccountType] = useState<'business' | 'personal'>('business');
+    const [chatMode, setChatMode] = useState<'me' | 'ia' | 'separate'>('ia');
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
+    const chatModeScrollRef = useRef<HTMLDivElement>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -45,39 +47,6 @@ const BeginPage = () => {
             dispatch({ type: 'RESET_WIZARD' });
         }
     }
-
-    const cards = [
-        {
-            type: 'desktop' as const,
-            badge: '30 DÍAS GRATIS',
-            badgeColor: 'from-yellow-400 to-orange-500',
-            image: '/4.jpeg',
-            imageHint: 'chatbot browser',
-            title: 'Asistente en Navegador',
-            icon: AppWindow,
-            description: 'Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono.',
-            features: [
-                'Prueba ilimitada por 30 días, después $179 MXN/mes.',
-                'Configuración y acceso instantáneo.'
-            ],
-            buttonText: 'Comenzar Prueba Gratis'
-        },
-        {
-            type: 'whatsapp' as const,
-            badge: 'PAGO POR USO',
-            badgeColor: 'primary',
-            image: '/1.jpeg',
-            imageHint: 'whatsapp chat',
-            title: 'Asistente en WhatsApp',
-            icon: FaWhatsapp,
-            description: 'Automatiza ventas y soporte en la plataforma de mensajería más grande del mundo.',
-            features: [
-                'Atención al cliente 24/7.',
-                'Requiere un número de teléfono nuevo.'
-            ],
-            buttonText: 'Crear Asistente WhatsApp'
-        }
-    ];
 
     const accountTypeCards = [
         {
@@ -94,6 +63,30 @@ const BeginPage = () => {
             description: 'Ideal para probar la plataforma, proyectos personales y uso individual.',
             badge: false,
         },
+    ];
+
+    const chatModeCards = [
+        {
+            type: 'ia',
+            icon: Brain,
+            title: 'Quiero un Asistente IA',
+            description: 'Un asistente inteligente responderá automáticamente en tu chat principal.',
+            badge: true,
+        },
+        {
+            type: 'me',
+            icon: User,
+            title: 'Yo seré el Asistente',
+            description: 'Tú responderás personalmente a todos los mensajes en tu chat.',
+            badge: false,
+        },
+        {
+            type: 'separate',
+            icon: UserPlus,
+            title: 'Crear un Asistente Aparte',
+            description: 'Mantén tu chat personal y crea un asistente separado con su propio chat.',
+            badge: true,
+        }
     ];
     
     useEffect(() => {
@@ -114,21 +107,21 @@ const BeginPage = () => {
     }, [accountTypeCards]);
     
     useEffect(() => {
-        const handleAssistantScroll = () => {
-            if (assistantTypeScrollRef.current) {
-                const scrollLeft = assistantTypeScrollRef.current.scrollLeft;
-                const cardWidth = assistantTypeScrollRef.current.offsetWidth;
+        const handleChatModeScroll = () => {
+            if (chatModeScrollRef.current) {
+                const scrollLeft = chatModeScrollRef.current.scrollLeft;
+                const cardWidth = chatModeScrollRef.current.offsetWidth;
                 const newIndex = Math.round(scrollLeft / cardWidth);
-                setSelectedOption(cards[newIndex].type as 'desktop' | 'whatsapp');
+                setChatMode(chatModeCards[newIndex].type as 'me' | 'ia' | 'separate');
             }
         };
 
-        const scroller = assistantTypeScrollRef.current;
+        const scroller = chatModeScrollRef.current;
         if (scroller) {
-            scroller.addEventListener('scroll', handleAssistantScroll, { passive: true });
-            return () => scroller.removeEventListener('scroll', handleAssistantScroll);
+            scroller.addEventListener('scroll', handleChatModeScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleChatModeScroll);
         }
-    }, [cards]);
+    }, [chatModeCards]);
 
     const isStepValid = (currentStep: number) => {
       if (currentStep === 2) {
@@ -139,7 +132,11 @@ const BeginPage = () => {
 
     const handleNext = () => {
         if (isStepValid(step)) {
-            setStep(step + 1);
+            if(step === 4) {
+                handleSelectOption('desktop');
+            } else {
+                setStep(step + 1);
+            }
         } else {
             // Optionally, show a toast message for invalid fields.
         }
@@ -338,80 +335,110 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
-                    <div className="animate-fadeIn w-full flex-grow flex flex-col">
+                    <div className="animate-fadeIn w-full flex-grow flex flex-col items-center justify-center">
                         <div className="text-center mb-6 px-4">
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
-                                ¿Quieres tener tu primer asistente?
+                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+                               ¿Cómo quieres usar tu chat?
                             </h1>
                             <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground">
-                                Crea un asistente para responder a tus clientes de manera inteligente, 24/7, y automatizar tus ventas.
+                                Elige cómo funcionará tu perfil de chat principal.
                             </p>
                         </div>
-
-                        <div className="w-full max-w-md mx-auto">
-                            <div ref={assistantTypeScrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
-                                {cards.map((card, index) => (
-                                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                                        <Card 
-                                            onClick={() => handleSelectOption(card.type)}
-                                            className={cn(
-                                                "cursor-pointer transition-all border-2 overflow-hidden shadow-lg h-full",
-                                                "glow-card",
-                                                selectedOption === card.type ? "border-primary" : "border-transparent"
-                                            )}
-                                        >
-                                            <CardHeader className="p-0">
-                                                <div className="relative aspect-video w-full">
-                                                    <Image
-                                                        src={card.image}
-                                                        alt={card.title}
-                                                        layout="fill"
-                                                        className="object-cover"
-                                                        data-ai-hint={card.imageHint}
-                                                    />
-                                                    <div className={cn(
-                                                        "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6",
-                                                        card.badgeColor === 'primary' ? 'bg-primary' : `bg-gradient-to-r ${card.badgeColor}`
-                                                    )}>
-                                                        {card.badge}
+                         <div className="w-full max-w-sm md:max-w-md mx-auto">
+                           <div
+                                ref={chatModeScrollRef}
+                                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+                            >
+                                {chatModeCards.map((card, index) => {
+                                    const Icon = card.icon;
+                                    return (
+                                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                                            <Card 
+                                                onClick={() => {
+                                                    if (chatModeScrollRef.current) {
+                                                        const cardWidth = chatModeScrollRef.current.offsetWidth;
+                                                        chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "transition-all border-2 overflow-hidden shadow-lg h-full cursor-pointer",
+                                                    chatMode === card.type ? "border-primary shadow-primary/20" : "",
+                                                    "glow-card"
+                                                )}
+                                            >
+                                                <CardHeader className="p-6 pb-4">
+                                                    <div className="p-3 bg-primary/10 rounded-full w-fit">
+                                                        <Icon className="h-6 w-6 text-primary"/>
                                                     </div>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="p-6 text-center">
-                                                <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
-                                                <CardDescription className="text-sm">{card.description}</CardDescription>
-                                                <ul className="text-left text-sm text-muted-foreground space-y-2 mt-4 mb-6">
-                                                    {card.features.map((feature, i) => (
-                                                        <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
-                                                    ))}
-                                                </ul>
-                                                <Button size="lg" className="w-full font-bold">
-                                                    {card.buttonText} <ArrowRight className="ml-2" size={16}/>
-                                                </Button>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                ))}
+                                                </CardHeader>
+                                                <CardContent className="p-6 pt-0">
+                                                    <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
+                                                    <CardDescription className="text-sm">{card.description}</CardDescription>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    )
+                                })}
                             </div>
-                             <div className="flex justify-center mb-6 space-x-2 mt-4">
-                                {cards.map((card, index) => (
+                            <div className="flex justify-center mb-6 space-x-2 mt-4">
+                                {chatModeCards.map((card, index) => (
                                     <button
                                         key={index}
                                         onClick={() => {
-                                            if (assistantTypeScrollRef.current) {
-                                                const cardWidth = assistantTypeScrollRef.current.offsetWidth;
-                                                assistantTypeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                            if (chatModeScrollRef.current) {
+                                                const cardWidth = chatModeScrollRef.current.offsetWidth;
+                                                chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
                                             }
                                         }}
                                         className={cn(
                                             "h-2 w-2 rounded-full transition-all",
-                                            selectedOption === card.type ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                                            chatMode === card.type ? "w-6 bg-primary" : "bg-muted-foreground/50"
                                         )}
                                         aria-label={`Ir a la tarjeta ${index + 1}`}
                                     />
                                 ))}
                             </div>
                         </div>
+
+                        <motion.div
+                            key={chatMode}
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+                            className="mt-4"
+                        >
+                            <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
+                                 <motion.div
+                                    animate={{ y: [-2, 2, -2] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                                >
+                                    <Avatar className="h-14 w-14 border-2 border-primary/30">
+                                        <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
+                                        <AvatarFallback className="text-xl bg-muted">
+                                            {firstName ? firstName.charAt(0) : <User />}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </motion.div>
+                                <div className="flex-grow">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        </span>
+                                        <p className="text-xs text-muted-foreground">en línea</p>
+                                    </div>
+                                </div>
+                                {chatMode !== 'me' && (
+                                    <Badge className="bg-green-100 text-green-800 border border-green-200">IA</Badge>
+                                )}
+                                <div className="text-xs text-muted-foreground">
+                                    <p>Ahora</p>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </>
             );
@@ -433,10 +460,10 @@ const BeginPage = () => {
                     <Button 
                         size="lg" 
                         onClick={handleNext} 
-                        disabled={step === 4 || !isStepValid(step)}
+                        disabled={!isStepValid(step)}
                         className="bg-brand-gradient text-primary-foreground hover:opacity-90"
                     >
-                        Siguiente <ArrowRight className="ml-2" />
+                        {step === 4 ? "Finalizar" : "Siguiente"} <ArrowRight className="ml-2" />
                     </Button>
                 </div>
             </div>
@@ -447,3 +474,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
