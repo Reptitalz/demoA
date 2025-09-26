@@ -41,6 +41,7 @@ const ChatListPage = () => {
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
   const [activeSwipeId, setActiveSwipeId] = useState<string | null>(null);
   const dragConstraints = { left: -160, right: 0 };
+  const isDragging = useRef(false);
 
   let availableChats = userProfile.assistants.filter(assistant => 
     assistant.type === 'desktop' && 
@@ -68,7 +69,11 @@ const ChatListPage = () => {
   }
   
   const handleAddNewContact = () => {
-    setIsAddChatDialogOpen(true);
+    if (session) {
+      setIsAddChatDialogOpen(true);
+    } else {
+      router.push('/login');
+    }
   };
 
 
@@ -121,25 +126,29 @@ const ChatListPage = () => {
                  <motion.div
                     drag="x"
                     dragConstraints={dragConstraints}
-                    dragSnapToOrigin
+                    onDragStart={() => {
+                        isDragging.current = true;
+                    }}
                     onDragEnd={(event, info) => {
-                        const isSwipe = Math.abs(info.offset.x) > 50;
-                        const isTap = Math.abs(info.offset.x) < 5 && Math.abs(info.offset.y) < 5;
-                        
-                        if (isTap) {
-                            router.push(`/chat/${chat.chatPath}`);
-                            return;
-                        }
+                        setTimeout(() => {
+                            isDragging.current = false;
+                        }, 100);
 
+                        const isSwipe = Math.abs(info.offset.x) > 50;
                         if (isSwipe && info.offset.x < 0) {
                             setActiveSwipeId(chat.id);
                         } else {
                             setActiveSwipeId(null);
                         }
                     }}
+                    onClick={() => {
+                        if (!isDragging.current) {
+                            router.push(`/chat/${chat.chatPath}`);
+                        }
+                    }}
                     animate={{ x: isSwiped ? dragConstraints.left : 0 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="relative z-10 cursor-grab"
+                    className="relative z-10 cursor-grab active:cursor-grabbing"
                 >
                     <Card className="glow-card hover:shadow-primary/10 rounded-lg">
                         <CardContent className="p-3 flex items-center gap-3">
