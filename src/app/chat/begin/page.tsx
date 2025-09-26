@@ -26,6 +26,9 @@ const BeginPage = () => {
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
 
+    const [accountType, setAccountType] = useState<'business' | 'personal'>('business');
+    const scrollRef = useRef<HTMLDivElement>(null);
+
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: option });
@@ -89,6 +92,23 @@ const BeginPage = () => {
             badge: false,
         },
     ];
+    
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                const scrollLeft = scrollRef.current.scrollLeft;
+                const cardWidth = scrollRef.current.offsetWidth;
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                setAccountType(accountTypeCards[newIndex].type as 'business' | 'personal');
+            }
+        };
+
+        const scroller = scrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleScroll);
+            return () => scroller.removeEventListener('scroll', handleScroll);
+        }
+    }, [accountTypeCards]);
 
     const isStepValid = (currentStep: number) => {
       if (currentStep === 2) {
@@ -124,7 +144,7 @@ const BeginPage = () => {
                         <div className="w-full max-w-2xl">
                             <AppIcon className="h-20 w-20 mb-4 mx-auto" />
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-4">
-                                ¿Qué es Hey Manito?
+                               ¿Qué es Hey Manito?
                             </h1>
                             <p className="text-muted-foreground text-sm">
                                 Es una nueva red social, similar a WhatsApp, que te permite tener tu propio asistente inteligente para que responda por ti o por tus clientes.
@@ -156,7 +176,7 @@ const BeginPage = () => {
         if (step === 3) {
             return (
                 <>
-                    <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
+                    <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 25]}
                             max={100}
@@ -175,41 +195,61 @@ const BeginPage = () => {
                                 Elige el tipo de cuenta que mejor se adapte a tus necesidades.
                             </p>
                         </div>
-                        <div className="w-full max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="w-full max-w-sm md:max-w-md mx-auto">
+                           <div
+                                ref={scrollRef}
+                                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+                            >
                                 {accountTypeCards.map((card, index) => {
                                     const Icon = card.icon;
                                     return (
-                                        <Card 
-                                            key={index}
-                                            onClick={() => {
-                                                // Placeholder for future logic
-                                            }}
-                                            className={cn(
-                                                "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
-                                                "glow-card"
-                                            )}
-                                        >
-                                            <CardHeader className="p-6 pb-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="p-3 bg-primary/10 rounded-full">
-                                                        <Icon className="h-6 w-6 text-primary"/>
+                                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                                            <Card 
+                                                className={cn(
+                                                    "transition-all border-2 overflow-hidden shadow-lg h-full",
+                                                    accountType === card.type ? "border-primary shadow-primary/20" : "",
+                                                    "glow-card"
+                                                )}
+                                            >
+                                                <CardHeader className="p-6 pb-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="p-3 bg-primary/10 rounded-full">
+                                                            <Icon className="h-6 w-6 text-primary"/>
+                                                        </div>
+                                                        {card.badge && (
+                                                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
+                                                                <FaCheckCircle className="mr-1.5 h-3 w-3"/>
+                                                                Verificado
+                                                            </Badge>
+                                                        )}
                                                     </div>
-                                                    {card.badge && (
-                                                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                                                            <FaCheckCircle className="mr-1.5 h-3 w-3"/>
-                                                            Verificado
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="p-6 pt-0">
-                                                <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
-                                                <CardDescription className="text-sm">{card.description}</CardDescription>
-                                            </CardContent>
-                                        </Card>
+                                                </CardHeader>
+                                                <CardContent className="p-6 pt-0">
+                                                    <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
+                                                    <CardDescription className="text-sm">{card.description}</CardDescription>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
                                     )
                                 })}
+                            </div>
+                            <div className="flex justify-center mb-6 space-x-2 mt-4">
+                                {accountTypeCards.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            if (scrollRef.current) {
+                                                const cardWidth = scrollRef.current.offsetWidth;
+                                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                            }
+                                        }}
+                                        className={cn(
+                                            "h-2 w-2 rounded-full transition-all",
+                                            accountType === accountTypeCards[index].type ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                                        )}
+                                        aria-label={`Ir a la tarjeta ${index + 1}`}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -318,5 +358,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
