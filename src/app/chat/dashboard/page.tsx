@@ -17,8 +17,8 @@ import { APP_NAME } from '@/config/appConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import AppIcon from '@/components/shared/AppIcon';
 import AddChatDialog from '@/components/chat/AddChatDialog';
+import AppIcon from '@/components/shared/AppIcon';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -43,6 +43,7 @@ const ChatListPage = () => {
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
   const isDragging = useRef(false);
+  const dragOccurred = useRef(false);
 
   let availableChats = userProfile.assistants.filter(assistant => 
     assistant.type === 'desktop' && 
@@ -134,9 +135,9 @@ const ChatListPage = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 left-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-28 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none">
+                            <Button variant="ghost" className="h-full w-28 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5">
                                 <HardDrive size={20}/>
-                                <span className="text-xs mt-1">Memoria</span>
+                                <span className="text-xs">Memoria</span>
                                 <span className="text-[10px] font-bold">{formatBytes(123456)}</span>
                             </Button>
                         </motion.div>
@@ -145,9 +146,15 @@ const ChatListPage = () => {
                  <motion.div
                     drag="x"
                     dragConstraints={{ left: -160, right: 112 }}
-                    onDragStart={() => { isDragging.current = true; }}
+                    onDragStart={() => {
+                        isDragging.current = true;
+                        dragOccurred.current = false;
+                    }}
+                    onDrag={() => {
+                        dragOccurred.current = true;
+                    }}
                     onDragEnd={(event, info) => {
-                        setTimeout(() => { isDragging.current = false; }, 100);
+                        setTimeout(() => { isDragging.current = false; }, 50);
 
                         const isSwipeLeft = info.offset.x < -50;
                         const isSwipeRight = info.offset.x > 50;
@@ -161,7 +168,7 @@ const ChatListPage = () => {
                         }
                     }}
                     onClick={() => {
-                        if (!isDragging.current) {
+                        if (!dragOccurred.current) {
                             router.push(`/chat/${chat.chatPath}`);
                         }
                     }}
