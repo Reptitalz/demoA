@@ -184,7 +184,7 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
-                     <div className="animate-fadeIn w-full flex-grow flex flex-col items-center justify-center">
+                     <div className="animate-fadeIn w-full">
                        <Step2_UserDetails />
                     </div>
                 </>
@@ -474,5 +474,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
