@@ -5,7 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -271,7 +271,7 @@ const BeginPage = () => {
                                 {accountTypeCards.map((_, index) => (
                                     <button
                                         key={index}
-                                        onClick={() => {
+                                        onClick={()={() => {
                                             if (scrollRef.current) {
                                                 const cardWidth = scrollRef.current.offsetWidth;
                                                 scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -395,7 +395,7 @@ const BeginPage = () => {
                             {chatModeCards.map((_, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => {
+                                    onClick={()={() => {
                                         if (chatModeScrollRef.current) {
                                             const cardWidth = chatModeScrollRef.current.offsetWidth;
                                             chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -493,7 +493,7 @@ const BeginPage = () => {
                                     animate={{ y: [-4, 4, -4] }}
                                     transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                                 >
-                                    <FcGoogle className="h-20 w-20" />
+                                    <Lock className="h-20 w-20 text-primary" />
                                 </motion.div>
                                 <p className="font-semibold text-foreground">Iniciar sesión con Google</p>
                             </CardContent>
@@ -551,5 +551,7 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
 
     
