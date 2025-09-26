@@ -144,7 +144,7 @@ const BeginPage = () => {
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
                     Elige tu Primer <span className="text-brand-gradient">Asistente</span>
                 </h1>
-                <p className="mt-3 max-w-2xl mx-auto text-lg text-muted-foreground">
+                <p className="mt-3 max-w-2xl mx-auto text-muted-foreground">
                     Comienza con una prueba gratuita en el navegador o ve directamente a la automatización de WhatsApp.
                 </p>
             </div>
@@ -216,9 +216,9 @@ const BeginPage = () => {
                     <Button variant="outline" onClick={() => setStep(1)}>
                         <ArrowLeft className="mr-2" /> Atrás
                     </Button>
-                    <p className="text-center text-sm text-muted-foreground">
-                        ¿Ya tienes una cuenta? <Link href="/login" className="font-semibold text-primary hover:underline">Inicia sesión aquí.</Link>
-                    </p>
+                    <Button variant="default" disabled>
+                        Siguiente <ArrowRight className="ml-2" />
+                    </Button>
                 </div>
             </div>
         </div>
