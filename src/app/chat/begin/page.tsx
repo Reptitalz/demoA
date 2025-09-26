@@ -226,7 +226,12 @@ const BeginPage = () => {
                     <Button variant="outline" onClick={() => setStep(step - 1)} disabled={step === 1}>
                         <ArrowLeft className="mr-2" /> Atrás
                     </Button>
-                    <Button size="lg" onClick={() => setStep(step + 1)} disabled={step === 2}>
+                    <Button 
+                        size="lg" 
+                        onClick={() => setStep(step + 1)} 
+                        disabled={step === 2}
+                        className="bg-brand-gradient text-primary-foreground hover:opacity-90"
+                    >
                         Siguiente <ArrowRight className="ml-2" />
                     </Button>
                 </div>
