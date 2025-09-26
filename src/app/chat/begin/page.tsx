@@ -218,8 +218,7 @@ const BeginPage = () => {
                                                         </div>
                                                         {card.badge && (
                                                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                                                                <Award className="mr-1.5 h-3 w-3"/>
-                                                                Verificado
+                                                                <Award className="h-3 w-3"/>
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -358,5 +357,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
