@@ -96,7 +96,17 @@ const BeginPage = () => {
     ];
 
     const renderStep1 = () => (
-        <div className="flex flex-col h-full animate-fadeIn">
+        <div className="flex flex-col h-full animate-fadeIn p-0">
+             <div className="w-full max-w-sm mx-auto pt-8 mb-8">
+                <Slider
+                    defaultValue={[50]}
+                    max={100}
+                    step={50}
+                    className="[&>span:first-child]:bg-transparent"
+                    disabled
+                />
+                <p className="text-xs text-muted-foreground mt-1 text-center">Paso 1 de 2</p>
+            </div>
             <div className="flex-grow flex flex-col items-center justify-center p-4 text-center">
                 <div className="w-full max-w-2xl">
                     <AppIcon className="h-20 w-20 mb-4 mx-auto" />
@@ -216,7 +226,7 @@ const BeginPage = () => {
 
     return (
         <>
-        <PageContainer className={cn("flex flex-col h-full pb-24", step === 1 ? 'p-0' : 'items-center justify-center')}>
+        <PageContainer className={cn("flex flex-col h-full pb-24", step === 1 ? 'items-start justify-start p-0' : 'items-center justify-center')}>
             {step === 1 ? renderStep1() : renderStep2()}
         </PageContainer>
         <RegisterAssistantDialog isOpen={isRegisterOpen} onOpenChange={handleDialogChange} />
