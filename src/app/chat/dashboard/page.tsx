@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Bot, Star, Crown, User, Plus } from 'lucide-react';
+import { Search, Bot, Star, Crown, User, MessageSquarePlus } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -20,6 +20,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import AppIcon from '@/components/shared/AppIcon';
+import AddChatDialog from '@/components/chat/AddChatDialog';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
@@ -72,6 +73,7 @@ const ChatListPage = () => {
   const router = useRouter();
   const { userProfile } = state;
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
 
   // We only care about desktop assistants that can be chatted with via the web UI.
   let availableChats = userProfile.assistants.filter(assistant => 
@@ -101,12 +103,7 @@ const ChatListPage = () => {
   }
   
   const handleAddNewAssistant = () => {
-    if (!userProfile.isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    dispatch({ type: 'RESET_WIZARD' });
-    router.push('/app?action=add'); 
+    setIsAddChatDialogOpen(true);
   };
 
 
@@ -198,12 +195,13 @@ const ChatListPage = () => {
             onClick={handleAddNewAssistant}
             className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
-            title="Crear nuevo asistente"
+            title="Añadir nuevo chat"
           >
-            <Plus className="h-6 w-6" />
+            <MessageSquarePlus className="h-6 w-6" />
           </Button>
         
     </div>
+    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
     </>
   );
 };
