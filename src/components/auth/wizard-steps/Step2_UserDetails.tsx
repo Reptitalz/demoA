@@ -49,40 +49,6 @@ const Step2_UserDetails = () => {
 
   return (
     <div className="w-full max-w-md animate-fadeIn space-y-4 px-4 sm:px-0">
-        <motion.div
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-            className="mb-8"
-        >
-            <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
-                 <motion.div
-                    animate={{ y: [-2, 2, -2] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                 >
-                    <Avatar className="h-14 w-14 border-2 border-primary/30">
-                        <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
-                        <AvatarFallback className="text-xl bg-muted">
-                            {firstName ? firstName.charAt(0) : <User />}
-                        </AvatarFallback>
-                    </Avatar>
-                </motion.div>
-                <div className="flex-grow">
-                    <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
-                    <div className="flex items-center gap-1.5">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
-                        <p className="text-xs text-muted-foreground">en línea</p>
-                    </div>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                    <p>Ahora</p>
-                </div>
-            </div>
-        </motion.div>
-
       <div className="text-center">
         <h3 className="text-xl font-semibold">¡Hola! ¿Cómo te llamas?</h3>
         <p className="text-sm text-muted-foreground">
@@ -132,6 +98,40 @@ const Step2_UserDetails = () => {
             </div>
         </div>
       </div>
+      
+        <motion.div
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+            className="mt-8"
+        >
+            <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
+                 <motion.div
+                    animate={{ y: [-2, 2, -2] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                 >
+                    <Avatar className="h-14 w-14 border-2 border-primary/30">
+                        <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
+                        <AvatarFallback className="text-xl bg-muted">
+                            {firstName ? firstName.charAt(0) : <User />}
+                        </AvatarFallback>
+                    </Avatar>
+                </motion.div>
+                <div className="flex-grow">
+                    <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
+                    <div className="flex items-center gap-1.5">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <p className="text-xs text-muted-foreground">en línea</p>
+                    </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                    <p>Ahora</p>
+                </div>
+            </div>
+        </motion.div>
     </div>
   );
 };
