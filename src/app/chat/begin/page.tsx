@@ -139,7 +139,7 @@ const BeginPage = () => {
                     <div className="animate-fadeIn w-full flex-grow flex flex-col">
                         <div className="text-center mb-8">
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
-                                Elige tu Primer <span className="text-brand-gradient">Asistente</span>
+                                ¿Quieres tener tu primer asistente?
                             </h1>
                             <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground">
                                 Comienza con una prueba gratuita en el navegador o ve directamente a la automatización de WhatsApp.
