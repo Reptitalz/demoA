@@ -5,12 +5,13 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { FaWhatsapp } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import Link from 'next/link';
 import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import AppIcon from '@/components/shared/AppIcon';
@@ -19,8 +20,12 @@ import Step2_UserDetails from '@/components/auth/wizard-steps/Step2_UserDetails'
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
+import { signIn } from 'next-auth/react';
+import { useToast } from '@/hooks/use-toast';
+
 
 const BeginPage = () => {
+    const { toast } = useToast();
     const { state, dispatch } = useApp();
     const { firstName, lastName, imageUrl } = state.wizard;
     const [step, setStep] = useState(1);
@@ -29,7 +34,7 @@ const BeginPage = () => {
     const router = useRouter();
 
     const [accountType, setAccountType] = useState<'business' | 'personal'>('business');
-    const [chatMode, setChatMode] = useState<'me' | 'ia'>('ia');
+    const [chatMode, setChatMode] = useState<'ia' | 'me'>('ia');
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
@@ -122,11 +127,21 @@ const BeginPage = () => {
       }
       return true; // Other steps are implicitly valid or handled by button disabled state
     }
+    
+    const handleGoogleSignIn = () => {
+        signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
+            toast({
+                title: 'Error de Inicio de Sesión',
+                description: 'No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.',
+                variant: 'destructive'
+            });
+        });
+    };
 
     const handleNext = () => {
         if (isStepValid(step)) {
             if(step === 4) {
-                handleSelectOption('desktop');
+                 handleGoogleSignIn();
             } else {
                 setStep(step + 1);
             }
@@ -150,7 +165,7 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
-                    <div className="p-4 text-center animate-fadeIn">
+                     <div className="animate-fadeIn w-full flex flex-col items-center">
                         <div className="w-full max-w-2xl mx-auto">
                             <AppIcon className="h-20 w-20 mb-4 mx-auto" />
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-4">
@@ -331,116 +346,38 @@ const BeginPage = () => {
                     <div className="animate-fadeIn w-full flex flex-col items-center">
                         <div className="text-center mb-6 px-4">
                              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
-                               ¿Cómo quieres usar tu chat?
+                               Crea tu cuenta segura
                             </h1>
                             <p className="mt-3 max-w-md mx-auto text-sm text-muted-foreground px-4">
-                                Elige cómo funcionará tu perfil de chat principal.
+                                Inicia sesión con Google para guardar tu progreso y acceder a todas las funciones.
                             </p>
                         </div>
-                         <div className="w-full max-w-sm md:max-w-md mx-auto">
-                           <div
-                                ref={chatModeScrollRef}
-                                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
-                            >
-                                {chatModeCards.map((card, index) => {
-                                    const Icon = card.icon;
-                                    return (
-                                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                                            <Card 
-                                                onClick={() => {
-                                                    if (chatModeScrollRef.current) {
-                                                        const cardWidth = chatModeScrollRef.current.offsetWidth;
-                                                        chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                                                    }
-                                                }}
-                                                className={cn(
-                                                    "transition-all border-2 overflow-hidden shadow-lg h-full cursor-pointer",
-                                                    chatMode === card.type ? "border-primary shadow-primary/20" : "",
-                                                    "glow-card"
-                                                )}
-                                            >
-                                                <CardHeader className="p-6 pb-4">
-                                                    <div className="p-3 bg-primary/10 rounded-full w-fit">
-                                                        <Icon className="h-6 w-6 text-primary"/>
-                                                    </div>
-                                                </CardHeader>
-                                                <CardContent className="p-6 pt-0">
-                                                    <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
-                                                    <CardDescription className="text-sm">{card.description}</CardDescription>
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            <div className="flex justify-center mb-6 space-x-2 mt-4">
-                                {chatModeCards.map((card, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => {
-                                            if (chatModeScrollRef.current) {
-                                                const cardWidth = chatModeScrollRef.current.offsetWidth;
-                                                chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                                            }
-                                        }}
-                                        className={cn(
-                                            "h-2 w-2 rounded-full transition-all",
-                                            chatMode === card.type ? "w-6 bg-primary" : "bg-muted-foreground/50"
-                                        )}
-                                        aria-label={`Ir a la tarjeta ${index + 1}`}
-                                    />
-                                ))}
-                            </div>
+                        
+                         <Card className="w-full max-w-sm p-6 text-center glow-card">
+                            <CardContent className="p-0 flex flex-col items-center justify-center gap-4">
+                                <motion.div
+                                    animate={{ y: [-4, 4, -4] }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                                >
+                                    <FcGoogle className="h-20 w-20" />
+                                </motion.div>
+                                 <Button size="lg" className="w-full" onClick={handleGoogleSignIn}>
+                                    Iniciar sesión con Google
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        <div className="mt-8 text-sm text-muted-foreground max-w-md space-y-4">
+                           <div className="flex items-start gap-2">
+                               <ShieldCheck className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                               <p>Tu privacidad es nuestra prioridad. No revisamos tus conversaciones y utilizamos encriptación de extremo a extremo.</p>
+                           </div>
+                            <div className="flex items-start gap-2">
+                               <Database className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                               <p>Tus mensajes se almacenan localmente en tu dispositivo. Próximamente podrás respaldarlos en tu Google Drive.</p>
+                           </div>
                         </div>
 
-                        <motion.div
-                            key={chatMode}
-                            initial={{ y: 10, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-                            className="mt-4"
-                        >
-                            <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
-                                 <motion.div
-                                    animate={{ y: [-2, 2, -2] }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                                >
-                                    <Avatar className="h-14 w-14 border-2 border-primary/30">
-                                        <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
-                                        <AvatarFallback className="text-xl bg-muted">
-                                            {firstName ? firstName.charAt(0) : <User />}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </motion.div>
-                                <div className="flex-grow">
-                                    <div className="flex items-center gap-1.5">
-                                      <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
-                                      {accountType === 'business' && (
-                                         <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                                            </svg>
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                        </span>
-                                        <p className="text-xs text-muted-foreground">en línea</p>
-                                    </div>
-                                </div>
-                                {chatMode !== 'me' && (
-                                    <Badge className="bg-green-100 text-green-800 border border-green-200">IA</Badge>
-                                )}
-                                <div className="text-xs text-muted-foreground">
-                                    <p>Ahora</p>
-                                </div>
-                            </div>
-                        </motion.div>
                     </div>
                 </div>
             );
