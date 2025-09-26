@@ -193,7 +193,7 @@ const ChatListPage = () => {
            )}
         </div>
       </ScrollArea>
-       {session && (
+       
           <Button
             onClick={handleAddNewAssistant}
             className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
@@ -202,7 +202,7 @@ const ChatListPage = () => {
           >
             <Plus className="h-6 w-6" />
           </Button>
-        )}
+        
     </div>
     </>
   );
