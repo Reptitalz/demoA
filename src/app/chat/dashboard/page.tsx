@@ -70,11 +70,8 @@ const ChatListPage = () => {
   }
   
   const handleAddNewContact = () => {
-    if (session) {
-      setIsAddChatDialogOpen(true);
-    } else {
-      router.push('/login');
-    }
+    // Always open the dialog, regardless of session status
+    setIsAddChatDialogOpen(true);
   };
 
 
@@ -166,10 +163,12 @@ const ChatListPage = () => {
                         }
                     }}
                     onClick={(e) => {
-                        e.stopPropagation();
-                        if (!dragOccurred.current) {
-                            router.push(`/chat/${chat.chatPath}`);
+                        if (dragOccurred.current) {
+                            e.preventDefault();
+                            return;
                         }
+                        setActiveSwipe(null);
+                        router.push(`/chat/${chat.chatPath}`);
                     }}
                     animate={{ 
                         x: isLeftSwiped ? -160 : isRightSwiped ? 112 : 0 
