@@ -271,7 +271,7 @@ const BeginPage = () => {
                                 {accountTypeCards.map((_, index) => (
                                     <button
                                         key={index}
-                                        onClick={()={() => {
+                                        onClick={() => {
                                             if (scrollRef.current) {
                                                 const cardWidth = scrollRef.current.offsetWidth;
                                                 scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -395,7 +395,7 @@ const BeginPage = () => {
                             {chatModeCards.map((_, index) => (
                                 <button
                                     key={index}
-                                    onClick={()={() => {
+                                    onClick={() => {
                                         if (chatModeScrollRef.current) {
                                             const cardWidth = chatModeScrollRef.current.offsetWidth;
                                             chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -551,7 +551,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
-
-    
