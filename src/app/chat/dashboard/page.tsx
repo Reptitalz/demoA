@@ -17,7 +17,7 @@ import { APP_NAME } from '@/config/appConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog'; // Import the new dialog
+import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
@@ -38,7 +38,7 @@ const ChatListPage = () => {
   const router = useRouter();
   const { userProfile } = state;
   const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateAssistantDialogOpen, setIsCreateAssistantDialogOpen] = useState(false);
+  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
   
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
@@ -69,8 +69,12 @@ const ChatListPage = () => {
       availableChats = [demoAssistant];
   }
   
-  const handleAddNewAssistant = () => {
-    setIsCreateAssistantDialogOpen(true);
+  const handleAddNewContact = () => {
+    if (!userProfile.isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    setIsAddChatDialogOpen(true);
   };
 
 
@@ -239,16 +243,16 @@ const ChatListPage = () => {
       </ScrollArea>
        
           <Button
-            onClick={handleAddNewAssistant}
+            onClick={handleAddNewContact}
             className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
-            title="Crear nuevo asistente"
+            title="Añadir nuevo contacto"
           >
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
         
     </div>
-    <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
+    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
     </>
   );
 };

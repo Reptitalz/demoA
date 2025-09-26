@@ -13,7 +13,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import AddChatDialog from '@/components/chat/AddChatDialog';
+import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -42,14 +42,14 @@ const AdminChatInterface = () => {
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
   const router = useRouter();
   const dragOccurred = useRef(false);
-  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
+  const [isCreateAssistantDialogOpen, setIsCreateAssistantDialogOpen] = useState(false);
 
   const filteredChats = demoAdminChats.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  const handleAddNewContact = () => {
-    setIsAddChatDialogOpen(true);
+  const handleCreateAssistant = () => {
+    setIsCreateAssistantDialogOpen(true);
   };
 
   return (
@@ -66,9 +66,6 @@ const AdminChatInterface = () => {
                     <p className="text-sm text-muted-foreground">Supervisión de Chats</p>
                 </div>
             </div>
-            <Button size="icon" variant="outline" onClick={handleAddNewContact}>
-                <Plus />
-            </Button>
         </div>
         <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -205,15 +202,15 @@ const AdminChatInterface = () => {
         </div>
       </ScrollArea>
        <Button
-            onClick={handleAddNewContact}
+            onClick={handleCreateAssistant}
             className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
-            title="Añadir nuevo contacto"
+            title="Crear nuevo asistente"
           >
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
     </div>
-    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+    <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
     </>
   );
 };
