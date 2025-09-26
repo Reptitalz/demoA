@@ -330,8 +330,8 @@ const BeginPage = () => {
                             </p>
                         </div>
 
-                         <div className="w-full max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="w-full max-w-md mx-auto">
+                            <div className="grid grid-cols-1 gap-6">
                                 {cards.map((card, index) => (
                                     <Card 
                                         key={index}
