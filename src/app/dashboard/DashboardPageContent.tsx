@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User, Bot, Database, Brain, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -301,19 +300,15 @@ const DashboardPageContent = () => {
                         ))}
                     </div>
                 ) : (
-                    <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
-                        {(profileToRender.assistants.length > 0 ? [profileToRender.assistants[0]] : []).map((asst, index) => (
-                             <AssistantMemoryCard key={asst.id} assistant={{...asst, totalMemory: 12345}} animationDelay={`${0.4 + index * 0.1}s`} />
-                        ))}
-                         <Card className="text-center py-6 bg-muted/50 border-dashed">
-                            <CardContent className="flex flex-col items-center gap-2">
-                                <h3 className="text-sm font-semibold">Esto es solo una vista previa</h3>
-                                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                                   La memoria real de tus asistentes aparecerá aquí cuando comiencen a interactuar.
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
+                        <CardContent className="flex flex-col items-center gap-3">
+                            <Brain size={40} className="text-muted-foreground" />
+                            <h3 className="text-lg font-semibold">Sin Actividad de Memoria</h3>
+                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                Tus asistentes aún no han almacenado ninguna conversación. La memoria se irá llenando a medida que interactúen.
+                            </p>
+                        </CardContent>
+                    </Card>
                 )}
             </div>
         </div>
@@ -373,21 +368,6 @@ const DashboardPageContent = () => {
                 >
                  {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
                 </Button>
-              </div>
-              <Separator />
-
-              {/* Appearance Section */}
-              <div className="flex items-center justify-between p-4 sm:p-6">
-                <div className="flex items-center gap-4">
-                  <FaPalette className="h-6 w-6 text-primary" />
-                  <div>
-                    <h3 className="font-semibold">Apariencia</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Elige entre el tema claro y el oscuro.
-                    </p>
-                  </div>
-                </div>
-                <ThemeToggle />
               </div>
               <Separator />
 

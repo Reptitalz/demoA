@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Download, LogIn } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
-import { ThemeToggle } from '../shared/ThemeToggle';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -75,7 +74,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         
         <div className="flex items-center gap-2">
-            <ThemeToggle />
             {isPWA ? (
             <Button onClick={() => router.push('/login')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
                 <LogIn className="mr-2 h-4 w-4" />

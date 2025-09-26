@@ -9,7 +9,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Bot, Brain } from 'lucide-react';
 import NotificationsBell from '@/components/notifications/NotificationsBell'; // Re-using real component
 import { signOut } from 'next-auth/react'; // Re-using real function
@@ -38,7 +37,7 @@ export default function DashboardDemoLayout({
                     </Link>
                     <div className="flex items-center gap-1.5">
                         {/* Demo does not need real notifications, but you could show a fake one if desired */}
-                        <ThemeToggle />
+                        
                         <Button variant="outline" size="sm" onClick={() => router.push('/login')} className="text-xs px-2 py-1"> 
                             <FaSignInAlt size={12} className="mr-1" /> 
                             Iniciar Sesión

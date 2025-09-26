@@ -147,7 +147,8 @@ export default function RootLayout({
         <NextAuthSessionProvider>
             <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
+            forcedTheme="light"
             disableTransitionOnChange
             >
             <AppProvider>
