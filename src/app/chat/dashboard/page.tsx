@@ -42,7 +42,6 @@ const ChatListPage = () => {
   
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
-  const isDragging = useRef(false);
   const dragOccurred = useRef(false);
 
   let availableChats = userProfile.assistants.filter(assistant => 
@@ -98,7 +97,7 @@ const ChatListPage = () => {
         </div>
       </header>
 
-      <ScrollArea className="flex-grow">
+      <ScrollArea className="flex-grow" onClick={() => setActiveSwipe(null)}>
         <div className="p-2 space-y-2">
           {availableChats.length > 0 ? availableChats.map((chat) => {
             const isLeftSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'left';
@@ -131,7 +130,7 @@ const ChatListPage = () => {
                             key="actions-right"
                             initial={{ opacity: 0, x: -50 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
+                            exit={{ opacity: 0, x: 50 }}
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 left-0 flex items-center"
                         >
@@ -147,14 +146,13 @@ const ChatListPage = () => {
                     drag="x"
                     dragConstraints={{ left: -160, right: 112 }}
                     onDragStart={() => {
-                        isDragging.current = true;
                         dragOccurred.current = false;
                     }}
                     onDrag={() => {
                         dragOccurred.current = true;
                     }}
                     onDragEnd={(event, info) => {
-                        setTimeout(() => { isDragging.current = false; }, 50);
+                        setTimeout(() => { dragOccurred.current = false; }, 50);
 
                         const isSwipeLeft = info.offset.x < -50;
                         const isSwipeRight = info.offset.x > 50;
@@ -167,7 +165,8 @@ const ChatListPage = () => {
                             setActiveSwipe(null);
                         }
                     }}
-                    onClick={() => {
+                    onClick={(e) => {
+                        e.stopPropagation();
                         if (!dragOccurred.current) {
                             router.push(`/chat/${chat.chatPath}`);
                         }
