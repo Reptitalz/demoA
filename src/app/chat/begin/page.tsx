@@ -116,7 +116,7 @@ const BeginPage = () => {
                                 ¿Qué es Hey Manito?
                             </h1>
                             <p className="text-muted-foreground text-sm">
-                                Es una plataforma para crear asistentes de IA para tu negocio. Automatiza ventas, da soporte y gestiona clientes en WhatsApp o en una página web.
+                                Es una nueva red social, similar a WhatsApp, que te permite tener tu propio asistente inteligente para que responda por ti o por tus clientes.
                             </p>
                         </div>
                     </div>
@@ -192,7 +192,7 @@ const BeginPage = () => {
                                         </CardHeader>
                                         <CardContent className="p-6 text-center">
                                             <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
-                                            <CardDescription className="mb-4 text-sm">{card.description}</CardDescription>
+                                            <CardDescription className="text-sm">{card.description}</CardDescription>
                                             <ul className="text-left text-sm text-muted-foreground space-y-2 mb-6">
                                                 {card.features.map((feature, i) => (
                                                     <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
