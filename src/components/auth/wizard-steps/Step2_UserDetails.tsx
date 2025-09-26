@@ -48,7 +48,7 @@ const Step2_UserDetails = () => {
 
 
   return (
-    <div className="w-full max-w-md animate-fadeIn space-y-4">
+    <div className="w-full max-w-md animate-fadeIn space-y-4 px-4 sm:px-0">
       <div className="text-center">
         <h3 className="text-xl font-semibold">¡Hola! ¿Cómo te llamas?</h3>
         <p className="text-sm text-muted-foreground">
@@ -78,35 +78,19 @@ const Step2_UserDetails = () => {
             />
          </div>
          
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4" /> Nombre
-            </Label>
-            <Input
-              id="firstName"
-              name="firstName"
-              placeholder="Tu nombre"
-              value={firstName}
-              onChange={handleInputChange}
-              aria-required="true"
-              className="py-6"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4" /> Apellido
-            </Label>
-            <Input
-              id="lastName"
-              name="lastName"
-              placeholder="Tu apellido"
-              value={lastName}
-              onChange={handleInputChange}
-              aria-required="true"
-              className="py-6"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="firstName" className="text-sm font-medium flex items-center gap-2">
+            <User className="h-4 w-4" /> Nombre de Usuario
+          </Label>
+          <Input
+            id="firstName"
+            name="firstName"
+            placeholder="Tu nombre de usuario"
+            value={firstName}
+            onChange={handleInputChange}
+            aria-required="true"
+            className="py-6"
+          />
         </div>
       </div>
     </div>
