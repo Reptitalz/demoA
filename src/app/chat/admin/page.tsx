@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,14 +49,19 @@ const AdminChatInterface = () => {
   return (
     <div className="flex flex-col h-full bg-transparent">
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Settings className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-              <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-              <p className="text-sm text-muted-foreground">Supervisión de Chats</p>
-          </div>
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                    <Settings className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                    <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
+                    <p className="text-sm text-muted-foreground">Supervisión de Chats</p>
+                </div>
+            </div>
+            <Button size="icon" variant="outline">
+                <Plus className="h-4 w-4" />
+            </Button>
         </div>
         <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
