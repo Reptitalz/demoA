@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import AddChatDialog from '@/components/chat/AddChatDialog';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -41,12 +42,18 @@ const AdminChatInterface = () => {
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
   const router = useRouter();
   const dragOccurred = useRef(false);
+  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
 
   const filteredChats = demoAdminChats.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const handleAddNewContact = () => {
+    setIsAddChatDialogOpen(true);
+  };
 
   return (
+    <>
     <div className="flex flex-col h-full bg-transparent">
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <div className="flex items-center justify-between">
@@ -59,9 +66,6 @@ const AdminChatInterface = () => {
                     <p className="text-sm text-muted-foreground">Supervisión de Chats</p>
                 </div>
             </div>
-            <Button size="icon" variant="outline">
-                <Plus className="h-4 w-4" />
-            </Button>
         </div>
         <div className="relative mt-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -197,7 +201,17 @@ const AdminChatInterface = () => {
            )}
         </div>
       </ScrollArea>
+       <Button
+            onClick={handleAddNewContact}
+            className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+            size="icon"
+            title="Añadir nuevo contacto"
+          >
+            <MessageSquarePlus className="h-6 w-6" />
+          </Button>
     </div>
+    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+    </>
   );
 };
 
