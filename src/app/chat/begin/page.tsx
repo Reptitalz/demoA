@@ -112,7 +112,7 @@ const BeginPage = () => {
                     <div className="flex-grow flex flex-col items-center justify-center p-4 text-center animate-fadeIn">
                         <div className="w-full max-w-2xl">
                             <AppIcon className="h-20 w-20 mb-4 mx-auto" />
-                            <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-4">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-4">
                                 ¿Qué es Hey Manito?
                             </h1>
                             <p className="text-muted-foreground text-sm">
