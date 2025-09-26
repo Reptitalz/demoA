@@ -128,7 +128,7 @@ const ChatListPage = () => {
                         <div className="flex justify-between items-center">
                             <p className="font-semibold truncate">{chat.name}</p>
                             <div className="text-right shrink-0">
-                                <AssistantStatusBadge assistant={chat} />
+                                {chat.type === 'desktop' && <AssistantStatusBadge assistant={chat} />}
                                 <p className="text-xs text-muted-foreground mt-0.5">Ahora</p>
                             </div>
                         </div>

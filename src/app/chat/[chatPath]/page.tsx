@@ -212,7 +212,7 @@ const DesktopChatPage = () => {
     }
     if (!assistant?.id) return;
 
-    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${assistant.id}`;
+    const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${sessionId}`;
     
     console.log("Polling for response at:", EVENTS_API_URL);
 
@@ -304,13 +304,14 @@ const DesktopChatPage = () => {
             chatPath: assistant.chatPath,
         })
     }).then(response => {
-        if(typeof messageContent === 'string') {
+        // Only start polling for text messages
+        if(assistant.isActive && typeof messageContent === 'string') {
             pollForResponse();
         }
     }).catch(err => {
         console.error("Error sending message to proxy:", err);
     });
-  }, [assistant?.id, assistant?.chatPath, sessionId, pollForResponse]);
+  }, [assistant?.id, assistant?.chatPath, assistant?.isActive, sessionId, pollForResponse]);
 
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -328,8 +329,11 @@ const DesktopChatPage = () => {
     
     const messageToSend = currentMessage;
     setCurrentMessage('');
-    setIsSending(true);
-    setAssistantStatusMessage('Escribiendo...');
+
+    if (assistant?.isActive) {
+        setIsSending(true);
+        setAssistantStatusMessage('Escribiendo...');
+    }
 
     sendMessageToServer(messageToSend);
   };
@@ -407,7 +411,7 @@ const DesktopChatPage = () => {
               onClick={() => setIsInfoSheetOpen(true)}
             >
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
-                <Link href="/chat" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
+                <Link href="/chat/dashboard" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
               </Button>
               <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50">
                   <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />

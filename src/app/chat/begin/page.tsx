@@ -129,6 +129,12 @@ const BeginPage = () => {
     }
     
     const handleGoogleSignIn = () => {
+        // Before signing in, save the final user choices to the wizard state
+        if (chatMode === 'ia') {
+            dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: 'create_smart_db' });
+        }
+        dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' });
+
         signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
             toast({
                 title: 'Error de Inicio de Sesión',
@@ -539,5 +545,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
