@@ -17,7 +17,7 @@ import { APP_NAME } from '@/config/appConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import AddChatDialog from '@/components/chat/AddChatDialog';
+import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog'; // Import the new dialog
 import AppIcon from '@/components/shared/AppIcon';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
@@ -38,7 +38,7 @@ const ChatListPage = () => {
   const router = useRouter();
   const { userProfile } = state;
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
+  const [isCreateAssistantDialogOpen, setIsCreateAssistantDialogOpen] = useState(false);
   
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
@@ -69,9 +69,8 @@ const ChatListPage = () => {
       availableChats = [demoAssistant];
   }
   
-  const handleAddNewContact = () => {
-    // Always open the dialog, regardless of session status
-    setIsAddChatDialogOpen(true);
+  const handleAddNewAssistant = () => {
+    setIsCreateAssistantDialogOpen(true);
   };
 
 
@@ -240,16 +239,16 @@ const ChatListPage = () => {
       </ScrollArea>
        
           <Button
-            onClick={handleAddNewContact}
+            onClick={handleAddNewAssistant}
             className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
-            title="Añadir nuevo contacto"
+            title="Crear nuevo asistente"
           >
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
         
     </div>
-    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+    <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
     </>
   );
 };
