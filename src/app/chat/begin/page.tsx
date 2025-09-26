@@ -217,8 +217,12 @@ const BeginPage = () => {
                                                             <Icon className="h-6 w-6 text-primary"/>
                                                         </div>
                                                         {card.badge && (
-                                                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">
-                                                                <Award className="h-3 w-3"/>
+                                                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-6 !h-6 flex items-center justify-center">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                                                    <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                                                    <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                                                </svg>
                                                             </Badge>
                                                         )}
                                                     </div>
