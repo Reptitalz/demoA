@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import AppIcon from '@/components/shared/AppIcon';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,7 @@ const CANVAS_HEIGHT = 420;
 
 export default function AccessPage(): JSX.Element {
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
 
@@ -68,7 +69,9 @@ export default function AccessPage(): JSX.Element {
     }
   }, [isInstallable, deferredInstallPrompt, toast]);
 
-  const drawIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+  const drawIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+      const isDark = resolvedTheme === 'dark';
+      
       // Create a glow effect
       const glow = ctx.createRadialGradient(x, y, size * 0.4, x, y, size * 0.7);
       glow.addColorStop(0, 'hsla(var(--primary), 0.3)');
@@ -77,17 +80,17 @@ export default function AccessPage(): JSX.Element {
       ctx.fillRect(x - size, y - size, size * 2, size * 2);
 
       // Draw main body (simulating AppIcon)
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = isDark ? 'white' : 'hsl(var(--primary))';
       ctx.beginPath();
       ctx.roundRect(x - size/2, y - size/2, size, size, size * 0.2);
       ctx.fill();
 
       // Simple "H"
-      ctx.fillStyle = 'hsl(var(--primary))';
+      ctx.fillStyle = isDark ? 'hsl(var(--primary))' : 'white';
       ctx.fillRect(x - size/4, y - size/4, size/6, size/2);
       ctx.fillRect(x + size/12, y - size/4, size/6, size/2);
       ctx.fillRect(x - size/4, y - size/12, size/2, size/6);
-  };
+  }, [resolvedTheme]);
 
 
   useEffect(() => {
@@ -153,7 +156,7 @@ export default function AccessPage(): JSX.Element {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [drawIcon]); // Re-run effect if theme changes
 
   useEffect(() => {
     const canvas = canvasRef.current;
