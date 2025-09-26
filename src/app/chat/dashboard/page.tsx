@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, MessageSquarePlus, Bot, Star, Crown, User, Plus } from 'lucide-react';
+import { Search, Bot, Star, Crown, User, Plus } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -19,6 +19,7 @@ import { APP_NAME } from '@/config/appConfig';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import AppIcon from '@/components/shared/AppIcon';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
