@@ -157,8 +157,8 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 4</p>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-4 text-center animate-fadeIn">
-                        <div className="w-full max-w-2xl">
+                    <div className="p-4 text-center animate-fadeIn">
+                        <div className="w-full max-w-2xl mx-auto">
                             <AppIcon className="h-20 w-20 mb-4 mx-auto" />
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-4">
                                ¿Qué es Hey Manito?
