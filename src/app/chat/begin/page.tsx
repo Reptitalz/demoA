@@ -140,6 +140,7 @@ const BeginPage = () => {
             dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: 'create_smart_db' });
         }
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' });
+        dispatch({ type: 'UPDATE_WIZARD_USER_DETAILS', payload: { field: 'accountType', value: accountType } });
 
         signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
             toast({
@@ -277,7 +278,7 @@ const BeginPage = () => {
                                 {accountTypeCards.map((_, index) => (
                                     <button
                                         key={index}
-                                        onClick={() => {
+                                        onClick={()={() => {
                                             if (scrollRef.current) {
                                                 const cardWidth = scrollRef.current.offsetWidth;
                                                 scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -401,7 +402,7 @@ const BeginPage = () => {
                             {chatModeCards.map((_, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => {
+                                    onClick={()={() => {
                                         if (chatModeScrollRef.current) {
                                             const cardWidth = chatModeScrollRef.current.offsetWidth;
                                             chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -491,8 +492,7 @@ const BeginPage = () => {
                         </div>
                         
                          <Card 
-                            className="w-full max-w-sm p-6 text-center glow-card cursor-pointer hover:shadow-primary/20 transition-shadow"
-                            onClick={handleGoogleSignIn}
+                            className="w-full max-w-sm p-6 text-center glow-card"
                          >
                             <CardContent className="p-0 flex flex-col items-center justify-center gap-4">
                                 <motion.div
@@ -501,7 +501,7 @@ const BeginPage = () => {
                                 >
                                     <Lock className="h-20 w-20 text-primary" />
                                 </motion.div>
-                                <p className="font-semibold text-foreground">Iniciar sesión con Google</p>
+                                <p className="font-semibold text-foreground">El proyecto es seguro</p>
                             </CardContent>
                         </Card>
 
@@ -557,3 +557,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
