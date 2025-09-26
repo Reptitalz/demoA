@@ -55,8 +55,8 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
     }
 
     return (
-        <Badge variant={badgeVariant} className={cn("text-xs h-5", badgeVariant === 'default' && 'bg-primary/80')}>
-            {Icon && <Icon className="mr-1 h-3 w-3" />}
+        <Badge variant={badgeVariant} className={cn("text-[10px] h-4", badgeVariant === 'default' && 'bg-primary/80')}>
+            {Icon && <Icon className="mr-1 h-2.5 w-2.5" />}
             {badgeText}
         </Badge>
     );
@@ -118,30 +118,30 @@ const ChatListPage = () => {
       </header>
 
       <ScrollArea className="flex-grow">
-        <div className="p-4 space-y-4">
+        <div className="p-2 space-y-2">
           {availableChats.length > 0 ? availableChats.map((chat) => (
             <Link key={chat.id} href={`/chat/${chat.chatPath}`} legacyBehavior>
                 <Card className="cursor-pointer glow-card hover:shadow-primary/10">
-                    <CardContent className="p-3 flex items-center gap-4">
+                    <CardContent className="p-2 flex items-center gap-3">
                          <motion.div
                             animate={{ y: [-1, 1, -1] }}
                             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                          >
-                            <Avatar className="h-14 w-14 border-2 border-primary/30">
+                            <Avatar className="h-12 w-12 border-2 border-primary/30">
                                 <AvatarImage src={chat.imageUrl} alt={chat.name} />
-                                <AvatarFallback className="text-xl bg-muted">
+                                <AvatarFallback className="text-lg bg-muted">
                                     {chat.name ? chat.name.charAt(0) : <User />}
                                 </AvatarFallback>
                             </Avatar>
                         </motion.div>
                         <div className="flex-grow overflow-hidden">
                            <div className="flex items-center justify-between">
-                                <p className="font-semibold truncate">{chat.name}</p>
+                                <p className="font-semibold truncate text-sm">{chat.name}</p>
                                 <AssistantStatusBadge assistant={chat} />
                            </div>
                            <div className="flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
-                                <p className="text-xs text-muted-foreground mt-0.5 shrink-0">Ahora</p>
+                                <p className="text-xs text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">Ahora</p>
                            </div>
                         </div>
                     </CardContent>
