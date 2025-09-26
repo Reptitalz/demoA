@@ -468,7 +468,7 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
                     </div>
-                    <div className="animate-fadeIn w-full flex flex-col items-center">
+                    <div className="animate-fadeIn w-full flex flex-col items-center px-4">
                         <div className="text-center mb-6 px-4">
                              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                                Crea tu cuenta segura
