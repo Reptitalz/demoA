@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, MessageSquarePlus, Bot, Star, Crown } from 'lucide-react';
+import { Search, MessageSquarePlus, Bot, Star, Crown, User } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -18,6 +18,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { FaSpinner } from 'react-icons/fa';
 import { APP_NAME } from '@/config/appConfig';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
@@ -116,27 +118,34 @@ const ChatListPage = () => {
       </header>
 
       <ScrollArea className="flex-grow">
-        <div className="p-2 space-y-1">
+        <div className="p-4 space-y-4">
           {availableChats.length > 0 ? availableChats.map((chat) => (
             <Link key={chat.id} href={`/chat/${chat.chatPath}`} legacyBehavior>
-                <a className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
-                    <Avatar className="h-12 w-12">
-                        <AvatarImage src={chat.imageUrl} alt={chat.name} />
-                        <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow overflow-hidden">
-                        <div className="flex justify-between items-center">
-                            <p className="font-semibold truncate">{chat.name}</p>
-                            <div className="text-right shrink-0">
-                                {chat.type === 'desktop' && <AssistantStatusBadge assistant={chat} />}
-                                <p className="text-xs text-muted-foreground mt-0.5">Ahora</p>
-                            </div>
+                <Card className="cursor-pointer glow-card hover:shadow-primary/10">
+                    <CardContent className="p-3 flex items-center gap-4">
+                         <motion.div
+                            animate={{ y: [-1, 1, -1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                         >
+                            <Avatar className="h-14 w-14 border-2 border-primary/30">
+                                <AvatarImage src={chat.imageUrl} alt={chat.name} />
+                                <AvatarFallback className="text-xl bg-muted">
+                                    {chat.name ? chat.name.charAt(0) : <User />}
+                                </AvatarFallback>
+                            </Avatar>
+                        </motion.div>
+                        <div className="flex-grow overflow-hidden">
+                           <div className="flex items-center justify-between">
+                                <p className="font-semibold truncate">{chat.name}</p>
+                                <AssistantStatusBadge assistant={chat} />
+                           </div>
+                           <div className="flex items-center justify-between">
+                                <p className="text-sm text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 shrink-0">Ahora</p>
+                           </div>
                         </div>
-                        <div className="flex justify-between items-start">
-                            <p className="text-sm text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
-                        </div>
-                    </div>
-                </a>
+                    </CardContent>
+                </Card>
             </Link>
           )) : (
              <div className="text-center py-20 px-4 text-muted-foreground">
