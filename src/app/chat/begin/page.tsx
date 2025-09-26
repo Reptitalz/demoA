@@ -30,6 +30,7 @@ const BeginPage = () => {
 
     const [accountType, setAccountType] = useState<'business' | 'personal'>('business');
     const scrollRef = useRef<HTMLDivElement>(null);
+    const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -111,6 +112,23 @@ const BeginPage = () => {
             return () => scroller.removeEventListener('scroll', handleScroll);
         }
     }, [accountTypeCards]);
+    
+    useEffect(() => {
+        const handleAssistantScroll = () => {
+            if (assistantTypeScrollRef.current) {
+                const scrollLeft = assistantTypeScrollRef.current.scrollLeft;
+                const cardWidth = assistantTypeScrollRef.current.offsetWidth;
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                setSelectedOption(cards[newIndex].type as 'desktop' | 'whatsapp');
+            }
+        };
+
+        const scroller = assistantTypeScrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleAssistantScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleAssistantScroll);
+        }
+    }, [cards]);
 
     const isStepValid = (currentStep: number) => {
       if (currentStep === 2) {
@@ -330,47 +348,67 @@ const BeginPage = () => {
                             </p>
                         </div>
 
-                         <div className="w-full max-w-md mx-auto">
-                            <div className="grid grid-cols-1 gap-6">
+                        <div className="w-full max-w-md mx-auto">
+                            <div ref={assistantTypeScrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
                                 {cards.map((card, index) => (
-                                    <Card 
-                                        key={index}
-                                        onClick={() => handleSelectOption(card.type)}
-                                        className={cn(
-                                            "cursor-pointer transition-all border-2 overflow-hidden shadow-lg hover:shadow-primary/20 h-full",
-                                            "glow-card"
-                                        )}
-                                    >
-                                        <CardHeader className="p-0">
-                                            <div className="relative aspect-video w-full">
-                                                <Image
-                                                    src={card.image}
-                                                    alt={card.title}
-                                                    layout="fill"
-                                                    className="object-cover"
-                                                    data-ai-hint={card.imageHint}
-                                                />
-                                                <div className={cn(
-                                                    "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6",
-                                                    card.badgeColor === 'primary' ? 'bg-primary' : `bg-gradient-to-r ${card.badgeColor}`
-                                                )}>
-                                                    {card.badge}
+                                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                                        <Card 
+                                            onClick={() => handleSelectOption(card.type)}
+                                            className={cn(
+                                                "cursor-pointer transition-all border-2 overflow-hidden shadow-lg h-full",
+                                                "glow-card",
+                                                selectedOption === card.type ? "border-primary" : "border-transparent"
+                                            )}
+                                        >
+                                            <CardHeader className="p-0">
+                                                <div className="relative aspect-video w-full">
+                                                    <Image
+                                                        src={card.image}
+                                                        alt={card.title}
+                                                        layout="fill"
+                                                        className="object-cover"
+                                                        data-ai-hint={card.imageHint}
+                                                    />
+                                                    <div className={cn(
+                                                        "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg -rotate-6",
+                                                        card.badgeColor === 'primary' ? 'bg-primary' : `bg-gradient-to-r ${card.badgeColor}`
+                                                    )}>
+                                                        {card.badge}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="p-6 text-center">
-                                            <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
-                                            <CardDescription className="text-sm">{card.description}</CardDescription>
-                                            <ul className="text-left text-sm text-muted-foreground space-y-2 mt-4 mb-6">
-                                                {card.features.map((feature, i) => (
-                                                    <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
-                                                ))}
-                                            </ul>
-                                            <Button size="lg" className="w-full font-bold">
-                                                {card.buttonText} <ArrowRight className="ml-2" size={16}/>
-                                            </Button>
-                                        </CardContent>
-                                    </Card>
+                                            </CardHeader>
+                                            <CardContent className="p-6 text-center">
+                                                <CardTitle className="flex items-center justify-center gap-2 text-xl mb-2"><card.icon size={22}/> {card.title}</CardTitle>
+                                                <CardDescription className="text-sm">{card.description}</CardDescription>
+                                                <ul className="text-left text-sm text-muted-foreground space-y-2 mt-4 mb-6">
+                                                    {card.features.map((feature, i) => (
+                                                        <li key={i} className="flex items-start gap-2"><Check size={14} className="text-green-500 mt-1 shrink-0"/><span>{feature}</span></li>
+                                                    ))}
+                                                </ul>
+                                                <Button size="lg" className="w-full font-bold">
+                                                    {card.buttonText} <ArrowRight className="ml-2" size={16}/>
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                ))}
+                            </div>
+                             <div className="flex justify-center mb-6 space-x-2 mt-4">
+                                {cards.map((card, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            if (assistantTypeScrollRef.current) {
+                                                const cardWidth = assistantTypeScrollRef.current.offsetWidth;
+                                                assistantTypeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                            }
+                                        }}
+                                        className={cn(
+                                            "h-2 w-2 rounded-full transition-all",
+                                            selectedOption === card.type ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                                        )}
+                                        aria-label={`Ir a la tarjeta ${index + 1}`}
+                                    />
                                 ))}
                             </div>
                         </div>
