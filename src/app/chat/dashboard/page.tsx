@@ -1,4 +1,3 @@
-
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -35,7 +34,7 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
         badgeText = "Prueba Finalizada";
         badgeVariant = "destructive";
     } else if (isTrialActive) {
-        return null; // Don't show the badge during the free trial
+        return null; 
     } else if (assistant.isPlanActive) {
         badgeText = "Plan Activo";
         badgeVariant = "default";
@@ -121,7 +120,7 @@ const ChatListPage = () => {
           {availableChats.length > 0 ? availableChats.map((chat) => (
             <Link key={chat.id} href={`/chat/${chat.chatPath}`} legacyBehavior>
                 <Card className="cursor-pointer glow-card hover:shadow-primary/10">
-                    <CardContent className="p-3 flex items-center gap-4">
+                    <CardContent className="p-3 flex items-center gap-3">
                          <motion.div
                             animate={{ y: [-1, 1, -1] }}
                             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -139,7 +138,13 @@ const ChatListPage = () => {
                                 <AssistantStatusBadge assistant={chat} />
                            </div>
                            <div className="flex items-center justify-between">
-                                <p className="text-xs text-muted-foreground truncate">Haz clic para iniciar un chat...</p>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                    </span>
+                                    <p className="text-xs text-muted-foreground">en línea</p>
+                                </div>
                                 <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">Ahora</p>
                            </div>
                         </div>
