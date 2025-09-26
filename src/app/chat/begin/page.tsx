@@ -457,7 +457,7 @@ const BeginPage = () => {
         }
         if (step === 5) {
              return (
-                <div className="animate-fadeIn w-full flex flex-col items-center">
+                <div className="animate-fadeIn w-full flex flex-col items-center px-4">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 20]}
@@ -473,12 +473,15 @@ const BeginPage = () => {
                              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
                                Crea tu cuenta segura
                             </h1>
-                            <p className="mt-3 max-w-md mx-auto text-sm text-muted-foreground px-4">
+                            <p className="mt-3 max-w-md mx-auto text-sm text-muted-foreground">
                                 Inicia sesión con Google para guardar tu progreso y acceder a todas las funciones.
                             </p>
                         </div>
                         
-                         <Card className="w-full max-w-sm p-6 text-center glow-card">
+                         <Card 
+                            className="w-full max-w-sm p-6 text-center glow-card cursor-pointer hover:shadow-primary/20 transition-shadow"
+                            onClick={handleGoogleSignIn}
+                         >
                             <CardContent className="p-0 flex flex-col items-center justify-center gap-4">
                                 <motion.div
                                     animate={{ y: [-4, 4, -4] }}
@@ -486,9 +489,7 @@ const BeginPage = () => {
                                 >
                                     <FcGoogle className="h-20 w-20" />
                                 </motion.div>
-                                 <Button size="lg" className="w-full" onClick={handleGoogleSignIn}>
-                                    Iniciar sesión con Google
-                                </Button>
+                                <p className="font-semibold text-foreground">Iniciar sesión con Google</p>
                             </CardContent>
                         </Card>
 
