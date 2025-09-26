@@ -24,7 +24,7 @@ const BeginPage = () => {
     const { state, dispatch } = useApp();
     const { firstName, lastName, imageUrl } = state.wizard;
     const [step, setStep] = useState(1);
-    const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp' | null>(null);
+    const [selectedOption, setSelectedOption] = useState<'desktop' | 'whatsapp'>('desktop');
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
 
