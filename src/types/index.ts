@@ -133,6 +133,7 @@ export interface UserProfile {
   referredBy?: ObjectId; // Link to CollaboratorProfile
   ownerPhoneNumberForNotifications?: string;
   purchasedUnlimitedPlans?: number;
+  accountType?: 'personal' | 'business';
 }
 
 export interface WizardState {
@@ -161,6 +162,7 @@ export interface WizardState {
   isReconfiguring: boolean;
   editingAssistantId: string | null;
   acceptedTerms: boolean;
+  accountType?: 'personal' | 'business';
 }
 
 export interface LoadingStatus {

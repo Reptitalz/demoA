@@ -30,11 +30,13 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
     let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let Icon = null;
 
+    if (isTrialActive) {
+        return null; // Don't show any badge during free trial
+    }
+
     if (isTrialExpired && !assistant.isPlanActive) {
         badgeText = "Prueba Finalizada";
         badgeVariant = "destructive";
-    } else if (isTrialActive) {
-        return null; 
     } else if (assistant.isPlanActive) {
         badgeText = "Plan Activo";
         badgeVariant = "default";
@@ -134,7 +136,18 @@ const ChatListPage = () => {
                         </motion.div>
                         <div className="flex-grow overflow-hidden">
                            <div className="flex items-center justify-between">
-                                <p className="font-semibold truncate text-sm">{chat.name}</p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="font-semibold truncate text-sm">{chat.name}</p>
+                                     {state.userProfile.accountType === 'business' && (
+                                         <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                            </svg>
+                                        </Badge>
+                                      )}
+                                </div>
                                 <AssistantStatusBadge assistant={chat} />
                            </div>
                            <div className="flex items-center justify-between">
