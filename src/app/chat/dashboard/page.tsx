@@ -5,13 +5,11 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, MessageSquarePlus, Bot, Star, Crown, User } from 'lucide-react';
+import { Search, MessageSquarePlus, Bot, Star, Crown, User, Plus } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import AddChatDialog from '@/components/chat/AddChatDialog';
-import AppIcon from '@/components/shared/AppIcon';
 import { useApp } from '@/providers/AppProvider';
 import type { AssistantConfig } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +18,7 @@ import { FaSpinner } from 'react-icons/fa';
 import { APP_NAME } from '@/config/appConfig';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
@@ -68,9 +67,9 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
 
 const ChatListPage = () => {
   const { data: session } = useSession();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+  const router = useRouter();
   const { userProfile } = state;
-  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   // We only care about desktop assistants that can be chatted with via the web UI.
@@ -99,6 +98,15 @@ const ChatListPage = () => {
   if (availableChats.length === 0 && !userProfile.isAuthenticated) {
       availableChats = [demoAssistant];
   }
+  
+  const handleAddNewAssistant = () => {
+    if (!userProfile.isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    dispatch({ type: 'RESET_WIZARD' });
+    router.push('/app?action=add'); 
+  };
 
 
   return (
@@ -186,16 +194,15 @@ const ChatListPage = () => {
       </ScrollArea>
        {session && (
           <Button
-            onClick={() => setIsAddChatDialogOpen(true)}
+            onClick={handleAddNewAssistant}
             className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
-            title="Iniciar chat con ID"
+            title="Crear nuevo asistente"
           >
-            <MessageSquarePlus className="h-6 w-6" />
+            <Plus className="h-6 w-6" />
           </Button>
         )}
     </div>
-    <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
     </>
   );
 };
