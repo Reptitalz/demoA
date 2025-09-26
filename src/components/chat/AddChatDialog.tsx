@@ -1,4 +1,3 @@
-
 // src/components/chat/AddChatDialog.tsx
 "use client";
 
@@ -9,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
-import { MessageSquarePlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 interface AddChatDialogProps {
   isOpen: boolean;
@@ -21,17 +20,17 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleStartChat = () => {
+  const handleAddContact = () => {
     if (!chatPath.trim()) {
       toast({
         title: "Campo requerido",
-        description: "Por favor, ingresa el ID del chat del asistente.",
+        description: "Por favor, ingresa el ID del chat del contacto.",
         variant: "destructive",
       });
       return;
     }
     onOpenChange(false);
-    // Navigate to the chat page using the provided path
+    // Navigate to the chat page using the provided path, which will also effectively add them to the "recents"
     router.push(`/chat/${chatPath.trim()}`);
   };
 
@@ -40,14 +39,14 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageSquarePlus /> Iniciar un Nuevo Chat
+            <UserPlus /> Agregar Nuevo Contacto
           </DialogTitle>
           <DialogDescription>
-            Ingresa el ID de chat (chat path) del asistente con el que quieres conversar.
+            Ingresa el ID de chat (chat path) del contacto que quieres agregar.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-2">
-          <Label htmlFor="chatPath">ID de Chat del Asistente</Label>
+          <Label htmlFor="chatPath">ID de Chat del Contacto</Label>
           <Input
             id="chatPath"
             placeholder="ejemplo-asistente-abc12"
@@ -57,7 +56,7 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleStartChat}>Iniciar Chat</Button>
+          <Button onClick={handleAddContact}>Agregar Contacto</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
