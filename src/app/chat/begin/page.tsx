@@ -97,16 +97,6 @@ const BeginPage = () => {
 
     const renderStep1 = () => (
         <div className="flex flex-col h-full animate-fadeIn">
-            <div className="w-full max-w-sm mx-auto pt-8 mb-8">
-                <Slider
-                    defaultValue={[50]}
-                    max={100}
-                    step={50}
-                    className="[&>span:first-child]:bg-transparent"
-                    disabled
-                />
-                <p className="text-xs text-muted-foreground mt-1 text-center">Paso 1 de 2</p>
-            </div>
             <div className="flex-grow flex flex-col items-center justify-center p-4 text-center">
                 <div className="w-full max-w-2xl">
                     <AppIcon className="h-20 w-20 mb-4 mx-auto" />

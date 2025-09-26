@@ -21,27 +21,38 @@ const SetupProgressBar = () => {
     let displayStep = currentStep;
     
     // Map logical step to a display number, accounting for skips
-    if (currentStep === 4 && !dbNeeded) {
-        displayStep = 3;
-    }
-    if (currentStep === 5 && !dbNeeded) {
-        displayStep = 4;
+    if(isReconfiguring){
+        if (currentStep === 3 && !dbNeeded) displayStep = 3;
+        if (currentStep === 4 && !dbNeeded) displayStep = 4;
+    } else {
+        if (currentStep === 4 && !dbNeeded) displayStep = 3;
+        if (currentStep === 5 && !dbNeeded) displayStep = 4;
     }
 
-    const keyMap = {
-        1: 1, // Details
-        2: 2, // Prompt
-        3: dbNeeded ? 3 : 4, // DB or Terms
-        4: dbNeeded ? 4 : 5, // Terms or Auth
-        5: 5 // Auth
+
+    const keyMap: Record<number, number> = isReconfiguring 
+    ? {
+        1: 2, // Details
+        2: 3, // Prompt
+        3: dbNeeded ? 4 : 5, // DB or Terms
+        4: 5 // Terms
     }
+    : {
+        1: 1, // Type
+        2: 2, // Details
+        3: 3, // Prompt
+        4: dbNeeded ? 4 : 5, // DB or Terms
+        5: dbNeeded ? 5 : 6, // Terms or Auth
+        6: 6, // Auth
+    };
+
 
     return { 
         effectiveMaxSteps: totalSteps, 
         stepTitleKey: keyMap[currentStep as keyof typeof keyMap],
         currentDisplayStep: displayStep
     };
-  }, [dbNeeded, currentStep]);
+  }, [dbNeeded, currentStep, isReconfiguring]);
 
   const stepTitle = WIZARD_STEP_TITLES[stepTitleKey as keyof typeof WIZARD_STEP_TITLES] || "Progreso";
   const progressPercentage = (currentDisplayStep / effectiveMaxSteps) * 100;

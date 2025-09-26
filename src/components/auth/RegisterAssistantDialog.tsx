@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
+import Step0AssistantType from '@/components/auth/wizard-steps/Step0_AssistantType';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
