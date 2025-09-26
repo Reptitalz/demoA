@@ -70,7 +70,7 @@ const BeginPage = () => {
             type: 'ia',
             icon: Brain,
             title: 'Quiero un Asistente IA',
-            description: 'Un asistente inteligente responderá automáticamente en tu chat principal.',
+            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
             badge: true,
         },
         {
