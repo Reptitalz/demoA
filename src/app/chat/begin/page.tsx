@@ -73,7 +73,7 @@ const BeginPage = () => {
             icon: AppWindow,
             description: 'Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono.',
             features: [
-                'Prueba ilimitada por 30 días.',
+                'Prueba ilimitada por 30 días, después $179 MXN/mes.',
                 'Configuración y acceso instantáneo.'
             ],
             buttonText: 'Comenzar Prueba Gratis'
