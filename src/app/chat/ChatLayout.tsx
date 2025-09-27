@@ -17,15 +17,13 @@ const menuItems = [
 ];
 
 const AdminNavBar = () => (
-    <nav className="fixed bottom-16 left-0 right-0 h-12 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
+    <nav className="fixed bottom-16 left-0 right-0 h-10 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
         <div className="flex justify-around items-center h-full max-w-md mx-auto">
-            <Button variant="ghost" className="flex flex-col items-center h-full text-primary">
-                <Eye className="h-4 w-4"/>
-                <span className="text-xs mt-1">Supervisión</span>
+            <Button variant="ghost" className="h-full text-primary px-6">
+                <Eye className="h-5 w-5"/>
             </Button>
-            <Button variant="ghost" className="flex flex-col items-center h-full text-muted-foreground">
-                <BarChart className="h-4 w-4"/>
-                <span className="text-xs mt-1">Estadísticas</span>
+            <Button variant="ghost" className="h-full text-muted-foreground px-6">
+                <BarChart className="h-5 w-5"/>
             </Button>
         </div>
     </nav>
@@ -83,7 +81,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
           className={cn(
             "flex-grow overflow-y-auto",
              isBaseChatView && "pb-16", // Padding for main nav bar
-             isAdminView && "pb-12", // Extra padding for admin nav bar
+             isAdminView && "pb-10", // Extra padding for admin nav bar
             isBaseChatView && animationClass 
           )}
       >
