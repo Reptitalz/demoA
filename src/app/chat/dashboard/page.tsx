@@ -17,8 +17,9 @@ import { APP_NAME } from '@/config/appConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import AddChatDialog from '@/components/chat/AddChatDialog';
+import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
 import AppIcon from '@/components/shared/AppIcon';
+import AddChatDialog from '@/components/chat/AddChatDialog';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -70,17 +71,13 @@ const ChatListPage = () => {
   }
   
   const handleAddNewContact = () => {
-    if (!userProfile.isAuthenticated) {
-      router.push('/login');
-      return;
-    }
     setIsAddChatDialogOpen(true);
   };
 
 
   return (
     <>
-    <div className="flex flex-col h-full bg-transparent relative">
+    <div className="flex flex-col h-full bg-transparent relative" onClick={() => setActiveSwipe(null)}>
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold flex items-center gap-2">
             <AppIcon className="h-7 w-7" />
@@ -97,7 +94,7 @@ const ChatListPage = () => {
         </div>
       </header>
 
-      <ScrollArea className="flex-grow" onClick={() => setActiveSwipe(null)}>
+      <ScrollArea className="flex-grow">
         <div className="p-2 space-y-2">
           {availableChats.length > 0 ? availableChats.map((chat) => {
             const isLeftSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'left';
@@ -145,10 +142,12 @@ const ChatListPage = () => {
                  <motion.div
                     drag="x"
                     dragConstraints={{ left: -160, right: 112 }}
-                    onDragStart={() => {
+                    onDragStart={(e) => {
+                        e.stopPropagation();
                         dragOccurred.current = false;
                     }}
-                    onDrag={() => {
+                    onDrag={(e) => {
+                        e.stopPropagation();
                         dragOccurred.current = true;
                     }}
                     onDragEnd={(event, info) => {
@@ -166,8 +165,8 @@ const ChatListPage = () => {
                         }
                     }}
                     onClick={(e) => {
+                        e.stopPropagation();
                         if (dragOccurred.current) {
-                            e.preventDefault();
                             return;
                         }
                         setActiveSwipe(null);
@@ -244,7 +243,7 @@ const ChatListPage = () => {
        
           <Button
             onClick={handleAddNewContact}
-            className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+            className="absolute bottom-20 left-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
             title="Añadir nuevo contacto"
           >
