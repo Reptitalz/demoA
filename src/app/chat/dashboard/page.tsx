@@ -242,7 +242,7 @@ const ChatListPage = () => {
        
           <Button
             onClick={handleAddNewContact}
-            className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+            className="absolute bottom-16 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
             title="Añadir nuevo contacto"
           >
