@@ -218,6 +218,131 @@ const BeginPage = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
                     </div>
+
+                    <div className="text-center mb-6 px-4">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+                           ¿Cómo quieres usar tu chat?
+                        </h1>
+                        <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground px-4">
+                            Elige cómo funcionará tu perfil de chat principal.
+                        </p>
+                    </div>
+
+                     <div className="w-full max-w-sm md:max-w-md mx-auto">
+                        <div
+                            ref={chatModeScrollRef}
+                            className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+                        >
+                            {chatModeCards.map((card, index) => {
+                                const Icon = card.icon;
+                                return (
+                                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                                        <Card 
+                                            className={cn(
+                                                "transition-all border-2 overflow-hidden shadow-lg h-full",
+                                                chatMode === card.type ? "border-primary shadow-primary/20" : "",
+                                                "glow-card"
+                                            )}
+                                        >
+                                            <CardHeader className="p-6 pb-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="p-3 bg-primary/10 rounded-full">
+                                                        <Icon className="h-6 w-6 text-primary" />
+                                                    </div>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="p-6 pt-0">
+                                                <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
+                                                <CardDescription className="text-sm">{card.description}</CardDescription>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                        <div className="flex justify-center mb-6 space-x-2 mt-4">
+                            {chatModeCards.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => {
+                                        if (chatModeScrollRef.current) {
+                                            const cardWidth = chatModeScrollRef.current.offsetWidth;
+                                            chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                        }
+                                    }}
+                                    className={cn(
+                                        "h-2 w-2 rounded-full transition-all",
+                                        chatMode === chatModeCards[index].type ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                                    )}
+                                    aria-label={`Ir a la tarjeta ${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                     </div>
+                     
+                    <motion.div
+                        key={chatMode}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+                        className="mt-4"
+                    >
+                         <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
+                             <motion.div
+                                animate={{ y: [-2, 2, -2] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                             >
+                                <Avatar className="h-14 w-14 border-2 border-primary/30">
+                                    <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
+                                    <AvatarFallback className="text-xl bg-muted">
+                                        {firstName ? firstName.charAt(0) : <User />}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </motion.div>
+                            <div className="flex-grow">
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
+                                   {accountType === 'business' && (
+                                     <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                            <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                            <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                        </svg>
+                                    </Badge>
+                                  )}
+                                  {chatMode === 'ia' && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>}
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                    </span>
+                                    <p className="text-xs text-muted-foreground">en línea</p>
+                                </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                                <p>Ahora</p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                </div>
+            )
+        }
+        if (step === 4) {
+            return (
+                <div className="animate-fadeIn w-full flex flex-col items-center">
+                    <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
+                        <Slider
+                            value={[step * 20]}
+                            max={100}
+                            step={20}
+                            className="[&>span:first-child]:bg-transparent"
+                            disabled
+                        />
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
+                    </div>
                     <div className="animate-fadeIn w-full flex flex-col items-center">
                          <div className="text-center mb-6">
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
@@ -336,131 +461,6 @@ const BeginPage = () => {
                     </div>
                 </div>
             );
-        }
-        if (step === 4) {
-            return (
-                <div className="animate-fadeIn w-full flex flex-col items-center">
-                    <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
-                        <Slider
-                            value={[step * 20]}
-                            max={100}
-                            step={20}
-                            className="[&>span:first-child]:bg-transparent"
-                            disabled
-                        />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
-                    </div>
-
-                    <div className="text-center mb-6 px-4">
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
-                           ¿Cómo quieres usar tu chat?
-                        </h1>
-                        <p className="mt-3 max-w-2xl mx-auto text-sm text-muted-foreground px-4">
-                            Elige cómo funcionará tu perfil de chat principal.
-                        </p>
-                    </div>
-
-                     <div className="w-full max-w-sm md:max-w-md mx-auto">
-                        <div
-                            ref={chatModeScrollRef}
-                            className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
-                        >
-                            {chatModeCards.map((card, index) => {
-                                const Icon = card.icon;
-                                return (
-                                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                                        <Card 
-                                            className={cn(
-                                                "transition-all border-2 overflow-hidden shadow-lg h-full",
-                                                chatMode === card.type ? "border-primary shadow-primary/20" : "",
-                                                "glow-card"
-                                            )}
-                                        >
-                                            <CardHeader className="p-6 pb-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="p-3 bg-primary/10 rounded-full">
-                                                        <Icon className="h-6 w-6 text-primary" />
-                                                    </div>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="p-6 pt-0">
-                                                <CardTitle className="text-lg mb-1">{card.title}</CardTitle>
-                                                <CardDescription className="text-sm">{card.description}</CardDescription>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                        <div className="flex justify-center mb-6 space-x-2 mt-4">
-                            {chatModeCards.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => {
-                                        if (chatModeScrollRef.current) {
-                                            const cardWidth = chatModeScrollRef.current.offsetWidth;
-                                            chatModeScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                                        }
-                                    }}
-                                    className={cn(
-                                        "h-2 w-2 rounded-full transition-all",
-                                        chatMode === chatModeCards[index].type ? "w-6 bg-primary" : "bg-muted-foreground/50"
-                                    )}
-                                    aria-label={`Ir a la tarjeta ${index + 1}`}
-                                />
-                            ))}
-                        </div>
-                     </div>
-                     
-                    <motion.div
-                        key={chatMode}
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-                        className="mt-4"
-                    >
-                         <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
-                             <motion.div
-                                animate={{ y: [-2, 2, -2] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                             >
-                                <Avatar className="h-14 w-14 border-2 border-primary/30">
-                                    <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
-                                    <AvatarFallback className="text-xl bg-muted">
-                                        {firstName ? firstName.charAt(0) : <User />}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </motion.div>
-                            <div className="flex-grow">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
-                                   {accountType === 'business' && (
-                                     <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                            <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                            <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                                        </svg>
-                                    </Badge>
-                                  )}
-                                  {chatMode === 'ia' && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>}
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                    </span>
-                                    <p className="text-xs text-muted-foreground">en línea</p>
-                                </div>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                                <p>Ahora</p>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                </div>
-            )
         }
         if (step === 5) {
              return (
