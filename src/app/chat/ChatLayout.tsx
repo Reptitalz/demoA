@@ -60,50 +60,6 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 
   }, [pathname, router]);
   
-
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const touchStartY = useRef(0);
-  const touchEndY = useRef(0);
-  const swipeHandled = useRef(false);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-      touchStartX.current = e.targetTouches[0].clientX;
-      touchStartY.current = e.targetTouches[0].clientY;
-      swipeHandled.current = false;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-      touchEndX.current = e.targetTouches[0].clientX;
-      touchEndY.current = e.targetTouches[0].clientY;
-  };
-
-  const handleTouchEnd = () => {
-      if (swipeHandled.current) return;
-
-      const deltaX = touchEndX.current - touchStartX.current;
-      const deltaY = touchEndY.current - touchStartY.current;
-
-      // Ensure it's a significant horizontal swipe, not a vertical scroll
-      if (Math.abs(deltaX) > 75 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-          const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
-          if (currentIndex === -1) return;
-
-          swipeHandled.current = true;
-          if (deltaX < 0) { // Swiped left
-              const nextIndex = (currentIndex + 1);
-              if (nextIndex < menuItems.length) {
-                handleRouteChange(menuItems[nextIndex].path);
-              }
-          } else { // Swiped right
-              const prevIndex = (currentIndex - 1);
-              if (prevIndex >= 0) {
-                 handleRouteChange(menuItems[prevIndex].path);
-              }
-          }
-      }
-  };
-
   return (
     <div className="h-screen w-screen flex flex-col bg-transparent overflow-x-hidden">
       <main 
@@ -111,9 +67,6 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
             "flex-grow overflow-hidden",
             isBaseChatView && animationClass // Apply animation
           )}
-          onTouchStart={isBaseChatView ? handleTouchStart : undefined}
-          onTouchMove={isBaseChatView ? handleTouchMove : undefined}
-          onTouchEnd={isBaseChatView ? handleTouchEnd : undefined}
       >
         {children}
       </main>
