@@ -5,7 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database, Lock, CircleDollarSign, Newspaper } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database, Lock, CircleDollarSign, Newspaper, Landmark } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -238,7 +238,7 @@ const BeginPage = () => {
                         </p>
                     </div>
                     
-                    <div className="w-full max-w-sm mx-auto">
+                    <div className="w-full max-w-sm mx-auto mb-6">
                       <motion.div
                           key={accountType}
                           initial={{ y: 10, opacity: 0 }}
@@ -279,7 +279,6 @@ const BeginPage = () => {
                                       <p className="text-xs text-muted-foreground">en línea</p>
                                   </div>
                               </div>
-                                
                           </div>
                       </motion.div>
                     </div>
@@ -370,7 +369,7 @@ const BeginPage = () => {
                         </p>
                     </div>
                     
-                    <div className="w-full max-w-sm mx-auto">
+                    <div className="w-full max-w-sm mx-auto mb-6">
                       <motion.div
                           key={chatMode}
                           initial={{ y: 10, opacity: 0 }}
@@ -412,7 +411,6 @@ const BeginPage = () => {
                                       <p className="text-xs text-muted-foreground">en línea</p>
                                   </div>
                               </div>
-                                
                           </div>
                       </motion.div>
                     </div>
@@ -494,11 +492,11 @@ const BeginPage = () => {
                     </div>
                     <Card className="w-full max-w-sm p-6 text-left glow-card">
                         <CardHeader className="p-0 mb-4">
-                           <CardTitle className="flex items-center gap-2 text-lg"><Newspaper className="h-5 w-5 text-primary" /> Próximamente: Tienda de Asistentes</CardTitle>
+                           <CardTitle className="flex items-center gap-2 text-lg"><Landmark className="h-5 w-5 text-primary" /> Gestión de Ganancias</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
                             <p className="text-sm text-muted-foreground">
-                                Estamos trabajando en una tienda donde podrás comprar y vender prompts de asistentes para acelerar tu flujo de trabajo. ¡Prepárate para monetizar tu creatividad!
+                                En el apartado 'Admin', encontrarás un nuevo campo llamado 'Banco' para gestionar tus ganancias. Cuando apruebes las capturas de pantalla de transferencias recibidas por tus asistentes, tus ganancias se incrementarán, registrando la fecha y hora de recepción.
                             </p>
                         </CardContent>
                     </Card>
