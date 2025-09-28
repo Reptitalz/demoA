@@ -207,7 +207,7 @@ const BeginPage = () => {
         }
         if (step === 3) {
             return (
-                <div className="animate-fadeIn w-full flex flex-col items-center flex-grow h-full">
+                <div className="animate-fadeIn w-full flex flex-col items-center">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 20]}
@@ -274,7 +274,7 @@ const BeginPage = () => {
                             </div>
                         </div>
                     </motion.div>
-                    <div className="mt-auto w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
+                    <div className="w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
                         <div
                             ref={chatModeScrollRef}
                             className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
@@ -330,7 +330,7 @@ const BeginPage = () => {
         }
         if (step === 4) {
             return (
-                <div className="animate-fadeIn w-full flex flex-col items-center flex-grow h-full">
+                <div className="animate-fadeIn w-full flex flex-col items-center">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 20]}
@@ -396,7 +396,7 @@ const BeginPage = () => {
                         </div>
                     </motion.div>
 
-                    <div className="mt-auto w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
+                    <div className="w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
                         <div
                             ref={scrollRef}
                             className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
@@ -550,6 +550,7 @@ const BeginPage = () => {
 export default BeginPage;
 
   
+
 
 
 
