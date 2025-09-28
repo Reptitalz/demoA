@@ -274,7 +274,7 @@ const BeginPage = () => {
                             </div>
                         </div>
                     </motion.div>
-                    <div className="mt-auto w-full max-w-sm md:max-w-md mx-auto py-4">
+                    <div className="mt-auto w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
                         <div
                             ref={chatModeScrollRef}
                             className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
@@ -396,7 +396,7 @@ const BeginPage = () => {
                         </div>
                     </motion.div>
 
-                    <div className="mt-auto w-full max-w-sm md:max-w-md mx-auto py-4">
+                    <div className="mt-auto w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
                         <div
                             ref={scrollRef}
                             className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
@@ -516,7 +516,7 @@ const BeginPage = () => {
 
     return (
         <>
-        <PageContainer className="flex flex-col h-[calc(100vh-88px)] sm:h-auto sm:min-h-screen items-center p-0 sm:p-6 sm:pt-8 sm:pb-24 overflow-y-auto">
+        <PageContainer className="flex flex-col h-full items-center p-0 sm:p-6 sm:pt-8 sm:pb-24 overflow-y-auto">
             
             {renderStepContent()}
 
@@ -550,5 +550,6 @@ const BeginPage = () => {
 export default BeginPage;
 
   
+
 
 
