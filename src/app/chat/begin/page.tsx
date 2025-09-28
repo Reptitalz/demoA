@@ -207,7 +207,7 @@ const BeginPage = () => {
         }
         if (step === 3) {
             return (
-                <div className="animate-fadeIn w-full flex flex-col items-center">
+                 <div className="animate-fadeIn w-full flex flex-col items-center">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 20]}
@@ -228,52 +228,55 @@ const BeginPage = () => {
                         </p>
                     </div>
                      
-                    <motion.div
-                        key={chatMode}
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-                        className="mt-4"
-                    >
-                         <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
-                             <motion.div
-                                animate={{ y: [-2, 2, -2] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                             >
-                                <Avatar className="h-14 w-14 border-2 border-primary/30">
-                                    <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
-                                    <AvatarFallback className="text-xl bg-muted">
-                                        {firstName ? firstName.charAt(0) : <User />}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </motion.div>
-                            <div className="flex-grow">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
-                                   {accountType === 'business' && (
-                                     <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                            <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                            <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                                        </svg>
-                                    </Badge>
-                                  )}
-                                  {chatMode === 'ia' && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>}
+                    <div className="w-full max-w-sm mx-auto">
+                        <motion.div
+                            key={chatMode}
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+                            className="mt-8"
+                        >
+                            <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
+                                <motion.div
+                                    animate={{ y: [-2, 2, -2] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                                >
+                                    <Avatar className="h-14 w-14 border-2 border-primary/30">
+                                        <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
+                                        <AvatarFallback className="text-xl bg-muted">
+                                            {firstName ? firstName.charAt(0) : <User />}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </motion.div>
+                                <div className="flex-grow">
+                                    <div className="flex items-center gap-1.5">
+                                    <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
+                                    {accountType === 'business' && (
+                                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                            </svg>
+                                        </Badge>
+                                    )}
+                                    {chatMode === 'ia' && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        </span>
+                                        <p className="text-xs text-muted-foreground">en línea</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                    </span>
-                                    <p className="text-xs text-muted-foreground">en línea</p>
+                                <div className="text-xs text-muted-foreground">
+                                    <p>Ahora</p>
                                 </div>
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                                <p>Ahora</p>
-                            </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
+
                     <div className="w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
                         <div
                             ref={chatModeScrollRef}
@@ -324,13 +327,13 @@ const BeginPage = () => {
                                 />
                             ))}
                         </div>
-                     </div>
+                    </div>
                 </div>
             )
         }
         if (step === 4) {
             return (
-                <div className="animate-fadeIn w-full flex flex-col items-center">
+                 <div className="animate-fadeIn w-full flex flex-col items-center">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * 20]}
@@ -350,51 +353,53 @@ const BeginPage = () => {
                         </p>
                     </div>
                     
-                    <motion.div
-                        key={accountType}
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-                        className="mt-4"
-                    >
-                        <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
-                            <motion.div
-                                animate={{ y: [-2, 2, -2] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                            >
-                                <Avatar className="h-14 w-14 border-2 border-primary/30">
-                                    <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
-                                    <AvatarFallback className="text-xl bg-muted">
-                                        {firstName ? firstName.charAt(0) : <User />}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </motion.div>
-                            <div className="flex-grow">
-                                <div className="flex items-center gap-1.5">
-                                    <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
-                                    {accountType === 'business' && (
-                                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                            <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                            <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                                        </svg>
-                                    </Badge>
-                                    )}
+                    <div className="w-full max-w-sm mx-auto">
+                        <motion.div
+                            key={accountType}
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+                            className="mt-8"
+                        >
+                            <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
+                                <motion.div
+                                    animate={{ y: [-2, 2, -2] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                                >
+                                    <Avatar className="h-14 w-14 border-2 border-primary/30">
+                                        <AvatarImage src={imageUrl} alt={firstName || 'Avatar'} />
+                                        <AvatarFallback className="text-xl bg-muted">
+                                            {firstName ? firstName.charAt(0) : <User />}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </motion.div>
+                                <div className="flex-grow">
+                                    <div className="flex items-center gap-1.5">
+                                        <p className="font-semibold text-foreground truncate">{firstName || 'Tu Nombre'}</p>
+                                        {accountType === 'business' && (
+                                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center -translate-y-1/2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                            </svg>
+                                        </Badge>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        </span>
+                                        <p className="text-xs text-muted-foreground">en línea</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                    </span>
-                                    <p className="text-xs text-muted-foreground">en línea</p>
+                                <div className="text-xs text-muted-foreground">
+                                    <p>Ahora</p>
                                 </div>
                             </div>
-                            <div className="text-xs text-muted-foreground">
-                                <p>Ahora</p>
-                            </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
 
                     <div className="w-full max-w-sm md:max-w-md mx-auto py-4 px-4">
                         <div
@@ -554,3 +559,6 @@ export default BeginPage;
 
 
 
+
+
+    
