@@ -5,7 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database, Lock, CircleDollarSign } from 'lucide-react';
+import { Check, UserPlus, ArrowRight, ArrowLeft, AppWindow, Building, User, Award, Brain, MessageSquare, ShieldCheck, Database, Lock, CircleDollarSign, Newspaper } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -158,7 +158,7 @@ const BeginPage = () => {
 
     const handleNext = () => {
         if (isStepValid(step)) {
-            if(step === 5) {
+            if(step === 6) {
                  handleGoogleSignIn();
             } else {
                 setStep(step + 1);
@@ -175,13 +175,13 @@ const BeginPage = () => {
                 <div className="flex flex-col items-center p-4 text-center animate-fadeIn">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
-                            value={[step * 20]}
+                            value={[step * (100 / 6)]}
                             max={100}
-                            step={20}
+                            step={100/6}
                             className="[&>span:first-child]:bg-transparent h-2"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 6</p>
                     </div>
                      <div className="animate-fadeIn w-full flex flex-col items-center">
                         <div className="w-full max-w-2xl mx-auto">
@@ -202,13 +202,13 @@ const BeginPage = () => {
                 <div className="animate-fadeIn w-full flex flex-col items-center">
                      <div className="w-full max-w-sm mx-auto pt-8 mb-8 px-4">
                         <Slider
-                            value={[step * 20]}
+                            value={[step * (100 / 6)]}
                             max={100}
-                            step={20}
+                            step={100/6}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 6</p>
                     </div>
                      <div className="animate-fadeIn w-full flex flex-col items-center">
                        <Step2_UserDetails />
@@ -221,13 +221,13 @@ const BeginPage = () => {
                  <div className="animate-fadeIn w-full flex flex-col items-center h-full">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
-                            value={[step * 20]}
+                            value={[step * (100/6)]}
                             max={100}
-                            step={20}
+                            step={100/6}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 6</p>
                     </div>
                      <div className="text-center mb-6">
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
@@ -352,13 +352,13 @@ const BeginPage = () => {
                  <div className="animate-fadeIn w-full flex flex-col items-center h-full">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
-                            value={[step * 20]}
+                            value={[step * (100/6)]}
                             max={100}
-                            step={20}
+                            step={100/6}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 6</p>
                     </div>
 
                     <div className="text-center mb-6 px-4">
@@ -472,17 +472,51 @@ const BeginPage = () => {
             )
         }
         if (step === 5) {
+            return (
+                <div className="animate-fadeIn w-full flex flex-col items-center px-4">
+                    <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
+                        <Slider
+                            value={[step * (100 / 6)]}
+                            max={100}
+                            step={100 / 6}
+                            className="[&>span:first-child]:bg-transparent"
+                            disabled
+                        />
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 6</p>
+                    </div>
+                    <div className="text-center mb-6 px-4">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground">
+                            Novedades y Anuncios
+                        </h1>
+                        <p className="mt-3 max-w-md mx-auto text-sm text-muted-foreground">
+                            Mantente al día con lo último de Hey Manito.
+                        </p>
+                    </div>
+                    <Card className="w-full max-w-sm p-6 text-left glow-card">
+                        <CardHeader className="p-0 mb-4">
+                           <CardTitle className="flex items-center gap-2 text-lg"><Newspaper className="h-5 w-5 text-primary" /> Próximamente: Tienda de Asistentes</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <p className="text-sm text-muted-foreground">
+                                Estamos trabajando en una tienda donde podrás comprar y vender prompts de asistentes para acelerar tu flujo de trabajo. ¡Prepárate para monetizar tu creatividad!
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            );
+        }
+        if (step === 6) {
              return (
                 <div className="animate-fadeIn w-full flex flex-col items-center px-4">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
-                            value={[step * 20]}
+                            value={[step * (100/6)]}
                             max={100}
-                            step={20}
+                            step={100/6}
                             className="[&>span:first-child]:bg-transparent"
                             disabled
                         />
-                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 5</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Paso {step} de 6</p>
                     </div>
                     <div className="animate-fadeIn w-full flex flex-col items-center px-4">
                         <div className="text-center mb-6 px-4">
@@ -543,7 +577,7 @@ const BeginPage = () => {
                         disabled={!isStepValid(step)}
                         className="bg-brand-gradient text-primary-foreground hover:opacity-90"
                     >
-                        {step === 5 ? (
+                        {step === 6 ? (
                             <>
                                 <FcGoogle className="mr-2" /> Iniciar con Google
                             </>
@@ -560,16 +594,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-  
-
-
-
-
-
-
-    
-
-    
 
     
