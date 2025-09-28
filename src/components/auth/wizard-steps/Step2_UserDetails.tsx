@@ -128,7 +128,7 @@ const Step2_UserDetails = () => {
                     </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                    <p>Ahora</p>
+                    
                 </div>
             </div>
         </motion.div>
@@ -137,3 +137,5 @@ const Step2_UserDetails = () => {
 };
 
 export default Step2_UserDetails;
+
+    
