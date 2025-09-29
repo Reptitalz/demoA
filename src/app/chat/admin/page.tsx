@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -293,7 +293,7 @@ const ProductsView = () => {
             </ScrollArea>
              <Button
                 onClick={() => setIsAddProductDialogOpen(true)}
-                className="absolute bottom-28 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+                className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
                 size="icon"
                 title="Añadir Producto"
             >
@@ -470,7 +470,7 @@ const AssistantsList = () => {
       </ScrollArea>
        <Button
             onClick={handleCreateAssistant}
-            className="absolute bottom-28 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+            className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
             size="icon"
             title="Crear nuevo asistente"
           >
@@ -493,20 +493,46 @@ const OtherView = ({ viewName }: { viewName: string }) => (
     </div>
 );
 
+const AdminNavBar = ({ activeView, onNavigate }: { activeView: AdminView, onNavigate: (view: AdminView) => void; }) => {
+    const navItems: { view: AdminView, icon: React.ElementType }[] = [
+        { view: 'bank', icon: Banknote },
+        { view: 'assistants', icon: Bot },
+        { view: 'products', icon: Package },
+        { view: 'credit', icon: DollarSign },
+    ];
+    
+    return (
+        <nav className="fixed bottom-16 left-0 right-0 h-12 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
+            <div className="flex justify-around items-center h-full max-w-md mx-auto">
+                {navItems.map(item => (
+                    <Button 
+                        key={item.view}
+                        variant="ghost" 
+                        className={cn("h-full px-6", activeView === item.view ? 'text-primary' : 'text-muted-foreground')}
+                        onClick={() => onNavigate(item.view)}
+                        aria-label={item.view}
+                    >
+                        <item.icon className="h-5 w-5"/>
+                    </Button>
+                ))}
+            </div>
+        </nav>
+    );
+};
 
-const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
+
+const AdminChatInterface = ({ activeView, setActiveView }: { activeView: AdminView; setActiveView: (view: AdminView) => void; }) => {
   return (
-    <div className="flex flex-col h-full bg-transparent relative">
+    <div className="flex flex-col h-full bg-transparent relative pb-12">
         {activeView === 'bank' && <BankView />}
         {activeView === 'assistants' && <AssistantsList />}
         {activeView === 'products' && <ProductsView />}
         {activeView === 'credit' && <OtherView viewName="Créditos" />}
+        <AdminNavBar activeView={activeView} onNavigate={setActiveView} />
     </div>
   );
 };
 
-export default function AdminPage({ activeView = 'bank' }: { activeView?: AdminView }) {
-    return <AdminChatInterface activeView={activeView} />;
+export default function AdminPage({ activeView = 'bank', setActiveView = () => {} }: { activeView?: AdminView; setActiveView?: (view: AdminView) => void; }) {
+    return <AdminChatInterface activeView={activeView} setActiveView={setActiveView} />;
 }
-
-    

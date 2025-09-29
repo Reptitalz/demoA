@@ -11,46 +11,6 @@ import { Button } from '@/components/ui/button';
 
 export type AdminView = 'bank' | 'credit' | 'products' | 'assistants';
 
-interface AdminNavBarProps {
-    activeView: AdminView;
-    onNavigate: (view: AdminView) => void;
-}
-
-const AdminNavBar = ({ activeView, onNavigate }: AdminNavBarProps) => (
-    <nav className="fixed bottom-16 left-0 right-0 h-10 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
-        <div className="flex justify-around items-center h-full max-w-md mx-auto">
-             <Button 
-                variant="ghost" 
-                className={cn("h-full px-6", activeView === 'bank' ? 'text-primary' : 'text-muted-foreground')}
-                onClick={() => onNavigate('bank')}
-            >
-                <Landmark className="h-5 w-5"/>
-            </Button>
-            <Button 
-                variant="ghost" 
-                className={cn("h-full px-6", activeView === 'credit' ? 'text-primary' : 'text-muted-foreground')}
-                onClick={() => onNavigate('credit')}
-            >
-                <CircleDollarSign className="h-5 w-5"/>
-            </Button>
-            <Button 
-                variant="ghost" 
-                className={cn("h-full px-6", activeView === 'products' ? 'text-primary' : 'text-muted-foreground')}
-                onClick={() => onNavigate('products')}
-            >
-                <Package className="h-5 w-5"/>
-            </Button>
-            <Button 
-                variant="ghost" 
-                className={cn("h-full px-6", activeView === 'assistants' ? 'text-primary' : 'text-muted-foreground')}
-                onClick={() => onNavigate('assistants')}
-            >
-                <Bot className="h-5 w-5"/>
-            </Button>
-        </div>
-    </nav>
-);
-
 // This component provides the main structure for the chat dashboard.
 export default function ChatLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -103,7 +63,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child) && isAdminView) {
       // Pass the activeView state to the child component if it's the admin page
-      return React.cloneElement(child, { activeView: adminView } as any);
+      return React.cloneElement(child, { activeView: adminView, setActiveView: setAdminView } as any);
     }
     return child;
   });
@@ -113,15 +73,13 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       <main 
           className={cn(
             "flex-grow overflow-y-auto",
-             isBaseChatView && "pb-16", // Padding for main nav bar
-             isAdminView && "pb-28", // Extra padding for admin nav bar
+             "pb-16", // Padding for main nav bar
             isBaseChatView && animationClass 
           )}
       >
         {childrenWithProps}
       </main>
       
-      {isAdminView && <AdminNavBar activeView={adminView} onNavigate={setAdminView} />}
       {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} />}
     </div>
   );
