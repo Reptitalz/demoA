@@ -400,12 +400,15 @@ const BeginPage = () => {
                                       </Badge>
                                       )}
                                   </div>
-                                  <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
                                       <span className="relative flex h-2 w-2">
-                                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                       </span>
                                       <p className="text-xs text-muted-foreground">en línea</p>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0"></p>
                                   </div>
                               </div>
                                
@@ -532,12 +535,15 @@ const BeginPage = () => {
                                   )}
                                   {chatMode === 'ia' && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>}
                                   </div>
-                                  <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
                                       <span className="relative flex h-2 w-2">
-                                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                       </span>
                                       <p className="text-xs text-muted-foreground">en línea</p>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0"></p>
                                   </div>
                               </div>
                           </div>
@@ -758,5 +764,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
