@@ -12,7 +12,7 @@ type AdminView = 'home' | 'bank' | 'assistants' | 'products' | 'credit';
 
 const menuItems = [
     { view: 'bank' as AdminView, title: 'Banco', description: "Revisa y autoriza los pagos recibidos.", icon: Banknote, area: 'a' },
-    { view: 'assistants' as AdminView, title: 'Asistentes', description: "Supervisa las conversaciones en tiempo real.", icon: Bot, area: 'b' },
+    { view: 'assistants' as AdminView, title: 'Bots', description: "Supervisa las conversaciones en tiempo real.", icon: Bot, area: 'b' },
     { view: 'products' as AdminView, title: 'Productos', description: "Gestiona tu catálogo de productos y servicios.", icon: Package, area: 'c' },
     { view: 'credit' as AdminView, title: 'Crédito', description: "Administra líneas de crédito para clientes.", icon: DollarSign, area: 'd' },
 ];

@@ -329,7 +329,7 @@ export const AssistantsList = () => {
                 </div>
                 <div>
                     <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-                    <p className="text-sm text-muted-foreground">Supervisión de Asistentes</p>
+                    <p className="text-sm text-muted-foreground">Supervisión de Bots</p>
                 </div>
             </div>
         </div>
