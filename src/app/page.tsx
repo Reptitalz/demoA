@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
@@ -8,6 +9,7 @@ import Link from 'next/link';
 import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
+import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 
 const PhoneCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -53,28 +55,24 @@ const PhoneCanvas = () => {
 
             ctx.clearRect(0, 0, w, h);
 
-            // 3D transform based on rotation
             ctx.save();
             ctx.translate(w / 2, h / 2);
             ctx.rotate(rotationX * -0.1);
             ctx.translate(-w / 2, -h / 2);
             ctx.translate(0, rotationY * -10);
 
-            // Shadow
             ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
             ctx.shadowBlur = 30;
             ctx.shadowOffsetX = rotationX * -10 + 5;
             ctx.shadowOffsetY = 15;
             
-            // Phone Body
             ctx.fillStyle = '#1C1C1E';
             ctx.beginPath();
             ctx.roundRect(x, y, phoneW, phoneH, 30);
             ctx.fill();
 
-            ctx.shadowColor = 'transparent'; // Reset shadow
+            ctx.shadowColor = 'transparent';
 
-            // Screen
             const screenMargin = 10;
             const screenW = phoneW - screenMargin * 2;
             const screenH = phoneH - screenMargin * 2;
@@ -85,7 +83,6 @@ const PhoneCanvas = () => {
             ctx.roundRect(screenX, screenY, screenW, screenH, 20);
             ctx.fill();
             
-            // Chat Header
             const headerH = 40;
             ctx.fillStyle = 'hsl(var(--card) / 0.8)';
             ctx.beginPath();
@@ -98,7 +95,6 @@ const PhoneCanvas = () => {
             ctx.lineWidth = 0.5;
             ctx.stroke();
 
-            // Header Content
             const avatarRadius = 14;
             ctx.fillStyle = 'hsl(var(--primary))';
             ctx.beginPath();
@@ -118,14 +114,11 @@ const PhoneCanvas = () => {
             ctx.fillStyle = 'hsl(var(--muted-foreground))';
             ctx.fillText('en línea', screenX + 50, screenY + headerH / 2 + 8);
 
-
-            // Notch
             ctx.fillStyle = '#1C1C1E';
             ctx.beginPath();
             ctx.roundRect(x + phoneW / 2 - 40, y + screenMargin, 80, 5, 2.5);
             ctx.fill();
 
-            // Chat Input Footer
             const footerH = 45;
             ctx.fillStyle = 'hsl(var(--background))';
             ctx.fillRect(screenX, screenY + screenH - footerH, screenW, footerH);
@@ -134,7 +127,6 @@ const PhoneCanvas = () => {
             ctx.lineTo(screenX + screenW, screenY + screenH - footerH);
             ctx.stroke();
             
-            // Input field
             ctx.fillStyle = 'hsl(var(--card))';
             ctx.beginPath();
             ctx.roundRect(screenX + 10, screenY + screenH - footerH + 8, screenW - 60, footerH - 16, 12);
@@ -143,7 +135,6 @@ const PhoneCanvas = () => {
             ctx.font = '10px sans-serif';
             ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH / 2 + 1);
 
-            // Send button
             ctx.fillStyle = 'hsl(var(--primary))';
             ctx.beginPath();
             ctx.arc(screenX + screenW - 28, screenY + screenH - footerH / 2, 14, 0, 2 * Math.PI);
@@ -158,8 +149,6 @@ const PhoneCanvas = () => {
             ctx.fillText('➢', 0, 1);
             ctx.restore();
 
-
-            // Draw chat bubbles
             ctx.save();
             ctx.beginPath();
             ctx.rect(screenX, screenY + headerH, screenW, screenH - headerH - footerH);
@@ -206,8 +195,22 @@ const PhoneCanvas = () => {
 
             drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + headerH + 10, 0);
             drawBubble('Quiero un reporte de ventas.', true, screenY + headerH + 40, 60);
-            drawBubble('Claro, consultando la base de datos...', false, screenY + headerH + 70, 120);
             
+            const typingProgress = Math.max(0, Math.min(1, (frame - 120) / 20));
+            if(typingProgress > 0) {
+                 ctx.globalAlpha = typingProgress;
+                 ctx.fillStyle = '#ffffff';
+                 ctx.beginPath();
+                 ctx.roundRect(screenX + bubblePadding, screenY + headerH + 70, 50, 24, 12);
+                 ctx.fill();
+                 
+                 const dotProgress = (frame - 130) % 60;
+                 ctx.fillStyle = 'hsl(var(--muted-foreground))';
+                 if (dotProgress > 10) ctx.beginPath(); ctx.arc(screenX + bubblePadding + 15, screenY + headerH + 82, 2, 0, Math.PI * 2); ctx.fill();
+                 if (dotProgress > 20) ctx.beginPath(); ctx.arc(screenX + bubblePadding + 25, screenY + headerH + 82, 2, 0, Math.PI * 2); ctx.fill();
+                 if (dotProgress > 30) ctx.beginPath(); ctx.arc(screenX + bubblePadding + 35, screenY + headerH + 82, 2, 0, Math.PI * 2); ctx.fill();
+            }
+
             ctx.restore();
             ctx.restore();
         };
@@ -230,92 +233,8 @@ const PhoneCanvas = () => {
         return () => cancelAnimationFrame(animationFrameId);
     }, [handleMouseMove]);
 
-
     return <canvas ref={canvasRef} className="w-full h-full" />;
 };
-
-
-const AnimatedStepCircle = ({ number }: { number: number }) => {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = 64 * dpr;
-        canvas.height = 64 * dpr;
-        canvas.style.width = '64px';
-        canvas.style.height = '64px';
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        
-        ctx.scale(dpr, dpr);
-
-        let frame = 0;
-        let animationFrameId: number;
-        
-        const draw = () => {
-            frame++;
-            ctx.clearRect(0, 0, 64, 64);
-
-            // Draw outer circle
-            ctx.strokeStyle = 'hsl(var(--primary))';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(32, 32, 30, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Draw liquid
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(32, 32, 28, 0, Math.PI * 2);
-            ctx.clip();
-            
-            ctx.fillStyle = 'hsl(var(--primary) / 0.5)';
-            ctx.beginPath();
-            const waveHeight = 4;
-            const waveSpeed = 0.05;
-            const waveFrequency = 0.1;
-            
-            ctx.moveTo(0, 64);
-            ctx.lineTo(0, 32);
-
-            for (let x = 0; x < 64; x++) {
-                const y = 32 + Math.sin(x * waveFrequency + frame * waveSpeed) * waveHeight;
-                ctx.lineTo(x, y);
-            }
-            
-            ctx.lineTo(64, 64);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.restore();
-
-            // Draw number
-            ctx.fillStyle = 'hsl(var(--primary))';
-            ctx.font = 'bold 24px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // Create a text fill with a slight shadow for depth
-            ctx.shadowColor = 'hsla(var(--primary-foreground), 0.5)';
-            ctx.shadowBlur = 4;
-            ctx.fillText(number.toString(), 32, 32);
-            ctx.shadowBlur = 0; // Reset shadow
-
-            animationFrameId = requestAnimationFrame(draw);
-        };
-
-        draw();
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-        };
-    }, [number]);
-
-    return <canvas ref={canvasRef} />;
-};
-
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
     return (
@@ -376,7 +295,6 @@ const NewHomepage = () => {
 
   return (
     <PageContainer className="p-0" fullWidth={true}>
-      {/* Hero Section */}
       <section className="relative pt-24 pb-20 md:pt-32 md:pb-28 overflow-hidden">
           <div 
             className="absolute inset-0 z-0 opacity-20"
@@ -421,7 +339,6 @@ const NewHomepage = () => {
           </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="py-20 bg-muted/50">
         <div className="container max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
@@ -448,7 +365,6 @@ const NewHomepage = () => {
         </div>
       </section>
 
-      {/* How it works section */}
       <section className="py-20 bg-background">
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
@@ -483,14 +399,12 @@ const NewHomepage = () => {
         </div>
       </section>
       
-       {/* Plans Section */}
-      <section className="py-20 bg-muted/50">
+       <section className="py-20 bg-muted/50">
           <div className="container max-w-4xl mx-auto px-4 text-center">
               <h2 className="text-3xl font-bold tracking-tight">Planes Simples y Flexibles</h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Comienza gratis. Crece sin complicaciones.</p>
               
               <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                  {/* Free Plan */}
                   <div className="border border-border rounded-lg p-8 flex flex-col">
                       <h3 className="text-2xl font-semibold">Plan Gratuito</h3>
                       <p className="mt-2 text-muted-foreground">Perfecto para empezar a explorar.</p>
@@ -509,7 +423,6 @@ const NewHomepage = () => {
                       </Button>
                   </div>
 
-                  {/* Unlimited Plan */}
                   <div className="relative border-2 border-primary rounded-lg p-8 flex flex-col shadow-2xl shadow-primary/20">
                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
                           <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">Recomendado</div>
@@ -526,15 +439,17 @@ const NewHomepage = () => {
                            <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Transacciones Ilimitadas</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
                       </ul>
-                       <Button asChild className="mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                          <Link href="/begin">Obtener Plan Ilimitado</Link>
+                       <Button asChild className="mt-auto bg-blue-500 text-white hover:bg-blue-600 shiny-border">
+                          <Link href="/begin">
+                            <MercadoPagoIcon className="h-5 w-auto mr-2" />
+                            Pagar con Mercado Pago
+                          </Link>
                       </Button>
                   </div>
               </div>
           </div>
       </section>
 
-      {/* Final CTA */}
       <section className="py-24 bg-background">
           <div className="container mx-auto px-4 text-center">
               <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
