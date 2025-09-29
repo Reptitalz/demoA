@@ -6,7 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Apple, CaseSensitive, AppWindow } from 'lucide-react';
+import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Apple, CaseSensitive, AppWindow, Download } from 'lucide-react';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 
@@ -282,13 +282,10 @@ const NewHomepage = () => {
                   <p className="mt-4 max-w-xl mx-auto md:mx-0 text-lg text-muted-foreground">
                       Crea, gestiona y despliega asistentes de IA para tu negocio. Automatiza ventas, soporte y más. Todo desde una PWA ligera y potente.
                   </p>
-                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
-                      <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                          <Link href="/begin"><Bot className="mr-2"/>Crear Asistente Gratis</Link>
-                      </Button>
-                      <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                          <Link href="#features">Ver Funciones</Link>
-                      </Button>
+                  <div className="mt-8 flex items-center justify-center md:justify-start">
+                    <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                        <Link href="/access"><Download className="mr-2"/>Instalar App</Link>
+                    </Button>
                   </div>
                   <div className="mt-6 flex justify-center md:justify-start gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1.5"><Check size={14} className="text-green-500" /> Prueba gratuita</span>
@@ -450,3 +447,5 @@ const NewHomepage = () => {
 };
 
 export default NewHomepage;
+
+    
