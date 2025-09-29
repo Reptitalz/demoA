@@ -93,7 +93,7 @@ const ChatListPage = () => {
         </div>
       </header>
 
-      <ScrollArea className="flex-grow">
+      <ScrollArea className="flex-grow" onClick={() => setActiveSwipe(null)}>
         <div className="p-2 space-y-2">
           {availableChats.length > 0 ? availableChats.map((chat) => {
             const isLeftSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'left';

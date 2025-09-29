@@ -393,8 +393,14 @@ export const AssistantsList = () => {
                 <motion.div
                     drag="x"
                     dragConstraints={{ left: -160, right: 192 }}
-                    onDragStart={() => dragOccurred.current = false}
-                    onDrag={() => dragOccurred.current = true}
+                    onDragStart={(e) => {
+                        e.stopPropagation();
+                        dragOccurred.current = false;
+                    }}
+                    onDrag={(e) => {
+                        e.stopPropagation();
+                        dragOccurred.current = true;
+                    }}
                     onDragEnd={(event, info) => {
                         const isSwipeLeft = info.offset.x < -60;
                         const isSwipeRight = info.offset.x > 60;
@@ -408,12 +414,11 @@ export const AssistantsList = () => {
                     }}
                     onClick={(e) => {
                         e.stopPropagation();
-                        if (!dragOccurred.current) {
-                           // This is a click, navigate to chat
-                           // router.push(`/chat/admin/${chat.id}`); // Example path
+                        if (dragOccurred.current) {
+                            return;
                         }
-                         // Reset drag flag after click check
-                        setTimeout(() => { dragOccurred.current = false; }, 50);
+                        setActiveSwipe(null);
+                        // router.push(`/chat/admin/${chat.id}`); // Example path
                     }}
                     animate={{ 
                         x: isLeftSwiped ? -160 : isRightSwiped ? 192 : 0 
