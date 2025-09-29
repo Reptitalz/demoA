@@ -38,7 +38,7 @@ const AdminHomePage = () => {
                     <h1 className="text-2xl font-bold">Panel de Miembro</h1>
                     <p className="text-sm text-muted-foreground">Gestiona tus operaciones y asistentes.</p>
                 </header>
-                <div className="p-4 grid gap-4 grid-cols-2">
+                <div className="p-4 grid gap-3 grid-cols-2">
                     {menuItems.map((item, index) => (
                     <motion.div
                         key={item.view}
@@ -56,11 +56,11 @@ const AdminHomePage = () => {
                         >
                             <CardHeader className="p-2">
                                 <div className="p-2 bg-primary/10 rounded-full mx-auto">
-                                    <item.icon className="h-5 w-5 text-primary" />
+                                    <item.icon className="h-4 w-4 text-primary" />
                                 </div>
                             </CardHeader>
                             <CardContent className="p-2 pt-0">
-                                <CardTitle className="text-sm">{item.title}</CardTitle>
+                                <CardTitle className="text-sm font-semibold">{item.title}</CardTitle>
                                 <CardDescription className="text-xs mt-1">{item.description}</CardDescription>
                             </CardContent>
                         </Card>
