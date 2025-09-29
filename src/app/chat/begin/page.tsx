@@ -94,7 +94,7 @@ const BeginPage = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rafRef = useRef<number | null>(null);
 
-    const drawBankIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+    const drawDollarIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
         const glow = ctx.createRadialGradient(x, y, size * 0.7, x, y, size * 1.5);
         glow.addColorStop(0, 'hsla(262, 80%, 58%, 0.3)');
         glow.addColorStop(1, 'transparent');
@@ -106,36 +106,13 @@ const BeginPage = () => {
         ctx.arc(x, y, size * 0.8, 0, Math.PI * 2);
         ctx.fillStyle = 'white';
         ctx.fill();
-
-        // Draw the bank icon inside
-        ctx.strokeStyle = 'hsl(262, 80%, 58%)';
-        ctx.lineWidth = size / 8;
         
-        const baseWidth = size * 0.9;
-        const roofHeight = size * 0.3;
-        const colHeight = size * 0.6;
-        const colY = y + size/2.5;
-
-        ctx.beginPath();
-        ctx.moveTo(x - baseWidth/2, y + size/2.5); // bottom left
-        ctx.lineTo(x - baseWidth/2, y - size/4); // top left
-        ctx.lineTo(x, y - size/4 - roofHeight); // roof peak
-        ctx.lineTo(x + baseWidth/2, y - size/4); // top right
-        ctx.lineTo(x + baseWidth/2, y + size/2.5); // bottom right
-        ctx.moveTo(x - baseWidth/2, y - size/4); // roof base
-        ctx.lineTo(x + baseWidth/2, y - size/4); // roof base
-        ctx.stroke();
-
-        // Columns
-        ctx.lineWidth = size / 10;
-        ctx.beginPath();
-        ctx.moveTo(x - baseWidth/3.5, colY);
-        ctx.lineTo(x - baseWidth/3.5, colY - colHeight);
-        ctx.moveTo(x, colY);
-        ctx.lineTo(x, colY - colHeight);
-        ctx.moveTo(x + baseWidth/3.5, colY);
-        ctx.lineTo(x + baseWidth/3.5, colY - colHeight);
-        ctx.stroke();
+        // Draw the dollar sign ($) inside
+        ctx.fillStyle = 'hsl(262, 80%, 58%)';
+        ctx.font = `bold ${size * 1.2}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('$', x, y);
 
     }, []);
 
@@ -168,7 +145,7 @@ const BeginPage = () => {
             ctx.clearRect(0, 0, w, h);
             
             const floatY = Math.sin(t / 600) * 8;
-            drawBankIcon(ctx, icon.x, icon.y + floatY, icon.size);
+            drawDollarIcon(ctx, icon.x, icon.y + floatY, icon.size);
 
             rafRef.current = requestAnimationFrame(loop);
         };
@@ -191,7 +168,7 @@ const BeginPage = () => {
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
             resizeObserver.disconnect();
         };
-    }, [step, drawBankIcon]);
+    }, [step, drawDollarIcon]);
 
 
     useEffect(() => {
