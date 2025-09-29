@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
-import Step0AssistantType from '@/components/auth/wizard-steps/Step0_AssistantType';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
@@ -80,18 +79,26 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, ownerPhoneNumberForNotifications, acceptedTerms, assistantType } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, acceptedTerms } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
+
+  // Set assistant type to desktop by default
+  useEffect(() => {
+    if (isOpen) {
+      dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' });
+    }
+  }, [isOpen, dispatch]);
+
 
   const dbNeeded = useMemo(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
   }, [selectedPurposes]);
   
-  const isWhatsappAssistant = useMemo(() => assistantType === 'whatsapp', [assistantType]);
-
   const effectiveMaxSteps = useMemo(() => {
-    let baseSteps = 2; // Details, Prompt
+    // Step 1: Details, Step 2: Prompt, Step 3: (DB or Terms), Step 4: (Terms or Auth), Step 5: Auth
+    let baseSteps = 1; // Details is now step 1
+    baseSteps++; // Prompt
     if (dbNeeded) baseSteps++; // DB config
     baseSteps++; // Terms
     baseSteps++; // Auth
@@ -101,17 +108,13 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
 
   const getValidationMessageForStep = useCallback((step: number): string | null => {
     switch (step) {
-        case 2:
+        case 1:
             if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
-            if (isWhatsappAssistant) {
-                if (selectedPurposes.size === 0) return "Por favor, selecciona al menos un propósito.";
-                if (selectedPurposes.has('notify_owner') && !ownerPhoneNumberForNotifications?.trim()) return "Por favor, ingresa tu WhatsApp para notificaciones.";
-            }
             return null;
-        case 3:
+        case 2:
             if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
             return null;
-        case 4:
+        case 3:
             if (dbNeeded) {
                 if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
                 if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
@@ -121,17 +124,17 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
                 if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
             }
             return null;
-        case 5:
+        case 4:
              if (dbNeeded) {
                  if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
              }
              return null;
-        case 6:
+        case 5:
              return null;
         default:
             return "Paso inválido";
     }
-  }, [assistantName, selectedPurposes, ownerPhoneNumberForNotifications, assistantPrompt, dbNeeded, databaseOption, acceptedTerms, assistantType, isWhatsappAssistant]);
+  }, [assistantName, assistantPrompt, dbNeeded, databaseOption, acceptedTerms]);
   
   const isStepValid = useMemo((): boolean => {
     if (isFinalizingSetup) return false;
@@ -151,8 +154,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     let nextStep = currentStep + 1;
 
     // Skip DB config if not needed
-    if (currentStep === 3 && !dbNeeded) {
-        nextStep = 5; 
+    if (currentStep === 2 && !dbNeeded) {
+        nextStep = 4; 
     }
     
     if (nextStep <= effectiveMaxSteps) {
@@ -161,11 +164,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   };
 
   const handlePrevious = () => {
-    if (currentStep > 2) { // Changed from 1 to 2
+    if (currentStep > 1) { 
         let prevStep = currentStep - 1;
         // Correctly go back from Terms to Prompt if DB was skipped
-        if (currentStep === 5 && !dbNeeded) {
-            prevStep = 3; 
+        if (currentStep === 4 && !dbNeeded) {
+            prevStep = 2; 
         }
         dispatch({ type: 'SET_WIZARD_STEP', payload: prevStep });
     } else {
@@ -179,14 +182,14 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         const userEmail = user.email;
         if (!userEmail) throw new Error("No se pudo obtener el email del usuario.");
 
-        const isDesktopAssistant = assistantType === 'desktop';
+        const isDesktopAssistant = true; // Always desktop
         const userHasDesktopAssistant = state.userProfile.isAuthenticated && state.userProfile.assistants.some(a => a.type === 'desktop');
         const isFirstDesktopAssistantForUser = isDesktopAssistant && !userHasDesktopAssistant;
         
         const finalAssistantConfig: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: assistantName || (isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp"),
-            type: assistantType || 'desktop',
+            name: assistantName || "Mi Asistente de Escritorio",
+            type: 'desktop',
             prompt: assistantPrompt || "Eres un asistente amigable y servicial.",
             purposes: Array.from(selectedPurposes),
             databaseId: dbNeeded && databaseOption.type ? `db_${Date.now()}` : undefined,
@@ -196,7 +199,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
             messageCount: 0,
             monthlyMessageLimit: isFirstDesktopAssistantForUser ? 10000 : 0, // High limit for trial, 0 otherwise
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
+            chatPath: generateChatPath(assistantName),
             isFirstDesktopAssistant: isFirstDesktopAssistantForUser,
             trialStartDate: isFirstDesktopAssistantForUser ? new Date().toISOString() : undefined,
         };
@@ -257,7 +260,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       } finally {
         setIsFinalizingSetup(false);
       }
-  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, assistantType, state.userProfile]);
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, state.userProfile]);
 
   useEffect(() => {
     // This effect triggers when the user is already authenticated and reaches the final step
@@ -293,11 +296,11 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
     
     const stepMap: Record<number, React.ReactNode> = {
-        2: <Step1AssistantDetails />,
-        3: <Step2AssistantPrompt />,
-        4: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
-        5: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
-        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+        1: <Step1AssistantDetails />,
+        2: <Step2AssistantPrompt />,
+        3: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
+        4: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+        5: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
     };
 
     return stepMap[currentStep] || null;

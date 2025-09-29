@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -39,7 +40,7 @@ const NewHomepage = () => {
                       Automatiza tu Negocio con <span className="text-brand-gradient">Asistentes Inteligentes</span>
                   </h1>
                   <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                      Crea, gestiona y despliega asistentes de IA para WhatsApp y la web. Automatiza ventas, soporte y más. Todo desde una PWA ligera y potente.
+                      Crea, gestiona y despliega asistentes de IA para tu negocio. Automatiza ventas, soporte y más. Todo desde una PWA ligera y potente.
                   </p>
                   <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                       <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
@@ -107,7 +108,7 @@ const NewHomepage = () => {
               <div className="flex flex-col items-center">
                   <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-2">3</div>
                   <p className="font-semibold">Lanza y Automatiza</p>
-                  <p className="text-sm text-muted-foreground">Empieza a chatear o intégralo a WhatsApp.</p>
+                  <p className="text-sm text-muted-foreground">Chatea con tu asistente y compártelo.</p>
               </div>
           </div>
         </div>
@@ -152,9 +153,8 @@ const NewHomepage = () => {
                           <p className="text-4xl font-extrabold mb-4">$179 <span className="text-lg font-normal text-muted-foreground">/mes</span></p>
                           <ul className="space-y-3 text-sm">
                               <li className="flex items-center gap-2"><Zap className="text-yellow-500"/>Todo lo del Plan Gratuito, y además:</li>
-                              <li className="flex items-center gap-2 font-semibold"><Check className="text-green-500"/>Mensajes Ilimitados</li>
-                              <li className="flex items-center gap-2"><Check className="text-green-500"/>Múltiples Asistentes (Desktop y WhatsApp)</li>
-                              <li className="flex items-center gap-2"><Check className="text-green-500"/>Integración con WhatsApp</li>
+                              <li className="flex items-center gap-2 font-semibold"><Check className="text-green-500"/>Mensajes Ilimitados por Asistente</li>
+                              <li className="flex items-center gap-2"><Check className="text-green-500"/>Múltiples Asistentes de Escritorio</li>
                               <li className="flex items-center gap-2"><Check className="text-green-500"/>Soporte Prioritario</li>
                           </ul>
                       </CardContent>

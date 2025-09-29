@@ -1,3 +1,4 @@
+
 // src/app/api/assistants/activate-plan/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';

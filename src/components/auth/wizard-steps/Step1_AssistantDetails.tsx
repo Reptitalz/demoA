@@ -6,16 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { assistantPurposesConfig } from "@/config/appConfig";
 import type { AssistantPurposeType } from "@/types";
-import { FaWhatsapp, FaCheckCircle, FaRegCircle } from "react-icons/fa";
-import { PhoneInput } from "@/components/ui/phone-input";
-import type { E164Number } from "react-phone-number-input";
+import { FaCheckCircle, FaRegCircle } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import React from "react";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
-  const { assistantName, selectedPurposes, ownerPhoneNumberForNotifications, assistantType } = state.wizard;
-  const isWhatsappAssistant = assistantType === 'whatsapp';
+  const { assistantName, selectedPurposes } = state.wizard;
   
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
@@ -25,13 +22,7 @@ const Step1AssistantDetails = () => {
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
-  const handleOwnerPhoneChange = (value: E164Number | undefined) => {
-    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: value || '' });
-  };
-
-  const availablePurposes = assistantPurposesConfig.filter(purpose => 
-    isWhatsappAssistant || purpose.id !== 'notify_owner'
-  );
+  const availablePurposes = assistantPurposesConfig;
 
 
   return (
@@ -54,24 +45,6 @@ const Step1AssistantDetails = () => {
             aria-required="true"
           />
         </div>
-
-        {selectedPurposes.has('notify_owner') && isWhatsappAssistant && (
-          <div className="space-y-2 animate-fadeIn bg-muted/30 p-4 rounded-lg">
-            <Label htmlFor="ownerPhoneNumber" className="text-base font-medium flex items-center gap-2">
-              <FaWhatsapp className="text-green-500" /> Tu WhatsApp para Notificaciones
-            </Label>
-            <PhoneInput
-              id="ownerPhoneNumber"
-              placeholder="Ingresa tu número de WhatsApp"
-              value={ownerPhoneNumberForNotifications as E164Number | undefined}
-              onChange={handleOwnerPhoneChange}
-              defaultCountry="MX"
-            />
-            <p className="text-xs text-muted-foreground">
-              El asistente te notificará a este número cuando requiera tu atención.
-            </p>
-          </div>
-        )}
 
         <div className="space-y-4">
           <Label className="text-base font-medium block">Propósitos del Asistente</Label>

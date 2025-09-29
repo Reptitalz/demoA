@@ -26,10 +26,10 @@ function generateChatPath(assistantName: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, assistantType } = await request.json();
+    const { email, password } = await request.json();
 
-    if (!email || !password || !assistantType) {
-      return NextResponse.json({ message: 'Se requieren correo electrónico, contraseña y tipo de asistente.' }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ message: 'Se requieren correo electrónico y contraseña.' }, { status: 400 });
     }
 
     const { db } = await connectToDatabase();
@@ -44,23 +44,22 @@ export async function POST(request: NextRequest) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const isDesktopAssistant = assistantType === 'desktop';
-    const assistantName = isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp";
+    const assistantName = "Mi Primer Asistente";
 
     const newAssistant: AssistantConfig = {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: assistantName,
-        type: assistantType,
+        type: 'desktop', // Always create a desktop assistant
         prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
         purposes: [],
-        isActive: isDesktopAssistant, // Active for free trial
-        numberReady: isDesktopAssistant, // Ready for free trial
+        isActive: true, // Active for free trial
+        numberReady: true, // Ready for free trial
         messageCount: 0,
-        monthlyMessageLimit: isDesktopAssistant ? 10000 : 0, // High limit for trial
+        monthlyMessageLimit: 10000, // High limit for trial
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-        chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
-        isFirstDesktopAssistant: isDesktopAssistant, // This is their first one
-        trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
+        chatPath: generateChatPath(assistantName),
+        isFirstDesktopAssistant: true, // This is their first one
+        trialStartDate: new Date().toISOString(),
     };
     
     const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
