@@ -6,9 +6,10 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Apple, CaseSensitive, AppWindow, Download, Loader2 } from 'lucide-react';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
+import { Loader2 } from 'lucide-react';
 
 const PhoneCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -275,25 +276,25 @@ const NewHomepage = () => {
 
   const downloadConfig = {
     ios: {
-      icon: <Apple className="mr-2" />,
+      icon: <FaApple className="mr-2" />,
       text: 'Descargar para iPhone',
       href: '/app.ipa',
       download: true,
     },
     android: {
-      icon: <CaseSensitive className="mr-2" />,
+      icon: <FaAndroid className="mr-2" />,
       text: 'Descargar para Android',
       href: '/app.apk',
       download: true,
     },
     web: {
-      icon: <Download className="mr-2" />,
+      icon: <FaDownload className="mr-2" />,
       text: 'Instalar App',
       href: '/access',
       download: false,
     },
     loading: {
-      icon: <Loader2 className="mr-2 animate-spin" />,
+      icon: <FaSpinner className="mr-2 animate-spin" />,
       text: 'Detectando...',
       href: '#',
       download: false,
@@ -335,8 +336,8 @@ const NewHomepage = () => {
                     </Button>
                   </div>
                   <div className="mt-6 flex justify-center md:justify-start gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5"><Check size={14} className="text-green-500" /> Prueba gratuita</span>
-                      <span className="flex items-center gap-1.5"><Check size={14} className="text-green-500" /> Sin tarjeta requerida</span>
+                      <span className="flex items-center gap-1.5"><FaCheck size={14} className="text-green-500" /> Prueba gratuita</span>
+                      <span className="flex items-center gap-1.5"><FaCheck size={14} className="text-green-500" /> Sin tarjeta requerida</span>
                   </div>
               </motion.div>
               <motion.div 
@@ -359,17 +360,17 @@ const NewHomepage = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeatureCard 
-                  icon={Bot}
+                  icon={FaRobot}
                   title="Asistentes por Prompt"
                   description="Define el comportamiento de tu IA con lenguaje natural. Crea personalidades, establece reglas y guíalos hacia el éxito."
               />
               <FeatureCard 
-                  icon={Settings}
+                  icon={FaCog}
                   title="Gestión Centralizada"
                   description="Administra tus asistentes, bases de datos, clientes y finanzas desde un panel de control unificado e intuitivo."
               />
               <FeatureCard 
-                  icon={Smartphone}
+                  icon={FaMobileAlt}
                   title="Experiencia PWA"
                   description="Instala la app en cualquier dispositivo para una experiencia nativa, notificaciones push y acceso sin conexión."
               />
@@ -392,7 +393,7 @@ const NewHomepage = () => {
                   <p className="font-semibold">Describe tu Asistente</p>
                   <p className="text-sm text-muted-foreground">Usa el prompt para darle instrucciones.</p>
               </div>
-              <ArrowRight className="text-primary opacity-50 hidden md:block" />
+              <FaArrowRight className="text-primary opacity-50 hidden md:block" />
                <div className="flex flex-col items-center">
                   <div className="flex items-center justify-center h-16 w-16 mb-2">
                         <AnimatedStepCircle number={2} />
@@ -400,7 +401,7 @@ const NewHomepage = () => {
                   <p className="font-semibold">Conecta tus Datos</p>
                   <p className="text-sm text-muted-foreground">Vincula una Hoja de Google o crea una BD.</p>
               </div>
-               <ArrowRight className="text-primary opacity-50 hidden md:block" />
+               <FaArrowRight className="text-primary opacity-50 hidden md:block" />
               <div className="flex flex-col items-center">
                   <div className="flex items-center justify-center h-16 w-16 mb-2">
                         <AnimatedStepCircle number={3} />
@@ -428,10 +429,10 @@ const NewHomepage = () => {
                           <span className="text-muted-foreground"> /siempre</span>
                       </div>
                       <ul className="space-y-3 text-left">
-                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> 1 Asistente de Escritorio</li>
-                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Prueba de 30 días con mensajes ilimitados</li>
-                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Acceso a todas las funciones de gestión</li>
-                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Instalación como PWA</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> 1 Asistente de Escritorio</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Prueba de 30 días con mensajes ilimitados</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Acceso a todas las funciones de gestión</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Instalación como PWA</li>
                       </ul>
                       <Button variant="outline" asChild className="mt-auto">
                           <Link href="/begin">Comenzar Gratis</Link>
@@ -450,10 +451,10 @@ const NewHomepage = () => {
                           <span className="text-muted-foreground"> /mes</span>
                       </div>
                       <ul className="space-y-3 text-left">
-                           <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Todo lo del Plan Gratuito, y además:</li>
-                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Mensajes Ilimitados por Asistente</li>
-                           <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Múltiples Asistentes de Escritorio</li>
-                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
+                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Todo lo del Plan Gratuito, y además:</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Mensajes Ilimitados por Asistente</li>
+                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Múltiples Asistentes de Escritorio</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
                       </ul>
                        <Button asChild className="mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
                           <Link href="/begin">Obtener Plan Ilimitado</Link>
@@ -475,15 +476,15 @@ const NewHomepage = () => {
               </Button>
                <div className="mt-8 flex justify-center items-center gap-6">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Apple className="h-8 w-8" />
+                  <FaApple className="h-8 w-8" />
                   <span className="text-sm">iPhone</span>
                 </div>
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <CaseSensitive className="h-8 w-8" />
+                  <FaAndroid className="h-8 w-8" />
                   <span className="text-sm">Android</span>
                 </div>
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <AppWindow className="h-8 w-8" />
+                  <FaMobileAlt className="h-8 w-8" />
                   <span className="text-sm">Web</span>
                 </div>
               </div>
