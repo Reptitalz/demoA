@@ -37,7 +37,7 @@ const BeginPage = () => {
     const router = useRouter();
 
     const [accountType, setAccountType] = useState<'personal' | 'business'>('personal');
-    const [chatMode, setChatMode] = useState<'me' | 'ia'>('ia');
+    const [chatMode, setChatMode] = useState<'me' | 'ia'>('me');
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
@@ -74,19 +74,19 @@ const BeginPage = () => {
     ];
 
     const chatModeCards = [
-       {
-            type: 'ia',
-            icon: Brain,
-            title: 'Quiero un Asistente IA',
-            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
-            badge: true,
-        },
         {
             type: 'me',
             icon: User,
             title: 'Yo responderé solamente',
             description: 'Tú responderás personalmente a todos los mensajes en tu chat.',
             badge: false,
+        },
+       {
+            type: 'ia',
+            icon: Brain,
+            title: 'Quiero un Asistente IA',
+            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
+            badge: true,
         },
     ];
     
@@ -96,14 +96,15 @@ const BeginPage = () => {
 
     const drawBankIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
         const glow = ctx.createRadialGradient(x, y, size * 0.5, x, y, size);
-        glow.addColorStop(0, 'hsla(var(--primary), 0.3)');
+        // Using HSL values directly as CSS variables are not available in canvas context
+        glow.addColorStop(0, 'hsla(262, 80%, 58%, 0.3)');
         glow.addColorStop(1, 'transparent');
         ctx.fillStyle = glow;
         ctx.fillRect(x - size * 1.5, y - size * 1.5, size * 3, size * 3);
 
-        ctx.strokeStyle = 'hsl(var(--primary))';
+        ctx.strokeStyle = 'hsl(262, 80%, 58%)';
         ctx.lineWidth = size / 8;
-        ctx.fillStyle = 'hsl(var(--primary) / 0.1)';
+        ctx.fillStyle = 'hsla(262, 80%, 58%, 0.1)';
         
         // Simple bank building representation
         const baseWidth = size * 1.2;
@@ -322,7 +323,7 @@ const BeginPage = () => {
                 </div>
             );
         }
-        if (step === 4) { // Swapped with step 3
+        if (step === 3) {
             return (
                  <div className="animate-fadeIn w-full flex flex-col items-center h-full px-4 sm:px-0">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
@@ -385,6 +386,7 @@ const BeginPage = () => {
                                       <p className="text-xs text-muted-foreground">en línea</p>
                                   </div>
                               </div>
+                               
                           </div>
                       </motion.div>
                     </div>
@@ -452,7 +454,7 @@ const BeginPage = () => {
                 </div>
             );
         }
-        if (step === 3) { // Swapped with step 4
+        if (step === 4) {
             return (
                  <div className="animate-fadeIn w-full flex flex-col items-center h-full px-4 sm:px-0">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
