@@ -322,10 +322,10 @@ const NewHomepage = () => {
               >
                   <AppIcon className="h-20 w-20 mx-auto md:mx-0 mb-4" />
                   <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
-                      Automatiza tu Negocio con <span className="text-brand-gradient">Asistentes Inteligentes</span>
+                      La Red Social con <span className="text-brand-gradient">Superpoderes de IA.</span> Gratis.
                   </h1>
                   <p className="mt-4 max-w-xl mx-auto md:mx-0 text-lg text-muted-foreground">
-                      Crea, gestiona y despliega asistentes de IA para tu negocio. Automatiza ventas, soporte y más. Todo desde una PWA ligera y potente.
+                      Hey Manito! es la evolución del chat. Chatea, vende, y automatiza tu negocio con asistentes de IA, todo desde una plataforma gratuita.
                   </p>
                   <div className="mt-8 flex items-center justify-center md:justify-start">
                     <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
