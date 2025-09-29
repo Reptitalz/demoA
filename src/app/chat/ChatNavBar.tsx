@@ -4,14 +4,14 @@
 import React, { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User, Settings } from 'lucide-react';
+import { MessageSquare, Camera, User, Crown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navItems = [
     { href: '/chat/dashboard', label: 'Chats', icon: MessageSquare },
     { href: '/chat/updates', label: 'Novedades', icon: Camera },
     { href: '/chat/profile', label: 'Perfil', icon: User },
-    { href: '/chat/admin', label: 'Miembro', icon: Settings },
+    { href: '/chat/admin', label: 'Miembro', icon: Crown },
 ];
 
 interface NavItemProps {

@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User, Settings, Landmark, CircleDollarSign, Package, Bot } from 'lucide-react';
+import { MessageSquare, Camera, User, Crown, Landmark, CircleDollarSign, Package, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export type AdminView = 'bank' | 'credit' | 'products' | 'assistants';
@@ -130,5 +130,5 @@ const menuItems = [
     { path: '/chat/dashboard', icon: MessageSquare, label: 'Chats' },
     { path: '/chat/updates', icon: Camera, label: 'Novedades' },
     { path: '/chat/profile', icon: User, label: 'Perfil' },
-    { path: '/chat/admin', icon: Settings, label: 'Miembro' },
+    { path: '/chat/admin', icon: Crown, label: 'Miembro' },
 ];
