@@ -101,8 +101,8 @@ const BeginPage = () => {
         {
             id: 'database',
             icon: Database,
-            title: "Bases de Datos Inteligentes",
-            description: "Ahora puedes crear bases de datos que la IA gestiona por sí misma. Añade conocimiento y deja que tu asistente aprenda para dar respuestas más precisas.",
+            title: "Catálogo de Productos",
+            description: "Ahora puedes crear y gestionar catálogos de productos con sus precios, permitiendo que tu asistente tome pedidos y responda consultas con total precisión.",
         }
     ];
 
@@ -134,7 +134,11 @@ const BeginPage = () => {
 
         const drawIconSet = (offset: number) => {
             icons.forEach((icon, index) => {
-                const x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
+                let x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
+                 if (x < w * 0.1 - iconSpacing/2) {
+                    x += iconSpacing * iconCount;
+                }
+
                 const y = navY + navHeight / 2;
                 const isHighlighted = icon === 'banco';
 
@@ -189,7 +193,6 @@ const BeginPage = () => {
         ctx.rect(w * 0.1, navY, w * 0.8, navHeight);
         ctx.clip();
         drawIconSet(scrollOffset);
-        drawIconSet(scrollOffset - (iconSpacing * iconCount));
         ctx.restore();
 
     }, []);
@@ -841,5 +844,7 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
 
     
