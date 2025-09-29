@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User, Settings, BarChart, Eye } from 'lucide-react';
+import { MessageSquare, Camera, User, Settings, Landmark, CircleDollarSign, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
@@ -20,10 +20,13 @@ const AdminNavBar = () => (
     <nav className="fixed bottom-16 left-0 right-0 h-10 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
         <div className="flex justify-around items-center h-full max-w-md mx-auto">
             <Button variant="ghost" className="h-full text-primary px-6">
-                <Eye className="h-5 w-5"/>
+                <Landmark className="h-5 w-5"/>
             </Button>
             <Button variant="ghost" className="h-full text-muted-foreground px-6">
-                <BarChart className="h-5 w-5"/>
+                <CircleDollarSign className="h-5 w-5"/>
+            </Button>
+            <Button variant="ghost" className="h-full text-muted-foreground px-6">
+                <Package className="h-5 w-5"/>
             </Button>
         </div>
     </nav>
