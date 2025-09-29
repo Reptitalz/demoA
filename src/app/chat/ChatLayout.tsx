@@ -102,6 +102,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child) && isAdminView) {
+      // Pass the activeView state to the child component if it's the admin page
       return React.cloneElement(child, { activeView: adminView } as any);
     }
     return child;
@@ -113,7 +114,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
           className={cn(
             "flex-grow overflow-y-auto",
              isBaseChatView && "pb-16", // Padding for main nav bar
-             isAdminView && "pb-10", // Extra padding for admin nav bar
+             isAdminView && "pb-28", // Extra padding for admin nav bar
             isBaseChatView && animationClass 
           )}
       >
