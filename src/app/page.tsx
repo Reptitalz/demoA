@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
@@ -408,7 +407,6 @@ const NewHomepage = () => {
                     </Button>
                   </div>
                   <div className="mt-6 flex justify-center md:justify-start gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5"><FaCheck size={14} className="text-green-500" /> Prueba gratuita</span>
                       <span className="flex items-center gap-1.5"><FaCheck size={14} className="text-green-500" /> Sin tarjeta requerida</span>
                   </div>
               </motion.div>
