@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User, Crown, Landmark, CircleDollarSign, Package, Bot } from 'lucide-react';
+import { MessageSquare, Camera, User, Crown, Package, Bot, DollarSign, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export type AdminView = 'bank' | 'credit' | 'products' | 'assistants';
