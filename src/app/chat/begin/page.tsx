@@ -605,7 +605,7 @@ const BeginPage = () => {
             )
         }
         if (step === 5) {
-            return (
+             return (
                 <div className="animate-fadeIn w-full flex flex-col items-center px-4">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
@@ -657,7 +657,7 @@ const BeginPage = () => {
                             {newsItems.map((_, index) => (
                                 <button
                                     key={index}
-                                    onClick={()={() => {
+                                    onClick={() => {
                                         if (newsScrollRef.current) {
                                             const cardWidth = newsScrollRef.current.offsetWidth;
                                             newsScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
@@ -764,3 +764,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
