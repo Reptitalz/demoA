@@ -187,7 +187,9 @@ const BeginPage = () => {
         };
 
         ctx.save();
-        ctx.clip(new Path2D(new DOMMatrix().rect(w * 0.1, navY, w * 0.8, navHeight)));
+        ctx.beginPath();
+        ctx.rect(w * 0.1, navY, w * 0.8, navHeight);
+        ctx.clip();
         drawIconSet(scrollOffset);
         drawIconSet(scrollOffset - (iconSpacing * iconCount)); // Draw second set for wrapping
         ctx.restore();
