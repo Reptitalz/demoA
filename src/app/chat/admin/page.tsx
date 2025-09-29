@@ -368,6 +368,6 @@ const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
   );
 };
 
-export default function AdminPage({ activeView = 'assistants' }: { activeView?: AdminView }) {
+export default function AdminPage({ activeView = 'bank' }: { activeView?: AdminView }) {
     return <AdminChatInterface activeView={activeView} />;
 }
