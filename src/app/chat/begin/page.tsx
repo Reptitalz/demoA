@@ -878,7 +878,7 @@ const BeginPage = () => {
                     >
                         {step === 6 ? (
                             <>
-                                <FcGoogle className="mr-2" /> Iniciar con Google
+                                <FcGoogle className="mr-2" /> Crear Cuenta con Google
                             </>
                         ) : (
                            <> Siguiente <ArrowRight className="ml-2" /> </>
@@ -893,6 +893,8 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
 
     
 
