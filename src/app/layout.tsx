@@ -143,12 +143,12 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={`${inter.className} antialiased overflow-x-hidden`}>
+      <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>
         <NextAuthSessionProvider>
             <ThemeProvider
             attribute="class"
             defaultTheme="light"
-            forcedTheme="light"
+            enableSystem
             disableTransitionOnChange
             >
             <AppProvider>
@@ -162,3 +162,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    
