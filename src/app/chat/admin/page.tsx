@@ -1,10 +1,11 @@
+
 // src/app/chat/admin/page.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle } from 'lucide-react';
+import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BankView, AssistantsList, ProductsView, OtherView as CreditView } from '@/components/chat/admin/AdminViews';
 import { Button } from '@/components/ui/button';
@@ -23,42 +24,117 @@ const menuItems = [
     { view: 'credit' as AdminView, title: 'Crédito', description: "Administra líneas de crédito para clientes.", icon: DollarSign, area: 'd' },
 ];
 
-const CurrentPlanCard = ({ onUpgrade }: { onUpgrade: () => void }) => {
-    const limitations = [
-        { icon: MessageCircle, text: 'Máximo 100 mensajes por día para todos los bots.' },
-        { icon: Landmark, text: 'Autorización en banco limitada a 100 transacciones diarias.' },
-        { icon: ShoppingCart, text: 'Catálogo de solo 5 artículos para la venta.' },
-        { icon: CreditCard, text: 'Solo se puede ofrecer una línea de crédito.' },
+const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    const plans = [
+        {
+            name: "Plan Actual: Limitado",
+            icon: XCircle,
+            iconClass: "text-destructive",
+            badge: <Badge variant="destructive">Limitaciones Activas</Badge>,
+            features: [
+                { icon: MessageCircle, text: 'Máximo 100 mensajes por día para todos los bots.' },
+                { icon: Landmark, text: 'Autorización en banco limitada a 100 transacciones diarias.' },
+                { icon: ShoppingCart, text: 'Catálogo de solo 5 artículos para la venta.' },
+                { icon: CreditCard, text: 'Solo se puede ofrecer una línea de crédito.' },
+            ],
+            button: <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
+                        <Star className="mr-2 h-3 w-3"/>
+                        Mejorar Plan
+                    </Button>
+        },
+        {
+            name: "Plan Mensual: Ilimitado",
+            icon: ShieldCheck,
+            iconClass: "text-green-500",
+            badge: <Badge variant="default" className="bg-green-500 hover:bg-green-600">Recomendado</Badge>,
+            features: [
+                { icon: MessageCircle, text: 'Mensajes ilimitados para todos tus asistentes.' },
+                { icon: Landmark, text: 'Transacciones bancarias sin restricciones.' },
+                { icon: ShoppingCart, text: 'Catálogo de productos ilimitado.' },
+                { icon: CreditCard, text: 'Múltiples líneas de crédito para tus clientes.' },
+            ],
+            button: <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
+                        <Star className="mr-2 h-3 w-3"/>
+                        Obtener Plan por $179/mes
+                    </Button>
+        }
     ];
 
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                const scrollLeft = scrollRef.current.scrollLeft;
+                const cardWidth = scrollRef.current.offsetWidth;
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                setActiveIndex(newIndex);
+            }
+        };
+
+        const scroller = scrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleScroll);
+            return () => scroller.removeEventListener('scroll', handleScroll);
+        }
+    }, []);
+
     return (
-        <Card className="w-full text-left glow-card bg-card border shadow-lg overflow-hidden">
-             <CardHeader className="p-4 bg-muted/50 border-b">
-                <div className="flex items-center justify-between">
-                   <CardTitle className="text-base flex items-center gap-2">
-                      <XCircle className="text-destructive" />
-                      Plan Actual: Limitado
-                   </CardTitle>
-                   <Badge variant="destructive">Limitaciones Activas</Badge>
-                </div>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-                <List>
-                    {limitations.map((item, index) => (
-                        <ListItem key={index} className="text-xs">
-                            <item.icon className="h-3 w-3 mr-2 shrink-0" />
-                            {item.text}
-                        </ListItem>
-                    ))}
-                </List>
-                <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
-                    <Star className="mr-2 h-3 w-3"/>
-                    Mejorar Plan
-                </Button>
-            </CardContent>
-        </Card>
+        <div className="w-full">
+            <div
+                ref={scrollRef}
+                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+            >
+                {plans.map((plan, index) => (
+                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                        <Card className="w-full text-left glow-card bg-card border shadow-lg overflow-hidden">
+                             <CardHeader className="p-4 bg-muted/50 border-b">
+                                <div className="flex items-center justify-between">
+                                   <CardTitle className="text-base flex items-center gap-2">
+                                      <plan.icon className={cn("h-5 w-5", plan.iconClass)} />
+                                      {plan.name}
+                                   </CardTitle>
+                                   {plan.badge}
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4 space-y-3">
+                                <List>
+                                    {plan.features.map((item, itemIndex) => (
+                                        <ListItem key={itemIndex} className="text-xs">
+                                            <item.icon className="h-3 w-3 mr-2 shrink-0" />
+                                            {item.text}
+                                        </ListItem>
+                                    ))}
+                                </List>
+                                {plan.button}
+                            </CardContent>
+                        </Card>
+                    </div>
+                ))}
+            </div>
+             <div className="flex justify-center mt-2 space-x-2">
+                {plans.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => {
+                            if (scrollRef.current) {
+                                const cardWidth = scrollRef.current.offsetWidth;
+                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                            }
+                        }}
+                        className={cn(
+                            "h-2 w-2 rounded-full transition-all",
+                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                        )}
+                        aria-label={`Ir al plan ${index + 1}`}
+                    />
+                ))}
+            </div>
+        </div>
     );
 };
+
 
 const AdminHomePage = () => {
   const { state } = useApp();
@@ -95,8 +171,8 @@ const AdminHomePage = () => {
                 </header>
 
                 <div className="p-4 space-y-4">
-                    <div className="px-2">
-                        <CurrentPlanCard onUpgrade={handleUpgradeClick} />
+                     <div className="px-2">
+                        <PlanCarousel onUpgrade={handleUpgradeClick} />
                     </div>
                 
                     <div className="p-4 grid gap-3 grid-cols-2">
