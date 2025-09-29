@@ -24,6 +24,9 @@ import { signIn } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 
 
+const CANVAS_WIDTH = 920;
+const CANVAS_HEIGHT = 420;
+
 const BeginPage = () => {
     const { toast } = useToast();
     const { state, dispatch } = useApp();
@@ -33,8 +36,8 @@ const BeginPage = () => {
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const router = useRouter();
 
-    const [accountType, setAccountType] = useState<'business' | 'personal'>('personal');
-    const [chatMode, setChatMode] = useState<'ia' | 'me'>('me');
+    const [accountType, setAccountType] = useState<'personal' | 'business'>('personal');
+    const [chatMode, setChatMode] = useState<'me' | 'ia'>('ia');
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
@@ -71,6 +74,13 @@ const BeginPage = () => {
     ];
 
     const chatModeCards = [
+       {
+            type: 'ia',
+            icon: Brain,
+            title: 'Quiero un Asistente IA',
+            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
+            badge: true,
+        },
         {
             type: 'me',
             icon: User,
@@ -78,15 +88,111 @@ const BeginPage = () => {
             description: 'Tú responderás personalmente a todos los mensajes en tu chat.',
             badge: false,
         },
-        {
-            type: 'ia',
-            icon: Brain,
-            title: 'Quiero un Asistente IA',
-            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
-            badge: true,
-        },
     ];
     
+    // Canvas animation logic for Step 5
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const rafRef = useRef<number | null>(null);
+
+    const drawBankIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+        const glow = ctx.createRadialGradient(x, y, size * 0.5, x, y, size);
+        glow.addColorStop(0, 'hsla(var(--primary), 0.3)');
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.fillRect(x - size * 1.5, y - size * 1.5, size * 3, size * 3);
+
+        ctx.strokeStyle = 'hsl(var(--primary))';
+        ctx.lineWidth = size / 8;
+        ctx.fillStyle = 'hsl(var(--primary) / 0.1)';
+        
+        // Simple bank building representation
+        const baseWidth = size * 1.2;
+        const roofHeight = size * 0.4;
+        ctx.beginPath();
+        ctx.moveTo(x - baseWidth/2, y + size/2); // bottom left
+        ctx.lineTo(x - baseWidth/2, y - size/4); // top left
+        ctx.lineTo(x, y - size/4 - roofHeight); // roof peak
+        ctx.lineTo(x + baseWidth/2, y - size/4); // top right
+        ctx.lineTo(x + baseWidth/2, y + size/2); // bottom right
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+        
+        // Columns
+        ctx.lineWidth = size / 10;
+        const colHeight = size * 0.75;
+        const colY = y + size/2;
+        ctx.beginPath();
+        ctx.moveTo(x - baseWidth/3, colY);
+        ctx.lineTo(x - baseWidth/3, colY - colHeight);
+        ctx.moveTo(x, colY);
+        ctx.lineTo(x, colY - colHeight);
+        ctx.moveTo(x + baseWidth/3, colY);
+        ctx.lineTo(x + baseWidth/3, colY - colHeight);
+        ctx.stroke();
+
+    }, []);
+
+    useEffect(() => {
+        if (step !== 5) {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            return;
+        };
+
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        let w = canvas.parentElement?.clientWidth || 300;
+        let h = 300; // Fixed height for the canvas area
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.scale(dpr, dpr);
+
+        const icon = {
+            x: w / 2, y: h / 2, vx: 0.2, vy: 0.2, size: 60
+        };
+
+        const loop = (t: number) => {
+            ctx.clearRect(0, 0, w, h);
+
+            icon.x += icon.vx;
+            icon.y += icon.vy;
+
+            if (icon.x < icon.size / 2 || icon.x > w - icon.size / 2) icon.vx *= -1;
+            if (icon.y < icon.size / 2 || icon.y > h - icon.size / 2) icon.vy *= -1;
+            
+            const floatY = Math.sin(t / 800) * 4;
+            drawBankIcon(ctx, icon.x, icon.y + floatY, icon.size);
+
+            rafRef.current = requestAnimationFrame(loop);
+        };
+
+        rafRef.current = requestAnimationFrame(loop);
+        
+        const resizeObserver = new ResizeObserver(() => {
+            if (canvas.parentElement) {
+                w = canvas.parentElement.clientWidth;
+                canvas.width = w * dpr;
+                canvas.style.width = `${w}px`;
+                ctx.scale(dpr, dpr);
+            }
+        });
+        if(canvas.parentElement) resizeObserver.observe(canvas.parentElement);
+
+
+        return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            resizeObserver.disconnect();
+        };
+    }, [step, drawBankIcon]);
+
+
     useEffect(() => {
         // This effect resets the scroll position of the carousels when the step changes.
         if (scrollRef.current) {
@@ -216,9 +322,9 @@ const BeginPage = () => {
                 </div>
             );
         }
-        if (step === 3) {
+        if (step === 4) { // Swapped with step 3
             return (
-                 <div className="animate-fadeIn w-full flex flex-col items-center h-full">
+                 <div className="animate-fadeIn w-full flex flex-col items-center h-full px-4 sm:px-0">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * (100/6)]}
@@ -346,9 +452,9 @@ const BeginPage = () => {
                 </div>
             );
         }
-        if (step === 4) {
+        if (step === 3) { // Swapped with step 4
             return (
-                 <div className="animate-fadeIn w-full flex flex-col items-center h-full">
+                 <div className="animate-fadeIn w-full flex flex-col items-center h-full px-4 sm:px-0">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
                             value={[step * (100/6)]}
@@ -490,16 +596,15 @@ const BeginPage = () => {
                             Mantente al día con lo último de Hey Manito.
                         </p>
                     </div>
-                    <Card className="w-full max-w-sm p-6 text-left glow-card">
-                        <CardHeader className="p-0 mb-4">
-                           <CardTitle className="flex items-center gap-2 text-lg"><Landmark className="h-5 w-5 text-primary" /> Gestión de Ganancias</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <p className="text-sm text-muted-foreground">
+                    <div className="w-full max-w-sm">
+                        <canvas ref={canvasRef} className="rounded-2xl" />
+                        <div className='mt-4 p-4 text-center rounded-lg bg-card border'>
+                            <h3 className="font-semibold text-lg flex items-center justify-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Gestión de Ganancias</h3>
+                            <p className="text-sm text-muted-foreground mt-2">
                                 En el apartado 'Admin', encontrarás un nuevo campo llamado 'Banco' para gestionar tus ganancias. Cuando apruebes las capturas de pantalla de transferencias recibidas por tus asistentes, tus ganancias se incrementarán, registrando la fecha y hora de recepción.
                             </p>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -594,4 +699,6 @@ const BeginPage = () => {
 export default BeginPage;
 
     
+    
+
     
