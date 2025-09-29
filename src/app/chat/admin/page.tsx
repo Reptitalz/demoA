@@ -38,14 +38,14 @@ const AdminHomePage = () => {
                     <h1 className="text-2xl font-bold">Panel de Miembro</h1>
                     <p className="text-sm text-muted-foreground">Gestiona tus operaciones y asistentes.</p>
                 </header>
-                <div className="p-4 grid gap-4 grid-cols-2 md:grid-cols-4 h-full">
+                <div className="p-4 grid gap-4 grid-cols-2">
                     {menuItems.map((item, index) => (
                     <motion.div
                         key={item.view}
-                        className="h-full"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className="aspect-square"
                     >
                         <Card
                             onClick={() => setActiveView(item.view)}
@@ -54,13 +54,13 @@ const AdminHomePage = () => {
                                 "bg-card/50 hover:bg-card/90 hover:shadow-primary/10 hover:border-primary/20 border"
                             )}
                         >
-                            <CardHeader className="p-4">
-                                <div className="p-2.5 bg-primary/10 rounded-full mx-auto">
-                                    <item.icon className="h-6 w-6 text-primary" />
+                            <CardHeader className="p-2">
+                                <div className="p-2 bg-primary/10 rounded-full mx-auto">
+                                    <item.icon className="h-5 w-5 text-primary" />
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-0">
-                                <CardTitle className="text-base">{item.title}</CardTitle>
+                            <CardContent className="p-2 pt-0">
+                                <CardTitle className="text-sm">{item.title}</CardTitle>
                                 <CardDescription className="text-xs mt-1">{item.description}</CardDescription>
                             </CardContent>
                         </Card>
