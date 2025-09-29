@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { Banknote, Bot, Package, DollarSign, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,10 +11,10 @@ import { BankView, AssistantsList, ProductsView, OtherView as CreditView } from 
 type AdminView = 'home' | 'bank' | 'assistants' | 'products' | 'credit';
 
 const menuItems = [
-    { view: 'bank' as AdminView, title: 'Banco', icon: Banknote, area: 'a' },
-    { view: 'assistants' as AdminView, title: 'Asistentes', icon: Bot, area: 'b' },
-    { view: 'products' as AdminView, title: 'Productos', icon: Package, area: 'c' },
-    { view: 'credit' as AdminView, title: 'Crédito', icon: DollarSign, area: 'd' },
+    { view: 'bank' as AdminView, title: 'Banco', description: "Revisa y autoriza los pagos recibidos.", icon: Banknote, area: 'a' },
+    { view: 'assistants' as AdminView, title: 'Asistentes', description: "Supervisa las conversaciones en tiempo real.", icon: Bot, area: 'b' },
+    { view: 'products' as AdminView, title: 'Productos', description: "Gestiona tu catálogo de productos y servicios.", icon: Package, area: 'c' },
+    { view: 'credit' as AdminView, title: 'Crédito', description: "Administra líneas de crédito para clientes.", icon: DollarSign, area: 'd' },
 ];
 
 const AdminHomePage = () => {
@@ -38,27 +38,31 @@ const AdminHomePage = () => {
                     <h1 className="text-2xl font-bold">Panel de Miembro</h1>
                     <p className="text-sm text-muted-foreground">Gestiona tus operaciones y asistentes.</p>
                 </header>
-                <div className="p-4 grid gap-4 grid-cols-2 grid-rows-2 grid-areas-admin-hub h-full">
+                <div className="p-4 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 h-full">
                     {menuItems.map((item, index) => (
                     <motion.div
                         key={item.view}
                         className="h-full"
-                        style={{ gridArea: item.area }}
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
                         <Card
-                        onClick={() => setActiveView(item.view)}
-                        className={cn(
-                            "h-full w-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300",
-                            "bg-card/50 hover:bg-card/90 hover:shadow-primary/20 hover:border-primary/30 border-2 border-dashed"
-                        )}
+                            onClick={() => setActiveView(item.view)}
+                            className={cn(
+                                "h-full w-full flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300",
+                                "bg-card/50 hover:bg-card/90 hover:shadow-primary/10 hover:border-primary/20 border"
+                            )}
                         >
-                        <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
-                            <item.icon className="h-10 w-10 text-primary" />
-                            <p className="font-semibold text-lg">{item.title}</p>
-                        </CardContent>
+                            <CardHeader>
+                                <div className="p-3 bg-primary/10 rounded-full mx-auto">
+                                    <item.icon className="h-8 w-8 text-primary" />
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <CardTitle className="text-lg">{item.title}</CardTitle>
+                                <CardDescription className="text-xs mt-1">{item.description}</CardDescription>
+                            </CardContent>
                         </Card>
                     </motion.div>
                     ))}
