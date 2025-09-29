@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User, Settings, Landmark, CircleDollarSign, Package } from 'lucide-react';
+import { MessageSquare, Camera, User, Settings, Landmark, CircleDollarSign, Package, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
@@ -27,6 +27,9 @@ const AdminNavBar = () => (
             </Button>
             <Button variant="ghost" className="h-full text-muted-foreground px-6">
                 <Package className="h-5 w-5"/>
+            </Button>
+            <Button variant="ghost" className="h-full text-muted-foreground px-6">
+                <Bot className="h-5 w-5"/>
             </Button>
         </div>
     </nav>
