@@ -6,11 +6,9 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { Check, ArrowRight, Bot, Settings, Smartphone, Zap, Apple, Globe } from 'lucide-react';
-import { FaAndroid } from 'react-icons/fa';
+import { Check, ArrowRight, Bot, Settings, Smartphone } from 'lucide-react';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
-import Image from 'next/image';
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
     return (
@@ -119,34 +117,6 @@ const NewHomepage = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-muted/50">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
-            <p className="mt-3 text-muted-foreground">
-                Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.
-            </p>
-            <Button asChild size="lg" className="mt-8 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                <Link href="/begin">Crear mi Primer Asistente</Link>
-            </Button>
-            <div className="mt-8 flex justify-center items-center gap-6 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                    <Apple className="h-5 w-5" />
-                    <span className="text-sm">iPhone</span>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <FaAndroid className="h-5 w-5" />
-                    <span className="text-sm">Android</span>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    <span className="text-sm">Web</span>
-                </div>
-            </div>
-        </div>
-      </section>
-
     </PageContainer>
   );
 };
