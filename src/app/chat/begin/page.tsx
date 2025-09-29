@@ -43,6 +43,7 @@ const BeginPage = () => {
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
     const newsScrollRef = useRef<HTMLDivElement>(null);
+    const navCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -94,55 +95,89 @@ const BeginPage = () => {
     
     const newsItems = [
         {
+            id: 'bank',
             icon: Landmark,
             title: "Gestión de Ganancias",
             description: "En la sección 'Admin', usa el nuevo apartado 'Banco' para gestionar tus ingresos. Aprueba las transferencias que reciban tus asistentes y observa tus ganancias en tiempo real.",
         },
         {
+            id: 'database',
             icon: Database,
             title: "Bases de Datos Inteligentes",
             description: "Ahora puedes crear bases de datos que la IA gestiona por sí misma. Añade conocimiento y deja que tu asistente aprenda para dar respuestas más precisas.",
         }
     ];
 
-    // Canvas animation logic for Step 5
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rafRef = useRef<number | null>(null);
 
-    const drawDollarIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
-        const glow = ctx.createRadialGradient(x, y, size * 0.7, x, y, size * 1.5);
-        glow.addColorStop(0, 'hsla(262, 80%, 58%, 0.3)');
-        glow.addColorStop(1, 'transparent');
-        ctx.fillStyle = glow;
-        ctx.fillRect(x - size * 2, y - size * 2, size * 4, size * 4);
+    const drawNavPreview = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
+        const w = ctx.canvas.width / (window.devicePixelRatio || 1);
+        const h = ctx.canvas.height / (window.devicePixelRatio || 1);
 
-        // Draw the white circle background
-        ctx.beginPath();
-        ctx.arc(x, y, size * 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = 'white';
-        ctx.fill();
+        ctx.clearRect(0, 0, w, h);
         
-        // Draw the dollar sign ($) inside
-        ctx.fillStyle = 'hsl(262, 80%, 58%)';
-        ctx.font = `bold ${size * 1.2}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('$', x, y);
+        // Draw Nav bar
+        const navHeight = 50;
+        const navY = (h - navHeight) / 2;
+        ctx.fillStyle = 'hsl(var(--card))';
+        ctx.strokeStyle = 'hsl(var(--border))';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(w * 0.1, navY, w * 0.8, navHeight, 25);
+        ctx.fill();
+        ctx.stroke();
+
+        const icons = ['panel', 'clientes', 'banco', 'perfil'];
+        const iconCount = icons.length;
+        const iconSpacing = (w * 0.8) / (iconCount);
+
+        const highlightProgress = (Math.sin(t / 1000) + 1) / 2; // 0 to 1 cycle
+
+        icons.forEach((icon, index) => {
+            const x = w * 0.1 + iconSpacing * (index + 0.5);
+            const y = navY + navHeight / 2;
+            const isHighlighted = icon === 'banco';
+
+            ctx.save();
+            ctx.font = `12px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (isHighlighted) {
+                const radius = 20 * highlightProgress;
+                const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                glow.addColorStop(0, `hsla(262, 80%, 58%, 0.4)`);
+                glow.addColorStop(1, 'transparent');
+                ctx.fillStyle = glow;
+                ctx.fillRect(x - 30, y - 30, 60, 60);
+
+                ctx.fillStyle = 'hsl(var(--primary))';
+                ctx.beginPath();
+                ctx.arc(x, y, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+            } else {
+                ctx.fillStyle = 'hsl(var(--muted-foreground))';
+            }
+            
+            ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
+            ctx.restore();
+        });
 
     }, []);
 
     useEffect(() => {
-        if (step !== 5) {
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        if (step !== 5 || newsIndex !== 0) {
+            if(rafRef.current) cancelAnimationFrame(rafRef.current);
             return;
-        };
+        }
 
-        const canvas = canvasRef.current;
+        const canvas = navCanvasRef.current;
         if (!canvas) return;
 
         const dpr = window.devicePixelRatio || 1;
-        let w = canvas.parentElement?.clientWidth || 300;
-        let h = 200; // Fixed height for the canvas area
+        const w = canvas.parentElement!.clientWidth;
+        const h = 100;
         canvas.width = w * dpr;
         canvas.height = h * dpr;
         canvas.style.width = `${w}px`;
@@ -152,38 +187,16 @@ const BeginPage = () => {
         if (!ctx) return;
         ctx.scale(dpr, dpr);
 
-        const icon = {
-            x: w / 2, y: h / 2, size: 40
-        };
-
         const loop = (t: number) => {
-            ctx.clearRect(0, 0, w, h);
-            
-            const floatY = Math.sin(t / 600) * 6;
-            drawDollarIcon(ctx, icon.x, icon.y + floatY, icon.size);
-
+            drawNavPreview(ctx, t);
             rafRef.current = requestAnimationFrame(loop);
         };
-
         rafRef.current = requestAnimationFrame(loop);
-        
-        const resizeObserver = new ResizeObserver(() => {
-            if (canvas.parentElement) {
-                w = canvas.parentElement.clientWidth;
-                canvas.width = w * dpr;
-                canvas.style.width = `${w}px`;
-                ctx.scale(dpr, dpr);
-                icon.x = w / 2; // Keep it centered on resize
-            }
-        });
-        if(canvas.parentElement) resizeObserver.observe(canvas.parentElement);
-
 
         return () => {
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
-            resizeObserver.disconnect();
         };
-    }, [step, drawDollarIcon]);
+    }, [step, newsIndex, drawNavPreview]);
 
 
     useEffect(() => {
@@ -618,12 +631,19 @@ const BeginPage = () => {
                                 const Icon = item.icon;
                                 return (
                                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                                        <Card className="p-6 text-center glow-card h-full">
-                                            <CardHeader className="p-0 mb-4">
-                                                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                                                    <Icon className="h-8 w-8 text-primary" />
+                                        <Card className="p-6 text-center glow-card h-full flex flex-col">
+                                            {item.id === 'bank' && (
+                                                <div className="mb-4 h-[100px]">
+                                                    <canvas ref={navCanvasRef}/>
                                                 </div>
-                                            </CardHeader>
+                                            )}
+                                            {item.id !== 'bank' && (
+                                                <CardHeader className="p-0 mb-4">
+                                                    <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                                                        <Icon className="h-8 w-8 text-primary" />
+                                                    </div>
+                                                </CardHeader>
+                                            )}
                                             <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
                                             <CardDescription className="text-sm">{item.description}</CardDescription>
                                         </Card>
@@ -676,7 +696,7 @@ const BeginPage = () => {
                             </p>
                         </div>
                         
-                         <Card 
+                        <Card 
                             className="w-full max-w-sm p-6 text-center glow-card"
                          >
                             <CardContent className="p-0 flex flex-col items-center justify-center gap-4">
@@ -742,3 +762,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
