@@ -30,7 +30,7 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
 
     const plans = [
         {
-            name: "Plan Actual: Limitado",
+            name: "Plan Gratuito",
             icon: XCircle,
             iconClass: "text-destructive",
             badge: <Badge variant="destructive">Limitaciones Activas</Badge>,
