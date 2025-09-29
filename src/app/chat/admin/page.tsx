@@ -10,10 +10,10 @@ import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatBytes } from '@/lib/utils';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
+import type { AdminView } from '../ChatLayout';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -37,7 +37,7 @@ const demoAdminChats = [
     },
 ];
 
-const AdminChatInterface = () => {
+const AssistantsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
   const router = useRouter();
@@ -51,10 +51,9 @@ const AdminChatInterface = () => {
   const handleCreateAssistant = () => {
     setIsCreateAssistantDialogOpen(true);
   };
-
+  
   return (
     <>
-    <div className="flex flex-col h-full bg-transparent">
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -63,7 +62,7 @@ const AdminChatInterface = () => {
                 </div>
                 <div>
                     <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-                    <p className="text-sm text-muted-foreground">Supervisión de Chats</p>
+                    <p className="text-sm text-muted-foreground">Supervisión de Asistentes</p>
                 </div>
             </div>
         </div>
@@ -209,12 +208,35 @@ const AdminChatInterface = () => {
           >
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
-    </div>
-    <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
+       <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
     </>
+  );
+}
+
+const OtherView = ({ viewName }: { viewName: string }) => (
+    <div className="flex flex-col h-full bg-transparent">
+        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+             <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
+             <p className="text-sm text-muted-foreground">Vista de {viewName}</p>
+        </header>
+        <div className="flex-grow flex items-center justify-center">
+            <p className="text-muted-foreground">Contenido para {viewName} irá aquí.</p>
+        </div>
+    </div>
+);
+
+
+const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
+  return (
+    <div className="flex flex-col h-full bg-transparent">
+        {activeView === 'assistants' && <AssistantsList />}
+        {activeView === 'bank' && <OtherView viewName="Banco" />}
+        {activeView === 'credit' && <OtherView viewName="Créditos" />}
+        {activeView === 'products' && <OtherView viewName="Productos" />}
+    </div>
   );
 };
 
-export default function AdminPage() {
-    return <AdminChatInterface />;
+export default function AdminPage({ activeView = 'assistants' }: { activeView?: AdminView }) {
+    return <AdminChatInterface activeView={activeView} />;
 }

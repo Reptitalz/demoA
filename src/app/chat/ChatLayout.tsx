@@ -1,7 +1,7 @@
 // src/app/chat/ChatLayout.tsx
 "use client";
 
-import React, from 'react';
+import React, { useState } from 'react';
 import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
@@ -9,26 +9,42 @@ import { cn } from '@/lib/utils';
 import { MessageSquare, Camera, User, Settings, Landmark, CircleDollarSign, Package, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const menuItems = [
-    { path: '/chat/dashboard', icon: MessageSquare, label: 'Chats' },
-    { path: '/chat/updates', icon: Camera, label: 'Novedades' },
-    { path: '/chat/profile', icon: User, label: 'Perfil' },
-    { path: '/chat/admin', icon: Settings, label: 'Admin' },
-];
+export type AdminView = 'bank' | 'credit' | 'products' | 'assistants';
 
-const AdminNavBar = () => (
+interface AdminNavBarProps {
+    activeView: AdminView;
+    onNavigate: (view: AdminView) => void;
+}
+
+const AdminNavBar = ({ activeView, onNavigate }: AdminNavBarProps) => (
     <nav className="fixed bottom-16 left-0 right-0 h-10 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
         <div className="flex justify-around items-center h-full max-w-md mx-auto">
-            <Button variant="ghost" className="h-full text-primary px-6">
+             <Button 
+                variant="ghost" 
+                className={cn("h-full px-6", activeView === 'bank' ? 'text-primary' : 'text-muted-foreground')}
+                onClick={() => onNavigate('bank')}
+            >
                 <Landmark className="h-5 w-5"/>
             </Button>
-            <Button variant="ghost" className="h-full text-muted-foreground px-6">
+            <Button 
+                variant="ghost" 
+                className={cn("h-full px-6", activeView === 'credit' ? 'text-primary' : 'text-muted-foreground')}
+                onClick={() => onNavigate('credit')}
+            >
                 <CircleDollarSign className="h-5 w-5"/>
             </Button>
-            <Button variant="ghost" className="h-full text-muted-foreground px-6">
+            <Button 
+                variant="ghost" 
+                className={cn("h-full px-6", activeView === 'products' ? 'text-primary' : 'text-muted-foreground')}
+                onClick={() => onNavigate('products')}
+            >
                 <Package className="h-5 w-5"/>
             </Button>
-            <Button variant="ghost" className="h-full text-muted-foreground px-6">
+            <Button 
+                variant="ghost" 
+                className={cn("h-full px-6", activeView === 'assistants' ? 'text-primary' : 'text-muted-foreground')}
+                onClick={() => onNavigate('assistants')}
+            >
                 <Bot className="h-5 w-5"/>
             </Button>
         </div>
@@ -45,6 +61,9 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   
   const [animationClass, setAnimationClass] = React.useState('');
   const previousPathname = React.useRef(pathname);
+
+   // State to manage the active view within the admin page
+  const [adminView, setAdminView] = useState<AdminView>('assistants');
 
   React.useEffect(() => {
     if (previousPathname.current !== pathname) {
@@ -81,6 +100,13 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 
   }, [pathname, router]);
   
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child) && isAdminView) {
+      return React.cloneElement(child, { activeView: adminView } as any);
+    }
+    return child;
+  });
+
   return (
     <div className="h-screen w-screen flex flex-col bg-transparent overflow-x-hidden">
       <main 
@@ -91,11 +117,18 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
             isBaseChatView && animationClass 
           )}
       >
-        {children}
+        {childrenWithProps}
       </main>
       
-      {isAdminView && <AdminNavBar />}
+      {isAdminView && <AdminNavBar activeView={adminView} onNavigate={setAdminView} />}
       {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} />}
     </div>
   );
 }
+
+const menuItems = [
+    { path: '/chat/dashboard', icon: MessageSquare, label: 'Chats' },
+    { path: '/chat/updates', icon: Camera, label: 'Novedades' },
+    { path: '/chat/profile', icon: User, label: 'Perfil' },
+    { path: '/chat/admin', icon: Settings, label: 'Admin' },
+];
