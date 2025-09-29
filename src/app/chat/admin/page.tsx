@@ -5,15 +5,19 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
 import type { AdminView } from '../ChatLayout';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import Image from 'next/image';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -36,6 +40,133 @@ const demoAdminChats = [
         memory: 78910
     },
 ];
+
+const demoPayments = [
+  {
+    id: 'pay-1',
+    product: 'Pastel de Chocolate Grande',
+    assistantName: 'Asistente de Ventas',
+    userName: 'Usuario B',
+    chatPath: 'usuario-b-123',
+    amount: 350.00,
+    receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
+    receivedAt: new Date(),
+  },
+  {
+    id: 'pay-2',
+    product: 'Servicio de Mantenimiento',
+    assistantName: 'Asistente Taller',
+    userName: 'Cliente Frecuente',
+    chatPath: 'cliente-f-456',
+    amount: 850.50,
+    receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
+    receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+  },
+];
+
+
+const ReceiptDialog = ({ payment, isOpen, onOpenChange }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    if (!payment) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md p-0">
+                <DialogHeader className="p-6 pb-2">
+                    <DialogTitle>Recibo de Pago</DialogTitle>
+                    <DialogDescription>
+                        Recibido el {format(payment.receivedAt, "PPPp", { locale: es })}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="px-6 max-h-[60vh] overflow-y-auto">
+                    <Image
+                        src={payment.receiptUrl}
+                        alt="Recibo de pago"
+                        width={400}
+                        height={600}
+                        className="rounded-md border w-full h-auto"
+                    />
+                </div>
+                <DialogFooter className="p-6 bg-muted/50 flex justify-end gap-2">
+                    <Button variant="destructive" onClick={() => onOpenChange(false)}><XCircle className="mr-2"/> Rechazar</Button>
+                    <Button variant="default" onClick={() => onOpenChange(false)} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
+const BankView = () => {
+    const totalIncome = demoPayments.reduce((sum, p) => sum + p.amount, 0);
+    const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+    const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+
+    const handleViewReceipt = (payment: any) => {
+        setSelectedPayment(payment);
+        setIsReceiptOpen(true);
+    };
+
+    return (
+        <>
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Banknote className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
+                        <p className="text-sm text-muted-foreground">Gestión de Banco</p>
+                    </div>
+                </div>
+            </header>
+            <div className="p-4">
+                 <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent">
+                    <CardHeader>
+                        <CardTitle className="text-muted-foreground font-normal">Ingreso Total</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-extrabold text-foreground">
+                            ${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+            <ScrollArea className="flex-grow px-2">
+                <div className="p-2 space-y-3">
+                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Pagos Pendientes</h3>
+                    {demoPayments.map(payment => (
+                         <Card key={payment.id} className="glow-card">
+                            <CardContent className="p-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <p className="font-semibold text-sm">{payment.product}</p>
+                                        <p className="text-xs text-muted-foreground">Asistente: {payment.assistantName}</p>
+                                        <p className="text-xs text-muted-foreground">De: {payment.userName} ({payment.chatPath})</p>
+                                    </div>
+                                    <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>
+                                </div>
+                                <div className="flex gap-2 mt-3 pt-3 border-t">
+                                    <Button size="sm" className="flex-1" onClick={() => handleViewReceipt(payment)}>
+                                        <Eye className="mr-2"/>Ver Recibo
+                                    </Button>
+                                    <Button size="sm" variant="outline" className="flex-1">
+                                        <FileText className="mr-2"/>Ver Detalles
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+             <ReceiptDialog 
+                payment={selectedPayment}
+                isOpen={isReceiptOpen}
+                onOpenChange={setIsReceiptOpen}
+            />
+        </>
+    );
+}
+
 
 const AssistantsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -230,7 +361,7 @@ const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
   return (
     <div className="flex flex-col h-full bg-transparent">
         {activeView === 'assistants' && <AssistantsList />}
-        {activeView === 'bank' && <OtherView viewName="Banco" />}
+        {activeView === 'bank' && <BankView />}
         {activeView === 'credit' && <OtherView viewName="Créditos" />}
         {activeView === 'products' && <OtherView viewName="Productos" />}
     </div>
