@@ -4,13 +4,13 @@
 import React from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
 import { Check, ArrowRight, Bot, Settings, Smartphone, Zap, Apple, Globe } from 'lucide-react';
 import { FaAndroid } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
+import Image from 'next/image';
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
     return (
@@ -28,7 +28,13 @@ const NewHomepage = () => {
   return (
     <PageContainer className="p-0" fullWidth={true}>
       {/* Hero Section */}
-      <section className="relative text-center py-20 md:py-32 overflow-hidden">
+      <section className="relative text-center pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+          <div 
+            className="absolute inset-0 z-0 opacity-20"
+            style={{
+                backgroundImage: 'radial-gradient(circle, hsl(var(--primary) / 0.1), transparent 60%), radial-gradient(circle, hsl(var(--accent) / 0.05), transparent 70%)',
+            }}
+          />
           <div className="container max-w-4xl mx-auto px-4 relative z-10">
               <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -114,61 +120,8 @@ const NewHomepage = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-       <section id="pricing" className="py-20 bg-muted/50">
-          <div className="container max-w-5xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight">Planes Simples y Flexibles</h2>
-              <p className="mt-3 text-muted-foreground">Comienza gratis. Crece sin complicaciones.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Free Plan */}
-              <Card className="p-8 flex flex-col glow-card">
-                  <CardHeader className="p-0">
-                      <CardTitle className="text-2xl">Plan Gratuito</CardTitle>
-                      <CardDescription>Perfecto para empezar a explorar.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0 mt-6 flex-grow">
-                      <p className="text-4xl font-extrabold mb-4">$0 <span className="text-lg font-normal text-muted-foreground">/siempre</span></p>
-                      <ul className="space-y-3 text-sm">
-                          <li className="flex items-center gap-2"><Check className="text-green-500"/>1 Asistente de Escritorio</li>
-                          <li className="flex items-center gap-2"><Check className="text-green-500"/>Prueba de 30 días con mensajes ilimitados</li>
-                          <li className="flex items-center gap-2"><Check className="text-green-500"/>Acceso a todas las funciones de gestión</li>
-                          <li className="flex items-center gap-2"><Check className="text-green-500"/>Instalación como PWA</li>
-                      </ul>
-                  </CardContent>
-                  <Button asChild variant="outline" className="mt-8 w-full">
-                      <Link href="/begin">Comenzar Gratis</Link>
-                  </Button>
-              </Card>
-
-              {/* Pro Plan */}
-              <div className="relative p-0.5 rounded-2xl bg-brand-gradient shiny-border">
-                  <Card className="p-8 flex flex-col h-full rounded-xl">
-                      <CardHeader className="p-0">
-                          <CardTitle className="text-2xl">Plan Ilimitado</CardTitle>
-                          <CardDescription>Desbloquea todo el potencial para tu negocio.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-0 mt-6 flex-grow">
-                          <p className="text-4xl font-extrabold mb-4">$179 <span className="text-lg font-normal text-muted-foreground">/mes</span></p>
-                          <ul className="space-y-3 text-sm">
-                              <li className="flex items-center gap-2"><Zap className="text-yellow-500"/>Todo lo del Plan Gratuito, y además:</li>
-                              <li className="flex items-center gap-2 font-semibold"><Check className="text-green-500"/>Mensajes Ilimitados por Asistente</li>
-                              <li className="flex items-center gap-2"><Check className="text-green-500"/>Múltiples Asistentes de Escritorio</li>
-                              <li className="flex items-center gap-2"><Check className="text-green-500"/>Soporte Prioritario</li>
-                          </ul>
-                      </CardContent>
-                      <Button asChild className="mt-8 w-full bg-brand-gradient text-primary-foreground hover:opacity-90">
-                           <Link href="/login">Obtener Plan Ilimitado</Link>
-                      </Button>
-                  </Card>
-              </div>
-            </div>
-          </div>
-       </section>
-
-       {/* CTA Section */}
-      <section className="py-20 bg-background">
+      {/* CTA Section */}
+      <section className="py-20 bg-muted/50">
         <div className="container max-w-4xl mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
             <p className="mt-3 text-muted-foreground">

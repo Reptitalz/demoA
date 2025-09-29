@@ -16,12 +16,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
   const isMarketingPage = ['/', '/begin', '/terms', '/privacy', '/colaboradores', '/make', '/try', '/access'].includes(pathname);
   
-  // Conditionally render the background. The new marketing page has its own.
-  const showDynamicBackground = isMarketingPage;
-  
   return (
     <div className={cn("min-h-screen flex flex-col text-foreground bg-background")}>
-      {showDynamicBackground && <DynamicCanvasBackground />}
       <div className="relative z-10 flex flex-col min-h-screen">
         {isMarketingPage && <Header fullWidth />}
         <div className={cn("flex-grow w-full")}>
