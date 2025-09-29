@@ -6,7 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 import { Loader2 } from 'lucide-react';
@@ -85,16 +85,82 @@ const PhoneCanvas = () => {
             ctx.roundRect(screenX, screenY, screenW, screenH, 20);
             ctx.fill();
             
+            // Chat Header
+            const headerH = 40;
+            ctx.fillStyle = 'hsl(var(--card) / 0.8)';
+            ctx.beginPath();
+            ctx.roundRect(screenX, screenY, screenW, headerH, [20, 20, 0, 0]);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY + headerH);
+            ctx.lineTo(screenX + screenW, screenY + headerH);
+            ctx.strokeStyle = 'hsl(var(--border))';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            // Header Content
+            const avatarRadius = 14;
+            ctx.fillStyle = 'hsl(var(--primary))';
+            ctx.beginPath();
+            ctx.arc(screenX + 25, screenY + headerH / 2, avatarRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', screenX + 25, screenY + headerH / 2);
+            
+            ctx.fillStyle = 'hsl(var(--foreground))';
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('Asistente de Ventas', screenX + 50, screenY + headerH / 2 - 5);
+            ctx.font = '9px sans-serif';
+            ctx.fillStyle = 'hsl(var(--muted-foreground))';
+            ctx.fillText('en línea', screenX + 50, screenY + headerH / 2 + 8);
+
+
             // Notch
             ctx.fillStyle = '#1C1C1E';
             ctx.beginPath();
             ctx.roundRect(x + phoneW / 2 - 40, y + screenMargin, 80, 5, 2.5);
             ctx.fill();
 
+            // Chat Input Footer
+            const footerH = 45;
+            ctx.fillStyle = 'hsl(var(--background))';
+            ctx.fillRect(screenX, screenY + screenH - footerH, screenW, footerH);
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY + screenH - footerH);
+            ctx.lineTo(screenX + screenW, screenY + screenH - footerH);
+            ctx.stroke();
+            
+            // Input field
+            ctx.fillStyle = 'hsl(var(--card))';
+            ctx.beginPath();
+            ctx.roundRect(screenX + 10, screenY + screenH - footerH + 8, screenW - 60, footerH - 16, 12);
+            ctx.fill();
+            ctx.fillStyle = 'hsl(var(--muted-foreground))';
+            ctx.font = '10px sans-serif';
+            ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH/2);
+
+            // Send button
+            ctx.fillStyle = 'hsl(var(--primary))';
+            ctx.beginPath();
+            ctx.arc(screenX + screenW - 28, screenY + screenH - footerH / 2, 14, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.save();
+            ctx.translate(screenX + screenW - 28, screenY + screenH - footerH/2);
+            ctx.rotate( -Math.PI / 4);
+            ctx.fillStyle = 'white';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('➢', 0, 1);
+            ctx.restore();
+
+
             // Draw chat bubbles
             ctx.save();
             ctx.beginPath();
-            ctx.rect(screenX, screenY, screenW, screenH);
+            ctx.rect(screenX, screenY + headerH, screenW, screenH - headerH - footerH);
             ctx.clip();
 
             const bubblePadding = 10;
@@ -110,28 +176,28 @@ const PhoneCanvas = () => {
                 const textWidth = metrics.width;
                 const bubbleHeight = 24;
 
+                const animatedWidth = (textWidth + 20) * progress;
+
                 ctx.globalAlpha = progress;
                 ctx.fillStyle = isUser ? 'hsl(var(--primary))' : '#ffffff';
                 ctx.beginPath();
                 if (isUser) {
-                    ctx.roundRect(bubbleX + bubbleW - (textWidth + 20) * progress, yPos, textWidth + 20, bubbleHeight, 12);
+                    ctx.roundRect(bubbleX + bubbleW - animatedWidth, yPos, animatedWidth, bubbleHeight, 12);
                 } else {
-                    ctx.roundRect(bubbleX, yPos, (textWidth + 20) * progress, bubbleHeight, 12);
+                    ctx.roundRect(bubbleX, yPos, animatedWidth, bubbleHeight, 12);
                 }
                 ctx.fill();
 
                 ctx.fillStyle = isUser ? '#ffffff' : '#000000';
-                if(progress > 0.8) {
-                    ctx.globalAlpha = (progress - 0.8) / 0.2;
-                    ctx.fillText(text, isUser ? bubbleX + bubbleW - textWidth - 10 : bubbleX + 10, yPos + bubbleHeight / 2 + 3);
-                }
+                ctx.globalAlpha = progress > 0.5 ? (progress - 0.5) * 2 : 0;
+                ctx.fillText(text, isUser ? bubbleX + bubbleW - textWidth - 10 : bubbleX + 10, yPos + bubbleHeight / 2 + 3);
             };
             
             ctx.globalAlpha = 1;
 
-            drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + 20, 0);
-            drawBubble('Quiero un reporte de ventas.', true, screenY + 50, 60);
-            drawBubble('Claro, consultando la base de datos...', false, screenY + 80, 120);
+            drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + headerH + 10, 0);
+            drawBubble('Quiero un reporte de ventas.', true, screenY + headerH + 40, 60);
+            drawBubble('Claro, consultando la base de datos...', false, screenY + headerH + 70, 120);
             
             ctx.restore();
             ctx.restore();
