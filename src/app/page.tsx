@@ -1,342 +1,283 @@
 
 "use client";
 
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaWhatsapp, FaBrain, FaCogs, FaShieldAlt, FaSitemap, FaMoneyBillWave, FaHandshake, FaUserTie } from 'react-icons/fa';
-import { Send, Bot, Database, Workflow, CheckCircle, Rocket, BarChart2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
+import { FaAndroid, FaApple, FaGlobe, FaMoneyBillWave, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
+import { Bot, CheckCircle } from 'lucide-react';
 import { motion } from "framer-motion";
-import AppIcon from '@/components/shared/AppIcon';
+
+const PhoneCanvas = () => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    const drawPhone = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => {
+        const phoneW = w * 0.7;
+        const phoneH = h * 0.8;
+        const phoneX = (w - phoneW) / 2;
+        const phoneY = (h - phoneH) / 2;
+        const borderRadius = 40;
+
+        // 3D-like rotation effect
+        const rotateX = Math.sin(t / 2000) * 0.1;
+        const rotateY = Math.cos(t / 1500) * 0.15;
+        
+        ctx.save();
+        ctx.translate(w / 2, h / 2);
+        ctx.transform(1, rotateX, rotateY, 1, 0, 0); // Apply skew for 3D effect
+        ctx.translate(-w / 2, -h / 2);
+        
+        // Phone shadow
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 40;
+        ctx.shadowOffsetX = 10;
+        ctx.shadowOffsetY = 20;
+
+        // Phone body
+        ctx.fillStyle = '#1C1C1E'; // Almost black
+        ctx.beginPath();
+        ctx.roundRect(phoneX, phoneY, phoneW, phoneH, borderRadius);
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent'; // Reset shadow
+
+        // Screen
+        const screenMargin = 15;
+        const screenX = phoneX + screenMargin;
+        const screenY = phoneY + screenMargin;
+        const screenW = phoneW - screenMargin * 2;
+        const screenH = phoneH - screenMargin * 2;
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.roundRect(screenX, screenY, screenW, screenH, borderRadius - 10);
+        ctx.fill();
+
+        // Draw Chat inside the screen
+        drawChat(ctx, screenX, screenY, screenW, screenH, t);
+
+        // Notch
+        const notchW = screenW * 0.3;
+        const notchH = 10;
+        ctx.fillStyle = '#1C1C1E';
+        ctx.beginPath();
+        ctx.roundRect(screenX + (screenW - notchW) / 2, screenY, notchW, notchH, 5);
+        ctx.fill();
+
+        ctx.restore();
+    }, []);
+
+    const drawChat = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+        
+        // Chat Header
+        ctx.fillStyle = '#1F1F1F';
+        ctx.fillRect(x, y, w, 50);
+        ctx.fillStyle = 'white';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('Asistente de Ventas', x + 50, y + 30);
+        ctx.fillStyle = '#4CAF50'; // Green circle for avatar
+        ctx.beginPath();
+        ctx.arc(x + 25, y + 25, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('AV', x+19, y+29);
+
+        // Chat Bubbles (animated)
+        const messages = [
+            { text: '¡Hola! Quiero un pastel.', user: true, delay: 500 },
+            { text: 'Claro, ¿de qué sabor?', user: false, delay: 1500 },
+            { text: 'Chocolate. ¿Cuál es el precio?', user: true, delay: 2500 },
+            { text: 'El pastel de chocolate cuesta $350. ¿Deseas confirmar?', user: false, delay: 4000 },
+        ];
+        
+        const loopDuration = 6000;
+        const timeInLoop = t % loopDuration;
+
+        messages.forEach(msg => {
+            if (timeInLoop > msg.delay) {
+                const animProgress = Math.min(1, (timeInLoop - msg.delay) / 500);
+                const bubbleY = y + 70 + (messages.indexOf(msg) * 50);
+                const bubbleW = ctx.measureText(msg.text).width + 20;
+                const bubbleH = 30;
+
+                ctx.globalAlpha = animProgress;
+                
+                if (msg.user) {
+                    const bubbleX = x + w - bubbleW - 20;
+                    ctx.fillStyle = '#005C4B';
+                    ctx.beginPath();
+                    ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, 15);
+                    ctx.fill();
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msg.text, bubbleX + 10, bubbleY + 20);
+                } else {
+                    const bubbleX = x + 20;
+                    ctx.fillStyle = '#2A2A2A';
+                    ctx.beginPath();
+                    ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, 15);
+                    ctx.fill();
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msg.text, bubbleX + 10, bubbleY + 20);
+                }
+                ctx.globalAlpha = 1;
+            }
+        });
+
+        ctx.restore();
+    };
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationFrameId: number;
+
+        const render = (time: number) => {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPhone(ctx, rect.width, rect.height, time);
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        animationFrameId = requestAnimationFrame(render);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [drawPhone, drawChat]);
+
+    return <canvas ref={canvasRef} className="w-full h-full" />;
+};
 
 
-const PhoneChatMockup = () => {
+const FeatureShowcaseCard = ({ icon: Icon, title, description, badge }: { icon: React.ElementType, title: string, description: string, badge: string }) => {
     return (
-        <motion.div
-              initial={{ scale: 0.98, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              className="mx-auto w-[360px] h-[720px] rounded-3xl bg-gradient-to-b from-slate-900/90 to-slate-900/70 shadow-2xl border border-white/5 overflow-hidden"
-            >
-              <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center"><Bot size={24} className="text-white"/></div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Asistente de Ventas</p>
-                    <p className="text-xs text-slate-400">en línea</p>
-                  </div>
-                </div>
-                <div className="text-slate-400 text-xs">—</div>
-              </div>
-
-              <div className="px-4 pb-6">
-                <div className="mt-2 space-y-3">
-                  <div className="flex justify-end">
-                    <div className="max-w-[70%] bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white p-3 rounded-2xl">¡Hola! 👋 Soy tu asistente virtual. ¿Cómo puedo ayudarte hoy?</div>
-                  </div>
-
-                  <div className="flex">
-                    <div className="max-w-[70%] bg-slate-800 text-slate-200 p-3 rounded-2xl">Quiero ver el inventario de productos y generar un reporte de ventas.</div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <div className="max-w-[70%] bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white p-3 rounded-2xl">Claro, consultando la base de datos... Tu reporte está listo. ¿Te lo envío?</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-gradient-to-t from-slate-900/60">
-                <div className="flex items-center gap-3">
-                  <input className="flex-1 rounded-full bg-slate-800/70 px-4 py-2 text-sm placeholder:text-slate-400 text-white" placeholder="Escribe un mensaje..." />
-                  <button className="px-4 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white text-sm">Enviar</button>
-                </div>
-              </div>
-            </motion.div>
+        <Card className="p-6 text-left glow-card h-full flex flex-col bg-card/50 backdrop-blur-sm border-border/20">
+             <div className="flex items-center justify-between mb-4">
+                 <div className="p-3 bg-primary/10 rounded-full">
+                    <Icon className="h-6 w-6 text-primary" />
+                 </div>
+                 <span className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground">{badge}</span>
+             </div>
+            <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+            <p className="text-sm text-muted-foreground mt-2 flex-grow">{description}</p>
+        </Card>
     );
 };
 
-const FeatureCard = ({ title, desc, icon: Icon }: { title: string, desc: string, icon: React.FC | React.ElementType }) => {
+
+export default function NewMarketingHomePage() {
   return (
-    <motion.div
-      initial={{ y: 8, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className="p-6 rounded-xl bg-gradient-to-br from-card to-card/80 border border-border backdrop-blur-sm"
-    >
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Icon size={28} /></div>
-        <div>
-          <h4 className="font-semibold text-foreground">{title}</h4>
-          <p className="text-muted-foreground text-sm mt-1">{desc}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+    <PageContainer className="p-0 animate-fadeIn overflow-hidden" fullWidth={true}>
+        <main className="relative z-10 w-full text-foreground">
+            
+            {/* Hero Section */}
+            <section className="relative min-h-screen flex items-center justify-center text-center overflow-hidden">
+                 <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/50 to-background" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(var(--primary)/0.1),transparent_50%)]" />
 
-const UIShowcase = ({ title, badge }: { title: string, badge: string }) => {
-  const renderPreview = () => {
-    switch (title) {
-      case 'Dashboard':
-        return (
-          <div className="p-2 space-y-1">
-            <div className="h-3 bg-muted rounded w-1/2"></div>
-            <div className="flex gap-1">
-              <div className="h-6 w-1/3 bg-muted rounded"></div>
-              <div className="h-6 w-1/3 bg-muted rounded"></div>
-              <div className="h-6 w-1/3 bg-muted rounded"></div>
-            </div>
-            <div className="h-12 bg-muted rounded-md flex items-end p-1 gap-0.5">
-                <div className="w-1/4 h-1/2 bg-primary/40 rounded-t-sm"></div>
-                <div className="w-1/4 h-3/4 bg-primary/40 rounded-t-sm"></div>
-                <div className="w-1/4 h-1/3 bg-primary/40 rounded-t-sm"></div>
-                <div className="w-1/4 h-full bg-primary/40 rounded-t-sm"></div>
-            </div>
-             <div className="h-8 bg-muted rounded-md"></div>
-          </div>
-        );
-      case 'Cerebro':
-        return (
-           <div className="p-2 space-y-1">
-              <div className="h-3 bg-muted rounded w-1/2"></div>
-              <div className="h-8 bg-muted rounded-md flex items-center p-1 gap-1">
-                <div className="h-full w-6 bg-primary/40 rounded"></div>
-                <div className="h-2/3 w-2/3 bg-muted-foreground/20 rounded-sm"></div>
-              </div>
-              <div className="h-8 bg-muted rounded-md flex items-center p-1 gap-1">
-                <div className="h-full w-6 bg-primary/40 rounded"></div>
-                <div className="h-2/3 w-1/2 bg-muted-foreground/20 rounded-sm"></div>
-              </div>
-              <div className="h-8 bg-muted rounded-md flex items-center p-1 gap-1">
-                 <div className="h-full w-6 bg-primary/40 rounded"></div>
-                <div className="h-2/3 w-3/4 bg-muted-foreground/20 rounded-sm"></div>
-              </div>
-          </div>
-        );
-      case 'Chat':
-        return (
-          <div className="p-2 space-y-1">
-            <div className="flex justify-end"><div className="h-3 w-2/3 bg-primary/40 rounded-full"></div></div>
-            <div className="flex justify-start"><div className="h-3 w-1/2 bg-muted-foreground/30 rounded-full"></div></div>
-            <div className="flex justify-start"><div className="h-3 w-1/3 bg-muted-foreground/30 rounded-full"></div></div>
-            <div className="flex justify-end"><div className="h-3 w-3/4 bg-primary/40 rounded-full"></div></div>
-            <div className="absolute bottom-2 left-2 right-2 h-4 bg-muted rounded-full"></div>
-          </div>
-        );
-      default:
-        return <p className="text-muted-foreground">Interfaz de {title}</p>;
-    }
-  };
-  
-  return (
-    <div className="p-4 rounded-xl bg-card border border-border backdrop-blur-sm">
-      <div className="flex items-center justify-between">
-        <p className="font-semibold text-foreground">{title}</p>
-        <span className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground">{badge}</span>
-      </div>
-      <div className="mt-4 h-36 rounded-lg border border-border/50 bg-background/30 flex-col items-center justify-center text-muted-foreground relative overflow-hidden">
-        {renderPreview()}
-      </div>
-    </div>
-  );
-}
+                <div className="relative z-10 px-4">
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="text-4xl md:text-6xl font-extrabold tracking-tight"
+                    >
+                        La nueva era de la <span className="text-brand-gradient">comunicación inteligente</span>
+                    </motion.h1>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                        className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground"
+                    >
+                        {APP_NAME} transforma tu manera de interactuar, vender y gestionar. Todo desde una PWA ligera y potente.
+                    </motion.p>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+                    >
+                        <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                            <Link href="/begin"><Bot className="mr-2"/>Crear Asistente Gratis</Link>
+                        </Button>
+                         <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                            <a href="#features">Ver Funciones</a>
+                         </Button>
+                    </motion.div>
 
-const PricingCard = ({ name, price, description, features, recommended, buttonText, buttonLink }: { name: string, price: string, description: string, features: string[], recommended?: boolean, buttonText: string, buttonLink: string }) => {
-  return (
-    <div className={`p-6 rounded-xl border flex flex-col ${recommended ? "border-primary scale-[1.02] bg-card backdrop-blur-sm" : "border-border"}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-semibold text-foreground">{name}</p>
-          <p className="text-muted-foreground text-sm mt-1">{price}</p>
-        </div>
-        {recommended && <div className="text-xs px-3 py-1 rounded-full bg-primary text-primary-foreground">Recomendado</div>}
-      </div>
-      <p className="text-sm text-muted-foreground mt-4 flex-grow">{description}</p>
-      <ul className="mt-4 text-muted-foreground space-y-2">
-        {features.map((f, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <CheckCircle className="h-4 w-4 text-green-400 mt-1 shrink-0" />
-            <span className="text-foreground">{f}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-6">
-        <Link href={buttonLink} className={`inline-block w-full text-center px-4 py-3 rounded-full ${recommended ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-primary/10"}`}>{buttonText}</Link>
-      </div>
-    </div>
-  );
-}
-
-export default function MarketingHomePage() {
-
-  return (
-    <PageContainer className="flex flex-col items-center py-0 animate-fadeIn overflow-hidden" fullWidth={true}>
-        <main className="relative z-20 w-full">
-            <section className="max-w-6xl mx-auto px-6 py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-                <motion.h2
-                initial={{ y: 16, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                className="text-4xl md:text-5xl font-extrabold leading-tight text-foreground"
-                >
-                Tu centro de atención al cliente, ahora <span className="text-brand-gradient">inteligente.</span>
-                </motion.h2>
-
-                <motion.p
-                initial={{ y: 12, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.12, duration: 0.6 }}
-                className="mt-6 text-muted-foreground max-w-xl"
-                >
-                {APP_NAME} es una PWA con interfaz tipo mensajería, potenciada
-                con asistentes inteligentes que automatizan ventas, gestionan clientes y almacenan
-                chats. Todo configurable desde un simple prompt.
-                </motion.p>
-
-                <div className="mt-8 flex gap-4">
-                <Link
-                    href="/begin"
-                    className="inline-flex items-center gap-3 bg-brand-gradient px-5 py-3 rounded-xl font-medium shadow-lg hover:scale-[1.02] transition-transform text-primary-foreground"
-                >
-                    Comenzar Ahora
-                </Link>
-                <a
-                    href="#features"
-                    className="inline-flex items-center gap-3 border border-border px-4 py-3 rounded-xl text-foreground hover:bg-muted transition"
-                >
-                    Ver funciones
-                </a>
-                </div>
-
-                <div className="mt-8 grid grid-cols-2 gap-4 max-w-sm">
-                <div className="p-3 rounded-lg bg-card border border-border/80">
-                    <p className="text-xs text-muted-foreground">Asistentes Inteligentes</p>
-                    <p className="font-semibold text-foreground">Automatiza respuestas y ventas</p>
-                </div>
-                <div className="p-3 rounded-lg bg-card border border-border/80">
-                    <p className="text-xs text-muted-foreground">Integra con WhatsApp</p>
-                    <p className="font-semibold text-foreground">Atención 24/7</p>
-                </div>
-                </div>
-            </div>
-
-            <div className="relative hidden md:block">
-                <PhoneChatMockup />
-                <div className="absolute -top-8 -right-8 w-44 p-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border">
-                    <p className="text-xs text-muted-foreground">Ventas hoy</p>
-                    <p className="font-bold text-foreground">$3,420</p>
-                </div>
-
-                <div className="absolute -bottom-12 -left-8 w-48 p-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border">
-                    <p className="text-xs text-muted-foreground">Clientes nuevos</p>
-                    <p className="font-bold text-foreground">+12</p>
-                </div>
-            </div>
-            </section>
-
-            <section id="features" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-foreground">Funciones destacadas</h3>
-                <p className="text-muted-foreground mt-2 max-w-2xl">Todo lo que necesitas para administrar clientes y ventas desde una sola PWA ligera.</p>
-
-                <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <FeatureCard
-                    title="Asistentes por Prompt"
-                    desc="Crea y personaliza el comportamiento de tus asistentes usando lenguaje natural."
-                    icon={Workflow}
-                    />
-                    <FeatureCard
-                    title="Integración WhatsApp"
-                    desc="Conecta un número de teléfono y automatiza tu comunicación en la plataforma de mensajería más grande."
-                    icon={FaWhatsapp}
-                    />
-                    <FeatureCard
-                    title="Bases de Datos Inteligentes"
-                    desc="Tu asistente aprende y responde basándose en el conocimiento que le proporcionas, ya sea desde un archivo o una Hoja de Google."
-                    icon={FaBrain}
-                    />
-                </div>
-
-                <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 rounded-xl bg-card border border-border">
-                    <h4 className="font-semibold text-foreground">Panel de Control Centralizado</h4>
-                    <p className="text-muted-foreground mt-2">Gestiona todos tus asistentes, bases de datos, planes y créditos desde una interfaz unificada e intuitiva.</p>
-                    <ul className="mt-4 space-y-2 text-muted-foreground">
-                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Vista general de consumo</span></li>
-                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Configuración detallada</span></li>
-                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Acceso a historial de chats</span></li>
-                    </ul>
+                    <div className="mt-8 flex justify-center gap-4 text-xs text-muted-foreground">
+                         <span className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-500" /> Prueba gratuita</span>
+                         <span className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-500" /> Sin tarjeta requerida</span>
                     </div>
 
-                    <div className="p-6 rounded-xl bg-card border border-border">
-                    <h4 className="font-semibold text-foreground">Programa de Colaboradores</h4>
-                    <p className="text-muted-foreground mt-2">Gana comisiones recurrentes recomendando Hey Manito a otros negocios. Te damos las herramientas para triunfar.</p>
-                    <ul className="mt-4 space-y-2 text-muted-foreground">
-                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Enlace de referido único</span></li>
-                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Panel de seguimiento de ganancias</span></li>
-                        <li className="flex items-center gap-2"><CheckCircle size={14} className="text-primary"/><span>Material de marketing</span></li>
-                    </ul>
+                    <div className="mt-12 h-[60vh] max-h-[700px] w-full max-w-4xl mx-auto">
+                        <PhoneCanvas />
                     </div>
                 </div>
             </section>
 
-            <section id="ui" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-foreground">Interfaz y experiencia</h3>
-                <p className="text-muted-foreground mt-2 max-w-2xl">Diseñada para ser familiar y rápida — la transición desde aplicaciones de mensajería es natural y la PWA permite instalar la app para uso offline y notificaciones.</p>
-
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <UIShowcase title="Dashboard" badge="Gestión" />
-                    <UIShowcase title="Cerebro" badge="Conocimiento" />
-                    <UIShowcase title="Chat" badge="Comunicación" />
+             {/* Features Section */}
+            <section id="features" className="py-20 px-4 max-w-6xl mx-auto">
+                 <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold tracking-tight">Todo lo que tu negocio necesita</h2>
+                    <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Desde la gestión de pagos hasta el control de tu inventario, todo en un solo lugar.</p>
                 </div>
-            </section>
-
-            <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
-                <h3 className="text-2xl font-bold text-foreground">Planes Flexibles</h3>
-                <p className="text-muted-foreground mt-2 max-w-2xl">Comienza gratis y escala según tus necesidades. Sin contratos, sin complicaciones.</p>
-
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <PricingCard 
-                        name="Asistente Desktop" 
-                        price="Prueba Gratuita por 30 Días" 
-                        description="Ideal para probar, desarrollar y para uso interno. Sin necesidad de un número de teléfono."
-                        features={["Mensajes ilimitados", "Configuración completa", "Acceso vía web"]}
-                        buttonText="Comenzar Prueba"
-                        buttonLink="/begin"
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <FeatureShowcaseCard
+                        icon={FaMoneyBillWave}
+                        title="Gestión de Banco"
+                        description="Autoriza pagos recibidos por tus asistentes, revisa comprobantes y lleva un control total de tus ingresos en tiempo real."
+                        badge="Finanzas"
                     />
-                    <PricingCard 
-                        name="Asistente WhatsApp" 
-                        price="Pago por Uso"
-                        description="Paga solo por lo que necesitas. Compra créditos y asígnalos a tus asistentes de WhatsApp."
-                        features={["Atención 24/7 en WhatsApp", "Requiere un número de teléfono nuevo", "Sistema de recarga de créditos flexible"]}
-                        recommended 
-                        buttonText="Crear Asistente"
-                        buttonLink="/begin"
+                    <FeatureShowcaseCard
+                        icon={FaShoppingCart}
+                        title="Catálogo de Productos"
+                        description="Crea y administra un catálogo de productos ilimitado. Tu asistente podrá tomar pedidos y responder consultas con total precisión."
+                        badge="Ventas"
                     />
-                    <PricingCard 
-                        name="Programa de Aliados" 
-                        price="Gana Comisiones" 
-                        description="Únete a nuestro programa de colaboradores y obtén ingresos recurrentes por cada cliente que refieras."
-                        features={["Panel de seguimiento exclusivo", "Comisiones por recargas", "Soporte para tus clientes"]}
-                        buttonText="Más Información"
-                        buttonLink="/colaboradores"
+                     <FeatureShowcaseCard
+                        icon={FaCreditCard}
+                        title="Líneas de Crédito"
+                        description="Define y gestiona líneas de crédito para tus clientes. Ideal para modelos de negocio basados en préstamos o ventas a crédito."
+                        badge="Crédito"
                     />
                 </div>
             </section>
-
-            <section id="get" className="max-w-6xl mx-auto px-6 py-20 text-center">
-                <h3 className="text-2xl font-bold text-foreground">¿Listo para probar {APP_NAME}?</h3>
-                <p className="text-muted-foreground mt-2">Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.</p>
-
-                <div className="mt-6 flex items-center justify-center gap-4">
-                    <Link href="/begin" className="px-6 py-3 rounded-full bg-brand-gradient text-primary-foreground font-medium">Crear mi Primer Asistente</Link>
-                    <Link href="#contact" className="px-6 py-3 rounded-full border border-border text-foreground">Contactar</Link>
+            
+            {/* Download Section */}
+            <section className="py-20 bg-muted/30">
+                <div className="max-w-4xl mx-auto text-center px-4">
+                    <h2 className="text-3xl font-bold tracking-tight">Accede Desde Cualquier Lugar</h2>
+                    <p className="mt-3 text-muted-foreground">
+                        Instala {APP_NAME} como una aplicación en tu dispositivo favorito para una experiencia más rápida y notificaciones push.
+                    </p>
+                    <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <Button size="lg" variant="outline" className="py-8 text-lg" onClick={() => window.open('/access', '_self')}>
+                            <FaApple className="mr-3" /> iPhone
+                        </Button>
+                        <Button size="lg" variant="outline" className="py-8 text-lg" onClick={() => window.open('/access', '_self')}>
+                            <FaAndroid className="mr-3" /> Android
+                        </Button>
+                        <Button size="lg" variant="outline" className="py-8 text-lg" onClick={() => window.open('/access', '_self')}>
+                            <FaGlobe className="mr-3" /> Navegador
+                        </Button>
+                    </div>
                 </div>
             </section>
         </main>

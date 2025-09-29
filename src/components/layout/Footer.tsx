@@ -2,7 +2,7 @@
 "use client";
 import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link';
 
 interface FooterProps {
   fullWidth?: boolean;
@@ -10,22 +10,24 @@ interface FooterProps {
 
 const Footer = ({ fullWidth = false }: FooterProps) => {
   return (
-    <footer className="bg-card border-t border-border mt-auto">
-      <div className={cn(
-        "container mx-auto px-4 py-4 text-center text-muted-foreground text-xs sm:text-sm", // Adjusted text size for responsiveness
-        !fullWidth && "max-w-md" 
-      )}>
-        <p>&copy; {new Date().getFullYear()} {APP_NAME}. Todos los derechos reservados.</p>
-        <p className="mt-1">
-          <Link href="/privacy" className="hover:text-primary hover:underline">
-            Política de Privacidad
-          </Link>
-        </p>
-      </div>
+    <footer className="relative z-20 max-w-6xl mx-auto px-6 py-12 text-muted-foreground w-full" id="contact">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <p className="font-bold text-foreground">{APP_NAME}</p>
+              <p className="text-sm">PWA · Asistentes Inteligentes · Ventas y Control de Medios</p>
+            </div>
+            <div className="text-sm text-center md:text-right">
+              <p>Correo: <a href="mailto:contacto@heymanito.com" className="hover:text-primary hover:underline">contacto@heymanito.com</a></p>
+              <p className="mt-1">
+                 <Link href="/privacy" className="hover:text-primary hover:underline">Política de Privacidad</Link>
+                  {' · '}
+                 <Link href="/terms" className="hover:text-primary hover:underline">Términos de Servicio</Link>
+              </p>
+              <p className="mt-1">© {new Date().getFullYear()} {APP_NAME}</p>
+            </div>
+          </div>
     </footer>
   );
 };
 
 export default Footer;
-
-    
