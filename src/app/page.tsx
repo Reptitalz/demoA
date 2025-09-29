@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
-import { Loader2 } from 'lucide-react';
 
 const PhoneCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -141,7 +140,7 @@ const PhoneCanvas = () => {
             ctx.fill();
             ctx.fillStyle = 'hsl(var(--muted-foreground))';
             ctx.font = '10px sans-serif';
-            ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH/2);
+            ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH/2 + 5);
 
             // Send button
             ctx.fillStyle = 'hsl(var(--primary))';
@@ -153,6 +152,8 @@ const PhoneCanvas = () => {
             ctx.rotate( -Math.PI / 4);
             ctx.fillStyle = 'white';
             ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillText('➢', 0, 1);
             ctx.restore();
 
@@ -167,7 +168,6 @@ const PhoneCanvas = () => {
             const bubbleW = screenW - bubblePadding * 2;
             
             const drawBubble = (text: string, isUser: boolean, yPos: number, delay: number) => {
-                const bubbleX = screenX + bubblePadding;
                 const progress = Math.max(0, Math.min(1, (frame - delay) / 30));
                 if (progress === 0) return;
 
@@ -177,6 +177,7 @@ const PhoneCanvas = () => {
                 const bubbleHeight = 24;
 
                 const animatedWidth = (textWidth + 20) * progress;
+                const bubbleX = screenX + bubblePadding;
 
                 ctx.globalAlpha = progress;
                 ctx.fillStyle = isUser ? 'hsl(var(--primary))' : '#ffffff';
@@ -188,9 +189,13 @@ const PhoneCanvas = () => {
                 }
                 ctx.fill();
 
-                ctx.fillStyle = isUser ? '#ffffff' : '#000000';
-                ctx.globalAlpha = progress > 0.5 ? (progress - 0.5) * 2 : 0;
-                ctx.fillText(text, isUser ? bubbleX + bubbleW - textWidth - 10 : bubbleX + 10, yPos + bubbleHeight / 2 + 3);
+                if (progress > 0.5) {
+                    const textProgress = (progress - 0.5) * 2;
+                    ctx.globalAlpha = textProgress;
+                    ctx.fillStyle = isUser ? '#ffffff' : '#000000';
+                    const textX = isUser ? (bubbleX + bubbleW - animatedWidth + 10 + (animatedWidth - 20 - textWidth) / 2) : (bubbleX + 10);
+                    ctx.fillText(text, textX , yPos + bubbleHeight / 2 + 5); // Adjusted for better vertical alignment
+                }
             };
             
             ctx.globalAlpha = 1;
@@ -561,3 +566,5 @@ const NewHomepage = () => {
 };
 
 export default NewHomepage;
+
+    
