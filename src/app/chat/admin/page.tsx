@@ -360,8 +360,8 @@ const OtherView = ({ viewName }: { viewName: string }) => (
 const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
   return (
     <div className="flex flex-col h-full bg-transparent">
-        {activeView === 'assistants' && <AssistantsList />}
         {activeView === 'bank' && <BankView />}
+        {activeView === 'assistants' && <AssistantsList />}
         {activeView === 'credit' && <OtherView viewName="Créditos" />}
         {activeView === 'products' && <OtherView viewName="Productos" />}
     </div>
