@@ -140,7 +140,7 @@ const PhoneCanvas = () => {
             ctx.fill();
             ctx.fillStyle = 'hsl(var(--muted-foreground))';
             ctx.font = '10px sans-serif';
-            ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH/2 + 5);
+            ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH / 2 + 1);
 
             // Send button
             ctx.fillStyle = 'hsl(var(--primary))';
@@ -193,8 +193,8 @@ const PhoneCanvas = () => {
                     const textProgress = (progress - 0.5) * 2;
                     ctx.globalAlpha = textProgress;
                     ctx.fillStyle = isUser ? '#ffffff' : '#000000';
-                    const textX = isUser ? (bubbleX + bubbleW - animatedWidth + 10 + (animatedWidth - 20 - textWidth) / 2) : (bubbleX + 10);
-                    ctx.fillText(text, textX , yPos + bubbleHeight / 2 + 5); // Adjusted for better vertical alignment
+                    const textX = isUser ? (bubbleX + bubbleW - animatedWidth / 2 - textWidth / 2) : (bubbleX + animatedWidth / 2 - textWidth / 2);
+                    ctx.fillText(text, textX, yPos + bubbleHeight / 2 + 1);
                 }
             };
             
@@ -400,9 +400,9 @@ const NewHomepage = () => {
                   </p>
                   <div className="mt-8 flex items-center justify-center md:justify-start">
                     <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                        <Link href={currentDownload.href} download={currentDownload.download}>
-                            {currentDownload.icon}
-                            {currentDownload.text}
+                        <Link href={"/begin"}>
+                            <FaRobot className="mr-2" />
+                            Crear Asistente Gratis
                         </Link>
                     </Button>
                   </div>
@@ -454,31 +454,31 @@ const NewHomepage = () => {
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight">Empieza en Minutos</h2>
-            <p className="mt-3 text-muted-foreground">Crea y despliega tu primer asistente en 3 simples pasos.</p>
+            <p className="mt-3 text-muted-foreground">Crea y gestiona tu negocio en 3 simples pasos.</p>
           </div>
           <div className="flex flex-col md:flex-row justify-center items-center gap-8 text-center">
               <div className="flex flex-col items-center">
                   <div className="flex items-center justify-center h-16 w-16 mb-2">
-                        <AnimatedStepCircle number={1} />
+                        <FaRobot className="h-8 w-8 text-primary" />
                   </div>
-                  <p className="font-semibold">Describe tu Asistente</p>
-                  <p className="text-sm text-muted-foreground">Usa el prompt para darle instrucciones.</p>
+                  <p className="font-semibold">Crea y Supervisa tus Bots</p>
+                  <p className="text-sm text-muted-foreground">Chatea y gestiona tus asistentes desde un panel centralizado.</p>
               </div>
               <FaArrowRight className="text-primary opacity-50 hidden md:block" />
                <div className="flex flex-col items-center">
                   <div className="flex items-center justify-center h-16 w-16 mb-2">
-                        <AnimatedStepCircle number={2} />
+                        <FaCreditCard className="h-8 w-8 text-primary" />
                   </div>
-                  <p className="font-semibold">Conecta tus Datos</p>
-                  <p className="text-sm text-muted-foreground">Vincula una Hoja de Google o crea una BD.</p>
+                  <p className="font-semibold">Gestiona Productos y Créditos</p>
+                  <p className="text-sm text-muted-foreground">Usa el catálogo de productos y administra líneas de crédito para clientes.</p>
               </div>
                <FaArrowRight className="text-primary opacity-50 hidden md:block" />
               <div className="flex flex-col items-center">
                   <div className="flex items-center justify-center h-16 w-16 mb-2">
-                        <AnimatedStepCircle number={3} />
+                        <FaUniversity className="h-8 w-8 text-primary" />
                   </div>
-                  <p className="font-semibold">Lanza y Automatiza</p>
-                  <p className="text-sm text-muted-foreground">Chatea con tu asistente y compártelo.</p>
+                  <p className="font-semibold">Controla tus Finanzas</p>
+                  <p className="text-sm text-muted-foreground">Revisa y autoriza los pagos que reciben tus asistentes en la sección 'Banco'.</p>
               </div>
           </div>
         </div>
@@ -566,5 +566,3 @@ const NewHomepage = () => {
 };
 
 export default NewHomepage;
-
-    
