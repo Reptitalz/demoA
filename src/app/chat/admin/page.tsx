@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
+import { Label } from '@/components/ui/label';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -62,6 +63,12 @@ const demoPayments = [
     receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
     receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
   },
+];
+
+const demoProducts = [
+    { id: 'prod-1', name: 'Pastel de Chocolate', price: 350.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
+    { id: 'prod-2', name: 'Galletas de Chispas', price: 150.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
+    { id: 'prod-3', name: 'Cupcakes de Vainilla (6)', price: 200.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
 ];
 
 
@@ -166,6 +173,138 @@ const BankView = () => {
         </>
     );
 }
+
+const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    const handleImageUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Añadir Nuevo Producto</DialogTitle>
+                    <DialogDescription>
+                        Ingresa los detalles del producto para añadirlo a tu catálogo.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="product-name">Nombre del Producto</Label>
+                        <Input id="product-name" placeholder="Ej: Pastel de Tres Leches" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="product-price">Precio</Label>
+                        <div className="relative">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input id="product-price" type="number" placeholder="Ej: 250.00" className="pl-9" />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Imagen del Producto</Label>
+                         <div
+                            onClick={handleImageUploadClick}
+                            className="aspect-video w-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground cursor-pointer hover:border-primary transition-colors bg-muted/50"
+                        >
+                            {imagePreview ? (
+                                <Image src={imagePreview} alt="Vista previa" width={200} height={112} className="object-cover rounded-md" />
+                            ) : (
+                                <>
+                                    <Upload className="h-8 w-8 mb-2" />
+                                    <p className="text-sm">Subir imagen</p>
+                                </>
+                            )}
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={() => onOpenChange(false)}>Guardar Producto</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
+const ProductsView = () => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+
+    const filteredProducts = demoProducts.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <>
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Package className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
+                        <p className="text-sm text-muted-foreground">Catálogo de Productos</p>
+                    </div>
+                </div>
+                <div className="relative mt-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Buscar productos..."
+                        className="pl-10 bg-background/50"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </header>
+             <ScrollArea className="flex-grow">
+                <div className="p-4 grid grid-cols-2 gap-4">
+                    {filteredProducts.map(product => (
+                        <Card key={product.id} className="overflow-hidden glow-card">
+                            <div className="aspect-video relative">
+                                <Image src={product.imageUrl} alt={product.name} layout="fill" objectFit="cover" />
+                            </div>
+                            <CardContent className="p-3">
+                                <p className="font-semibold truncate text-sm">{product.name}</p>
+                                <p className="font-bold text-primary">${product.price.toFixed(2)}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+             <Button
+                onClick={() => setIsAddProductDialogOpen(true)}
+                className="absolute bottom-28 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+                size="icon"
+                title="Añadir Producto"
+            >
+                <Plus className="h-6 w-6" />
+            </Button>
+            <AddProductDialog isOpen={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen} />
+        </>
+    );
+};
 
 
 const AssistantsList = () => {
@@ -359,11 +498,11 @@ const OtherView = ({ viewName }: { viewName: string }) => (
 
 const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
   return (
-    <div className="flex flex-col h-full bg-transparent">
+    <div className="flex flex-col h-full bg-transparent relative">
         {activeView === 'bank' && <BankView />}
         {activeView === 'assistants' && <AssistantsList />}
+        {activeView === 'products' && <ProductsView />}
         {activeView === 'credit' && <OtherView viewName="Créditos" />}
-        {activeView === 'products' && <OtherView viewName="Productos" />}
     </div>
   );
 };
