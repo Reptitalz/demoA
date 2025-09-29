@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
 import type { AdminView } from '../ChatLayout';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
@@ -127,12 +127,10 @@ const BankView = () => {
                 </div>
             </header>
             <div className="p-4">
-                 <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent">
-                    <CardHeader>
-                        <CardTitle className="text-muted-foreground font-normal">Ingreso Total</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-4xl font-extrabold text-foreground">
+                 <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
+                    <CardContent className="p-6">
+                        <p className="text-muted-foreground font-normal text-sm">Ingreso Total</p>
+                        <p className="text-4xl font-extrabold text-foreground mt-1">
                             ${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                         </p>
                     </CardContent>
