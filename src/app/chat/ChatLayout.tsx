@@ -130,5 +130,5 @@ const menuItems = [
     { path: '/chat/dashboard', icon: MessageSquare, label: 'Chats' },
     { path: '/chat/updates', icon: Camera, label: 'Novedades' },
     { path: '/chat/profile', icon: User, label: 'Perfil' },
-    { path: '/chat/admin', icon: Settings, label: 'Admin' },
+    { path: '/chat/admin', icon: Settings, label: 'Miembro' },
 ];

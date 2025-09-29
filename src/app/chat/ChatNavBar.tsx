@@ -11,7 +11,7 @@ const navItems = [
     { href: '/chat/dashboard', label: 'Chats', icon: MessageSquare },
     { href: '/chat/updates', label: 'Novedades', icon: Camera },
     { href: '/chat/profile', label: 'Perfil', icon: User },
-    { href: '/chat/admin', label: 'Admin', icon: Settings },
+    { href: '/chat/admin', label: 'Miembro', icon: Settings },
 ];
 
 interface NavItemProps {
