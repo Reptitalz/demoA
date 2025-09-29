@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
@@ -9,6 +9,89 @@ import Link from 'next/link';
 import { Check, ArrowRight, Bot, Settings, Smartphone } from 'lucide-react';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
+
+
+const AnimatedStepCircle = ({ number }: { number: number }) => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = 64 * dpr;
+        canvas.height = 64 * dpr;
+        canvas.style.width = '64px';
+        canvas.style.height = '64px';
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        
+        ctx.scale(dpr, dpr);
+
+        let frame = 0;
+        let animationFrameId: number;
+        
+        const draw = () => {
+            frame++;
+            ctx.clearRect(0, 0, 64, 64);
+
+            // Draw outer circle
+            ctx.strokeStyle = 'hsl(var(--primary))';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(32, 32, 30, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw liquid
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(32, 32, 28, 0, Math.PI * 2);
+            ctx.clip();
+            
+            ctx.fillStyle = 'hsl(var(--primary) / 0.5)';
+            ctx.beginPath();
+            const waveHeight = 4;
+            const waveSpeed = 0.05;
+            const waveFrequency = 0.1;
+            
+            ctx.moveTo(0, 64);
+            ctx.lineTo(0, 32);
+
+            for (let x = 0; x < 64; x++) {
+                const y = 32 + Math.sin(x * waveFrequency + frame * waveSpeed) * waveHeight;
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.lineTo(64, 64);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+
+            // Draw number
+            ctx.fillStyle = 'hsl(var(--primary-foreground))';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Create a text fill with a slight shadow for depth
+            ctx.shadowColor = 'hsla(var(--primary), 0.5)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(number.toString(), 32, 32);
+            ctx.shadowBlur = 0; // Reset shadow
+
+            animationFrameId = requestAnimationFrame(draw);
+        };
+
+        draw();
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [number]);
+
+    return <canvas ref={canvasRef} />;
+};
+
 
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
     return (
@@ -98,19 +181,25 @@ const NewHomepage = () => {
           </div>
           <div className="flex flex-col md:flex-row justify-center items-center gap-8 text-center">
               <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-2">1</div>
+                  <div className="flex items-center justify-center h-16 w-16 mb-2">
+                        <AnimatedStepCircle number={1} />
+                  </div>
                   <p className="font-semibold">Describe tu Asistente</p>
                   <p className="text-sm text-muted-foreground">Usa el prompt para darle instrucciones.</p>
               </div>
               <ArrowRight className="text-primary opacity-50 hidden md:block" />
                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-2">2</div>
+                  <div className="flex items-center justify-center h-16 w-16 mb-2">
+                        <AnimatedStepCircle number={2} />
+                  </div>
                   <p className="font-semibold">Conecta tus Datos</p>
                   <p className="text-sm text-muted-foreground">Vincula una Hoja de Google o crea una BD.</p>
               </div>
                <ArrowRight className="text-primary opacity-50 hidden md:block" />
               <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary text-primary-foreground font-bold text-2xl mb-2">3</div>
+                  <div className="flex items-center justify-center h-16 w-16 mb-2">
+                        <AnimatedStepCircle number={3} />
+                  </div>
                   <p className="font-semibold">Lanza y Automatiza</p>
                   <p className="text-sm text-muted-foreground">Chatea con tu asistente y compártelo.</p>
               </div>
