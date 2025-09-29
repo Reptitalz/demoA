@@ -9,7 +9,7 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme */
+    /* Light Theme Only */
     --background: 220 20% 98%;
     --foreground: 224 71% 4%;
 
@@ -42,7 +42,7 @@ body {
   }
 
   .dark {
-    /* Dark Theme */
+    /* Styles are the same as light theme to enforce light mode */
     --background: 220 20% 98%;
     --foreground: 224 71% 4%;
 
@@ -81,9 +81,17 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-transparent text-foreground;
+    @apply bg-background text-foreground; /* Changed from bg-transparent */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .grid-areas-admin-hub {
+    grid-template-areas:
+      "a b"
+      "c d";
   }
 }
 

@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquare, User, Bot, Database, Brain, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -369,21 +368,6 @@ const DashboardPageContent = () => {
                 >
                  {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
                 </Button>
-              </div>
-              <Separator />
-
-              {/* Appearance Section */}
-              <div className="flex items-center justify-between p-4 sm:p-6">
-                <div className="flex items-center gap-4">
-                  <FaPalette className="h-6 w-6 text-primary" />
-                  <div>
-                    <h3 className="font-semibold">Apariencia</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Elige entre el tema claro y el oscuro.
-                    </p>
-                  </div>
-                </div>
-                <ThemeToggle />
               </div>
               <Separator />
 
