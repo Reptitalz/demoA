@@ -41,6 +41,8 @@ const PhoneCanvas = () => {
 
         let frame = 0;
         let animationFrameId: number;
+        let currentRotationX = 0;
+        let currentRotationY = 0;
 
         const drawPhone = (rotationX: number, rotationY: number) => {
             const w = canvas.clientWidth;
@@ -211,21 +213,17 @@ const PhoneCanvas = () => {
             ctx.restore();
         };
 
+        const lerp = (start: number, end: number, amt: number) => (1 - amt) * start + amt * end;
+
         const animate = () => {
             frame++;
             const targetRotationX = mousePos.current.x * 0.3;
             const targetRotationY = mousePos.current.y * 0.3;
             
-            // Lerp for smooth rotation
-            let currentRotationX = 0;
-            let currentRotationY = 0;
-
-            const lerp = (start: number, end: number, amt: number) => (1 - amt) * start + amt * end;
-
             currentRotationX = lerp(currentRotationX, targetRotationX, 0.05);
             currentRotationY = lerp(currentRotationY, targetRotationY, 0.05);
 
-            drawPhone(targetRotationX, targetRotationY);
+            drawPhone(currentRotationX, currentRotationY);
             animationFrameId = requestAnimationFrame(animate);
         };
         animate();
@@ -503,8 +501,8 @@ const NewHomepage = () => {
                           <span className="text-muted-foreground"> /siempre</span>
                       </div>
                       <ul className="space-y-3 text-left">
-                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> 1 Asistente de Escritorio</li>
-                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Prueba de 30 días con mensajes ilimitados</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Asistentes Ilimitados</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> 100 mensajes por día (total)</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Acceso a todas las funciones de gestión</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Instalación como PWA</li>
                       </ul>
@@ -526,8 +524,8 @@ const NewHomepage = () => {
                       </div>
                       <ul className="space-y-3 text-left">
                            <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Todo lo del Plan Gratuito, y además:</li>
-                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Mensajes Ilimitados por Asistente</li>
-                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Múltiples Asistentes de Escritorio</li>
+                          <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Mensajes Ilimitados</li>
+                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Transacciones Ilimitadas</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
                       </ul>
                        <Button asChild className="mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
