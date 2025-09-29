@@ -38,9 +38,11 @@ const BeginPage = () => {
 
     const [accountType, setAccountType] = useState<'personal' | 'business'>('personal');
     const [chatMode, setChatMode] = useState<'me' | 'ia'>('me');
+    const [newsIndex, setNewsIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
+    const newsScrollRef = useRef<HTMLDivElement>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -74,7 +76,7 @@ const BeginPage = () => {
     ];
 
     const chatModeCards = [
-        {
+       {
             type: 'me',
             icon: User,
             title: 'Yo responderé solamente',
@@ -90,6 +92,19 @@ const BeginPage = () => {
         },
     ];
     
+    const newsItems = [
+        {
+            icon: Landmark,
+            title: "Gestión de Ganancias",
+            description: "En la sección 'Admin', usa el nuevo apartado 'Banco' para gestionar tus ingresos. Aprueba las transferencias que reciban tus asistentes y observa tus ganancias en tiempo real.",
+        },
+        {
+            icon: Database,
+            title: "Bases de Datos Inteligentes",
+            description: "Ahora puedes crear bases de datos que la IA gestiona por sí misma. Añade conocimiento y deja que tu asistente aprenda para dar respuestas más precisas.",
+        }
+    ];
+
     // Canvas animation logic for Step 5
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rafRef = useRef<number | null>(null);
@@ -127,7 +142,7 @@ const BeginPage = () => {
 
         const dpr = window.devicePixelRatio || 1;
         let w = canvas.parentElement?.clientWidth || 300;
-        let h = 300; // Fixed height for the canvas area
+        let h = 200; // Fixed height for the canvas area
         canvas.width = w * dpr;
         canvas.height = h * dpr;
         canvas.style.width = `${w}px`;
@@ -138,13 +153,13 @@ const BeginPage = () => {
         ctx.scale(dpr, dpr);
 
         const icon = {
-            x: w / 2, y: h / 2, size: 60
+            x: w / 2, y: h / 2, size: 40
         };
 
         const loop = (t: number) => {
             ctx.clearRect(0, 0, w, h);
             
-            const floatY = Math.sin(t / 600) * 8;
+            const floatY = Math.sin(t / 600) * 6;
             drawDollarIcon(ctx, icon.x, icon.y + floatY, icon.size);
 
             rafRef.current = requestAnimationFrame(loop);
@@ -174,10 +189,13 @@ const BeginPage = () => {
     useEffect(() => {
         // This effect resets the scroll position of the carousels when the step changes.
         if (scrollRef.current) {
-            scrollRef.current.scrollTo({ left: 0, behavior: 'instant' });
+            scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         }
         if (chatModeScrollRef.current) {
-            chatModeScrollRef.current.scrollTo({ left: 0, behavior: 'instant' });
+            chatModeScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+        if (newsScrollRef.current) {
+            newsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         }
     }, [step]);
 
@@ -215,6 +233,24 @@ const BeginPage = () => {
             return () => scroller.removeEventListener('scroll', handleChatModeScroll);
         }
     }, [chatModeCards]);
+
+    useEffect(() => {
+        const handleNewsScroll = () => {
+            if (newsScrollRef.current) {
+                const scrollLeft = newsScrollRef.current.scrollLeft;
+                const cardWidth = newsScrollRef.current.offsetWidth;
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                setNewsIndex(newIndex);
+            }
+        };
+
+        const scroller = newsScrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleNewsScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleNewsScroll);
+        }
+    }, [newsItems]);
+
 
     const isStepValid = (currentStep: number) => {
       if (currentStep === 2) {
@@ -322,13 +358,12 @@ const BeginPage = () => {
                         </p>
                     </div>
                     
-                    <div className="w-full max-w-sm mx-auto mb-6">
+                     <div className="w-full max-w-sm mx-auto mb-6">
                       <motion.div
                           key={accountType}
                           initial={{ y: 10, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-                          className="w-full max-w-sm mx-auto"
                       >
                           <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
                               <motion.div
@@ -460,7 +495,6 @@ const BeginPage = () => {
                           initial={{ y: 10, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
-                          className="w-full max-w-sm mx-auto"
                       >
                           <div className="bg-card p-4 rounded-xl shadow-lg border border-border/50 flex items-center gap-4 relative overflow-hidden glow-card">
                               <motion.div
@@ -575,13 +609,45 @@ const BeginPage = () => {
                             Mantente al día con lo último de Hey Manito.
                         </p>
                     </div>
-                    <div className="w-full max-w-sm">
-                        <canvas ref={canvasRef} className="rounded-2xl" />
-                        <div className='mt-4 p-4 text-center rounded-lg bg-card border'>
-                            <h3 className="font-semibold text-lg flex items-center justify-center gap-2"><Landmark className="h-5 w-5 text-primary" /> Gestión de Ganancias</h3>
-                            <p className="text-sm text-muted-foreground mt-2">
-                                En el apartado 'Admin', encontrarás un nuevo campo llamado 'Banco' para gestionar tus ganancias. Cuando apruebes las capturas de pantalla de transferencias recibidas por tus asistentes, tus ganancias se incrementarán, registrando la fecha y hora de recepción.
-                            </p>
+                    <div className="w-full max-w-sm md:max-w-md mx-auto py-4 px-4 sm:px-0">
+                        <div
+                            ref={newsScrollRef}
+                            className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+                        >
+                            {newsItems.map((item, index) => {
+                                const Icon = item.icon;
+                                return (
+                                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                                        <Card className="p-6 text-center glow-card h-full">
+                                            <CardHeader className="p-0 mb-4">
+                                                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                                                    <Icon className="h-8 w-8 text-primary" />
+                                                </div>
+                                            </CardHeader>
+                                            <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
+                                            <CardDescription className="text-sm">{item.description}</CardDescription>
+                                        </Card>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                         <div className="flex justify-center mb-6 space-x-2 mt-4">
+                            {newsItems.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => {
+                                        if (newsScrollRef.current) {
+                                            const cardWidth = newsScrollRef.current.offsetWidth;
+                                            newsScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                        }
+                                    }}
+                                    className={cn(
+                                        "h-2 w-2 rounded-full transition-all",
+                                        newsIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                                    )}
+                                    aria-label={`Ir a la novedad ${index + 1}`}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -676,5 +742,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
