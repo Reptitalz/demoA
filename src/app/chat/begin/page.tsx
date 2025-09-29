@@ -24,9 +24,6 @@ import { signIn } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 
 
-const CANVAS_WIDTH = 920;
-const CANVAS_HEIGHT = 420;
-
 const BeginPage = () => {
     const { toast } = useToast();
     const { state, dispatch } = useApp();
@@ -632,12 +629,11 @@ const BeginPage = () => {
                                 return (
                                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
                                         <Card className="p-6 text-center glow-card h-full flex flex-col">
-                                            {item.id === 'bank' && (
+                                            {item.id === 'bank' ? (
                                                 <div className="mb-4 h-[100px]">
                                                     <canvas ref={navCanvasRef}/>
                                                 </div>
-                                            )}
-                                            {item.id !== 'bank' && (
+                                            ) : (
                                                 <CardHeader className="p-0 mb-4">
                                                     <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
                                                         <Icon className="h-8 w-8 text-primary" />
@@ -655,7 +651,7 @@ const BeginPage = () => {
                             {newsItems.map((_, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => {
+                                    onClick={()={() => {
                                         if (newsScrollRef.current) {
                                             const cardWidth = newsScrollRef.current.offsetWidth;
                                             newsScrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
