@@ -1,13 +1,12 @@
 // src/app/chat/ChatLayout.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { MessageSquare, Camera, User, Crown, Package, Bot, DollarSign, Banknote } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export type AdminView = 'bank' | 'credit' | 'products' | 'assistants';
 
@@ -17,13 +16,10 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const isBaseChatView = menuItems.some(item => pathname.startsWith(item.path));
-  const isAdminView = pathname.startsWith('/chat/admin');
   
   const [animationClass, setAnimationClass] = React.useState('');
   const previousPathname = React.useRef(pathname);
 
-   // State to manage the active view within the admin page
-  const [adminView, setAdminView] = useState<AdminView>('bank');
 
   React.useEffect(() => {
     if (previousPathname.current !== pathname) {
@@ -59,14 +55,6 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
     router.push(newPath);
 
   }, [pathname, router]);
-  
-  const childrenWithProps = React.Children.map(children, child => {
-    if (React.isValidElement(child) && isAdminView) {
-      // Pass the activeView state to the child component if it's the admin page
-      return React.cloneElement(child, { activeView: adminView } as any);
-    }
-    return child;
-  });
 
   return (
     <div className="h-screen w-screen flex flex-col bg-transparent overflow-x-hidden">
@@ -77,28 +65,10 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
             isBaseChatView && animationClass 
           )}
       >
-        {childrenWithProps}
+        {children}
       </main>
       
       {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} />}
-
-      {isAdminView && (
-          <nav className="fixed bottom-16 left-0 right-0 h-12 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
-              <div className="flex justify-around items-center h-full max-w-md mx-auto">
-                  {adminNavItems.map(item => (
-                      <Button 
-                          key={item.view}
-                          variant="ghost" 
-                          className={cn("h-full px-6", adminView === item.view ? 'text-primary' : 'text-muted-foreground')}
-                          onClick={() => setAdminView(item.view)}
-                          aria-label={item.view}
-                      >
-                          <item.icon className="h-5 w-5"/>
-                      </Button>
-                  ))}
-              </div>
-          </nav>
-      )}
     </div>
   );
 }
@@ -108,11 +78,4 @@ const menuItems = [
     { path: '/chat/updates', icon: Camera, label: 'Novedades' },
     { path: '/chat/profile', icon: User, label: 'Perfil' },
     { path: '/chat/admin', icon: Crown, label: 'Miembro' },
-];
-
-const adminNavItems: { view: AdminView, icon: React.ElementType }[] = [
-    { view: 'bank', icon: Banknote },
-    { view: 'assistants', icon: Bot },
-    { view: 'products', icon: Package },
-    { view: 'credit', icon: DollarSign },
 ];

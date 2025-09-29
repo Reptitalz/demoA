@@ -87,6 +87,14 @@ body {
   }
 }
 
+@layer utilities {
+  .grid-areas-admin-hub {
+    grid-template-areas:
+      "a b"
+      "c d";
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
