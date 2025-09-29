@@ -95,41 +95,46 @@ const BeginPage = () => {
     const rafRef = useRef<number | null>(null);
 
     const drawBankIcon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
-        const glow = ctx.createRadialGradient(x, y, size * 0.5, x, y, size);
-        // Using HSL values directly as CSS variables are not available in canvas context
+        const glow = ctx.createRadialGradient(x, y, size * 0.7, x, y, size * 1.5);
         glow.addColorStop(0, 'hsla(262, 80%, 58%, 0.3)');
         glow.addColorStop(1, 'transparent');
         ctx.fillStyle = glow;
-        ctx.fillRect(x - size * 1.5, y - size * 1.5, size * 3, size * 3);
+        ctx.fillRect(x - size * 2, y - size * 2, size * 4, size * 4);
 
+        // Draw the white circle background
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+
+        // Draw the bank icon inside
         ctx.strokeStyle = 'hsl(262, 80%, 58%)';
         ctx.lineWidth = size / 8;
-        ctx.fillStyle = 'hsla(262, 80%, 58%, 0.1)';
         
-        // Simple bank building representation
-        const baseWidth = size * 1.2;
-        const roofHeight = size * 0.4;
+        const baseWidth = size * 0.9;
+        const roofHeight = size * 0.3;
+        const colHeight = size * 0.6;
+        const colY = y + size/2.5;
+
         ctx.beginPath();
-        ctx.moveTo(x - baseWidth/2, y + size/2); // bottom left
+        ctx.moveTo(x - baseWidth/2, y + size/2.5); // bottom left
         ctx.lineTo(x - baseWidth/2, y - size/4); // top left
         ctx.lineTo(x, y - size/4 - roofHeight); // roof peak
         ctx.lineTo(x + baseWidth/2, y - size/4); // top right
-        ctx.lineTo(x + baseWidth/2, y + size/2); // bottom right
-        ctx.closePath();
+        ctx.lineTo(x + baseWidth/2, y + size/2.5); // bottom right
+        ctx.moveTo(x - baseWidth/2, y - size/4); // roof base
+        ctx.lineTo(x + baseWidth/2, y - size/4); // roof base
         ctx.stroke();
-        ctx.fill();
-        
+
         // Columns
         ctx.lineWidth = size / 10;
-        const colHeight = size * 0.75;
-        const colY = y + size/2;
         ctx.beginPath();
-        ctx.moveTo(x - baseWidth/3, colY);
-        ctx.lineTo(x - baseWidth/3, colY - colHeight);
+        ctx.moveTo(x - baseWidth/3.5, colY);
+        ctx.lineTo(x - baseWidth/3.5, colY - colHeight);
         ctx.moveTo(x, colY);
         ctx.lineTo(x, colY - colHeight);
-        ctx.moveTo(x + baseWidth/3, colY);
-        ctx.lineTo(x + baseWidth/3, colY - colHeight);
+        ctx.moveTo(x + baseWidth/3.5, colY);
+        ctx.lineTo(x + baseWidth/3.5, colY - colHeight);
         ctx.stroke();
 
     }, []);
@@ -156,19 +161,13 @@ const BeginPage = () => {
         ctx.scale(dpr, dpr);
 
         const icon = {
-            x: w / 2, y: h / 2, vx: 0.2, vy: 0.2, size: 60
+            x: w / 2, y: h / 2, size: 60
         };
 
         const loop = (t: number) => {
             ctx.clearRect(0, 0, w, h);
-
-            icon.x += icon.vx;
-            icon.y += icon.vy;
-
-            if (icon.x < icon.size / 2 || icon.x > w - icon.size / 2) icon.vx *= -1;
-            if (icon.y < icon.size / 2 || icon.y > h - icon.size / 2) icon.vy *= -1;
             
-            const floatY = Math.sin(t / 800) * 4;
+            const floatY = Math.sin(t / 600) * 8;
             drawBankIcon(ctx, icon.x, icon.y + floatY, icon.size);
 
             rafRef.current = requestAnimationFrame(loop);
@@ -182,6 +181,7 @@ const BeginPage = () => {
                 canvas.width = w * dpr;
                 canvas.style.width = `${w}px`;
                 ctx.scale(dpr, dpr);
+                icon.x = w / 2; // Keep it centered on resize
             }
         });
         if(canvas.parentElement) resizeObserver.observe(canvas.parentElement);
@@ -324,7 +324,7 @@ const BeginPage = () => {
             );
         }
         if (step === 3) {
-            return (
+             return (
                  <div className="animate-fadeIn w-full flex flex-col items-center h-full px-4 sm:px-0">
                     <div className="w-full max-w-sm mx-auto pt-8 mb-4 px-4">
                         <Slider
@@ -699,8 +699,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
-    
 
     
