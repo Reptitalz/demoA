@@ -199,75 +199,42 @@ const BeginPage = () => {
         const h = ctx.canvas.height / (window.devicePixelRatio || 1);
 
         ctx.clearRect(0, 0, w, h);
+
+        const x = w / 2;
+        const floatY = Math.sin(t / 600) * 5;
+        const y = h / 2 + floatY;
+        const size = 20;
         
-        const navHeight = 50;
-        const navY = (h - navHeight) / 2;
+        const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+        const radius = size * 1.2 + 4 * highlightProgress;
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+        glow.addColorStop(0, `hsla(210, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.fillRect(x - 80, y - 80, 160, 160);
 
-        const icons = ['productos', 'clientes', 'conocimiento', 'catalogo de productos'];
-        const iconCount = icons.length;
-        const totalWidth = w * 0.8;
-        const iconSpacing = totalWidth / iconCount;
-
-        const scrollSpeed = 20;
-        const scrollOffset = (t / 1000 * scrollSpeed) % (iconSpacing * iconCount);
-
-        const drawIconSet = (offset: number) => {
-            icons.forEach((icon, index) => {
-                const x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
-                const y = navY + navHeight / 2;
-                const isHighlighted = icon === 'conocimiento';
-
-                ctx.save();
-                ctx.textAlign = 'center';
-                
-                if (isHighlighted) {
-                    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
-                    const radius = 18 + 2 * highlightProgress;
-                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
-                    glow.addColorStop(0, `hsla(210, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
-                    glow.addColorStop(1, 'transparent');
-                    ctx.fillStyle = glow;
-                    ctx.fillRect(x - 40, y - 40, 80, 80);
-
-                    ctx.fillStyle = 'hsl(210, 80%, 58%)';
-                    ctx.beginPath();
-                    ctx.arc(x, y, 18, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 2;
-                    const dbSize = 8;
-                    ctx.beginPath();
-                    ctx.ellipse(x, y - dbSize / 2, dbSize, dbSize / 2, 0, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(x - dbSize, y - dbSize / 2);
-                    ctx.lineTo(x - dbSize, y + dbSize / 2);
-                    ctx.ellipse(x, y + dbSize / 2, dbSize, dbSize / 2, 0, Math.PI, Math.PI * 2);
-                    ctx.lineTo(x + dbSize, y - dbSize / 2);
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = 'white';
-                    ctx.font = `bold 9px sans-serif`;
-                    ctx.fillText('Conocimiento', x, y + 12);
-                } else {
-                    ctx.font = `12px sans-serif`;
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = 'hsl(var(--muted-foreground))';
-                    ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
-                }
-                
-                ctx.restore();
-            });
-        };
-
-        ctx.save();
+        ctx.fillStyle = 'hsl(210, 80%, 58%)';
         ctx.beginPath();
-        ctx.rect(0, 0, w, h);
-        ctx.clip();
-        drawIconSet(scrollOffset);
-        drawIconSet(scrollOffset - (iconSpacing * iconCount));
-        ctx.restore();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2.5;
+        const dbSize = 10;
+        ctx.beginPath();
+        ctx.ellipse(x, y - dbSize / 2, dbSize, dbSize / 2, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - dbSize, y - dbSize / 2);
+        ctx.lineTo(x - dbSize, y + dbSize / 2);
+        ctx.ellipse(x, y + dbSize / 2, dbSize, dbSize / 2, 0, Math.PI, Math.PI * 2);
+        ctx.lineTo(x + dbSize, y - dbSize / 2);
+        ctx.stroke();
+
+        ctx.fillStyle = 'hsl(var(--foreground))';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('Catálogo de Productos', x, y + size + 18);
 
     }, []);
 
@@ -749,15 +716,13 @@ const BeginPage = () => {
                                 return (
                                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
                                         <Card className="p-6 text-center glow-card h-full flex flex-col">
-                                            {item.id === 'bank' ? (
-                                                <div className="mb-4 h-[100px]">
+                                            <div className="mb-4 h-[100px] flex items-center justify-center">
+                                                {item.id === 'bank' ? (
                                                     <canvas ref={navCanvasRef}/>
-                                                </div>
-                                            ) : (
-                                                 <div className="mb-4 h-[100px]">
-                                                    <canvas ref={dbCanvasRef}/>
-                                                </div>
-                                            )}
+                                                ) : (
+                                                     <canvas ref={dbCanvasRef}/>
+                                                )}
+                                            </div>
                                             <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
                                             <CardDescription className="text-sm">{item.description}</CardDescription>
                                         </Card>
