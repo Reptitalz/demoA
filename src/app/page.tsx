@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Apple, CaseSensitive, AppWindow, Download } from 'lucide-react';
+import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Apple, CaseSensitive, AppWindow, Download, Loader2 } from 'lucide-react';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 
@@ -257,7 +257,51 @@ const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementTy
     );
 };
 
+type DeviceType = 'ios' | 'android' | 'web' | 'loading';
+
 const NewHomepage = () => {
+  const [device, setDevice] = useState<DeviceType>('loading');
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
+      setDevice('ios');
+    } else if (/android/i.test(userAgent)) {
+      setDevice('android');
+    } else {
+      setDevice('web');
+    }
+  }, []);
+
+  const downloadConfig = {
+    ios: {
+      icon: <Apple className="mr-2" />,
+      text: 'Descargar para iPhone',
+      href: '/app.ipa',
+      download: true,
+    },
+    android: {
+      icon: <CaseSensitive className="mr-2" />,
+      text: 'Descargar para Android',
+      href: '/app.apk',
+      download: true,
+    },
+    web: {
+      icon: <Download className="mr-2" />,
+      text: 'Instalar App',
+      href: '/access',
+      download: false,
+    },
+    loading: {
+      icon: <Loader2 className="mr-2 animate-spin" />,
+      text: 'Detectando...',
+      href: '#',
+      download: false,
+    },
+  };
+
+  const currentDownload = downloadConfig[device];
+
   return (
     <PageContainer className="p-0" fullWidth={true}>
       {/* Hero Section */}
@@ -284,7 +328,10 @@ const NewHomepage = () => {
                   </p>
                   <div className="mt-8 flex items-center justify-center md:justify-start">
                     <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                        <Link href="/access"><Download className="mr-2"/>Instalar App</Link>
+                        <Link href={currentDownload.href} download={currentDownload.download}>
+                            {currentDownload.icon}
+                            {currentDownload.text}
+                        </Link>
                     </Button>
                   </div>
                   <div className="mt-6 flex justify-center md:justify-start gap-4 text-xs text-muted-foreground">
@@ -447,5 +494,3 @@ const NewHomepage = () => {
 };
 
 export default NewHomepage;
-
-    
