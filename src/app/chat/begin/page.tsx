@@ -41,6 +41,7 @@ const BeginPage = () => {
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
     const newsScrollRef = useRef<HTMLDivElement>(null);
     const navCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const dbCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -113,7 +114,6 @@ const BeginPage = () => {
 
         ctx.clearRect(0, 0, w, h);
         
-        // Draw Nav bar
         const navHeight = 50;
         const navY = (h - navHeight) / 2;
         ctx.fillStyle = 'hsl(var(--card))';
@@ -129,7 +129,7 @@ const BeginPage = () => {
         const totalWidth = w * 0.8;
         const iconSpacing = totalWidth / iconCount;
 
-        const scrollSpeed = 20; // pixels per second
+        const scrollSpeed = 20;
         const scrollOffset = (t / 1000 * scrollSpeed) % (iconSpacing * iconCount);
 
         const drawIconSet = (offset: number) => {
@@ -139,12 +139,10 @@ const BeginPage = () => {
                 const isHighlighted = icon === 'banco';
 
                 ctx.save();
-                ctx.font = `12px sans-serif`;
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
                 
                 if (isHighlighted) {
-                    const highlightProgress = (Math.sin(t / 800) + 1) / 2; // Pulsing effect
+                    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
                     const radius = 18 + 2 * highlightProgress;
                     const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
                     glow.addColorStop(0, `hsla(262, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
@@ -157,7 +155,6 @@ const BeginPage = () => {
                     ctx.arc(x, y, 18, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Draw Bank Icon
                     ctx.fillStyle = 'white';
                     ctx.strokeStyle = 'white';
                     ctx.lineWidth = 1.5;
@@ -174,10 +171,11 @@ const BeginPage = () => {
                     ctx.closePath();
                     ctx.fill();
 
-                    // Draw Text
                     ctx.font = `bold 9px sans-serif`;
                     ctx.fillText('Banco', x, y + 12);
                 } else {
+                    ctx.font = `12px sans-serif`;
+                    ctx.textBaseline = 'middle';
                     ctx.fillStyle = 'hsl(var(--muted-foreground))';
                     ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
                 }
@@ -191,35 +189,117 @@ const BeginPage = () => {
         ctx.rect(w * 0.1, navY, w * 0.8, navHeight);
         ctx.clip();
         drawIconSet(scrollOffset);
-        drawIconSet(scrollOffset - (iconSpacing * iconCount)); // Draw second set for wrapping
+        drawIconSet(scrollOffset - (iconSpacing * iconCount));
+        ctx.restore();
+
+    }, []);
+    
+    const drawDbPreview = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
+        const w = ctx.canvas.width / (window.devicePixelRatio || 1);
+        const h = ctx.canvas.height / (window.devicePixelRatio || 1);
+
+        ctx.clearRect(0, 0, w, h);
+        
+        const navHeight = 50;
+        const navY = (h - navHeight) / 2;
+
+        const icons = ['productos', 'clientes', 'conocimiento', 'historial'];
+        const iconCount = icons.length;
+        const totalWidth = w * 0.8;
+        const iconSpacing = totalWidth / iconCount;
+
+        const scrollSpeed = 20;
+        const scrollOffset = (t / 1000 * scrollSpeed) % (iconSpacing * iconCount);
+
+        const drawIconSet = (offset: number) => {
+            icons.forEach((icon, index) => {
+                const x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
+                const y = navY + navHeight / 2;
+                const isHighlighted = icon === 'conocimiento';
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                
+                if (isHighlighted) {
+                    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+                    const radius = 18 + 2 * highlightProgress;
+                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+                    glow.addColorStop(0, `hsla(210, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
+                    glow.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(x - 40, y - 40, 80, 80);
+
+                    ctx.fillStyle = 'hsl(210, 80%, 58%)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 18, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    const dbSize = 8;
+                    ctx.beginPath();
+                    ctx.ellipse(x, y - dbSize / 2, dbSize, dbSize / 2, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x - dbSize, y - dbSize / 2);
+                    ctx.lineTo(x - dbSize, y + dbSize / 2);
+                    ctx.ellipse(x, y + dbSize / 2, dbSize, dbSize / 2, 0, Math.PI, Math.PI * 2);
+                    ctx.lineTo(x + dbSize, y - dbSize / 2);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = `bold 9px sans-serif`;
+                    ctx.fillText('Conocimiento', x, y + 12);
+                } else {
+                    ctx.font = `12px sans-serif`;
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = 'hsl(var(--muted-foreground))';
+                    ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
+                }
+                
+                ctx.restore();
+            });
+        };
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, h);
+        ctx.clip();
+        drawIconSet(scrollOffset);
+        drawIconSet(scrollOffset - (iconSpacing * iconCount));
         ctx.restore();
 
     }, []);
 
     useEffect(() => {
-        if (step !== 5 || newsIndex !== 0) {
+        if (step !== 5) {
             if(rafRef.current) cancelAnimationFrame(rafRef.current);
             return;
         }
 
-        const canvas = navCanvasRef.current;
-        if (!canvas) return;
-
-        const dpr = window.devicePixelRatio || 1;
-        const w = canvas.parentElement!.clientWidth;
-        const h = 100;
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-        canvas.style.width = `${w}px`;
-        canvas.style.height = `${h}px`;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.scale(dpr, dpr);
-
+        const navCanvas = navCanvasRef.current;
+        const dbCanvas = dbCanvasRef.current;
         let animationFrameId: number;
+
+        const setupCanvas = (canvas: HTMLCanvasElement) => {
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.parentElement!.clientWidth;
+            const h = 100;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = `${w}px`;
+            canvas.style.height = `${h}px`;
+            const ctx = canvas.getContext('2d');
+            if (ctx) ctx.scale(dpr, dpr);
+            return ctx;
+        }
+
+        const navCtx = navCanvas ? setupCanvas(navCanvas) : null;
+        const dbCtx = dbCanvas ? setupCanvas(dbCanvas) : null;
+        
         const loop = (t: number) => {
-            drawNavPreview(ctx, t);
+            if (newsIndex === 0 && navCtx) drawNavPreview(navCtx, t);
+            if (newsIndex === 1 && dbCtx) drawDbPreview(dbCtx, t);
             animationFrameId = requestAnimationFrame(loop);
         };
         animationFrameId = requestAnimationFrame(loop);
@@ -227,7 +307,7 @@ const BeginPage = () => {
         return () => {
             cancelAnimationFrame(animationFrameId);
         };
-    }, [step, newsIndex, drawNavPreview]);
+    }, [step, newsIndex, drawNavPreview, drawDbPreview]);
 
 
     useEffect(() => {
@@ -674,11 +754,9 @@ const BeginPage = () => {
                                                     <canvas ref={navCanvasRef}/>
                                                 </div>
                                             ) : (
-                                                <CardHeader className="p-0 mb-4">
-                                                    <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-                                                        <Icon className="h-8 w-8 text-primary" />
-                                                    </div>
-                                                </CardHeader>
+                                                 <div className="mb-4 h-[100px]">
+                                                    <canvas ref={dbCanvasRef}/>
+                                                </div>
                                             )}
                                             <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
                                             <CardDescription className="text-sm">{item.description}</CardDescription>
@@ -798,3 +876,5 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
