@@ -33,7 +33,7 @@ const PlanCard = ({ onClick }: { onClick: () => void }) => {
                        </CardTitle>
                        <span className="text-lg font-bold text-foreground">$179</span>
                     </div>
-                    <CardDescription className="text-xs pt-1">Mensajes ilimitados para un asistente.</CardDescription>
+                    <CardDescription className="text-xs pt-1">Mensajes ilimitados para todos los asistentes.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0 flex-grow mt-3">
                     <Button onClick={onClick} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs">
