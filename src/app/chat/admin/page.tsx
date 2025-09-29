@@ -1,3 +1,4 @@
+
 // src/app/chat/admin/page.tsx
 "use client";
 
@@ -77,23 +78,23 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange }: { payment: any | null,
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md p-0">
-                <DialogHeader className="p-6 pb-2">
+            <DialogContent className="w-screen h-screen max-w-full max-h-full p-0 flex flex-col bg-background">
+                <DialogHeader className="p-4 border-b">
                     <DialogTitle>Recibo de Pago</DialogTitle>
                     <DialogDescription>
                         Recibido el {format(payment.receivedAt, "PPPp", { locale: es })}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="px-6 max-h-[60vh] overflow-y-auto">
+                <div className="flex-grow overflow-auto p-4">
                     <Image
                         src={payment.receiptUrl}
                         alt="Recibo de pago"
-                        width={400}
-                        height={600}
+                        width={800}
+                        height={1200}
                         className="rounded-md border w-full h-auto"
                     />
                 </div>
-                <DialogFooter className="p-6 bg-muted/50 flex justify-end gap-2">
+                <DialogFooter className="p-4 bg-background border-t flex justify-end gap-2">
                     <Button variant="destructive" onClick={() => onOpenChange(false)}><XCircle className="mr-2"/> Rechazar</Button>
                     <Button variant="default" onClick={() => onOpenChange(false)} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
                 </DialogFooter>
@@ -508,3 +509,5 @@ const AdminChatInterface = ({ activeView }: { activeView: AdminView }) => {
 export default function AdminPage({ activeView = 'bank' }: { activeView?: AdminView }) {
     return <AdminChatInterface activeView={activeView} />;
 }
+
+    
