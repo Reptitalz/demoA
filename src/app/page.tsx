@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { Check, ArrowRight, Bot, Settings, Smartphone, Zap } from 'lucide-react';
+import { Check, ArrowRight, Bot, Settings, Smartphone, Zap, Apple, Globe } from 'lucide-react';
+import { FaAndroid } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 
@@ -27,8 +28,7 @@ const NewHomepage = () => {
   return (
     <PageContainer className="p-0" fullWidth={true}>
       {/* Hero Section */}
-      <section className="relative text-center py-20 md:py-32 overflow-hidden bg-gradient-to-b from-background via-muted/50 to-background">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(var(--primary)/0.05),transparent_50%)]" />
+      <section className="relative text-center py-20 md:py-32 overflow-hidden">
           <div className="container max-w-4xl mx-auto px-4 relative z-10">
               <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -59,7 +59,7 @@ const NewHomepage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-background">
+      <section id="features" className="py-20 bg-muted/50">
         <div className="container max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight">Una Plataforma, Todas las Soluciones</h2>
@@ -86,7 +86,7 @@ const NewHomepage = () => {
       </section>
 
       {/* How it works section */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20 bg-background">
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight">Empieza en Minutos</h2>
@@ -115,7 +115,7 @@ const NewHomepage = () => {
       </section>
 
       {/* Pricing Section */}
-       <section id="pricing" className="py-20 bg-background">
+       <section id="pricing" className="py-20 bg-muted/50">
           <div className="container max-w-5xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tight">Planes Simples y Flexibles</h2>
@@ -166,6 +166,34 @@ const NewHomepage = () => {
             </div>
           </div>
        </section>
+
+       {/* CTA Section */}
+      <section className="py-20 bg-background">
+        <div className="container max-w-4xl mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
+            <p className="mt-3 text-muted-foreground">
+                Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.
+            </p>
+            <Button asChild size="lg" className="mt-8 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                <Link href="/begin">Crear mi Primer Asistente</Link>
+            </Button>
+            <div className="mt-8 flex justify-center items-center gap-6 text-muted-foreground">
+                <div className="flex items-center gap-2">
+                    <Apple className="h-5 w-5" />
+                    <span className="text-sm">iPhone</span>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <FaAndroid className="h-5 w-5" />
+                    <span className="text-sm">Android</span>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    <span className="text-sm">Web</span>
+                </div>
+            </div>
+        </div>
+      </section>
+
     </PageContainer>
   );
 };
