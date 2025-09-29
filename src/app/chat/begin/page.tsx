@@ -203,7 +203,7 @@ const BeginPage = () => {
         const navHeight = 50;
         const navY = (h - navHeight) / 2;
 
-        const icons = ['productos', 'clientes', 'conocimiento', 'historial'];
+        const icons = ['productos', 'clientes', 'conocimiento', 'catalogo de productos'];
         const iconCount = icons.length;
         const totalWidth = w * 0.8;
         const iconSpacing = totalWidth / iconCount;
