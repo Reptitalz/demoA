@@ -42,6 +42,7 @@ const BeginPage = () => {
     const newsScrollRef = useRef<HTMLDivElement>(null);
     const navCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const dbCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const creditCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -103,6 +104,12 @@ const BeginPage = () => {
             icon: Database,
             title: "Catálogo de Productos",
             description: "Ahora puedes crear y gestionar catálogos de productos con sus precios, permitiendo que tu asistente tome pedidos y responda consultas con total precisión.",
+        },
+        {
+            id: 'credit',
+            icon: CircleDollarSign,
+            title: "Gestión de Créditos",
+            description: "Si eres un vendedor de créditos, ahora puedes definir y gestionar líneas de crédito para tus clientes, permitiendo que tu asistente apruebe y registre préstamos.",
         }
     ];
 
@@ -241,6 +248,43 @@ const BeginPage = () => {
 
     }, []);
 
+    const drawCreditPreview = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
+        const w = ctx.canvas.width / (window.devicePixelRatio || 1);
+        const h = ctx.canvas.height / (window.devicePixelRatio || 1);
+
+        ctx.clearRect(0, 0, w, h);
+
+        const x = w / 2;
+        const floatY = Math.sin(t / 600) * 5;
+        const y = h / 2 + floatY;
+        const size = 20;
+        
+        const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+        const radius = size * 1.2 + 4 * highlightProgress;
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+        glow.addColorStop(0, `hsla(120, 60%, 45%, ${0.3 + highlightProgress * 0.2})`); // Green glow
+        glow.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow;
+        ctx.fillRect(x - 80, y - 80, 160, 160);
+
+        ctx.fillStyle = 'hsl(120, 60%, 45%)';
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('$', x, y);
+
+        ctx.fillStyle = 'hsl(var(--foreground))';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('Gestión de Créditos', x, y + size + 18);
+
+    }, []);
+
     useEffect(() => {
         if (step !== 5) {
             if(rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -249,6 +293,7 @@ const BeginPage = () => {
 
         const navCanvas = navCanvasRef.current;
         const dbCanvas = dbCanvasRef.current;
+        const creditCanvas = creditCanvasRef.current;
         let animationFrameId: number;
 
         const setupCanvas = (canvas: HTMLCanvasElement) => {
@@ -266,10 +311,12 @@ const BeginPage = () => {
 
         const navCtx = navCanvas ? setupCanvas(navCanvas) : null;
         const dbCtx = dbCanvas ? setupCanvas(dbCanvas) : null;
+        const creditCtx = creditCanvas ? setupCanvas(creditCanvas) : null;
         
         const loop = (t: number) => {
             if (newsIndex === 0 && navCtx) drawNavPreview(navCtx, t);
             if (newsIndex === 1 && dbCtx) drawDbPreview(dbCtx, t);
+            if (newsIndex === 2 && creditCtx) drawCreditPreview(creditCtx, t);
             animationFrameId = requestAnimationFrame(loop);
         };
         animationFrameId = requestAnimationFrame(loop);
@@ -277,7 +324,7 @@ const BeginPage = () => {
         return () => {
             cancelAnimationFrame(animationFrameId);
         };
-    }, [step, newsIndex, drawNavPreview, drawDbPreview]);
+    }, [step, newsIndex, drawNavPreview, drawDbPreview, drawCreditPreview]);
 
 
     useEffect(() => {
@@ -722,8 +769,10 @@ const BeginPage = () => {
                                             <div className="mb-4 h-[100px] flex items-center justify-center">
                                                 {item.id === 'bank' ? (
                                                     <canvas ref={navCanvasRef}/>
-                                                ) : (
+                                                ) : item.id === 'database' ? (
                                                      <canvas ref={dbCanvasRef}/>
+                                                ) : (
+                                                    <canvas ref={creditCanvasRef} />
                                                 )}
                                             </div>
                                             <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
@@ -844,6 +893,8 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
+
+    
 
     
 
