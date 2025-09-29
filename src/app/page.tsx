@@ -6,7 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { Check, ArrowRight, Bot, Settings, Smartphone } from 'lucide-react';
+import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Apple, CaseSensitive, AppWindow } from 'lucide-react';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 
@@ -68,13 +68,13 @@ const AnimatedStepCircle = ({ number }: { number: number }) => {
             ctx.restore();
 
             // Draw number
-            ctx.fillStyle = 'hsl(var(--primary-foreground))';
+            ctx.fillStyle = 'hsl(var(--primary))';
             ctx.font = 'bold 24px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
             // Create a text fill with a slight shadow for depth
-            ctx.shadowColor = 'hsla(var(--primary), 0.5)';
+            ctx.shadowColor = 'hsla(var(--primary-foreground), 0.5)';
             ctx.shadowBlur = 4;
             ctx.fillText(number.toString(), 32, 32);
             ctx.shadowBlur = 0; // Reset shadow
@@ -205,6 +205,84 @@ const NewHomepage = () => {
               </div>
           </div>
         </div>
+      </section>
+      
+       {/* Plans Section */}
+      <section className="py-20 bg-muted/50">
+          <div className="container max-w-4xl mx-auto px-4 text-center">
+              <h2 className="text-3xl font-bold tracking-tight">Planes Simples y Flexibles</h2>
+              <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Comienza gratis. Crece sin complicaciones.</p>
+              
+              <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                  {/* Free Plan */}
+                  <div className="border border-border rounded-lg p-8 flex flex-col">
+                      <h3 className="text-2xl font-semibold">Plan Gratuito</h3>
+                      <p className="mt-2 text-muted-foreground">Perfecto para empezar a explorar.</p>
+                      <div className="my-8">
+                          <span className="text-5xl font-extrabold">$0</span>
+                          <span className="text-muted-foreground"> /siempre</span>
+                      </div>
+                      <ul className="space-y-3 text-left">
+                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> 1 Asistente de Escritorio</li>
+                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Prueba de 30 días con mensajes ilimitados</li>
+                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Acceso a todas las funciones de gestión</li>
+                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Instalación como PWA</li>
+                      </ul>
+                      <Button variant="outline" asChild className="mt-auto">
+                          <Link href="/begin">Comenzar Gratis</Link>
+                      </Button>
+                  </div>
+
+                  {/* Unlimited Plan */}
+                  <div className="relative border-2 border-primary rounded-lg p-8 flex flex-col shadow-2xl shadow-primary/20">
+                       <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                          <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">Recomendado</div>
+                      </div>
+                      <h3 className="text-2xl font-semibold">Plan Ilimitado</h3>
+                      <p className="mt-2 text-muted-foreground">Desbloquea todo el potencial para tu negocio.</p>
+                       <div className="my-8">
+                          <span className="text-5xl font-extrabold">$179</span>
+                          <span className="text-muted-foreground"> /mes</span>
+                      </div>
+                      <ul className="space-y-3 text-left">
+                           <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Todo lo del Plan Gratuito, y además:</li>
+                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Mensajes Ilimitados por Asistente</li>
+                           <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Múltiples Asistentes de Escritorio</li>
+                          <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
+                      </ul>
+                       <Button asChild className="mt-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                          <Link href="/begin">Obtener Plan Ilimitado</Link>
+                      </Button>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-24 bg-background">
+          <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
+              <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
+                  Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.
+              </p>
+              <Button size="lg" asChild className="mt-8 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                  <Link href="/begin">Crear mi Primer Asistente</Link>
+              </Button>
+               <div className="mt-8 flex justify-center items-center gap-6">
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Apple className="h-8 w-8" />
+                  <span className="text-sm">iPhone</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <CaseSensitive className="h-8 w-8" />
+                  <span className="text-sm">Android</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <AppWindow className="h-8 w-8" />
+                  <span className="text-sm">Web</span>
+                </div>
+              </div>
+          </div>
       </section>
     </PageContainer>
   );
