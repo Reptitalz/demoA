@@ -23,7 +23,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
 
   useEffect(() => {
     // Check if running as a PWA
-    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
+    if (typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone)) {
       setIsPWA(true);
     }
 
@@ -50,13 +50,13 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         if (choiceResult.outcome === 'accepted') {
           toast({
             title: "¡Aplicación Instalada!",
-            description: "Gracias por instalar Hey Manito.",
+            description: `Gracias por instalar ${APP_NAME}.`,
           });
         }
         setDeferredInstallPrompt(null);
       });
     } else {
-      // If no prompt is available, just navigate to the access page
+      // If no prompt is available, just navigate to the access page which explains how to install
       router.push('/access');
     }
   };
@@ -64,7 +64,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   return (
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 rounded-2xl bg-white shadow-lg flex items-center justify-center p-1.5">
+            <div className="w-10 h-10 rounded-2xl bg-card shadow-lg flex items-center justify-center p-1.5">
                 <AppIcon />
             </div>
             <div>
