@@ -516,7 +516,7 @@ const NewHomepage = () => {
                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
                           <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">Recomendado</div>
                       </div>
-                      <h3 className="text-2xl font-semibold">Plan Ilimitado</h3>
+                      <h3 className="text-2xl font-semibold">Plan miembro</h3>
                       <p className="mt-2 text-muted-foreground">Desbloquea todo el potencial para tu negocio.</p>
                        <div className="my-8">
                           <span className="text-5xl font-extrabold">$179</span>
