@@ -152,12 +152,32 @@ const BeginPage = () => {
                 ctx.beginPath();
                 ctx.arc(x, y, 15, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Draw Bank Icon
                 ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1.5;
+                
+                const iconSize = 8;
+                // Base
+                ctx.fillRect(x - iconSize, y + iconSize/2, iconSize * 2, iconSize / 4);
+                // Pillars
+                ctx.fillRect(x - iconSize * 0.7, y - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x - iconSize * 0.2, y - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x + iconSize * 0.3, y - iconSize/2, iconSize / 3, iconSize);
+                // Roof
+                ctx.beginPath();
+                ctx.moveTo(x - iconSize - 2, y - iconSize/2);
+                ctx.lineTo(x, y - iconSize * 1.2);
+                ctx.lineTo(x + iconSize + 2, y - iconSize/2);
+                ctx.closePath();
+                ctx.fill();
+
             } else {
                 ctx.fillStyle = 'hsl(var(--muted-foreground))';
+                ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
             }
             
-            ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
             ctx.restore();
         });
 
