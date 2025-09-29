@@ -63,7 +63,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const previousPathname = React.useRef(pathname);
 
    // State to manage the active view within the admin page
-  const [adminView, setAdminView] = useState<AdminView>('assistants');
+  const [adminView, setAdminView] = useState<AdminView>('bank');
 
   React.useEffect(() => {
     if (previousPathname.current !== pathname) {
