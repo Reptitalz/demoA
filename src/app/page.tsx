@@ -175,8 +175,9 @@ const PhoneCanvas = () => {
                 const metrics = ctx.measureText(text);
                 const textWidth = metrics.width;
                 const bubbleHeight = 24;
+                const bubbleContentWidth = textWidth + 20;
 
-                const animatedWidth = (textWidth + 20) * progress;
+                const animatedWidth = bubbleContentWidth * progress;
                 const bubbleX = screenX + bubblePadding;
 
                 ctx.globalAlpha = progress;
@@ -189,12 +190,14 @@ const PhoneCanvas = () => {
                 }
                 ctx.fill();
 
-                if (progress > 0.5) {
-                    const textProgress = (progress - 0.5) * 2;
+                if (progress > 0.8) {
+                    const textProgress = (progress - 0.8) * 5;
                     ctx.globalAlpha = textProgress;
                     ctx.fillStyle = isUser ? '#ffffff' : '#000000';
-                    const textX = isUser ? (bubbleX + bubbleW - animatedWidth / 2 - textWidth / 2) : (bubbleX + animatedWidth / 2 - textWidth / 2);
-                    ctx.fillText(text, textX, yPos + bubbleHeight / 2 + 1);
+                    const textX = isUser ? (bubbleX + bubbleW - animatedWidth + 10) : (bubbleX + 10);
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, textX, yPos + bubbleHeight / 2);
                 }
             };
             
