@@ -63,7 +63,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child) && isAdminView) {
       // Pass the activeView state to the child component if it's the admin page
-      return React.cloneElement(child, { activeView: adminView, setActiveView: setAdminView } as any);
+      return React.cloneElement(child, { activeView: adminView } as any);
     }
     return child;
   });
@@ -81,6 +81,24 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       </main>
       
       {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} />}
+
+      {isAdminView && (
+          <nav className="fixed bottom-16 left-0 right-0 h-12 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
+              <div className="flex justify-around items-center h-full max-w-md mx-auto">
+                  {adminNavItems.map(item => (
+                      <Button 
+                          key={item.view}
+                          variant="ghost" 
+                          className={cn("h-full px-6", adminView === item.view ? 'text-primary' : 'text-muted-foreground')}
+                          onClick={() => setAdminView(item.view)}
+                          aria-label={item.view}
+                      >
+                          <item.icon className="h-5 w-5"/>
+                      </Button>
+                  ))}
+              </div>
+          </nav>
+      )}
     </div>
   );
 }
@@ -90,4 +108,11 @@ const menuItems = [
     { path: '/chat/updates', icon: Camera, label: 'Novedades' },
     { path: '/chat/profile', icon: User, label: 'Perfil' },
     { path: '/chat/admin', icon: Crown, label: 'Miembro' },
+];
+
+const adminNavItems: { view: AdminView, icon: React.ElementType }[] = [
+    { view: 'bank', icon: Banknote },
+    { view: 'assistants', icon: Bot },
+    { view: 'products', icon: Package },
+    { view: 'credit', icon: DollarSign },
 ];

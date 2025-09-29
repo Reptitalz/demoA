@@ -493,46 +493,18 @@ const OtherView = ({ viewName }: { viewName: string }) => (
     </div>
 );
 
-const AdminNavBar = ({ activeView, onNavigate }: { activeView: AdminView, onNavigate: (view: AdminView) => void; }) => {
-    const navItems: { view: AdminView, icon: React.ElementType }[] = [
-        { view: 'bank', icon: Banknote },
-        { view: 'assistants', icon: Bot },
-        { view: 'products', icon: Package },
-        { view: 'credit', icon: DollarSign },
-    ];
-    
-    return (
-        <nav className="fixed bottom-16 left-0 right-0 h-12 bg-card/90 backdrop-blur-sm border-t z-20 shrink-0 animate-fadeIn">
-            <div className="flex justify-around items-center h-full max-w-md mx-auto">
-                {navItems.map(item => (
-                    <Button 
-                        key={item.view}
-                        variant="ghost" 
-                        className={cn("h-full px-6", activeView === item.view ? 'text-primary' : 'text-muted-foreground')}
-                        onClick={() => onNavigate(item.view)}
-                        aria-label={item.view}
-                    >
-                        <item.icon className="h-5 w-5"/>
-                    </Button>
-                ))}
-            </div>
-        </nav>
-    );
-};
 
-
-const AdminChatInterface = ({ activeView, setActiveView }: { activeView: AdminView; setActiveView: (view: AdminView) => void; }) => {
+const AdminChatInterface = ({ activeView }: { activeView: AdminView; }) => {
   return (
-    <div className="flex flex-col h-full bg-transparent relative pb-12">
+    <div className="flex flex-col h-full bg-transparent relative">
         {activeView === 'bank' && <BankView />}
         {activeView === 'assistants' && <AssistantsList />}
         {activeView === 'products' && <ProductsView />}
         {activeView === 'credit' && <OtherView viewName="Créditos" />}
-        <AdminNavBar activeView={activeView} onNavigate={setActiveView} />
     </div>
   );
 };
 
-export default function AdminPage({ activeView = 'bank', setActiveView = () => {} }: { activeView?: AdminView; setActiveView?: (view: AdminView) => void; }) {
-    return <AdminChatInterface activeView={activeView} setActiveView={setActiveView} />;
+export default function AdminPage({ activeView = 'bank' }: { activeView?: AdminView; }) {
+    return <AdminChatInterface activeView={activeView} />;
 }
