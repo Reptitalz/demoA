@@ -3,10 +3,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
-import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaSpinner, FaEye, FaEyeSlash, FaUserPlus } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import LoadingStatus from '@/components/shared/LoadingStatus';
 import { signIn, useSession } from 'next-auth/react';
@@ -167,7 +166,7 @@ const LoginPageContent = () => {
                 "shiny-border"
             )}
             >
-            <UserPlus className="h-5 w-5" />
+            <FaUserPlus className="h-5 w-5" />
             Registrarse
         </Button>
         

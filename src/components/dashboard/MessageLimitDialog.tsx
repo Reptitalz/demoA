@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -8,8 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaInfoCircle } from 'react-icons/fa';
-import { MessagesSquare, Coins } from 'lucide-react';
+import { FaSpinner, FaInfoCircle, FaRegCommentDots, FaCoins } from 'react-icons/fa';
 import type { AssistantConfig } from '@/types';
 import { MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
@@ -81,7 +79,7 @@ const MessageLimitDialog = ({ isOpen, onOpenChange, assistant }: MessageLimitDia
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessagesSquare /> Asignar Límite de Mensajes
+            <FaRegCommentDots /> Asignar Límite de Mensajes
           </DialogTitle>
           <DialogDescription>
             Define cuántos mensajes podrá enviar "{assistant.name}" al mes. Los mensajes se descuentan de tu saldo de créditos.
@@ -127,7 +125,7 @@ const MessageLimitDialog = ({ isOpen, onOpenChange, assistant }: MessageLimitDia
           <div className="p-3 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground mb-1">Costo de esta asignación</p>
               <div className="flex items-center justify-center gap-2 text-xl font-bold">
-                  <Coins className="h-5 w-5 text-accent" />
+                  <FaCoins className="h-5 w-5 text-accent" />
                   <p>{creditsCost.toFixed(2)} créditos</p>
               </div>
           </div>

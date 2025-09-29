@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaSpinner, FaEye, FaEyeSlash, FaUserPlus } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import LoadingStatus from '@/components/shared/LoadingStatus';
 import { signIn, useSession } from 'next-auth/react';
@@ -15,7 +15,6 @@ import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
 import RegisterCollaboratorDialog from '@/components/auth/RegisterCollaboratorDialog';
 import { cn } from '@/lib/utils';
-import { UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import AppIcon from '@/components/shared/AppIcon';
 
@@ -146,7 +145,7 @@ const CollaboratorLoginPage = () => {
                 "shiny-border"
               )}
             >
-              <UserPlus className="h-5 w-5" />
+              <FaUserPlus className="h-5 w-5" />
               Registrarse como Colaborador
           </Button>
 

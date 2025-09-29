@@ -12,9 +12,9 @@ import { ScrollArea } from '../ui/scroll-area';
 import { formatBytes } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Loader2 } from 'lucide-react';
 
 interface KnowledgeManagementDialogProps {
   isOpen: boolean;

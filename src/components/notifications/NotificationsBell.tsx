@@ -5,11 +5,11 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Bell, BellRing, Inbox } from 'lucide-react';
 import { AppNotification } from '@/types';
 import NotificationItem from './NotificationItem';
 import { ScrollArea } from '../ui/scroll-area';
 import { useApp } from '@/providers/AppProvider';
+import { FaBell, FaRegBell, FaInbox } from 'react-icons/fa';
 
 async function fetchNotifications(userId: string | undefined): Promise<{ notifications: AppNotification[], unreadCount: number }> {
     if (!userId) return { notifications: [], unreadCount: 0 };
@@ -78,7 +78,7 @@ const NotificationsBell = () => {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          {unreadCount > 0 ? <BellRing className="h-5 w-5 animate-pulse" /> : <Bell className="h-5 w-5" />}
+          {unreadCount > 0 ? <FaBell className="h-5 w-5 animate-pulse" /> : <FaRegBell className="h-5 w-5" />}
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
               {unreadCount}
@@ -98,7 +98,7 @@ const NotificationsBell = () => {
             <p className="p-4 text-sm text-center text-destructive">Error al cargar.</p>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                <Inbox className="h-10 w-10 mb-2"/>
+                <FaInbox className="h-10 w-10 mb-2"/>
                 <p className="text-sm">No tienes notificaciones</p>
             </div>
           ) : (

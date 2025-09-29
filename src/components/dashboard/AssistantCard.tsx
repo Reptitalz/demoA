@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaCrown, FaStar, FaEllipsisV } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaCrown, FaStar, FaEllipsisV, FaRegCommentDots, FaDesktop } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MONTHLY_PLAN_CREDIT_COST, UNLIMITED_MESSAGES_LIMIT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -14,7 +14,6 @@ import BusinessInfoDialog from './BusinessInfoDialog';
 import { useApp } from "@/providers/AppProvider";
 import ApiInfoDialog from './ApiInfoDialog';
 import { Progress } from "../ui/progress";
-import { MessagesSquare, AppWindow, Bot } from "lucide-react";
 import Link from "next/link";
 import { differenceInDays } from 'date-fns';
 import {
@@ -139,7 +138,7 @@ const AssistantCard = ({
         'border-blue-500 text-blue-600 dark:text-blue-400'
       )}
     >
-      <AppWindow size={12} />
+      <FaDesktop size={12} />
       Desktop
     </Badge>
   );
@@ -190,7 +189,7 @@ const AssistantCard = ({
           ) : !isTrialExpired ? (
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
-                <MessagesSquare size={14} className="text-accent" /> Consumo Mensual:
+                <FaRegCommentDots size={14} className="text-accent" /> Consumo Mensual:
               </h4>
               <div className="mt-1.5 space-y-1">
                 <Progress value={consumptionPercentage} className="h-1.5" />
@@ -236,7 +235,7 @@ const AssistantCard = ({
              <div className="flex items-center gap-2">
                <Button asChild size="sm" className="flex-1 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border transition-transform transform hover:scale-105">
                    <Link href={desktopChatUrl}>
-                       <Bot size={14} /> Chatear
+                       <FaRobot size={14} /> Chatear
                    </Link>
                </Button>
                <DropdownMenu>

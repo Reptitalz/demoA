@@ -5,16 +5,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlusCircle, X, ChevronLeft, ChevronRight, Image as ImageIcon, Send, User } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FaPlusCircle, FaTimes, FaChevronLeft, FaChevronRight, FaImage, FaPaperPlane, FaUser } from 'react-icons/fa';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface Status {
   id: number;
@@ -123,7 +123,7 @@ const StatusViewer = ({
         <button onClick={handleNext} className="absolute right-0 top-1/2 -translate-y-1/2 h-full w-1/3 bg-transparent" aria-label="Siguiente"></button>
         
         <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="absolute top-4 right-4 text-white hover:bg-white/20 hover:text-white">
-          <X />
+          <FaTimes />
         </Button>
       </DialogContent>
     </Dialog>
@@ -206,7 +206,7 @@ const AddStatusDialog = ({
                             <Image src={imagePreview} alt="Vista previa del estado" layout="fill" objectFit="contain" className="rounded-lg p-2"/>
                         ) : (
                             <div className="text-center">
-                                <ImageIcon className="mx-auto h-12 w-12"/>
+                                <FaImage className="mx-auto h-12 w-12"/>
                                 <p>Haz clic para seleccionar una imagen</p>
                             </div>
                         )}
@@ -226,7 +226,7 @@ const AddStatusDialog = ({
                             className="pr-10"
                         />
                         <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={handlePublish}>
-                            <Send/>
+                            <FaPaperPlane/>
                         </Button>
                     </div>
                 </div>
@@ -287,7 +287,7 @@ const UpdatesPage = () => {
                 </Avatar>
                 {!myStatus && (
                  <div className="absolute -bottom-1 -right-1 bg-background rounded-full">
-                   <PlusCircle className="h-6 w-6 text-primary" />
+                   <FaPlusCircle className="h-6 w-6 text-primary" />
                  </div>
                 )}
               </div>
@@ -300,7 +300,7 @@ const UpdatesPage = () => {
              <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar className="h-14 w-14">
-                  <AvatarFallback><User/></AvatarFallback>
+                  <AvatarFallback><FaUser/></AvatarFallback>
                 </Avatar>
               </div>
               <div>

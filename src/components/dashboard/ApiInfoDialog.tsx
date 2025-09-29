@@ -5,9 +5,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FaCopy, FaInfoCircle } from 'react-icons/fa';
+import { FaCopy, FaInfoCircle, FaCode } from 'react-icons/fa';
 import { AssistantConfig } from '@/types';
-import { Code } from 'lucide-react';
 
 interface ApiInfoDialogProps {
   isOpen: boolean;
@@ -50,7 +49,7 @@ const ApiInfoDialog = ({ isOpen, onOpenChange, assistant }: ApiInfoDialogProps) 
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Code /> Información de la API para "{assistant.name}"
+            <FaCode /> Información de la API para "{assistant.name}"
           </DialogTitle>
           <DialogDescription>
             Usa esta información para integrar tu asistente de escritorio en una aplicación web o de escritorio.

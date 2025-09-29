@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,7 +14,6 @@ import { AssistantConfig, ChatMessage } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
-import { Paperclip, User } from 'lucide-react';
 import Image from 'next/image';
 import BusinessInfoSheet from '@/components/chat/BusinessInfoSheet';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
@@ -418,7 +417,7 @@ const DesktopChatPage = () => {
               </Button>
               <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50">
                   <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-                  <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <User />}</AvatarFallback>
+                  <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
               </Avatar>
               <div className="overflow-hidden">
                 <div className="flex items-center gap-1.5">
@@ -466,7 +465,7 @@ const DesktopChatPage = () => {
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isSending || !!error}
                       >
-                      <Paperclip className="h-5 w-5" />
+                      <FaPaperclip className="h-5 w-5" />
                       </Button>
                       <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
                       <Input

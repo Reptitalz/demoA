@@ -16,11 +16,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { MessagesSquare, Coins, Wallet as WalletIcon, Loader2 } from 'lucide-react';
 import { CREDIT_PACKAGES, MESSAGES_PER_CREDIT, PRICE_PER_CREDIT, MAX_CUSTOM_CREDITS } from '@/config/appConfig';
 import { Button } from '../ui/button';
 import PersonalInfoDialog from './PersonalInfoDialog';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { FaCoins, FaRegCommentDots, FaWallet, FaSpinner } from 'react-icons/fa';
 
 interface RechargeCreditsDialogProps {
   isOpen: boolean;
@@ -129,7 +129,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <WalletIcon className="h-6 w-6 text-primary" /> Recargar Saldo
+            <FaWallet className="h-6 w-6 text-primary" /> Recargar Saldo
           </DialogTitle>
           <DialogDescription>
             Añade créditos a tu cuenta para continuar usando tus asistentes.
@@ -152,12 +152,12 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                         <p className="text-sm text-muted-foreground mb-1">Saldo Actual</p>
                         <div className="flex items-center justify-center gap-6">
                             <div className="flex items-center gap-2">
-                                <Coins className="h-5 w-5 text-accent" />
+                                <FaCoins className="h-5 w-5 text-accent" />
                                 <p className="text-2xl font-bold">{userProfile.credits || 0}</p>
                                 <span className="text-xs text-muted-foreground mt-2">Créditos</span>
                             </div>
                             <div className="flex items-center justify-center gap-2">
-                                <MessagesSquare className="h-5 w-5 text-accent" />
+                                <FaRegCommentDots className="h-5 w-5 text-accent" />
                                 <p className="text-2xl font-bold">{availableMessages.toLocaleString()}</p>
                                 <span className="text-xs text-muted-foreground mt-2">Mensajes</span>
                             </div>
@@ -227,7 +227,7 @@ const RechargeCreditsDialog = ({ isOpen, onOpenChange }: RechargeCreditsDialogPr
                             onClick={handleCreatePreference}
                             disabled={isButtonDisabled}
                             >
-                            {isProcessing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                            {isProcessing ? <FaSpinner className="animate-spin mr-2 h-4 w-4" /> : null}
                             Pagar con Mercado Pago
                         </Button>
                         <p className="text-center text-xs text-muted-foreground">Paga con SPEI, OXXO, saldo en cuenta y más.</p>

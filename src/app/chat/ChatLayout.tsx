@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Camera, User, Crown, Package, Bot, DollarSign, Banknote } from 'lucide-react';
+import { FaComment, FaCamera, FaUser, FaCrown, FaArchive, FaRobot, FaDollarSign, FaMoneyBillWave } from 'react-icons/fa';
 
 export type AdminView = 'bank' | 'credit' | 'products' | 'assistants';
 
@@ -74,8 +74,8 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 }
 
 const menuItems = [
-    { path: '/chat/dashboard', icon: MessageSquare, label: 'Chats' },
-    { path: '/chat/updates', icon: Camera, label: 'Novedades' },
-    { path: '/chat/profile', icon: User, label: 'Perfil' },
-    { path: '/chat/admin', icon: Crown, label: 'Miembro' },
+    { path: '/chat/dashboard', icon: FaComment, label: 'Chats' },
+    { path: '/chat/updates', icon: FaCamera, label: 'Novedades' },
+    { path: '/chat/profile', icon: FaUser, label: 'Perfil' },
+    { path: '/chat/admin', icon: FaCrown, label: 'Miembro' },
 ];

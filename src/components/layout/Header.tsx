@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Download, LogIn } from 'lucide-react';
+import { FaDownload, FaSignInAlt } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 
 interface HeaderProps {
@@ -16,6 +16,13 @@ interface HeaderProps {
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
   const router = useRouter();
+  const [isPWA, setIsPWA] = React.useState(false);
+
+    React.useEffect(() => {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            setIsPWA(true);
+        }
+    }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm border-b">
@@ -27,12 +34,14 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
-                <LogIn className="mr-2 h-4 w-4" />
+                <FaSignInAlt className="mr-2 h-4 w-4" />
                 Iniciar sesión
             </Button>
+            {!isPWA && (
              <Button onClick={() => router.push('/access')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-sm">
-                <Download className="mr-2 h-4 w-4" /> Instalar App
+                <FaDownload className="mr-2 h-4 w-4" /> Instalar App
             </Button>
+            )}
         </div>
       </div>
     </header>

@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { User, Bell, Key, Shield, HelpCircle, LogOut } from 'lucide-react';
+import { FaUser, FaBell, FaKey, FaShieldAlt, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
 import { signOut, useSession, signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
@@ -84,7 +84,7 @@ const ChatProfilePage = () => {
             <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
                      <AvatarImage src={session?.user?.image || undefined} />
-                    <AvatarFallback><User size={28}/></AvatarFallback>
+                    <AvatarFallback><FaUser size={28}/></AvatarFallback>
                 </Avatar>
                 <div>
                      <p className="text-xl font-bold">{session?.user?.name || 'Invitado'}</p>
@@ -102,17 +102,17 @@ const ChatProfilePage = () => {
             
             {/* Menu Options */}
             <div className="space-y-1">
-                <ProfileLink icon={User} text="Cuenta" />
-                <ProfileLink icon={Bell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
-                <ProfileLink icon={Key} text="Privacidad" />
-                <ProfileLink icon={Shield} text="Seguridad" />
-                <ProfileLink icon={HelpCircle} text="Ayuda" />
+                <ProfileLink icon={FaUser} text="Cuenta" />
+                <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
+                <ProfileLink icon={FaKey} text="Privacidad" />
+                <ProfileLink icon={FaShieldAlt} text="Seguridad" />
+                <ProfileLink icon={FaQuestionCircle} text="Ayuda" />
             </div>
 
              {status === 'authenticated' && (
                 <>
                     <Separator />
-                    <ProfileLink icon={LogOut} text="Cerrar Sesión" onClick={handleLogout} />
+                    <ProfileLink icon={FaSignOutAlt} text="Cerrar Sesión" onClick={handleLogout} />
                 </>
             )}
 

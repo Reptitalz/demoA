@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
-import { FaRobot, FaPlus } from "react-icons/fa";
+import { FaRobot, FaPlus, FaCoins, FaWallet, FaRegCommentDots } from "react-icons/fa";
 import { useState } from 'react';
 import RechargeCreditsDialog from './RechargeCreditsDialog';
 import { MESSAGES_PER_CREDIT } from "@/config/appConfig";
@@ -11,7 +10,6 @@ import MessagesInfoDialog from "./MessagesInfoDialog";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import PlansDialog from "./PlansDialog"; // Import the new dialog
-import { FaStar, FaWallet, FaRegCommentDots } from "react-icons/fa";
 
 interface DashboardSummaryProps {
   currentPath: string;
@@ -58,7 +56,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
 
   const allSummaryCards = [
     { id: 'assistants', title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
-    { id: 'plans', title: 'Planes', value: purchasedUnlimitedPlans || 0, description: 'Planes ilimitados', icon: FaStar, color: 'text-yellow-500', action: handlePlansClick },
+    { id: 'plans', title: 'Planes', value: purchasedUnlimitedPlans || 0, description: 'Planes ilimitados', icon: FaRobot, color: 'text-yellow-500', action: handlePlansClick },
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: FaWallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 

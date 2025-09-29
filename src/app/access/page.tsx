@@ -4,9 +4,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_NAME } from '@/config/appConfig';
+import { FaArrowRight, FaDownload } from 'react-icons/fa';
 
 /*
   New AccessPage:
@@ -237,11 +237,11 @@ export default function AccessPage(): JSX.Element {
             <Button size="lg" onClick={handlePrimaryAction}>
               {isInstallable ? (
                 <>
-                  <Download className="mr-2 h-5 w-5" /> Instalar App
+                  <FaDownload className="mr-2 h-5 w-5" /> Instalar App
                 </>
               ) : (
                 <>
-                  Continuar a la App <ArrowRight className="ml-2 h-5 w-5" />
+                  Continuar a la App <FaArrowRight className="ml-2 h-5 w-5" />
                 </>
               )}
             </Button>

@@ -9,7 +9,6 @@ import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { FaSpinner, FaSave, FaUser, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
 import type { UserAddress, UserProfile } from '@/types';
-import { Loader2 } from 'lucide-react';
 
 interface PersonalInfoDialogProps {
   isOpen: boolean;
@@ -118,7 +117,7 @@ const PersonalInfoDialog = ({ isOpen, onOpenChange }: PersonalInfoDialogProps) =
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancelar</Button>
           <Button onClick={handleSaveChanges} disabled={isSaving}>
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FaSave className="mr-2 h-4 w-4" />}
+            {isSaving ? <FaSpinner className="mr-2 h-4 w-4 animate-spin" /> : <FaSave className="mr-2 h-4 w-4" />}
             Guardar Cambios
           </Button>
         </DialogFooter>

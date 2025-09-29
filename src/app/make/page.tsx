@@ -8,10 +8,9 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { FaGoogle, FaDatabase } from 'react-icons/fa';
+import { FaGoogle, FaDatabase, FaWand2, FaPaperclip, FaSpinner } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Wand2, Paperclip, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -137,7 +136,7 @@ const MakePage = () => {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="outline" size="icon" title="Adjuntar base de datos" disabled={isUploading}>
-                                            {isUploading ? <Loader2 className="animate-spin" /> : <Paperclip />}
+                                            {isUploading ? <FaSpinner className="animate-spin" /> : <FaPaperclip />}
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -167,7 +166,7 @@ const MakePage = () => {
                                     onClick={handleCreateAssistant}
                                     disabled={isCreating || isUploading}
                                 >
-                                    {isCreating ? 'Generando...' : <><Wand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
+                                    {isCreating ? 'Generando...' : <><FaWand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
                                 </Button>
                             </div>
                         </div>
@@ -179,5 +178,3 @@ const MakePage = () => {
 };
 
 export default MakePage;
-
-    

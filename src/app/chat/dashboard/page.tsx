@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Bot, User, MessageSquarePlus, Trash2, XCircle, HardDrive } from 'lucide-react';
+import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaTimesCircle, FaHdd } from 'react-icons/fa';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
     if (assistant.isPlanActive) {
       return (
         <Badge variant="default" className="bg-primary/80 text-[10px] h-4">
-          <User className="mr-1 h-2.5 w-2.5" /> Plan Activo
+          <FaUser className="mr-1 h-2.5 w-2.5" /> Plan Activo
         </Badge>
       );
     }
@@ -83,7 +83,7 @@ const ChatListPage = () => {
             <span>{APP_NAME}</span>
         </h1>
         <div className="relative mt-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Buscar chats..." 
               className="pl-10 bg-background/50" 
@@ -112,11 +112,11 @@ const ChatListPage = () => {
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
                             <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-gray-500/20 hover:bg-gray-500/30 rounded-none">
-                                <Trash2 size={20}/>
+                                <FaTrash size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
                              <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
-                                <XCircle size={20}/>
+                                <FaTimesCircle size={20}/>
                                 <span className="text-xs mt-1">Limpiar</span>
                             </Button>
                         </motion.div>
@@ -131,7 +131,7 @@ const ChatListPage = () => {
                             className="absolute inset-y-0 left-0 flex items-center"
                         >
                             <Button variant="ghost" className="h-full w-28 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5">
-                                <HardDrive size={20}/>
+                                <FaHdd size={20}/>
                                 <span className="text-xs">Memoria</span>
                                 <span className="text-[10px] font-bold">{formatBytes(123456)}</span>
                             </Button>
@@ -186,7 +186,7 @@ const ChatListPage = () => {
                                 <Avatar className="h-12 w-12 border-2 border-primary/30">
                                     <AvatarImage src={chat.imageUrl} alt={chat.name} />
                                     <AvatarFallback className="text-lg bg-muted">
-                                        {chat.name ? chat.name.charAt(0) : <User />}
+                                        {chat.name ? chat.name.charAt(0) : <FaUser />}
                                     </AvatarFallback>
                                 </Avatar>
                             </motion.div>
@@ -227,7 +227,7 @@ const ChatListPage = () => {
             )
           }) : (
              <div className="text-center py-20 px-4 text-muted-foreground">
-                <Bot className="mx-auto h-12 w-12 mb-4" />
+                <FaRobot className="mx-auto h-12 w-12 mb-4" />
                 <p className="font-semibold">No tienes asistentes de escritorio.</p>
                 <p className="text-sm">
                     {userProfile.isAuthenticated 
@@ -246,7 +246,7 @@ const ChatListPage = () => {
             size="icon"
             title="Añadir nuevo contacto"
           >
-            <MessageSquarePlus className="h-6 w-6" />
+            <FaPlus className="h-6 w-6" />
           </Button>
         
     </div>

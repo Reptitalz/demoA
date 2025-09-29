@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaTrash, FaAddressBook, FaPhone, FaImage, FaDesktop } from 'react-icons/fa';
+import { FaTrash, FaAddressBook, FaPhone, FaImage, FaDesktop, FaSearch } from 'react-icons/fa';
 import type { DatabaseConfig, Contact, AssistantConfig } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
-import { Loader2, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { formatBytes } from '@/lib/utils';
 import ContactImagesDialog from './ContactImagesDialog';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface ContactsDialogProps {
   isOpen: boolean;
@@ -107,7 +107,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
         
         <div className="flex-grow flex flex-col space-y-3">
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Buscar por teléfono o ID de sesión..."
                     value={searchTerm}

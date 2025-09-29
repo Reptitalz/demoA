@@ -11,7 +11,7 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import { Button } from "./button"
-import { Copy } from "lucide-react"
+import { FaCopy } from "react-icons/fa"
 
 export function Toaster() {
   const { toasts } = useToast()
@@ -38,7 +38,7 @@ export function Toaster() {
             {action}
             {copyable && (
               <Button variant="outline" size="sm" onClick={handleCopy} className="mt-2">
-                <Copy className="mr-2 h-4 w-4"/>
+                <FaCopy className="mr-2 h-4 w-4"/>
                 Copiar
               </Button>
             )}
