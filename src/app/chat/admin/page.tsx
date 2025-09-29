@@ -1,4 +1,3 @@
-
 // src/app/chat/admin/page.tsx
 "use client";
 
@@ -40,10 +39,7 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
                 { icon: ShoppingCart, text: 'Catálogo de solo 5 artículos para la venta.' },
                 { icon: CreditCard, text: 'Solo se puede ofrecer una línea de crédito.' },
             ],
-            button: <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
-                        <Star className="mr-2 h-3 w-3"/>
-                        Mejorar Plan
-                    </Button>
+            button: <Button size="sm" className="w-full text-xs mt-2" disabled>Actualmente Activo</Button>
         },
         {
             name: "Plan Mensual: Ilimitado",
