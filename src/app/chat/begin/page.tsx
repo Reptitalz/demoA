@@ -34,7 +34,7 @@ const BeginPage = () => {
     const router = useRouter();
 
     const [accountType, setAccountType] = useState<'business' | 'personal'>('personal');
-    const [chatMode, setChatMode] = useState<'ia' | 'me'>('ia');
+    const [chatMode, setChatMode] = useState<'ia' | 'me'>('me');
     const scrollRef = useRef<HTMLDivElement>(null);
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
@@ -55,35 +55,35 @@ const BeginPage = () => {
 
     const accountTypeCards = [
         {
-            type: 'business',
-            icon: Building,
-            title: 'Cuenta de Negocio',
-            description: 'Accede a funciones avanzadas, gestión de equipos y soporte prioritario.',
-            badge: true,
-        },
-        {
             type: 'personal',
             icon: User,
             title: 'Cuenta Personal',
             description: 'Ideal para probar la plataforma, proyectos personales y uso individual.',
             badge: false,
         },
+        {
+            type: 'business',
+            icon: Building,
+            title: 'Cuenta de Negocio',
+            description: 'Accede a funciones avanzadas, gestión de equipos y soporte prioritario.',
+            badge: true,
+        },
     ];
 
     const chatModeCards = [
-        {
-            type: 'ia',
-            icon: Brain,
-            title: 'Quiero un Asistente IA',
-            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
-            badge: true,
-        },
         {
             type: 'me',
             icon: User,
             title: 'Yo responderé solamente',
             description: 'Tú responderás personalmente a todos los mensajes en tu chat.',
             badge: false,
+        },
+        {
+            type: 'ia',
+            icon: Brain,
+            title: 'Quiero un Asistente IA',
+            description: 'Un asistente inteligente responderá automáticamente en tu chat principal, cuando tú lo desees.',
+            badge: true,
         },
     ];
     
@@ -593,4 +593,5 @@ const BeginPage = () => {
 
 export default BeginPage;
 
+    
     
