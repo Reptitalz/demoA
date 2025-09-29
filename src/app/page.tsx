@@ -10,6 +10,158 @@ import { Check, ArrowRight, Bot, Settings, Smartphone, Cpu, Bank, CreditCard, Ap
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 
+const PhoneCanvas = () => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const mousePos = useRef({ x: 0, y: 0 });
+
+    const handleMouseMove = useCallback((e: MouseEvent) => {
+        if (!canvasRef.current) return;
+        const rect = canvasRef.current.getBoundingClientRect();
+        mousePos.current = {
+            x: (e.clientX - rect.left - rect.width / 2) / (rect.width / 2),
+            y: (e.clientY - rect.top - rect.height / 2) / (rect.height / 2),
+        };
+    }, []);
+
+    useEffect(() => {
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, [handleMouseMove]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.scale(dpr, dpr);
+
+        let frame = 0;
+        let animationFrameId: number;
+
+        const drawPhone = (rotationX: number, rotationY: number) => {
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+            const phoneW = w * 0.5;
+            const phoneH = phoneW * 1.95;
+            const x = (w - phoneW) / 2;
+            const y = (h - phoneH) / 2;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 3D transform based on rotation
+            ctx.save();
+            ctx.translate(w / 2, h / 2);
+            ctx.rotate(rotationX * -0.1);
+            ctx.translate(-w / 2, -h / 2);
+            ctx.translate(0, rotationY * -10);
+
+            // Shadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetX = rotationX * -10 + 5;
+            ctx.shadowOffsetY = 15;
+            
+            // Phone Body
+            ctx.fillStyle = '#1C1C1E';
+            ctx.beginPath();
+            ctx.roundRect(x, y, phoneW, phoneH, 30);
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent'; // Reset shadow
+
+            // Screen
+            const screenMargin = 10;
+            const screenW = phoneW - screenMargin * 2;
+            const screenH = phoneH - screenMargin * 2;
+            const screenX = x + screenMargin;
+            const screenY = y + screenMargin;
+            ctx.fillStyle = '#f0f5ff';
+            ctx.beginPath();
+            ctx.roundRect(screenX, screenY, screenW, screenH, 20);
+            ctx.fill();
+            
+            // Notch
+            ctx.fillStyle = '#1C1C1E';
+            ctx.beginPath();
+            ctx.roundRect(x + phoneW / 2 - 40, y + screenMargin, 80, 5, 2.5);
+            ctx.fill();
+
+            // Draw chat bubbles
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(screenX, screenY, screenW, screenH);
+            ctx.clip();
+
+            const bubblePadding = 10;
+            const bubbleW = screenW - bubblePadding * 2;
+            
+            const drawBubble = (text: string, isUser: boolean, yPos: number, delay: number) => {
+                const bubbleX = screenX + bubblePadding;
+                const progress = Math.max(0, Math.min(1, (frame - delay) / 30));
+                if (progress === 0) return;
+
+                ctx.font = '10px sans-serif';
+                const metrics = ctx.measureText(text);
+                const textWidth = metrics.width;
+                const bubbleHeight = 24;
+
+                ctx.globalAlpha = progress;
+                ctx.fillStyle = isUser ? 'hsl(var(--primary))' : '#ffffff';
+                ctx.beginPath();
+                if (isUser) {
+                    ctx.roundRect(bubbleX + bubbleW - (textWidth + 20) * progress, yPos, textWidth + 20, bubbleHeight, 12);
+                } else {
+                    ctx.roundRect(bubbleX, yPos, (textWidth + 20) * progress, bubbleHeight, 12);
+                }
+                ctx.fill();
+
+                ctx.fillStyle = isUser ? '#ffffff' : '#000000';
+                if(progress > 0.8) {
+                    ctx.globalAlpha = (progress - 0.8) / 0.2;
+                    ctx.fillText(text, isUser ? bubbleX + bubbleW - textWidth - 10 : bubbleX + 10, yPos + bubbleHeight / 2 + 3);
+                }
+            };
+            
+            ctx.globalAlpha = 1;
+
+            drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + 20, 0);
+            drawBubble('Quiero un reporte de ventas.', true, screenY + 50, 60);
+            drawBubble('Claro, consultando la base de datos...', false, screenY + 80, 120);
+            
+            ctx.restore();
+            ctx.restore();
+        };
+
+        const animate = () => {
+            frame++;
+            const targetRotationX = mousePos.current.x * 0.3;
+            const targetRotationY = mousePos.current.y * 0.3;
+            
+            // Lerp for smooth rotation
+            let currentRotationX = 0;
+            let currentRotationY = 0;
+
+            const lerp = (start: number, end: number, amt: number) => (1 - amt) * start + amt * end;
+
+            currentRotationX = lerp(currentRotationX, targetRotationX, 0.05);
+            currentRotationY = lerp(currentRotationY, targetRotationY, 0.05);
+
+            drawPhone(targetRotationX, targetRotationY);
+            animationFrameId = requestAnimationFrame(animate);
+        };
+        animate();
+
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [handleMouseMove]);
+
+
+    return <canvas ref={canvasRef} className="w-full h-full" />;
+};
+
 
 const AnimatedStepCircle = ({ number }: { number: number }) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -109,27 +261,28 @@ const NewHomepage = () => {
   return (
     <PageContainer className="p-0" fullWidth={true}>
       {/* Hero Section */}
-      <section className="relative text-center pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+      <section className="relative pt-24 pb-20 md:pt-32 md:pb-28 overflow-hidden">
           <div 
             className="absolute inset-0 z-0 opacity-20"
             style={{
                 backgroundImage: 'radial-gradient(circle, hsl(var(--primary) / 0.1), transparent 60%), radial-gradient(circle, hsl(var(--accent) / 0.05), transparent 70%)',
             }}
           />
-          <div className="container max-w-4xl mx-auto px-4 relative z-10">
+          <div className="container mx-auto px-4 relative z-10 grid md:grid-cols-2 gap-8 items-center">
               <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
+                  className="text-center md:text-left"
               >
-                  <AppIcon className="h-20 w-20 mx-auto mb-4" />
+                  <AppIcon className="h-20 w-20 mx-auto md:mx-0 mb-4" />
                   <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
                       Automatiza tu Negocio con <span className="text-brand-gradient">Asistentes Inteligentes</span>
                   </h1>
-                  <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                  <p className="mt-4 max-w-xl mx-auto md:mx-0 text-lg text-muted-foreground">
                       Crea, gestiona y despliega asistentes de IA para tu negocio. Automatiza ventas, soporte y más. Todo desde una PWA ligera y potente.
                   </p>
-                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                       <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
                           <Link href="/begin"><Bot className="mr-2"/>Crear Asistente Gratis</Link>
                       </Button>
@@ -137,10 +290,18 @@ const NewHomepage = () => {
                           <Link href="#features">Ver Funciones</Link>
                       </Button>
                   </div>
-                  <div className="mt-6 flex justify-center gap-4 text-xs text-muted-foreground">
+                  <div className="mt-6 flex justify-center md:justify-start gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1.5"><Check size={14} className="text-green-500" /> Prueba gratuita</span>
                       <span className="flex items-center gap-1.5"><Check size={14} className="text-green-500" /> Sin tarjeta requerida</span>
                   </div>
+              </motion.div>
+              <motion.div 
+                className="h-[500px] w-full max-w-sm mx-auto"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+               >
+                  <PhoneCanvas />
               </motion.div>
           </div>
       </section>
