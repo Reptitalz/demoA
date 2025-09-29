@@ -5,11 +5,12 @@ import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Download, LogIn } from 'lucide-react';
+import { Download, LogIn, Apple } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
+import { FaAndroid } from 'react-icons/fa';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -20,46 +21,89 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
   const { toast } = useToast();
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [isPWA, setIsPWA] = useState(false);
+  const [platform, setPlatform] = useState<'ios' | 'android' | 'web'>('web');
 
   useEffect(() => {
-    // Check if running as a PWA
-    if (typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone)) {
-      setIsPWA(true);
+    if (typeof window !== 'undefined') {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        if (/iphone|ipad|ipod/.test(userAgent)) {
+            setPlatform('ios');
+        } else if (/android/.test(userAgent)) {
+            setPlatform('android');
+        }
+
+        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+            setIsPWA(true);
+        }
+
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredInstallPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
     }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later.
-      setDeferredInstallPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
   }, []);
 
   const handleInstallClick = () => {
-    if (deferredInstallPrompt) {
-      // Show the install prompt
-      deferredInstallPrompt.prompt();
-      // Wait for the user to respond to the prompt
-      deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
-        if (choiceResult.outcome === 'accepted') {
-          toast({
-            title: "¡Aplicación Instalada!",
-            description: `Gracias por instalar ${APP_NAME}.`,
-          });
-        }
-        setDeferredInstallPrompt(null);
-      });
-    } else {
-      // If no prompt is available, just navigate to the access page which explains how to install
-      router.push('/access');
+    switch(platform) {
+        case 'ios':
+            window.location.href = '/app.ipa';
+            break;
+        case 'android':
+            window.location.href = '/app.apk';
+            break;
+        case 'web':
+        default:
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                deferredInstallPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        toast({ title: "¡Aplicación Instalada!", description: `Gracias por instalar ${APP_NAME}.` });
+                    }
+                    setDeferredInstallPrompt(null);
+                });
+            } else {
+                router.push('/access');
+            }
+            break;
     }
   };
+
+  const InstallButton = useMemo(() => {
+    if (isPWA) {
+        return (
+            <Button onClick={() => router.push('/login')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+                <LogIn className="mr-2 h-4 w-4" />
+                Iniciar sesión
+            </Button>
+        );
+    }
+    
+    switch(platform) {
+        case 'ios':
+            return (
+                <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+                    <Apple className="mr-2 h-4 w-4" /> Descargar para iPhone
+                </Button>
+            );
+        case 'android':
+            return (
+                <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+                    <FaAndroid className="mr-2 h-4 w-4" /> Descargar para Android
+                </Button>
+            );
+        case 'web':
+        default:
+             return (
+                <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
+                    <Download className="mr-2 h-4 w-4" /> Instalar App
+                </Button>
+            );
+    }
+  }, [isPWA, platform, deferredInstallPrompt, router]);
 
   return (
     <header className="relative z-20 max-w-7xl mx-auto px-6 py-6 flex items-center justify-between w-full">
@@ -74,17 +118,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         
         <div className="flex items-center gap-2">
-            {isPWA ? (
-            <Button onClick={() => router.push('/login')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
-                <LogIn className="mr-2 h-4 w-4" />
-                Iniciar sesión
-            </Button>
-            ) : (
-            <Button onClick={handleInstallClick} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs sm:text-sm">
-                <Download className="mr-2 h-4 w-4" />
-                Instalar
-            </Button>
-            )}
+            {InstallButton}
         </div>
       </header>
   );
