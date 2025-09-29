@@ -23,6 +23,214 @@ import { motion } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 
+const drawNavPreview = (ctx: CanvasRenderingContext2D, t: number) => {
+    const w = ctx.canvas.width / (window.devicePixelRatio || 1);
+    const h = ctx.canvas.height / (window.devicePixelRatio || 1);
+
+    ctx.clearRect(0, 0, w, h);
+    
+    const navHeight = 50;
+    const navY = (h - navHeight) / 2;
+    ctx.fillStyle = 'hsl(var(--card))';
+    ctx.strokeStyle = 'hsl(var(--border))';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(w * 0.1, navY, w * 0.8, navHeight, 25);
+    ctx.fill();
+    ctx.stroke();
+
+    const icons = ['panel', 'clientes', 'banco', 'perfil'];
+    const iconCount = icons.length;
+    const totalWidth = w * 0.8;
+    const iconSpacing = totalWidth / iconCount;
+
+    const scrollSpeed = 20;
+    const scrollOffset = (t / 1000 * scrollSpeed) % (iconSpacing * iconCount);
+
+    const drawIconSet = (offset: number) => {
+        icons.forEach((icon, index) => {
+            let x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
+             if (x < w * 0.1 - iconSpacing/2) {
+                x += iconSpacing * iconCount;
+            }
+
+            const y = navY + navHeight / 2;
+            const isHighlighted = icon === 'banco';
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            
+            if (isHighlighted) {
+                const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+                const radius = 18 + 2 * highlightProgress;
+                const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+                glow.addColorStop(0, `hsla(262, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
+                glow.addColorStop(1, 'transparent');
+                ctx.fillStyle = glow;
+                ctx.fillRect(x - 40, y - 40, 80, 80);
+
+                ctx.fillStyle = 'hsl(var(--primary))';
+                ctx.beginPath();
+                ctx.arc(x, y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1.5;
+                const iconSize = 7;
+                const iconY = y - 5;
+                ctx.fillRect(x - iconSize, iconY + iconSize/2, iconSize * 2, iconSize / 4);
+                ctx.fillRect(x - iconSize * 0.7, iconY - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x - iconSize * 0.2, iconY - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x + iconSize * 0.3, iconY - iconSize/2, iconSize / 3, iconSize);
+                ctx.beginPath();
+                ctx.moveTo(x - iconSize - 2, iconY - iconSize/2);
+                ctx.lineTo(x, iconY - iconSize * 1.2);
+                ctx.lineTo(x + iconSize + 2, iconY - iconSize/2);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.font = `bold 9px sans-serif`;
+                ctx.fillText('Banco', x, y + 12);
+            } else {
+                ctx.font = `12px sans-serif`;
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'hsl(var(--muted-foreground))';
+                ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
+            }
+            
+            ctx.restore();
+        });
+    };
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(w * 0.1, navY, w * 0.8, navHeight);
+    ctx.clip();
+    drawIconSet(scrollOffset);
+    ctx.restore();
+};
+
+const drawDbPreview = (ctx: CanvasRenderingContext2D, t: number) => {
+    const w = ctx.canvas.width / (window.devicePixelRatio || 1);
+    const h = ctx.canvas.height / (window.devicePixelRatio || 1);
+
+    ctx.clearRect(0, 0, w, h);
+
+    const x = w / 2;
+    const floatY = Math.sin(t / 600) * 5;
+    const y = h / 2 + floatY;
+    const size = 20;
+    
+    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+    const radius = size * 1.2 + 4 * highlightProgress;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+    glow.addColorStop(0, `hsla(210, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - 80, y - 80, 160, 160);
+
+    ctx.fillStyle = 'hsl(210, 80%, 58%)';
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2.5;
+    const dbSize = 10;
+    ctx.beginPath();
+    ctx.ellipse(x, y - dbSize / 2, dbSize, dbSize / 2, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - dbSize, y - dbSize / 2);
+    ctx.lineTo(x - dbSize, y + dbSize / 2);
+    ctx.ellipse(x, y + dbSize / 2, dbSize, dbSize / 2, 0, Math.PI, Math.PI * 2);
+    ctx.lineTo(x + dbSize, y - dbSize / 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'hsl(var(--foreground))';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('Catálogo de Productos', x, y + size + 18);
+};
+
+const drawCreditPreview = (ctx: CanvasRenderingContext2D, t: number) => {
+    const w = ctx.canvas.width / (window.devicePixelRatio || 1);
+    const h = ctx.canvas.height / (window.devicePixelRatio || 1);
+
+    ctx.clearRect(0, 0, w, h);
+
+    const x = w / 2;
+    const floatY = Math.sin(t / 600) * 5;
+    const y = h / 2 + floatY;
+    const size = 20;
+    
+    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+    const radius = size * 1.2 + 4 * highlightProgress;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+    glow.addColorStop(0, `hsla(120, 60%, 45%, ${0.3 + highlightProgress * 0.2})`); // Green glow
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - 80, y - 80, 160, 160);
+
+    ctx.fillStyle = 'hsl(120, 60%, 45%)';
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('$', x, y);
+
+    ctx.fillStyle = 'hsl(var(--foreground))';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('Gestión de Créditos', x, y + size + 18);
+};
+
+const AnimatedCanvas = ({ newsId }: { newsId: string }) => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        
+        const setupCanvas = (canvas: HTMLCanvasElement) => {
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.parentElement!.clientWidth;
+            const h = 100;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = `${w}px`;
+            canvas.style.height = `${h}px`;
+            const ctx = canvas.getContext('2d');
+            if (ctx) ctx.scale(dpr, dpr);
+            return ctx;
+        }
+
+        const ctx = setupCanvas(canvas);
+        if (!ctx) return;
+        
+        let animationFrameId: number;
+        const loop = (t: number) => {
+            if (newsId === 'bank') drawNavPreview(ctx, t);
+            else if (newsId === 'database') drawDbPreview(ctx, t);
+            else if (newsId === 'credit') drawCreditPreview(ctx, t);
+            animationFrameId = requestAnimationFrame(loop);
+        };
+        
+        animationFrameId = requestAnimationFrame(loop);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [newsId]);
+
+    return <canvas ref={canvasRef} />;
+};
+
 
 const BeginPage = () => {
     const { toast } = useToast();
@@ -40,9 +248,6 @@ const BeginPage = () => {
     const assistantTypeScrollRef = useRef<HTMLDivElement>(null);
     const chatModeScrollRef = useRef<HTMLDivElement>(null);
     const newsScrollRef = useRef<HTMLDivElement>(null);
-    const navCanvasRef = useRef<HTMLCanvasElement | null>(null);
-    const dbCanvasRef = useRef<HTMLCanvasElement | null>(null);
-    const creditCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const handleSelectOption = useCallback((option: 'desktop' | 'whatsapp') => {
         setSelectedOption(option);
@@ -112,220 +317,6 @@ const BeginPage = () => {
             description: "Si eres un vendedor de créditos, ahora puedes definir y gestionar líneas de crédito para tus clientes, permitiendo que tu asistente apruebe y registre préstamos.",
         }
     ];
-
-    const rafRef = useRef<number | null>(null);
-
-    const drawNavPreview = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
-        const w = ctx.canvas.width / (window.devicePixelRatio || 1);
-        const h = ctx.canvas.height / (window.devicePixelRatio || 1);
-
-        ctx.clearRect(0, 0, w, h);
-        
-        const navHeight = 50;
-        const navY = (h - navHeight) / 2;
-        ctx.fillStyle = 'hsl(var(--card))';
-        ctx.strokeStyle = 'hsl(var(--border))';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(w * 0.1, navY, w * 0.8, navHeight, 25);
-        ctx.fill();
-        ctx.stroke();
-
-        const icons = ['panel', 'clientes', 'banco', 'perfil'];
-        const iconCount = icons.length;
-        const totalWidth = w * 0.8;
-        const iconSpacing = totalWidth / iconCount;
-
-        const scrollSpeed = 20;
-        const scrollOffset = (t / 1000 * scrollSpeed) % (iconSpacing * iconCount);
-
-        const drawIconSet = (offset: number) => {
-            icons.forEach((icon, index) => {
-                let x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
-                 if (x < w * 0.1 - iconSpacing/2) {
-                    x += iconSpacing * iconCount;
-                }
-
-                const y = navY + navHeight / 2;
-                const isHighlighted = icon === 'banco';
-
-                ctx.save();
-                ctx.textAlign = 'center';
-                
-                if (isHighlighted) {
-                    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
-                    const radius = 18 + 2 * highlightProgress;
-                    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
-                    glow.addColorStop(0, `hsla(262, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
-                    glow.addColorStop(1, 'transparent');
-                    ctx.fillStyle = glow;
-                    ctx.fillRect(x - 40, y - 40, 80, 80);
-
-                    ctx.fillStyle = 'hsl(var(--primary))';
-                    ctx.beginPath();
-                    ctx.arc(x, y, 18, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = 'white';
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 1.5;
-                    const iconSize = 7;
-                    const iconY = y - 5;
-                    ctx.fillRect(x - iconSize, iconY + iconSize/2, iconSize * 2, iconSize / 4);
-                    ctx.fillRect(x - iconSize * 0.7, iconY - iconSize/2, iconSize / 3, iconSize);
-                    ctx.fillRect(x - iconSize * 0.2, iconY - iconSize/2, iconSize / 3, iconSize);
-                    ctx.fillRect(x + iconSize * 0.3, iconY - iconSize/2, iconSize / 3, iconSize);
-                    ctx.beginPath();
-                    ctx.moveTo(x - iconSize - 2, iconY - iconSize/2);
-                    ctx.lineTo(x, iconY - iconSize * 1.2);
-                    ctx.lineTo(x + iconSize + 2, iconY - iconSize/2);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    ctx.font = `bold 9px sans-serif`;
-                    ctx.fillText('Banco', x, y + 12);
-                } else {
-                    ctx.font = `12px sans-serif`;
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = 'hsl(var(--muted-foreground))';
-                    ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
-                }
-                
-                ctx.restore();
-            });
-        };
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(w * 0.1, navY, w * 0.8, navHeight);
-        ctx.clip();
-        drawIconSet(scrollOffset);
-        ctx.restore();
-
-    }, []);
-    
-    const drawDbPreview = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
-        const w = ctx.canvas.width / (window.devicePixelRatio || 1);
-        const h = ctx.canvas.height / (window.devicePixelRatio || 1);
-
-        ctx.clearRect(0, 0, w, h);
-
-        const x = w / 2;
-        const floatY = Math.sin(t / 600) * 5;
-        const y = h / 2 + floatY;
-        const size = 20;
-        
-        const highlightProgress = (Math.sin(t / 800) + 1) / 2;
-        const radius = size * 1.2 + 4 * highlightProgress;
-        const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
-        glow.addColorStop(0, `hsla(210, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
-        glow.addColorStop(1, 'transparent');
-        ctx.fillStyle = glow;
-        ctx.fillRect(x - 80, y - 80, 160, 160);
-
-        ctx.fillStyle = 'hsl(210, 80%, 58%)';
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2.5;
-        const dbSize = 10;
-        ctx.beginPath();
-        ctx.ellipse(x, y - dbSize / 2, dbSize, dbSize / 2, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x - dbSize, y - dbSize / 2);
-        ctx.lineTo(x - dbSize, y + dbSize / 2);
-        ctx.ellipse(x, y + dbSize / 2, dbSize, dbSize / 2, 0, Math.PI, Math.PI * 2);
-        ctx.lineTo(x + dbSize, y - dbSize / 2);
-        ctx.stroke();
-
-        ctx.fillStyle = 'hsl(var(--foreground))';
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillText('Catálogo de Productos', x, y + size + 18);
-
-    }, []);
-
-    const drawCreditPreview = useCallback((ctx: CanvasRenderingContext2D, t: number) => {
-        const w = ctx.canvas.width / (window.devicePixelRatio || 1);
-        const h = ctx.canvas.height / (window.devicePixelRatio || 1);
-
-        ctx.clearRect(0, 0, w, h);
-
-        const x = w / 2;
-        const floatY = Math.sin(t / 600) * 5;
-        const y = h / 2 + floatY;
-        const size = 20;
-        
-        const highlightProgress = (Math.sin(t / 800) + 1) / 2;
-        const radius = size * 1.2 + 4 * highlightProgress;
-        const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
-        glow.addColorStop(0, `hsla(120, 60%, 45%, ${0.3 + highlightProgress * 0.2})`); // Green glow
-        glow.addColorStop(1, 'transparent');
-        ctx.fillStyle = glow;
-        ctx.fillRect(x - 80, y - 80, 160, 160);
-
-        ctx.fillStyle = 'hsl(120, 60%, 45%)';
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 18px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('$', x, y);
-
-        ctx.fillStyle = 'hsl(var(--foreground))';
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillText('Gestión de Créditos', x, y + size + 18);
-
-    }, []);
-
-    useEffect(() => {
-        if (step !== 5) {
-            if(rafRef.current) cancelAnimationFrame(rafRef.current);
-            return;
-        }
-
-        const navCanvas = navCanvasRef.current;
-        const dbCanvas = dbCanvasRef.current;
-        const creditCanvas = creditCanvasRef.current;
-        let animationFrameId: number;
-
-        const setupCanvas = (canvas: HTMLCanvasElement) => {
-            const dpr = window.devicePixelRatio || 1;
-            const w = canvas.parentElement!.clientWidth;
-            const h = 100;
-            canvas.width = w * dpr;
-            canvas.height = h * dpr;
-            canvas.style.width = `${w}px`;
-            canvas.style.height = `${h}px`;
-            const ctx = canvas.getContext('2d');
-            if (ctx) ctx.scale(dpr, dpr);
-            return ctx;
-        }
-
-        const navCtx = navCanvas ? setupCanvas(navCanvas) : null;
-        const dbCtx = dbCanvas ? setupCanvas(dbCanvas) : null;
-        const creditCtx = creditCanvas ? setupCanvas(creditCanvas) : null;
-        
-        const loop = (t: number) => {
-            if (newsIndex === 0 && navCtx) drawNavPreview(navCtx, t);
-            if (newsIndex === 1 && dbCtx) drawDbPreview(dbCtx, t);
-            if (newsIndex === 2 && creditCtx) drawCreditPreview(creditCtx, t);
-            animationFrameId = requestAnimationFrame(loop);
-        };
-        animationFrameId = requestAnimationFrame(loop);
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-        };
-    }, [step, newsIndex, drawNavPreview, drawDbPreview, drawCreditPreview]);
-
 
     useEffect(() => {
         // This effect resets the scroll position of the carousels when the step changes.
@@ -767,13 +758,7 @@ const BeginPage = () => {
                                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
                                         <Card className="p-6 text-center glow-card h-full flex flex-col">
                                             <div className="mb-4 h-[100px] flex items-center justify-center">
-                                                {item.id === 'bank' ? (
-                                                    <canvas ref={navCanvasRef}/>
-                                                ) : item.id === 'database' ? (
-                                                     <canvas ref={dbCanvasRef}/>
-                                                ) : (
-                                                    <canvas ref={creditCanvasRef} />
-                                                )}
+                                               <AnimatedCanvas newsId={item.id} />
                                             </div>
                                             <CardTitle className="text-lg mb-2">{item.title}</CardTitle>
                                             <CardDescription className="text-sm">{item.description}</CardDescription>
@@ -893,11 +878,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
-
-    
-
-    
-
-    
