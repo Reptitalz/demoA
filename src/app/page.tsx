@@ -83,75 +83,14 @@ const PhoneCanvas = () => {
             ctx.roundRect(screenX, screenY, screenW, screenH, 20);
             ctx.fill();
             
-            const headerH = 40;
-            ctx.fillStyle = 'hsl(var(--card) / 0.8)';
-            ctx.beginPath();
-            ctx.roundRect(screenX, screenY, screenW, headerH, [20, 20, 0, 0]);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.moveTo(screenX, screenY + headerH);
-            ctx.lineTo(screenX + screenW, screenY + headerH);
-            ctx.strokeStyle = 'hsl(var(--border))';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-
-            const avatarRadius = 14;
-            ctx.fillStyle = 'hsl(var(--primary))';
-            ctx.beginPath();
-            ctx.arc(screenX + 25, screenY + headerH / 2, avatarRadius, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 12px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('A', screenX + 25, screenY + headerH / 2);
-            
-            ctx.fillStyle = 'hsl(var(--foreground))';
-            ctx.textAlign = 'left';
-            ctx.font = 'bold 12px sans-serif';
-            ctx.fillText('Asistente de Ventas', screenX + 50, screenY + headerH / 2 - 5);
-            ctx.font = '9px sans-serif';
-            ctx.fillStyle = 'hsl(var(--muted-foreground))';
-            ctx.fillText('en línea', screenX + 50, screenY + headerH / 2 + 8);
-
             ctx.fillStyle = '#1C1C1E';
             ctx.beginPath();
             ctx.roundRect(x + phoneW / 2 - 40, y + screenMargin, 80, 5, 2.5);
             ctx.fill();
 
-            const footerH = 45;
-            ctx.fillStyle = 'hsl(var(--background))';
-            ctx.fillRect(screenX, screenY + screenH - footerH, screenW, footerH);
-            ctx.beginPath();
-            ctx.moveTo(screenX, screenY + screenH - footerH);
-            ctx.lineTo(screenX + screenW, screenY + screenH - footerH);
-            ctx.stroke();
-            
-            ctx.fillStyle = 'hsl(var(--card))';
-            ctx.beginPath();
-            ctx.roundRect(screenX + 10, screenY + screenH - footerH + 8, screenW - 60, footerH - 16, 12);
-            ctx.fill();
-            ctx.fillStyle = 'hsl(var(--muted-foreground))';
-            ctx.font = '10px sans-serif';
-            ctx.fillText('Escribe un mensaje...', screenX + 20, screenY + screenH - footerH / 2 + 1);
-
-            ctx.fillStyle = 'hsl(var(--primary))';
-            ctx.beginPath();
-            ctx.arc(screenX + screenW - 28, screenY + screenH - footerH / 2, 14, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.save();
-            ctx.translate(screenX + screenW - 28, screenY + screenH - footerH/2);
-            ctx.rotate( -Math.PI / 4);
-            ctx.fillStyle = 'white';
-            ctx.font = '14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('➢', 0, 1);
-            ctx.restore();
-
             ctx.save();
             ctx.beginPath();
-            ctx.rect(screenX, screenY + headerH, screenW, screenH - headerH - footerH);
+            ctx.rect(screenX, screenY, screenW, screenH);
             ctx.clip();
 
             const bubblePadding = 10;
@@ -193,22 +132,22 @@ const PhoneCanvas = () => {
             
             ctx.globalAlpha = 1;
 
-            drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + headerH + 10, 0);
-            drawBubble('Quiero un reporte de ventas.', true, screenY + headerH + 40, 60);
+            drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + 20, 0);
+            drawBubble('Quiero un reporte de ventas.', true, screenY + 50, 60);
             
             const typingProgress = Math.max(0, Math.min(1, (frame - 120) / 20));
             if(typingProgress > 0) {
                  ctx.globalAlpha = typingProgress;
                  ctx.fillStyle = '#ffffff';
                  ctx.beginPath();
-                 ctx.roundRect(screenX + bubblePadding, screenY + headerH + 70, 50, 24, 12);
+                 ctx.roundRect(screenX + bubblePadding, screenY + 80, 50, 24, 12);
                  ctx.fill();
                  
                  const dotProgress = (frame - 130) % 60;
                  ctx.fillStyle = 'hsl(var(--muted-foreground))';
-                 if (dotProgress > 10) ctx.beginPath(); ctx.arc(screenX + bubblePadding + 15, screenY + headerH + 82, 2, 0, Math.PI * 2); ctx.fill();
-                 if (dotProgress > 20) ctx.beginPath(); ctx.arc(screenX + bubblePadding + 25, screenY + headerH + 82, 2, 0, Math.PI * 2); ctx.fill();
-                 if (dotProgress > 30) ctx.beginPath(); ctx.arc(screenX + bubblePadding + 35, screenY + headerH + 82, 2, 0, Math.PI * 2); ctx.fill();
+                 if (dotProgress > 10) { ctx.beginPath(); ctx.arc(screenX + bubblePadding + 15, screenY + 92, 2, 0, Math.PI * 2); ctx.fill(); }
+                 if (dotProgress > 20) { ctx.beginPath(); ctx.arc(screenX + bubblePadding + 25, screenY + 92, 2, 0, Math.PI * 2); ctx.fill(); }
+                 if (dotProgress > 30) { ctx.beginPath(); ctx.arc(screenX + bubblePadding + 35, screenY + 92, 2, 0, Math.PI * 2); ctx.fill(); }
             }
 
             ctx.restore();
