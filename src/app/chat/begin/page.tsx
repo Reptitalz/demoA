@@ -150,7 +150,7 @@ const BeginPage = () => {
 
                 ctx.fillStyle = 'hsl(var(--primary))';
                 ctx.beginPath();
-                ctx.arc(x, y, 15, 0, Math.PI * 2);
+                ctx.arc(x, y, 18, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Draw Bank Icon
@@ -158,20 +158,26 @@ const BeginPage = () => {
                 ctx.strokeStyle = 'white';
                 ctx.lineWidth = 1.5;
                 
-                const iconSize = 8;
+                const iconSize = 7;
+                const iconY = y - 5; // Move icon up
                 // Base
-                ctx.fillRect(x - iconSize, y + iconSize/2, iconSize * 2, iconSize / 4);
+                ctx.fillRect(x - iconSize, iconY + iconSize/2, iconSize * 2, iconSize / 4);
                 // Pillars
-                ctx.fillRect(x - iconSize * 0.7, y - iconSize/2, iconSize / 3, iconSize);
-                ctx.fillRect(x - iconSize * 0.2, y - iconSize/2, iconSize / 3, iconSize);
-                ctx.fillRect(x + iconSize * 0.3, y - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x - iconSize * 0.7, iconY - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x - iconSize * 0.2, iconY - iconSize/2, iconSize / 3, iconSize);
+                ctx.fillRect(x + iconSize * 0.3, iconY - iconSize/2, iconSize / 3, iconSize);
                 // Roof
                 ctx.beginPath();
-                ctx.moveTo(x - iconSize - 2, y - iconSize/2);
-                ctx.lineTo(x, y - iconSize * 1.2);
-                ctx.lineTo(x + iconSize + 2, y - iconSize/2);
+                ctx.moveTo(x - iconSize - 2, iconY - iconSize/2);
+                ctx.lineTo(x, iconY - iconSize * 1.2);
+                ctx.lineTo(x + iconSize + 2, iconY - iconSize/2);
                 ctx.closePath();
                 ctx.fill();
+
+                // Draw Text
+                ctx.font = `bold 9px sans-serif`;
+                ctx.fillText('Banco', x, y + 12);
+
 
             } else {
                 ctx.fillStyle = 'hsl(var(--muted-foreground))';
@@ -204,14 +210,15 @@ const BeginPage = () => {
         if (!ctx) return;
         ctx.scale(dpr, dpr);
 
+        let animationFrameId: number;
         const loop = (t: number) => {
             drawNavPreview(ctx, t);
-            rafRef.current = requestAnimationFrame(loop);
+            animationFrameId = requestAnimationFrame(loop);
         };
-        rafRef.current = requestAnimationFrame(loop);
+        animationFrameId = requestAnimationFrame(loop);
 
         return () => {
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            cancelAnimationFrame(animationFrameId);
         };
     }, [step, newsIndex, drawNavPreview]);
 
@@ -784,5 +791,3 @@ const BeginPage = () => {
 };
 
 export default BeginPage;
-
-    
