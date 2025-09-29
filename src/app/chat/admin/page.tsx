@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
 import type { AdminView } from '../ChatLayout';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
