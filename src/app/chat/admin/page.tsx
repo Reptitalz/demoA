@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { List, ListItem } from '@/components/ui/list';
 
-type AdminView = 'home' | 'bank' | 'assistants' | 'products' | 'credit';
+type AdminView = 'home' | 'bank' | 'bots' | 'products' | 'credit';
 
 const menuItems = [
     { view: 'bank' as AdminView, title: 'Banco', description: "Revisa y autoriza los pagos recibidos.", icon: Banknote, area: 'a' },
@@ -79,7 +79,7 @@ const AdminHomePage = () => {
     switch (activeView) {
       case 'bank':
         return <BankView />;
-      case 'assistants':
+      case 'bots':
         return <AssistantsList />;
       case 'products':
         return <ProductsView />;

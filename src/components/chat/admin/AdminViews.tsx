@@ -120,8 +120,7 @@ export const BankView = () => {
                         <Banknote className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-                        <p className="text-sm text-muted-foreground">Gestión de Banco</p>
+                        <h1 className="text-xl font-bold">Gestión de Banco</h1>
                     </div>
                 </div>
             </header>
@@ -261,8 +260,7 @@ export const ProductsView = () => {
                         <Package className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-                        <p className="text-sm text-muted-foreground">Catálogo de Productos</p>
+                        <h1 className="text-xl font-bold">Catálogo de Productos</h1>
                     </div>
                 </div>
                 <div className="relative mt-2">
@@ -328,8 +326,7 @@ export const AssistantsList = () => {
                     <Bot className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold">{APP_NAME} Admin</h1>
-                    <p className="text-sm text-muted-foreground">Supervisión de Bots</p>
+                    <h1 className="text-xl font-bold">Supervisión de Bots</h1>
                 </div>
             </div>
         </div>
