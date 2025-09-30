@@ -50,7 +50,7 @@ const CreditDetailsDialog = ({ isOpen, onOpenChange }: CreditDetailsDialogProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FaDollarSign /> Tus Líneas de Crédito
@@ -59,7 +59,7 @@ const CreditDetailsDialog = ({ isOpen, onOpenChange }: CreditDetailsDialogProps)
             Créditos autorizados por tus asistentes.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 flex-grow flex flex-col justify-center">
              <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {demoCredits.map((credit, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
