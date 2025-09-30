@@ -443,11 +443,14 @@ const DesktopChatPage = () => {
             </div>
             <p className="text-xs opacity-80">{error ? 'No disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-              {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleSendMessage(undefined, 'Quiero solicitar un crédito')}><FaCreditCard className="mr-1.5"/> Crédito</Button>}
-              {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Productos</Button>}
-          </div>
         </header>
+
+        {(showCreditButton || showProductsButton) && (
+            <div className="bg-card/60 backdrop-blur-sm p-2 flex items-center justify-center gap-2 border-b">
+                {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => handleSendMessage(undefined, 'Quiero solicitar un crédito')}><FaCreditCard className="mr-1.5"/> Adquirir Crédito</Button>}
+                {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Ver Productos</Button>}
+            </div>
+        )}
 
         <main className="flex-1 p-4 overflow-y-auto pb-28">
           {messages.map((msg, index) => (
