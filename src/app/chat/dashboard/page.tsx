@@ -99,35 +99,37 @@ const ChatListPage = () => {
                 <AppIcon className="h-7 w-7" />
                 <span>{APP_NAME}</span>
             </h1>
-             {currentShow && (
-                 <div 
-                    className="flex items-center gap-4 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50"
-                    onClick={currentShow.action}
-                 >
-                    <div className="text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                        <span className={cn(
-                            "relative flex h-2 w-2",
-                            currentShow.requiresAttention && "animate-pulse"
-                        )}>
+             <div className="flex items-center gap-4">
+                {currentShow ? (
+                     <div 
+                        className="p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50"
+                        onClick={currentShow.action}
+                     >
+                        <div className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
                             <span className={cn(
-                                "absolute inline-flex h-full w-full rounded-full opacity-75",
-                                currentShow.requiresAttention ? "bg-red-400" : "bg-green-400"
-                            )}></span>
-                            <span className={cn(
-                                "relative inline-flex rounded-full h-2 w-2",
-                                currentShow.requiresAttention ? "bg-red-500" : "bg-green-500"
-                            )}></span>
-                        </span>
-                        <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+                                "relative flex h-2 w-2",
+                                currentShow.requiresAttention && "animate-pulse"
+                            )}>
+                                <span className={cn(
+                                    "absolute inline-flex h-full w-full rounded-full opacity-75",
+                                    currentShow.requiresAttention ? "bg-red-400" : "bg-green-400"
+                                )}></span>
+                                <span className={cn(
+                                    "relative inline-flex rounded-full h-2 w-2",
+                                    currentShow.requiresAttention ? "bg-red-500" : "bg-green-500"
+                                )}></span>
+                            </span>
+                            <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+                            </div>
+                            <p className="font-bold text-lg">{currentShow.value}</p>
                         </div>
-                        <p className="font-bold text-lg">{currentShow.value}</p>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setIsDefineShowOpen(true); }} className="h-8 w-8">
-                    <Settings className="h-4 w-4" />
-                    </Button>
-                </div>
-             )}
+                ) : null}
+                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setIsDefineShowOpen(true); }} className="h-8 w-8">
+                   <Settings className="h-4 w-4" />
+                </Button>
+            </div>
         </div>
         <div className="relative mt-2">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
