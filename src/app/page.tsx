@@ -6,7 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay, FaTimes, FaGoogle, FaVideo, FaImages, FaBook, FaBullhorn } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay, FaTimes, FaGoogle, FaVideo, FaImages, FaBook, FaBullhorn, FaMicrophone } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 import { HandCoins, ShoppingCart } from 'lucide-react';
@@ -183,6 +183,7 @@ const tools = [
   { icon: FaGoogle, title: 'Google Sheets', description: 'Usa bases de datos existentes.' },
   { icon: FaVideo, title: 'Vídeos', description: 'Recibe y autoriza contenido multimedia.' },
   { icon: FaImages, title: 'Imágenes', description: 'Envía y recibe imágenes para catálogos o soporte.' },
+  { icon: FaMicrophone, title: 'Audios', description: 'Recibe y procesa mensajes de audio de tus clientes.' },
   { icon: ShoppingCart, title: 'Catálogo de Productos', description: 'Promociona y vende tus productos.' },
   { icon: FaCreditCard, title: 'Créditos', description: 'Ofrece y gestiona líneas de crédito.' },
   { icon: HandCoins, title: 'Cobranza', description: 'Automatiza recordatorios de pago a clientes.' },
