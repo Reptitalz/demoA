@@ -1,7 +1,7 @@
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -323,7 +323,13 @@ export const AssistantsList = () => {
   const [isBusinessInfoOpen, setIsBusinessInfoOpen] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
   
-  const assistantsToShow = userProfile.isAuthenticated ? userProfile.assistants : demoAdminChats;
+  const assistantsToShow = useMemo(() => {
+    if (userProfile.isAuthenticated) {
+        return userProfile.assistants;
+    }
+    // In demo mode, show both created (in-memory) assistants and demo chats
+    return [...userProfile.assistants, ...demoAdminChats];
+  }, [userProfile.isAuthenticated, userProfile.assistants]);
 
   const filteredChats = assistantsToShow.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
