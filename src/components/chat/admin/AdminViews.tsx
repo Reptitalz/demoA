@@ -330,8 +330,10 @@ export const AssistantsList = () => {
   const [isDbLinkOpen, setIsDbLinkOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
+  
+  const assistantsToShow = userProfile.isAuthenticated ? userProfile.assistants : demoAdminChats;
 
-  const filteredChats = userProfile.assistants.filter(chat =>
+  const filteredChats = assistantsToShow.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
@@ -350,6 +352,10 @@ export const AssistantsList = () => {
   };
 
   const handleToggleIA = async (assistant: AssistantConfig) => {
+    if (!userProfile.isAuthenticated) {
+        toast({ title: "Modo Demo", description: "Esta acción no está disponible en modo demostración."});
+        return;
+    }
     try {
         const response = await fetch('/api/assistants/toggle-active', {
             method: 'POST',
