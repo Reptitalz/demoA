@@ -1,7 +1,7 @@
 // src/app/chat/dashboard/page.tsx
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,12 +37,12 @@ const ChatListPage = () => {
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { userProfile } = state;
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = React.useState(false);
   
-  const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
+  const [activeSwipe, setActiveSwipe] = React.useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
-  const dragOccurred = useRef(false);
+  const dragOccurred = React.useRef(false);
 
   let availableChats = userProfile.assistants.filter(assistant => 
     assistant.type === 'desktop' && 
