@@ -366,11 +366,40 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 };
 
+const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
+                    <DialogDescription>
+                        Define el nombre de tu nuevo catálogo y el asistente que lo promocionará.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
+                        <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="promoter-chatpath">Chat Path del Promotor</Label>
+                        <Input id="promoter-chatpath" placeholder="Ej: asistente-ventas-xyz12" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={() => onOpenChange(false)}>Crear Catálogo</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 export const ProductsView = () => {
     const { state } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+    const [isCreateCatalogDialogOpen, setIsCreateCatalogDialogOpen] = useState(false);
     const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
     const { toast } = useToast();
 
@@ -419,13 +448,14 @@ export const ProductsView = () => {
                     </div>
                 </ScrollArea>
                  <Button
-                    onClick={() => toast({ title: "Próximamente", description: "Aquí se abriría un diálogo para crear un nuevo catálogo."})}
+                    onClick={() => setIsCreateCatalogDialogOpen(true)}
                     className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
                     size="icon"
                     title="Crear Nuevo Catálogo"
                 >
                     <Plus className="h-6 w-6" />
                 </Button>
+                <CreateCatalogDialog isOpen={isCreateCatalogDialogOpen} onOpenChange={setIsCreateCatalogDialogOpen} />
             </>
         );
     }
@@ -460,7 +490,7 @@ export const ProductsView = () => {
                     </div>
                     <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
                     {isMember && (
-                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90">
+                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => setIsCreateCatalogDialogOpen(true)}>
                             <Plus className="mr-1 h-4 w-4"/>
                             Crear Catálogo
                         </Button>
@@ -491,6 +521,7 @@ export const ProductsView = () => {
                 <Plus className="h-6 w-6" />
             </Button>
             <AddProductDialog isOpen={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen} />
+            <CreateCatalogDialog isOpen={isCreateCatalogDialogOpen} onOpenChange={setIsCreateCatalogDialogOpen} />
         </>
     );
 };
