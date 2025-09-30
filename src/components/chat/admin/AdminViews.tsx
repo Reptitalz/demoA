@@ -362,8 +362,12 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 
 
 export const ProductsView = () => {
+    const { state } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+    
+    // Simulate checking if user is a member
+    const isMember = state.userProfile.accountType === 'business';
 
     const filteredProducts = demoProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -371,23 +375,34 @@ export const ProductsView = () => {
 
     return (
         <>
-            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                        <Package className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold">Catálogo de Productos</h1>
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm space-y-2">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                            <Package className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold">Catálogo de Productos</h1>
+                        </div>
                     </div>
                 </div>
-                <div className="relative mt-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Buscar productos..."
-                        className="pl-10 bg-background/50"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex items-center gap-2">
+                    <div className="relative flex-grow">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar productos..."
+                            className="pl-10 bg-background/50 h-9"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
+                    {isMember && (
+                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90">
+                            <Plus className="mr-1 h-4 w-4"/>
+                            Crear Catálogo
+                        </Button>
+                    )}
                 </div>
             </header>
              <ScrollArea className="flex-grow">
