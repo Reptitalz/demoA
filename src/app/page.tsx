@@ -491,7 +491,7 @@ const NewHomepage = () => {
                   <AccordionItem value="item-1">
                       <AccordionTrigger>¿Qué es Hey Manito exactamente?</AccordionTrigger>
                       <AccordionContent>
-                          Hey Manito es una plataforma que combina una red social de chat con la capacidad de crear y gestionar asistentes de inteligencia artificial. Puedes usarla para chatear con contactos o para que tus asistentes de IA atiendan a tus clientes, tomen pedidos, respondan preguntas y mucho más, directamente en WhatsApp.
+                          Hey Manito es una plataforma que combina una red social de chat con la capacidad de crear y gestionar asistentes de inteligencia artificial. Puedes usarla para chatear con contactos o para que tus asistentes de IA atiendan a tus clientes, tomen pedidos, respondan preguntas y mucho más.
                       </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-2">
@@ -513,15 +513,15 @@ const NewHomepage = () => {
                       </AccordionContent>
                   </AccordionItem>
                    <AccordionItem value="item-5">
-                      <AccordionTrigger>¿Necesito un número de WhatsApp nuevo?</AccordionTrigger>
+                      <AccordionTrigger>¿Cómo funciona el chat en Hey Manito?</AccordionTrigger>
                       <AccordionContent>
-                          Sí. Para que un asistente de IA funcione en WhatsApp, necesita controlar un número de teléfono. Debes usar un chip nuevo o un número que no esté actualmente registrado en WhatsApp (ni personal ni Business). Esto es necesario para que nuestra integración pueda conectar el asistente a la red de WhatsApp.
+                          Hey Manito funciona como su propia red social de chat. Cada usuario (y cada asistente) tiene un identificador único llamado `chatPath`. Puedes compartir tu `chatPath` con otros para que te añadan a sus contactos. No es necesario vincular un número de teléfono externo como WhatsApp; toda la comunicación sucede dentro de la plataforma Hey Manito.
                       </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="item-6">
                       <AccordionTrigger>¿Mi información y la de mis clientes está segura?</AccordionTrigger>
                       <AccordionContent>
-                          La seguridad es nuestra prioridad. Las conversaciones entre tus clientes y tus asistentes se procesan a través de la API de WhatsApp y no se almacenan en nuestros servidores. La información que proporcionas para configurar tu asistente (prompts, URLs de Hojas de Google) está protegida. Puedes leer más en nuestra <Link href="/privacy" className="text-primary hover:underline">Política de Privacidad</Link>.
+                          La seguridad es nuestra prioridad. Las conversaciones se guardan de forma local en tu dispositivo para mayor privacidad. La información de tu cuenta y la configuración de tus asistentes (prompts, URLs de Hojas de Google) está protegida en nuestra base de datos. Puedes leer más en nuestra <Link href="/privacy" className="text-primary hover:underline">Política de Privacidad</Link>.
                       </AccordionContent>
                   </AccordionItem>
               </Accordion>
