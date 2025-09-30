@@ -382,16 +382,20 @@ export const AssistantsList = () => {
                                 <BookText size={20}/>
                                 <span className="text-xs">Instrucciones</span>
                             </Button>
-                             <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5">
+                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5">
                                 <Database size={20}/>
                                 <span className="text-xs">Base de datos</span>
+                            </Button>
+                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-green-500/20 hover:bg-green-500/30 rounded-none gap-0.5">
+                                <Bot size={20}/>
+                                <span className="text-xs">Activar IA</span>
                             </Button>
                         </motion.div>
                     )}
                 </AnimatePresence>
                 <motion.div
                     drag="x"
-                    dragConstraints={{ left: -160, right: 192 }}
+                    dragConstraints={{ left: -160, right: 288 }}
                     onDragStart={(e) => {
                         e.stopPropagation();
                         dragOccurred.current = false;
@@ -420,7 +424,7 @@ export const AssistantsList = () => {
                         // router.push(`/chat/admin/${chat.id}`); // Example path
                     }}
                     animate={{ 
-                        x: isLeftSwiped ? -160 : isRightSwiped ? 192 : 0 
+                        x: isLeftSwiped ? -160 : isRightSwiped ? 288 : 0 
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative z-10 cursor-grab active:cursor-grabbing"
