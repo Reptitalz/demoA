@@ -363,10 +363,6 @@ export const AssistantsList = () => {
                                 <Trash2 size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
-                             <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
-                                <XCircle size={20}/>
-                                <span className="text-xs mt-1">Limpiar</span>
-                            </Button>
                         </motion.div>
                     )}
                     {isRightSwiped && (
@@ -395,7 +391,7 @@ export const AssistantsList = () => {
                 </AnimatePresence>
                 <motion.div
                     drag="x"
-                    dragConstraints={{ left: -160, right: 288 }}
+                    dragConstraints={{ left: -80, right: 288 }}
                     onDragStart={(e) => {
                         e.stopPropagation();
                         dragOccurred.current = false;
@@ -424,7 +420,7 @@ export const AssistantsList = () => {
                         // router.push(`/chat/admin/${chat.id}`); // Example path
                     }}
                     animate={{ 
-                        x: isLeftSwiped ? -160 : isRightSwiped ? 288 : 0 
+                        x: isLeftSwiped ? -80 : isRightSwiped ? 288 : 0 
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative z-10 cursor-grab active:cursor-grabbing"

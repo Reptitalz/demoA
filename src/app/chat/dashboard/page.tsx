@@ -129,10 +129,6 @@ const ChatListPage = () => {
                                 <FaTrash size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
-                             <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
-                                <FaTimesCircle size={20}/>
-                                <span className="text-xs mt-1">Limpiar</span>
-                            </Button>
                         </motion.div>
                     )}
                     {isRightSwiped && (
@@ -154,7 +150,7 @@ const ChatListPage = () => {
                 </AnimatePresence>
                  <motion.div
                     drag="x"
-                    dragConstraints={{ left: -160, right: 112 }}
+                    dragConstraints={{ left: -80, right: 112 }}
                     onDragStart={(e) => {
                         e.stopPropagation();
                         dragOccurred.current = false;
@@ -186,12 +182,12 @@ const ChatListPage = () => {
                         router.push(`/chat/${chat.chatPath}`);
                     }}
                     animate={{ 
-                        x: isLeftSwiped ? -160 : isRightSwiped ? 112 : 0 
+                        x: isLeftSwiped ? -80 : isRightSwiped ? 112 : 0 
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative z-10 cursor-grab active:cursor-grabbing"
                 >
-                    <Card className="glow-card hover:shadow-primary/10 rounded-lg">
+                    <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg">
                         <CardContent className="p-3 flex items-center gap-3">
                             <motion.div
                                 animate={{ y: [-1, 1, -1] }}
