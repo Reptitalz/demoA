@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt, FaImage } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import CreditApplicationDialog from '@/components/chat/CreditApplicationDialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -503,24 +504,29 @@ const DesktopChatPage = () => {
 
       <div className="fixed bottom-0 left-0 right-0 z-10">
         <footer className="p-3 bg-background/80 backdrop-blur-sm flex items-center gap-3 border-t">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isSending || !!error}
-          >
-            <FaPaperclip className="h-5 w-5" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
-            onClick={handleSendLocation}
-            disabled={isSending || !!error}
-          >
-            <FaMapMarkerAlt className="h-5 w-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
+                    disabled={isSending || !!error}
+                >
+                    <FaPaperclip className="h-5 w-5" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="mb-2">
+              <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
+                <FaImage className="mr-2" />
+                Enviar Imagen
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleSendLocation}>
+                <FaMapMarkerAlt className="mr-2" />
+                Enviar Ubicación
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
