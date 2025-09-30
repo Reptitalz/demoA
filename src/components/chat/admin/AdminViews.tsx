@@ -368,107 +368,58 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 };
 
 const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) => {
-  const { state } = useApp();
-  const [catalogName, setCatalogName] = useState('');
-  const [selectedPromoter, setSelectedPromoter] = useState<string>('owner'); // 'owner' or assistant id
-  const assistants = state.userProfile.assistants || [];
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const promoterOptions = useMemo(() => [
-    { id: 'owner', name: 'Tú Mismo', imageUrl: state.userProfile.imageUrl },
-    ...assistants
-  ], [assistants, state.userProfile.imageUrl]);
+    const { state } = useApp();
+    const [catalogName, setCatalogName] = useState('');
+    const [selectedPromoter, setSelectedPromoter] = useState<string>('owner'); // 'owner' or assistant id
+    const assistants = state.userProfile.assistants || [];
   
-  useEffect(() => {
-    const handleScroll = () => {
-        if (scrollRef.current) {
-            const scrollLeft = scrollRef.current.scrollLeft;
-            const cardWidth = scrollRef.current.offsetWidth;
-            if (cardWidth > 0) {
-                const newIndex = Math.round(scrollLeft / cardWidth);
-                setActiveIndex(newIndex);
-            }
-        }
-    };
-
-    const scroller = scrollRef.current;
-    if (scroller) {
-        scroller.addEventListener('scroll', handleScroll, { passive: true });
-        return () => scroller.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
-
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
-          <DialogDescription>
-            Define el nombre y el promotor de tu nuevo catálogo.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4 flex-1 overflow-y-hidden flex flex-col">
-          <div className="px-1 space-y-2">
-            <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
-            <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" value={catalogName} onChange={e => setCatalogName(e.target.value)} />
-          </div>
-          <div className="px-1 space-y-2 flex-1 flex flex-col overflow-y-hidden">
-            <Label>¿Quién promocionará este catálogo?</Label>
-            <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
-                {promoterOptions.map((promoter, index) => {
-                    const isSelected = selectedPromoter === promoter.id;
-                    return (
-                        <div key={promoter.id} className="w-full sm:w-1/2 flex-shrink-0 snap-center p-2" onClick={() => setSelectedPromoter(promoter.id)}>
-                             <Card 
-                                className={cn("transition-all border-2 overflow-hidden shadow-lg h-full cursor-pointer", isSelected ? "border-primary shadow-primary/20" : "hover:border-primary/50", "glow-card")}
-                            >
-                                <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-2 relative">
-                                    {isSelected && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary"/>}
-                                    <Avatar className="h-16 w-16">
-                                        <AvatarImage src={promoter.imageUrl} />
-                                        <AvatarFallback>
-                                            {promoter.id === 'owner' ? <User /> : <Bot />}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <p className="font-semibold text-sm truncate">{promoter.name}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )
-                })}
+    const promoterOptions = useMemo(() => [
+      { id: 'owner', name: 'Tú Mismo', imageUrl: state.userProfile.imageUrl },
+      ...assistants
+    ], [assistants, state.userProfile.imageUrl]);
+  
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
+            <DialogDescription>
+              Define el nombre y el promotor de tu nuevo catálogo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4 flex-1 overflow-y-auto">
+            <div className="px-1 space-y-2">
+              <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
+              <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" value={catalogName} onChange={e => setCatalogName(e.target.value)} />
             </div>
-             <div className="flex justify-center mt-2 space-x-2">
-                {promoterOptions.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => {
-                            if (scrollRef.current) {
-                                const cardWidth = scrollRef.current.clientWidth / (window.innerWidth < 640 ? 1 : 2);
-                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                            }
-                        }}
-                        className={cn(
-                            "h-2 w-2 rounded-full transition-all",
-                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
-                        )}
-                        aria-label={`Ir al promotor ${index + 1}`}
-                    />
-                ))}
+            <div className="px-1 space-y-2">
+              <Label>¿Quién promocionará este catálogo?</Label>
+              <RadioGroup value={selectedPromoter} onValueChange={setSelectedPromoter} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {promoterOptions.map((promoter) => (
+                      <Label key={promoter.id} htmlFor={`promoter-${promoter.id}`} className={cn("p-3 border rounded-lg flex items-center gap-3 cursor-pointer transition-all", selectedPromoter === promoter.id ? "border-primary ring-1 ring-primary" : "hover:border-muted-foreground")}>
+                          <RadioGroupItem value={promoter.id} id={`promoter-${promoter.id}`} />
+                          <Avatar className="h-10 w-10">
+                              <AvatarImage src={promoter.imageUrl} />
+                              <AvatarFallback>
+                                  {promoter.id === 'owner' ? <User /> : <Bot />}
+                              </AvatarFallback>
+                          </Avatar>
+                          <span className="font-semibold text-sm truncate">{promoter.name}</span>
+                      </Label>
+                  ))}
+              </RadioGroup>
             </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={() => onOpenChange(false)}>Crear Catálogo</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => onOpenChange(false)}>Crear Catálogo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
 export const ProductsView = () => {
     const { state } = useApp();
@@ -565,7 +516,7 @@ export const ProductsView = () => {
                     </div>
                     <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
                     {isMember && (
-                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => setIsCreateCatalogDialogOpen(true)}>
+                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => {toast({ title: 'Próximamente', description: 'Creación de múltiples catálogos estará disponible pronto.'})}}>
                             <Plus className="mr-1 h-4 w-4"/>
                             Crear Catálogo
                         </Button>
