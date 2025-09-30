@@ -1,3 +1,4 @@
+
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -25,6 +26,16 @@ import { AssistantConfig, ChatMessage } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from './CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
 const DB_NAME = 'HeyManitoChatDB';
@@ -621,6 +632,8 @@ export const AssistantsList = () => {
   const [isDbLinkOpen, setIsDbLinkOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [isBusinessInfoOpen, setIsBusinessInfoOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [assistantToDelete, setAssistantToDelete] = useState<AssistantConfig | null>(null);
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
   
   const assistantsToShow = useMemo(() => {
@@ -684,6 +697,23 @@ export const AssistantsList = () => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   }
+
+  const handleDeleteAssistant = (assistant: AssistantConfig) => {
+    setAssistantToDelete(assistant);
+    setIsDeleteAlertOpen(true);
+  }
+  
+  const confirmDelete = () => {
+    if(assistantToDelete) {
+        dispatch({ type: 'REMOVE_ASSISTANT', payload: assistantToDelete.id });
+        toast({
+            title: "Asistente Eliminado",
+            description: `El asistente "${assistantToDelete.name}" ha sido eliminado.`,
+        });
+        setAssistantToDelete(null);
+    }
+    setIsDeleteAlertOpen(false);
+  }
   
   return (
     <>
@@ -727,7 +757,7 @@ export const AssistantsList = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
+                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={() => handleDeleteAssistant(chat)}>
                                 <Trash2 size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
@@ -876,6 +906,22 @@ export const AssistantsList = () => {
             assistant={selectedAssistant}
         />
        )}
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminará permanentemente el asistente "{assistantToDelete?.name}".
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+                Eliminar
+            </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+       </AlertDialog>
     </>
   );
 }
