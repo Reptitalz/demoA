@@ -6,10 +6,10 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay, FaTimes, FaGoogle, FaVideo, FaImages, FaBook, FaBullhorn } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
-import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
+import { HandCoins, ShoppingCart } from 'lucide-react';
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -179,17 +179,46 @@ const PhoneCanvas = () => {
     return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
-const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
+const tools = [
+  { icon: FaGoogle, title: 'Google Sheets', description: 'Usa bases de datos existentes.' },
+  { icon: FaVideo, title: 'Vídeos', description: 'Recibe y autoriza contenido multimedia.' },
+  { icon: FaImages, title: 'Imágenes', description: 'Envía y recibe imágenes para catálogos o soporte.' },
+  { icon: ShoppingCart, title: 'Catálogo de Productos', description: 'Promociona y vende tus productos.' },
+  { icon: FaCreditCard, title: 'Créditos', description: 'Ofrece y gestiona líneas de crédito.' },
+  { icon: HandCoins, title: 'Cobranza', description: 'Automatiza recordatorios de pago a clientes.' },
+  { icon: FaBook, title: 'Aprendizaje', description: 'Aprende de tus clientes para reconocerlos.' },
+  { icon: FaBullhorn, title: 'Notificaciones', description: 'Informa al propietario de eventos importantes.' },
+];
+
+const ToolsCarousel = () => {
     return (
-        <div className="text-center p-4">
-            <div className="mb-4 inline-block bg-primary/10 p-4 rounded-full">
-                <Icon className="h-8 w-8 text-primary" />
+        <div className="w-full overflow-hidden relative group">
+            <div
+                className="flex animate-scroll group-hover:[animation-play-state:paused]"
+                style={{
+                    '--scroll-duration': `${tools.length * 4}s`,
+                } as React.CSSProperties}
+            >
+                {[...tools, ...tools].map((tool, index) => {
+                    const Icon = tool.icon;
+                    return (
+                        <div key={index} className="flex-shrink-0 w-64 p-3">
+                            <div className="h-full bg-card/50 border rounded-lg p-4 flex items-center gap-4 backdrop-blur-sm transition-all hover:bg-card/80 hover:shadow-lg">
+                                <Icon className="h-8 w-8 text-primary shrink-0" />
+                                <div>
+                                    <h3 className="font-semibold text-sm">{tool.title}</h3>
+                                    <p className="text-xs text-muted-foreground">{tool.description}</p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <p className="text-muted-foreground mt-1 text-sm">{description}</p>
+             <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background pointer-events-none"></div>
         </div>
     );
 };
+
 
 type DeviceType = 'ios' | 'android' | 'web' | 'loading';
 
@@ -302,29 +331,14 @@ const NewHomepage = () => {
 
       <section id="features" className="py-20 bg-muted/50">
         <div className="container max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight">Una Plataforma, Todas las Soluciones</h2>
-            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Hey Manito centraliza la inteligencia, la gestión y la comunicación de tu negocio.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <FeatureCard 
-                  icon={FaRobot}
-                  title="Asistentes por Prompt"
-                  description="Define el comportamiento de tu IA con lenguaje natural. Crea personalidades, establece reglas y guíalos hacia el éxito."
-              />
-              <FeatureCard 
-                  icon={FaCog}
-                  title="Gestión Centralizada"
-                  description="Administra tus asistentes, bases de datos, clientes y finanzas desde un panel de control unificado e intuitivo."
-              />
-              <FeatureCard 
-                  icon={FaMobileAlt}
-                  title="Experiencia PWA"
-                  description="Instala la app en cualquier dispositivo para una experiencia nativa, notificaciones push y acceso sin conexión."
-              />
-          </div>
+            <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold tracking-tight">Herramientas Poderosas para tus Asistentes</h2>
+                <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Equipa a tus asistentes con capacidades avanzadas para automatizar cualquier tarea.</p>
+            </div>
+            <ToolsCarousel />
         </div>
       </section>
+
 
       <section className="py-20 bg-background">
         <div className="container max-w-4xl mx-auto px-4">
