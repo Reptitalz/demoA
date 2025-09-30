@@ -1,3 +1,4 @@
+
 // src/components/chat/CreditApplicationDialog.tsx
 "use client";
 
@@ -134,7 +135,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
 
     return (
         <Dialog open={isOpen} onOpenChange={resetAndClose}>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <FaCreditCard /> Solicitud de Crédito
@@ -146,7 +147,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                 
                 <Progress value={progress} className="w-full h-2" />
 
-                <div className="py-4 space-y-4 min-h-[400px]">
+                <div className="py-4 space-y-4 flex-grow min-h-[400px]">
                     {step === 1 && (
                         <div className="space-y-4 animate-fadeIn">
                              <Alert>
