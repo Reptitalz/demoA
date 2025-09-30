@@ -143,9 +143,48 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
         switch (step) {
             case 1:
                 return (
-                    <div className="space-y-4 animate-fadeIn w-full max-w-md mx-auto">
-                        <Label htmlFor="assistant-name" className="text-lg font-semibold">Nombre del Asistente</Label>
-                        <Input id="assistant-name" value={assistantName} onChange={e => setAssistantName(e.target.value)} placeholder="Ej: Asistente de Ventas" className="text-base py-6"/>
+                    <div className="space-y-6 animate-fadeIn w-full max-w-md mx-auto">
+                        <div className="space-y-2">
+                            <Label htmlFor="assistant-name" className="text-lg font-semibold">Nombre del Asistente</Label>
+                            <Input id="assistant-name" value={assistantName} onChange={e => setAssistantName(e.target.value)} placeholder="Ej: Asistente de Ventas" className="text-base py-6"/>
+                        </div>
+                        <motion.div
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
+                            className="mt-4"
+                        >
+                            <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg">
+                                <CardContent className="p-3 flex items-center gap-3">
+                                    <motion.div
+                                        animate={{ y: [-1, 1, -1] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                                    >
+                                        <Avatar className="h-12 w-12 border-2 border-primary/30">
+                                            <AvatarImage src={imageUrl || undefined} alt={assistantName} />
+                                            <AvatarFallback className="text-lg bg-muted">
+                                                {assistantName ? assistantName.charAt(0) : <FaUser />}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </motion.div>
+                                    <div className="flex-grow overflow-hidden">
+                                    <div className="flex items-center justify-between">
+                                            <p className="font-semibold truncate text-sm">{assistantName || 'Nombre del Asistente'}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={cn("relative flex h-2 w-2")}>
+                                                    <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
+                                                    <span className={cn("relative inline-flex rounded-full h-2 w-2 bg-green-500")}></span>
+                                                </span>
+                                                <p className="text-xs text-muted-foreground">en línea</p>
+                                            </div>
+                                            <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">Reciente</p>
+                                    </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
                     </div>
                 );
             case 2:
@@ -229,7 +268,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                  <DialogHeader className="p-4 border-b">
                     <DialogTitle className="flex items-center gap-2">
                        <FaRobot/> Crear Nuevo Asistente
