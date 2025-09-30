@@ -116,7 +116,7 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                            />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"/>
                            <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                                <p className="text-xs font-semibold">{format(image.receivedAt, "PPPp", { locale: es })}</p>
+                                <p className="text-xs font-semibold">{format(new Date(image.receivedAt), "PPPp", { locale: es })}</p>
                                 <Button 
                                     variant="secondary" 
                                     size="sm" 

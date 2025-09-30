@@ -1,3 +1,4 @@
+
 // src/app/api/contacts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -99,3 +100,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Error al obtener los contactos' }, { status: 500 });
   }
 }
+
