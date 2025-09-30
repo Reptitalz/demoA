@@ -242,7 +242,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                 );
             case 3:
                 return (
-                     <div className="space-y-4 animate-fadeIn w-full max-w-md mx-auto">
+                     <div className="space-y-4 animate-fadeIn w-full max-w-md mx-auto px-4">
                         <Label className="text-lg font-semibold">Imagen de Perfil (Opcional)</Label>
                          <div
                             onClick={() => fileInputRef.current?.click()}
@@ -306,5 +306,3 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 };
 
 export default CreateAssistantDialog;
-
-    
