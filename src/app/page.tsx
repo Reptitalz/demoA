@@ -388,19 +388,6 @@ const NewHomepage = () => {
                            <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Transacciones Ilimitadas</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
                       </ul>
-                      <div className="mt-auto space-y-4">
-                        <Button asChild className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                          <Link href="/chat/begin">Obtener Plan Miembro</Link>
-                        </Button>
-                        <div className="text-center space-y-2">
-                           <p className="text-xs text-muted-foreground">Pagos seguros a través de Google Play.</p>
-                           <div className="flex justify-center items-center gap-4 text-2xl text-muted-foreground">
-                              <FaCcVisa />
-                              <FaCcMastercard />
-                              <FaCcAmex />
-                           </div>
-                        </div>
-                      </div>
                   </div>
               </div>
           </div>
