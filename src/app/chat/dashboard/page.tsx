@@ -1,7 +1,7 @@
 // src/app/chat/dashboard/page.tsx
 "use client";
 
-import React, from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
+import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -39,6 +40,7 @@ const ChatListPage = () => {
   const { userProfile } = state;
   const [searchTerm, setSearchTerm] = React.useState('');
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = React.useState(false);
+  const [isCreditDetailsOpen, setIsCreditDetailsOpen] = React.useState(false);
   
   const [activeSwipe, setActiveSwipe] = React.useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
@@ -89,7 +91,7 @@ const ChatListPage = () => {
                     <FaDollarSign className="text-green-500"/>
                     $500.00
                 </p>
-                <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsCreditDetailsOpen(true)}>
                     Ver Crédito
                 </Button>
             </div>
@@ -263,6 +265,12 @@ const ChatListPage = () => {
         
     </div>
     <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+    <CreditDetailsDialog
+        isOpen={isCreditDetailsOpen}
+        onOpenChange={setIsCreditDetailsOpen}
+        creditAmount={500.00} // Example amount
+        creditProvider="demo-assistant-chat-path" // Example provider
+    />
     </>
   );
 };
