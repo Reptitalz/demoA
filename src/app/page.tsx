@@ -6,7 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
@@ -255,11 +255,20 @@ const NewHomepage = () => {
                   <p className="mt-4 max-w-xl mx-auto md:mx-0 text-lg text-muted-foreground">
                       Hey Manito! es la evolución del chat. Chatea, vende, y automatiza tu negocio con asistentes de IA, todo desde una plataforma gratuita.
                   </p>
-                  <div className="mt-8 flex items-center justify-center md:justify-start">
+                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                     <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
                         <Link href={"/begin"}>
                             <FaRobot className="mr-2" />
                             Crear Asistente Gratis
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg" className="w-full sm:w-auto bg-black text-white hover:bg-gray-800 hover:text-white border-black">
+                        <Link href={"#"}>
+                            <FaGooglePlay className="mr-2" />
+                            <div>
+                                <p className="text-xs text-left leading-tight">Disponible en</p>
+                                <p className="text-lg font-semibold leading-tight">Google Play</p>
+                            </div>
                         </Link>
                     </Button>
                   </div>
