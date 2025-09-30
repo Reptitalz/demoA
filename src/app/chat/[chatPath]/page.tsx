@@ -146,59 +146,61 @@ const DesktopChatPage = () => {
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    const setupSessionAndMessages = async () => {
-      if (!chatPath) return;
+  const setupSessionAndMessages = useCallback(async () => {
+    if (!chatPath) return;
 
-      let sid = await getSessionIdFromDB(chatPath);
-      if (!sid) {
-        sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        await setSessionIdInDB(chatPath, sid);
-      }
-      setSessionId(sid);
-      
-      const storedMessages = await getMessagesFromDB(sid);
-      if (storedMessages.length > 0) {
-        setMessages(storedMessages);
-      }
-    };
-    setupSessionAndMessages();
+    let sid = await getSessionIdFromDB(chatPath);
+    if (!sid) {
+      sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      await setSessionIdInDB(chatPath, sid);
+    }
+    setSessionId(sid);
+    
+    const storedMessages = await getMessagesFromDB(sid);
+    if (storedMessages.length > 0) {
+      setMessages(storedMessages);
+    }
+     // Return session ID for chaining
+    return sid;
   }, [chatPath]);
 
 
   useEffect(() => {
     if (chatPath) {
       setIsLoading(true);
-      fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`)
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Asistente no encontrado o no disponible.');
-          }
-          return res.json();
-        })
-        .then(data => {
-          if(!data.assistant) throw new Error('Asistente no encontrado.');
-          setAssistant(data.assistant);
-          if (messages.length === 0) { // Only set initial message if chat is empty
-            const initialMessage = {
-              role: 'model' as const,
-              content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages([initialMessage]);
-            if (sessionId) saveMessageToDB(initialMessage, sessionId);
-          }
-        })
-        .catch(err => {
-            setError(err.message);
-            setAssistant({ name: "Asistente no encontrado" } as AssistantConfig);
-             setMessages([{
-                role: 'model',
-                content: `Error: ${err.message}. No se pudo cargar el asistente.`,
+      
+      setupSessionAndMessages().then(sid => {
+        fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`)
+          .then(res => {
+            if (!res.ok) {
+              throw new Error('Asistente no encontrado o no disponible.');
+            }
+            return res.json();
+          })
+          .then(data => {
+            if(!data.assistant) throw new Error('Asistente no encontrado.');
+            setAssistant(data.assistant);
+            if (messages.length === 0) { // Only set initial message if chat is empty
+              const initialMessage = {
+                role: 'model' as const,
+                content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-             }]);
-        })
-        .finally(() => setIsLoading(false));
+              };
+              setMessages([initialMessage]);
+              if (sid) saveMessageToDB(initialMessage, sid);
+            }
+          })
+          .catch(err => {
+              setError(err.message);
+              setAssistant({ name: "Asistente no encontrado" } as AssistantConfig);
+               setMessages([{
+                  role: 'model',
+                  content: `Error: ${err.message}. No se pudo cargar el asistente.`,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+               }]);
+          })
+          .finally(() => setIsLoading(false));
+      });
     }
 
     return () => {
@@ -206,7 +208,7 @@ const DesktopChatPage = () => {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, [chatPath, sessionId]); // Re-run when sessionId is available
+  }, [chatPath, setupSessionAndMessages, messages.length]); // Depend on messages.length to avoid re-running on every message state change
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

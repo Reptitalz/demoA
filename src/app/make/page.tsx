@@ -8,7 +8,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { FaGoogle, FaDatabase, FaWand2, FaPaperclip, FaSpinner } from 'react-icons/fa';
+import { FaGoogle, FaDatabase, FaStar, FaPaperclip, FaSpinner } from 'react-icons/fa';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -166,7 +166,7 @@ const MakePage = () => {
                                     onClick={handleCreateAssistant}
                                     disabled={isCreating || isUploading}
                                 >
-                                    {isCreating ? 'Generando...' : <><FaWand2 className="mr-2 w-5 h-5"/> Crear Asistente</>}
+                                    {isCreating ? 'Generando...' : <><FaStar className="mr-2 w-5 h-5"/> Crear Asistente</>}
                                 </Button>
                             </div>
                         </div>
