@@ -89,6 +89,12 @@ const demoProducts = [
     { id: 'prod-3', name: 'Cupcakes de Vainilla (6)', price: 200.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
 ];
 
+const demoCatalogs = [
+    { id: 'cat-1', name: 'Catálogo de Repostería', promoter: 'Asistente de Ventas', promoterType: 'bot' },
+    { id: 'cat-2', name: 'Servicios de Taller', promoter: 'Tú Mismo', promoterType: 'user' },
+    { id: 'cat-3', name: 'Catálogo General', promoter: 'Asistente de Soporte', promoterType: 'bot' },
+];
+
 
 const ReceiptDialog = ({ payment, isOpen, onOpenChange }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     if (!payment) return null;
@@ -334,8 +340,8 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
-                <DialogHeader>
+            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col p-0">
+                <DialogHeader className="p-4 border-b">
                     <DialogTitle>Añadir Nuevo Producto</DialogTitle>
                     <DialogDescription>
                         Sigue los pasos para añadir un producto a tu catálogo. (Paso {step} de 3)
@@ -344,7 +350,7 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                 <div className="space-y-4 py-4 flex-grow overflow-y-auto">
                     {renderStepContent()}
                 </div>
-                <DialogFooter className="flex justify-between w-full">
+                <DialogFooter className="flex justify-between w-full p-4 border-t">
                     {step > 1 ? (
                         <Button variant="outline" onClick={prevStep}><ArrowLeft className="mr-2 h-4 w-4"/> Atrás</Button>
                     ) : <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>}
@@ -365,25 +371,81 @@ export const ProductsView = () => {
     const { state } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-    
-    // Simulate checking if user is a member
+    const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
+
     const isMember = state.userProfile.accountType === 'business';
+
+    const handleSelectCatalog = (catalogId: string) => {
+        setSelectedCatalogId(catalogId);
+    };
+
+    const handleBackToList = () => {
+        setSelectedCatalogId(null);
+        setSearchTerm('');
+    };
+
+    if (!selectedCatalogId) {
+        return (
+            <>
+                <header className="p-4 border-b bg-card/80 backdrop-blur-sm space-y-2">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <Package className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold">Mis Catálogos</h1>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 space-y-3">
+                        {demoCatalogs.map(catalog => (
+                             <Card key={catalog.id} className="glow-card cursor-pointer" onClick={() => handleSelectCatalog(catalog.id)}>
+                                <CardContent className="p-3 flex items-center gap-3">
+                                    <div className="p-2 bg-muted rounded-full">
+                                        {catalog.promoterType === 'bot' ? <Bot className="h-5 w-5 text-muted-foreground" /> : <User className="h-5 w-5 text-muted-foreground" />}
+                                    </div>
+                                    <div className="flex-grow">
+                                        <p className="font-semibold text-sm">{catalog.name}</p>
+                                        <p className="text-xs text-muted-foreground">Promocionado por: {catalog.promoter}</p>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </ScrollArea>
+                 <Button
+                    onClick={() => setIsAddProductDialogOpen(true)}
+                    className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
+                    size="icon"
+                    title="Crear Catálogo"
+                >
+                    <Plus className="h-6 w-6" />
+                </Button>
+                <AddProductDialog isOpen={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen} />
+            </>
+        );
+    }
 
     const filteredProducts = demoProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const selectedCatalog = demoCatalogs.find(c => c.id === selectedCatalogId);
+
     return (
         <>
             <header className="p-4 border-b bg-card/80 backdrop-blur-sm space-y-2">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <Package className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold">Catálogo de Productos</h1>
-                        </div>
+                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleBackToList}>
+                        <ArrowLeft />
+                    </Button>
+                    <div className="flex-grow">
+                         <h1 className="text-xl font-bold">{selectedCatalog?.name || 'Catálogo de Productos'}</h1>
+                         <p className="text-xs text-muted-foreground">Promocionado por: {selectedCatalog?.promoter}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
