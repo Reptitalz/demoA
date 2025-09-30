@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -94,7 +95,7 @@ const TryPage = () => {
 
             dispatch({ type: 'COMPLETE_SETUP', payload: createdProfile });
             toast({ title: "¡Asistente Guardado!", description: "Tu asistente ha sido guardado en tu cuenta." });
-            router.push('/dashboard');
+            router.push('/chat/dashboard');
         } catch (error: any) {
              toast({ title: 'Error', description: error.message, variant: 'destructive' });
              setIsSaving(false);
@@ -102,7 +103,7 @@ const TryPage = () => {
       } else {
         // If not authenticated, trigger Google sign-in
         // The AppProvider will handle profile creation after redirect
-        signIn('google', { callbackUrl: '/dashboard' });
+        signIn('google', { callbackUrl: '/chat/dashboard' });
       }
     };
 

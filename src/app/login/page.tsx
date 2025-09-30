@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -34,7 +35,7 @@ const LoginPageContent = () => {
   
   useEffect(() => {
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
-      router.replace('/dashboard/assistants');
+      router.replace('/chat/dashboard');
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
@@ -56,7 +57,7 @@ const LoginPageContent = () => {
     setIsLoggingIn(true);
     
     // Default callback for dashboard login
-    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard/assistants';
+    const callbackUrl = searchParams.get('callbackUrl') || '/chat/dashboard';
     
     let result;
     if (provider === 'credentials') {
