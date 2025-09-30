@@ -6,7 +6,7 @@ import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { FaCreditCard, FaSpinner, FaIdCard, FaFileAlt, FaCheckCircle, FaArrowLeft, FaArrowRight, FaCamera, FaUpload, FaTimes } from 'react-icons/fa';
+import { FaCreditCard, FaSpinner, FaIdCard, FaFileAlt, FaCheckCircle, FaArrowLeft, FaArrowRight, FaCamera, FaUpload, FaTimes, FaCalendarDay } from 'react-icons/fa';
 import type { AssistantConfig } from '@/types';
 import { Progress } from '../ui/progress';
 import { Card, CardContent } from '../ui/card';
@@ -79,6 +79,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
     const [ineFront, setIneFront] = useState<File | null>(null);
     const [ineBack, setIneBack] = useState<File | null>(null);
     const [proofOfAddress, setProofOfAddress] = useState<File | null>(null);
+    const [paymentFrequency, setPaymentFrequency] = useState<'weekly' | 'biweekly' | 'monthly' | null>(null);
 
     const [ineFrontPreview, setIneFrontPreview] = useState<string | null>(null);
     const [ineBackPreview, setIneBackPreview] = useState<string | null>(null);
@@ -102,6 +103,10 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
             toast({ title: "Archivo Faltante", description: "Por favor, sube tu comprobante de domicilio.", variant: "destructive" });
             return;
         }
+        if (step === 3 && !paymentFrequency) {
+            toast({ title: "Selección Requerida", description: "Por favor, elige una frecuencia de pago.", variant: "destructive" });
+            return;
+        }
         setStep(prev => prev + 1);
     };
 
@@ -112,7 +117,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
         // Simulate API call to submit documents
         setTimeout(() => {
             toast({ title: "Solicitud Enviada", description: "Tus documentos han sido enviados para revisión." });
-            setStep(4);
+            setStep(5);
             setIsProcessing(false);
         }, 2000);
     }
@@ -125,13 +130,14 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
             setIneFront(null);
             setIneBack(null);
             setProofOfAddress(null);
+            setPaymentFrequency(null);
             setIneFrontPreview(null);
             setIneBackPreview(null);
             setProofOfAddressPreview(null);
         }, 300);
     }
     
-    const progress = Math.round((step / 4) * 100);
+    const progress = Math.round((step / 5) * 100);
 
     return (
         <Dialog open={isOpen} onOpenChange={resetAndClose}>
@@ -170,13 +176,34 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                         </div>
                     )}
                     {step === 3 && (
+                        <div className="space-y-4 animate-fadeIn">
+                            <Alert>
+                                <AlertTitle>Paso 3: Frecuencia de Pago</AlertTitle>
+                                <AlertDescription>Elige cada cuánto tiempo prefieres realizar tus pagos.</AlertDescription>
+                            </Alert>
+                            <div className="grid grid-cols-3 gap-4">
+                                {(['weekly', 'biweekly', 'monthly'] as const).map(freq => {
+                                    const labels = { weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
+                                    return (
+                                        <Card key={freq} onClick={() => setPaymentFrequency(freq)} className={cn("cursor-pointer transition-all", paymentFrequency === freq && "border-primary ring-2 ring-primary")}>
+                                            <CardContent className="p-4 text-center space-y-2">
+                                                <FaCalendarDay className="h-6 w-6 mx-auto text-primary"/>
+                                                <p className="font-semibold text-sm">{labels[freq]}</p>
+                                            </CardContent>
+                                        </Card>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+                    {step === 4 && (
                          <div className="space-y-4 animate-fadeIn text-center p-4">
                              <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4"/>
                             <h3 className="text-lg font-semibold">Todo Listo para Enviar</h3>
                             <p className="text-sm text-muted-foreground">Revisa que tus documentos sean correctos antes de enviar tu solicitud. Este proceso es seguro y tu información está protegida.</p>
                         </div>
                     )}
-                     {step === 4 && (
+                     {step === 5 && (
                          <div className="space-y-4 animate-fadeIn text-center p-4 flex flex-col items-center justify-center h-full">
                              <FaSpinner className="mx-auto h-16 w-16 text-primary animate-spin mb-4"/>
                             <h3 className="text-lg font-semibold">Solicitud en Revisión</h3>
@@ -193,19 +220,23 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                             </Button>
                         ) : ( <div></div> )}
 
-                        {step < 3 ? (
-                            <Button onClick={handleNext} disabled={isProcessing}>
-                                Siguiente <FaArrowRight className="ml-2"/>
-                            </Button>
-                        ) : (
-                            <Button onClick={handleSubmit} disabled={isProcessing}>
-                                {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
-                                Enviar Solicitud
-                            </Button>
-                        )}
+                        <Button onClick={handleNext} disabled={isProcessing}>
+                            Siguiente <FaArrowRight className="ml-2"/>
+                        </Button>
                     </DialogFooter>
                 )}
                  {step === 4 && (
+                     <DialogFooter>
+                        <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
+                            <FaArrowLeft className="mr-2"/> Atrás
+                        </Button>
+                        <Button onClick={handleSubmit} disabled={isProcessing}>
+                            {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
+                            Enviar Solicitud
+                        </Button>
+                     </DialogFooter>
+                 )}
+                 {step === 5 && (
                     <DialogFooter>
                          <Button onClick={resetAndClose} className="w-full">
                             Entendido
