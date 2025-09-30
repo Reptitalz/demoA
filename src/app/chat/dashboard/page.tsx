@@ -5,7 +5,7 @@ import React, from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaTimesCircle, FaHdd } from 'react-icons/fa';
+import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaTimesCircle, FaHdd, FaDollarSign } from 'react-icons/fa';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -78,10 +78,19 @@ const ChatListPage = () => {
     <>
     <div className="flex flex-col h-full bg-transparent relative" onClick={() => setActiveSwipe(null)}>
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-            <AppIcon className="h-7 w-7" />
-            <span>{APP_NAME}</span>
-        </h1>
+        <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+                <AppIcon className="h-7 w-7" />
+                <span>{APP_NAME}</span>
+            </h1>
+            <div className="text-right">
+                <p className="text-xs text-muted-foreground">Crédito Disponible</p>
+                <p className="font-bold text-lg flex items-center gap-1.5 justify-end">
+                    <FaDollarSign className="text-green-500"/>
+                    $500.00
+                </p>
+            </div>
+        </div>
         <div className="relative mt-2">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
