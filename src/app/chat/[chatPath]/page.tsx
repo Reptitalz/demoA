@@ -414,104 +414,104 @@ const DesktopChatPage = () => {
   
   return (
     <>
-      <div className="h-full w-screen flex flex-col bg-transparent relative">
-          <div className="relative h-full flex flex-col">
-            <header
-              className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b"
-            >
-              <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
-                <Link href="/chat/dashboard"><FaArrowLeft /></Link>
-              </Button>
-              <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50" onClick={() => setIsInfoSheetOpen(true)}>
-                  <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-                  <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
-              </Avatar>
-              <div className="overflow-hidden flex-grow" onClick={() => setIsInfoSheetOpen(true)}>
-                <div className="flex items-center gap-1.5">
-                    <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
-                    {state.userProfile.accountType === 'business' && (
-                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                            </svg>
-                        </Badge>
-                    )}
-                    {assistant?.isActive && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
-                    )}
-                </div>
-                <p className="text-xs opacity-80">{error ? 'No disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                  {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleSendMessage(undefined, 'Quiero solicitar un crédito')}><FaCreditCard className="mr-1.5"/> Crédito</Button>}
-                  {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Productos</Button>}
-              </div>
-            </header>
-            <main className="flex-1 p-4 overflow-y-auto">
-              {messages.map((msg, index) => (
-                <ChatBubble key={index} message={msg} onImageClick={setSelectedImage} />
-              ))}
-              {isSending && (
-                  <div className="flex justify-start animate-fadeIn">
-                      <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-card">
-                        <div className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                            <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                            <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
-                        </div>
-                      </div>
-                  </div>
-              )}
-              <div ref={chatEndRef} />
-            </main>
-            
-            <div className="shrink-0">
-                  <footer className="p-3 bg-background/80 backdrop-blur-sm flex items-center gap-3 border-t">
-                      <Button
-                      size="icon"
-                      variant="ghost"
-                      className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isSending || !!error}
-                      >
-                      <FaPaperclip className="h-5 w-5" />
-                      </Button>
-                      <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
-                      <Input
-                          type="text"
-                          placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
-                          value={currentMessage}
-                          onChange={(e) => setCurrentMessage(e.target.value)}
-                          className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
-                          autoComplete="off"
-                          disabled={!!error || isSending}
-                      />
-                      <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          accept="image/jpeg, image/png, image/webp"
-                          />
-                      <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
-                          <FaPaperPlane className="h-5 w-5" />
-                      </Button>
-                      </form>
-                  </footer>
-                  <div className="bg-background/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
-                      <div className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
-                          <FaLock size={8} />
-                          <span>Los mensajes se guardan en este dispositivo.</span>
-                      </div>
-                      <div className="text-[9px] text-muted-foreground/50">
-                          Powered by {APP_NAME}
-                      </div>
-                  </div>
-              </div>
+      <div className="h-full w-screen flex flex-col bg-transparent">
+        <header
+          className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b"
+        >
+          <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
+            <Link href="/chat/dashboard"><FaArrowLeft /></Link>
+          </Button>
+          <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50" onClick={() => setIsInfoSheetOpen(true)}>
+              <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
+              <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
+          </Avatar>
+          <div className="overflow-hidden flex-grow" onClick={() => setIsInfoSheetOpen(true)}>
+            <div className="flex items-center gap-1.5">
+                <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
+                {state.userProfile.accountType === 'business' && (
+                    <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                            <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                            <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                        </svg>
+                    </Badge>
+                )}
+                {assistant?.isActive && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+                )}
+            </div>
+            <p className="text-xs opacity-80">{error ? 'No disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
           </div>
+          <div className="flex items-center gap-1 shrink-0">
+              {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleSendMessage(undefined, 'Quiero solicitar un crédito')}><FaCreditCard className="mr-1.5"/> Crédito</Button>}
+              {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Productos</Button>}
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 overflow-y-auto pb-28">
+          {messages.map((msg, index) => (
+            <ChatBubble key={index} message={msg} onImageClick={setSelectedImage} />
+          ))}
+          {isSending && (
+              <div className="flex justify-start animate-fadeIn">
+                  <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-card">
+                    <div className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
+                    </div>
+                  </div>
+              </div>
+          )}
+          <div ref={chatEndRef} />
+        </main>
       </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-10">
+        <footer className="p-3 bg-background/80 backdrop-blur-sm flex items-center gap-3 border-t">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isSending || !!error}
+          >
+            <FaPaperclip className="h-5 w-5" />
+          </Button>
+          <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
+            <Input
+                type="text"
+                placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
+                autoComplete="off"
+                disabled={!!error || isSending}
+            />
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                className="hidden"
+                accept="image/jpeg, image/png, image/webp"
+            />
+            <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
+                <FaPaperPlane className="h-5 w-5" />
+            </Button>
+          </form>
+        </footer>
+        <div className="bg-background/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
+            <div className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
+                <FaLock size={8} />
+                <span>Los mensajes se guardan en este dispositivo.</span>
+            </div>
+            <div className="text-[9px] text-muted-foreground/50">
+                Powered by {APP_NAME}
+            </div>
+        </div>
+      </div>
+      
       {assistant && (
         <BusinessInfoSheet
           assistant={assistant}
