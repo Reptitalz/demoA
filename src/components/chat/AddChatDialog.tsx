@@ -1,4 +1,3 @@
-
 // src/components/chat/AddChatDialog.tsx
 "use client";
 
@@ -42,7 +41,7 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus /> Agregar Nuevo Contacto
@@ -51,14 +50,17 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
             Ingresa el ID de chat (chat path) del contacto que quieres agregar a tu lista.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-2">
-          <Label htmlFor="chatPath">ID de Chat del Contacto</Label>
-          <Input
-            id="chatPath"
-            placeholder="ejemplo-asistente-abc12"
-            value={chatPath}
-            onChange={(e) => setChatPath(e.target.value)}
-          />
+        <div className="py-4 space-y-2 flex-grow flex flex-col items-center justify-center">
+            <div className='w-full max-w-sm'>
+              <Label htmlFor="chatPath">ID de Chat del Contacto</Label>
+              <Input
+                id="chatPath"
+                placeholder="ejemplo-asistente-abc12"
+                value={chatPath}
+                onChange={(e) => setChatPath(e.target.value)}
+                className="text-lg py-6"
+              />
+            </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
