@@ -12,7 +12,6 @@ import type { AssistantConfig } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ShoppingCart, HandCoins, Handshake, LifeBuoy, ClipboardList, CheckCircle } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 
 
@@ -51,8 +50,10 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
         if (scrollRef.current) {
             const scrollLeft = scrollRef.current.scrollLeft;
             const cardWidth = scrollRef.current.offsetWidth;
-            const newIndex = Math.round(scrollLeft / cardWidth);
-            setActiveIndex(newIndex);
+            if (cardWidth > 0) {
+              const newIndex = Math.round(scrollLeft / cardWidth);
+              setActiveIndex(newIndex);
+            }
         }
     };
 
@@ -67,12 +68,18 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
     const newSelectedRoles = new Set(selectedRoles);
     const role = roleOptions.find(r => r.id === roleId);
     if (!role) return;
+    
+    // Create a regex to find the exact prompt text, considering it might be anywhere
+    const promptRegex = new RegExp(`\\s*${role.prompt.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*`, 'g');
+
 
     if (newSelectedRoles.has(roleId)) {
         newSelectedRoles.delete(roleId);
-        // This is complex, for now we just remove. A better implementation might remove only the specific text.
+        // Remove the specific role's prompt text from the current prompt
+        setPrompt(prev => prev.replace(promptRegex, '').trim());
     } else {
         newSelectedRoles.add(roleId);
+        // Add the new role's prompt text to the beginning of the current prompt
         setPrompt(prev => `${role.prompt}\n\n${prev}`.trim());
     }
     setSelectedRoles(newSelectedRoles);
@@ -116,7 +123,7 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
         onOpenChange(false);
 
     } catch (error: any) {
-        toast({
+      toast({
             title: "Error al Guardar",
             description: error.message,
             variant: "destructive",
@@ -141,12 +148,12 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
         <div className="py-4 space-y-4 flex-grow flex flex-col min-h-0">
              <div>
                 <h4 className="text-sm font-semibold mb-2">1. Elige un rol (opcional)</h4>
-                <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide">
-                    {roleOptions.map((role, index) => {
+                <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
+                    {roleOptions.map((role) => {
                         const Icon = role.icon;
                         const isSelected = selectedRoles.has(role.id);
                         return (
-                            <div key={index} className="w-full flex-shrink-0 snap-center p-2" onClick={() => handleRoleToggle(role.id)}>
+                            <div key={role.id} className="w-full sm:w-1/2 md:w-1/3 flex-shrink-0 snap-center p-2" onClick={() => handleRoleToggle(role.id)}>
                                 <Card className={cn("transition-all border-2 overflow-hidden shadow-lg h-full cursor-pointer", isSelected ? "border-primary shadow-primary/20" : "hover:border-primary/50", "glow-card")}>
                                     <CardHeader className="p-4 pb-2">
                                         <div className="flex items-center justify-between">
@@ -170,7 +177,7 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
                             key={index}
                             onClick={() => {
                                 if (scrollRef.current) {
-                                    const cardWidth = scrollRef.current.offsetWidth;
+                                    const cardWidth = scrollRef.current.clientWidth / (window.innerWidth < 640 ? 1 : window.innerWidth < 768 ? 2 : 3);
                                     scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
                                 }
                             }}
