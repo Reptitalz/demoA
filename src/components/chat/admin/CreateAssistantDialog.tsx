@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistantConfig } from '@/types';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { ShoppingCart, HandCoins, Handshake, LifeBuoy, ClipboardList, CheckCircle } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardDescription } from '@/components/ui/card';
 
 interface CreateAssistantDialogProps {
   isOpen: boolean;
@@ -24,11 +24,11 @@ interface CreateAssistantDialogProps {
 }
 
 const roleOptions = [
-    { id: 'vendedor', title: 'Vendedor', icon: ShoppingCart, prompt: "Como vendedor experto, tu objetivo es presentar los productos de manera atractiva, responder preguntas sobre ellos y guiar al cliente para cerrar la venta. Sé proactivo y persuasivo." },
-    { id: 'cobrador', title: 'Cobrador', icon: HandCoins, prompt: "Actúas como un gestor de cobranza. Tu tono debe ser firme pero siempre respetuoso. Tu misión es recordar los pagos pendientes y ofrecer opciones para facilitar el pago." },
-    { id: 'negociador', title: 'Negociador', icon: Handshake, prompt: "Tu habilidad especial es la negociación. Debes ser capaz de entender las necesidades de ambas partes para proponer acuerdos que sean beneficiosos para todos, manteniendo una relación cordial." },
-    { id: 'soporte', title: 'Agente de Soporte', icon: LifeBuoy, prompt: "Proporcionas soporte y ayuda al cliente. Eres paciente, empático y tu objetivo principal es entender los problemas de los usuarios para ofrecerles soluciones claras y efectivas." },
-    { id: 'tomador_pedidos', title: 'Tomador de Pedidos', icon: ClipboardList, prompt: "Tu función es tomar pedidos de manera eficiente y precisa. Debes solicitar todos los detalles necesarios, confirmar la orden con el cliente antes de finalizar y asegurarte de que no haya errores." },
+    { id: 'vendedor', title: 'Vendedor', icon: ShoppingCart, description: "Guía a los clientes en la compra.", prompt: "Como vendedor experto, tu objetivo es presentar los productos de manera atractiva, responder preguntas sobre ellos y guiar al cliente para cerrar la venta. Sé proactivo y persuasivo." },
+    { id: 'cobrador', title: 'Cobrador', icon: HandCoins, description: "Gestiona recordatorios de pago.", prompt: "Actúas como un gestor de cobranza. Tu tono debe ser firme pero siempre respetuoso. Tu misión es recordar los pagos pendientes y ofrecer opciones para facilitar el pago." },
+    { id: 'negociador', title: 'Negociador', icon: Handshake, description: "Busca acuerdos y resuelve disputas.", prompt: "Tu habilidad especial es la negociación. Debes ser capaz de entender las necesidades de ambas partes para proponer acuerdos que sean beneficiosos para todos, manteniendo una relación cordial." },
+    { id: 'soporte', title: 'Agente de Soporte', icon: LifeBuoy, description: "Ayuda a los clientes a resolver problemas.", prompt: "Proporcionas soporte y ayuda al cliente. Eres paciente, empático y tu objetivo principal es entender los problemas de los usuarios para ofrecerles soluciones claras y efectivas." },
+    { id: 'tomador_pedidos', title: 'Tomador de Pedidos', icon: ClipboardList, description: "Registra pedidos de forma precisa.", prompt: "Tu función es tomar pedidos de manera eficiente y precisa. Debes solicitar todos los detalles necesarios, confirmar la orden con el cliente antes de finalizar y asegurarte de que no haya errores." },
 ];
 
 function generateChatPath(assistantName: string): string {
@@ -214,6 +214,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                                             </CardHeader>
                                             <CardContent className="p-4 pt-0">
                                                 <h5 className="font-semibold text-sm">{role.title}</h5>
+                                                <CardDescription className="text-xs">{role.description}</CardDescription>
                                             </CardContent>
                                         </Card>
                                     </div>
