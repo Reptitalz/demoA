@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -405,6 +405,35 @@ const DesktopChatPage = () => {
     }
   };
 
+  const handleSendLocation = () => {
+    if (!("geolocation" in navigator)) {
+      toast({
+        title: "Geolocalización no soportada",
+        description: "Tu navegador no permite obtener la ubicación.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+        handleSendMessage(undefined, `Aquí está mi ubicación: ${mapsUrl}`);
+        setIsSending(false);
+      },
+      (error) => {
+        toast({
+          title: "Error de Ubicación",
+          description: "No se pudo obtener tu ubicación. Por favor, asegúrate de tener los permisos activados.",
+          variant: "destructive",
+        });
+        setIsSending(false);
+      }
+    );
+  };
+
 
   if (isLoading) {
     return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
@@ -482,6 +511,15 @@ const DesktopChatPage = () => {
             disabled={isSending || !!error}
           >
             <FaPaperclip className="h-5 w-5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
+            onClick={handleSendLocation}
+            disabled={isSending || !!error}
+          >
+            <FaMapMarkerAlt className="h-5 w-5" />
           </Button>
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
