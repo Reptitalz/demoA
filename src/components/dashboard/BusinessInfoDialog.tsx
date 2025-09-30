@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaBuilding, FaEnvelope, FaMapMarkerAlt, FaClock, FaGlobe, FaImage, FaBriefcase } from 'react-icons/fa';
+import { FaSpinner, FaBuilding, FaEnvelope, FaMapMarkerAlt, FaClock, FaGlobe, FaImage, FaBriefcase, FaSave } from 'react-icons/fa';
 import type { AssistantConfig, AssistantBusinessInfo } from '@/types';
 import Image from 'next/image';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { cn } from '@/lib/utils';
 
 interface BusinessInfoDialogProps {
   isOpen: boolean;
@@ -63,10 +64,10 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
   };
 
   const handleSave = async () => {
-    if (!businessInfo.vertical || !assistantName) {
+    if (!assistantName) {
       toast({
-        title: "Campos Requeridos",
-        description: "Por favor, especifica el nombre del asistente y la categoría del negocio.",
+        title: "Campo Requerido",
+        description: "Por favor, especifica el nombre del asistente.",
         variant: "destructive",
       });
       return;
@@ -81,12 +82,11 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
       businessInfo: businessInfo,
     };
     
-    // The AppProvider will handle saving this to the database.
     dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
     
     toast({
       title: "Información Guardada",
-      description: `La información de negocio para "${assistant.name}" ha sido actualizada en la plataforma.`,
+      description: `La información para "${assistant.name}" ha sido actualizada.`,
     });
     
     setIsProcessing(false);
@@ -101,26 +101,26 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
             <FaBuilding /> Editar Información de "{assistant.name}"
           </DialogTitle>
           <DialogDescription>
-            Actualiza los detalles de tu negocio. Esta información puede ser utilizada por tu asistente y se mostrará en su perfil.
+            Actualiza los detalles que tu asistente usará y que se mostrarán en su perfil.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-          <div className="space-y-2">
-            <Label htmlFor="assistant-image" className="flex items-center gap-2">
-              <FaImage /> Imagen de Perfil
-            </Label>
+        <div className="py-4 grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto px-1">
             <div className="flex items-center gap-4">
               <Image 
                 src={assistantImageUrl}
                 alt="Avatar del Asistente"
                 width={80}
                 height={80}
-                className="rounded-md border object-cover"
+                className="rounded-full border object-cover h-20 w-20"
                 unoptimized
               />
-              <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                Cambiar Imagen
-              </Button>
+               <div className='space-y-2'>
+                  <Label htmlFor="assistant-image">Imagen de Perfil</Label>
+                   <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                      <FaImage className="mr-2" />
+                      Cambiar Imagen
+                    </Button>
+               </div>
               <Input 
                 id="assistant-image"
                 type="file"
@@ -130,96 +130,84 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
                 onChange={handleImageChange}
               />
             </div>
-          </div>
-          
-           <div className="space-y-2">
-            <Label htmlFor="assistantName" className="flex items-center gap-2">
-              <FaBuilding /> Nombre del Asistente/Negocio
-            </Label>
-            <Input 
-              id="assistantName" 
-              name="assistantName" 
-              type="text"
-              placeholder="Ej: Pastelería Dulces Momentos"
-              value={assistantName}
-              onChange={(e) => setAssistantName(e.target.value)}
-              required
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="vertical" className="flex items-center gap-2">
-              <FaBriefcase /> Categoría del Negocio (Vertical)
-            </Label>
-            <Input 
-              id="vertical" 
-              name="vertical" 
-              type="text"
-              placeholder="Ej: Ropa, Restaurante, Educación, etc."
-              value={businessInfo.vertical || ''}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="assistantName">Nombre del Asistente/Negocio</Label>
+              <Input 
+                id="assistantName" 
+                name="assistantName" 
+                type="text"
+                placeholder="Ej: Pastelería Dulces Momentos"
+                value={assistantName}
+                onChange={(e) => setAssistantName(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label htmlFor="vertical">Categoría del Negocio (Vertical)</Label>
+              <Input 
+                id="vertical" 
+                name="vertical" 
+                type="text"
+                placeholder="Ej: Ropa, Restaurante, Educación, etc."
+                value={businessInfo.vertical || ''}
+                onChange={handleInputChange}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="companyEmail" className="flex items-center gap-2">
-              <FaEnvelope /> Correo de la Empresa
-            </Label>
-            <Input 
-              id="companyEmail" 
-              name="companyEmail" 
-              type="email"
-              placeholder="contacto@tuempresa.com"
-              value={businessInfo.companyEmail || ''}
-              onChange={handleInputChange}
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="companyEmail">Correo de la Empresa</Label>
+              <Input 
+                id="companyEmail" 
+                name="companyEmail" 
+                type="email"
+                placeholder="contacto@tuempresa.com"
+                value={businessInfo.companyEmail || ''}
+                onChange={handleInputChange}
+              />
+            </div>
+            
+             <div className="space-y-1.5">
+              <Label htmlFor="websiteUrl">Página Web</Label>
+              <Input 
+                id="websiteUrl" 
+                name="websiteUrl"
+                type="url" 
+                placeholder="https://www.tuempresa.com"
+                value={businessInfo.websiteUrl || ''}
+                onChange={handleInputChange}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="companyAddress" className="flex items-center gap-2">
-              <FaMapMarkerAlt /> Dirección de la Empresa
-            </Label>
-            <Textarea 
-              id="companyAddress" 
-              name="companyAddress"
-              placeholder="Calle Falsa 123, Colonia Centro, Ciudad, Estado, CP"
-              value={businessInfo.companyAddress || ''}
-              onChange={handleInputChange}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="openingHours" className="flex items-center gap-2">
-              <FaClock /> Horarios de Atención
-            </Label>
-            <Textarea 
-              id="openingHours" 
-              name="openingHours"
-              placeholder="Lunes a Viernes: 9am - 6pm&#x0a;Sábados: 10am - 2pm"
-              value={businessInfo.openingHours || ''}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="websiteUrl" className="flex items-center gap-2">
-              <FaGlobe /> Página Web
-            </Label>
-            <Input 
-              id="websiteUrl" 
-              name="websiteUrl"
-              type="url" 
-              placeholder="https://www.tuempresa.com"
-              value={businessInfo.websiteUrl || ''}
-              onChange={handleInputChange}
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="companyAddress">Dirección de la Empresa</Label>
+              <Textarea 
+                id="companyAddress" 
+                name="companyAddress"
+                placeholder="Calle Falsa 123, Colonia Centro, Ciudad, Estado, CP"
+                value={businessInfo.companyAddress || ''}
+                onChange={handleInputChange}
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label htmlFor="openingHours">Horarios de Atención</Label>
+              <Textarea 
+                id="openingHours" 
+                name="openingHours"
+                placeholder="Lunes a Viernes: 9am - 6pm&#x0a;Sábados: 10am - 2pm"
+                value={businessInfo.openingHours || ''}
+                onChange={handleInputChange}
+                rows={3}
+              />
+            </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={isProcessing}>
-            {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
+          <Button onClick={handleSave} disabled={isProcessing} className={cn("bg-brand-gradient text-primary-foreground hover:opacity-90")}>
+            {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaSave className="mr-2" />}
             Guardar Cambios
           </Button>
         </DialogFooter>
