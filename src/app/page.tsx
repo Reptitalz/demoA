@@ -367,9 +367,14 @@ const NewHomepage = () => {
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Acceso a todas las funciones de gestión</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Instalación como PWA</li>
                       </ul>
-                      <Button variant="outline" asChild className="mt-auto">
-                          <Link href="/begin">Comenzar Gratis</Link>
-                      </Button>
+                      <div className="mt-auto pt-6 text-center">
+                          <p className="text-xs text-muted-foreground mb-2">Pagos seguros vía Google Play</p>
+                          <div className="flex justify-center items-center gap-3">
+                              <FaCcVisa className="h-6 w-6 text-muted-foreground" />
+                              <FaCcMastercard className="h-6 w-6 text-muted-foreground" />
+                              <FaCcAmex className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                      </div>
                   </div>
 
                   <div className="relative border-2 border-primary rounded-lg p-8 flex flex-col shadow-2xl shadow-primary/20">
@@ -388,6 +393,14 @@ const NewHomepage = () => {
                            <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Transacciones Ilimitadas</li>
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Soporte Prioritario</li>
                       </ul>
+                       <div className="mt-auto pt-6 text-center">
+                          <p className="text-xs text-muted-foreground mb-2">Pagos seguros vía Google Play</p>
+                          <div className="flex justify-center items-center gap-3">
+                              <FaCcVisa className="h-6 w-6 text-muted-foreground" />
+                              <FaCcMastercard className="h-6 w-6 text-muted-foreground" />
+                              <FaCcAmex className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>
