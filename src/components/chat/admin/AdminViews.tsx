@@ -19,6 +19,7 @@ import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import DatabaseLinkDialog from './DatabaseLinkDialog';
+import InstructionsDialog from './InstructionsDialog';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -29,7 +30,8 @@ const demoAdminChats = [
         lastMessage: 'Sí, me gustaría confirmar el pedido.',
         timestamp: 'Ahora',
         avatarUrl: 'https://i.imgur.com/8p8Yf9u.png',
-        memory: 123456
+        memory: 123456,
+        prompt: 'Eres un asistente de ventas amigable y eficiente.'
     },
     {
         id: 'user-2',
@@ -38,7 +40,8 @@ const demoAdminChats = [
         lastMessage: 'Gracias por la ayuda, se ha solucionado.',
         timestamp: 'Hace 5m',
         avatarUrl: 'https://i.imgur.com/8p8Yf9u.png',
-        memory: 78910
+        memory: 78910,
+        prompt: 'Tu objetivo es resolver problemas técnicos de los usuarios.'
     },
 ];
 
@@ -310,7 +313,8 @@ export const AssistantsList = () => {
   const dragOccurred = useRef(false);
   const [isCreateAssistantDialogOpen, setIsCreateAssistantDialogOpen] = useState(false);
   const [isDbLinkOpen, setIsDbLinkOpen] = useState(false);
-  const [selectedAsstIdForDb, setSelectedAsstIdForDb] = useState<string | null>(null);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
 
   const filteredChats = demoAdminChats.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -320,9 +324,14 @@ export const AssistantsList = () => {
     setIsCreateAssistantDialogOpen(true);
   };
   
-  const handleDatabaseLink = (assistantId: string) => {
-    setSelectedAsstIdForDb(assistantId);
+  const handleDatabaseLink = (assistant: any) => {
+    setSelectedAssistant(assistant);
     setIsDbLinkOpen(true);
+  };
+  
+  const handleInstructionsEdit = (assistant: any) => {
+    setSelectedAssistant(assistant);
+    setIsInstructionsOpen(true);
   };
   
   return (
@@ -382,14 +391,14 @@ export const AssistantsList = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 left-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5">
+                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5" onClick={() => handleInstructionsEdit(chat)}>
                                 <BookText size={20}/>
                                 <span className="text-xs">Instrucciones</span>
                             </Button>
                             <Button 
                                 variant="ghost" 
                                 className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5"
-                                onClick={() => handleDatabaseLink(chat.id)}
+                                onClick={() => handleDatabaseLink(chat)}
                             >
                                 <Database size={20}/>
                                 <span className="text-xs">Base de datos</span>
@@ -489,12 +498,19 @@ export const AssistantsList = () => {
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
        <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
-       {selectedAsstIdForDb && (
+       {selectedAssistant && (
          <DatabaseLinkDialog 
             isOpen={isDbLinkOpen} 
             onOpenChange={setIsDbLinkOpen} 
-            assistantId={selectedAsstIdForDb} 
+            assistantId={selectedAssistant.id} 
          />
+       )}
+       {selectedAssistant && (
+        <InstructionsDialog
+            isOpen={isInstructionsOpen}
+            onOpenChange={setIsInstructionsOpen}
+            assistant={selectedAssistant}
+        />
        )}
     </>
   );
