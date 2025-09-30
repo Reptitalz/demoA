@@ -11,7 +11,8 @@ import { Progress } from '../ui/progress';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from '@/components/ui/label';
 
 interface CreditApplicationDialogProps {
   isOpen: boolean;
