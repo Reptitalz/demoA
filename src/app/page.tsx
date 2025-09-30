@@ -6,11 +6,14 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaApple, FaDownload, FaSpinner, FaAndroid, FaPaperPlane, FaGooglePlay, FaTimes } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 import MercadoPagoIcon from '@/components/shared/MercadoPagoIcon';
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 
 const PhoneCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -233,6 +236,15 @@ const NewHomepage = () => {
 
   const currentDownload = downloadConfig[device];
 
+  const comparisonFeatures = [
+    { feature: 'Asistentes Ilimitados', free: true, member: true },
+    { feature: 'Límite de Mensajes (IA)', free: '100 / día', member: 'Ilimitados' },
+    { feature: 'Gestión de Banco (Transacciones)', free: '100 / día', member: 'Ilimitadas' },
+    { feature: 'Catálogo de Productos', free: '5 productos', member: 'Ilimitados' },
+    { feature: 'Gestión de Créditos', free: '1 línea', member: 'Múltiples' },
+    { feature: 'Soporte', free: 'Comunitario', member: 'Prioritario' },
+  ];
+
   return (
     <PageContainer className="p-0" fullWidth={true}>
       <section className="relative pt-24 pb-20 md:pt-32 md:pb-28 overflow-hidden">
@@ -406,7 +418,44 @@ const NewHomepage = () => {
           </div>
       </section>
 
-      <section className="py-24 bg-background">
+      <section className="py-20 bg-background">
+        <div className="container max-w-4xl mx-auto px-4">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold tracking-tight">Comparación de Planes</h2>
+                <p className="mt-3 text-muted-foreground">Encuentra el plan que mejor se adapta a tus necesidades.</p>
+            </div>
+            <div className="border rounded-lg overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[50%]">Característica</TableHead>
+                            <TableHead className="text-center">Plan Gratuito</TableHead>
+                            <TableHead className="text-center">Plan Miembro</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {comparisonFeatures.map((item, index) => (
+                            <TableRow key={index}>
+                                <TableCell className="font-medium">{item.feature}</TableCell>
+                                <TableCell className="text-center">
+                                    {typeof item.free === 'boolean' ? 
+                                        (item.free ? <FaCheck className="mx-auto text-green-500"/> : <FaTimes className="mx-auto text-destructive"/>) 
+                                        : item.free}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    {typeof item.member === 'boolean' ? 
+                                        (item.member ? <FaCheck className="mx-auto text-green-500"/> : <FaTimes className="mx-auto text-destructive"/>) 
+                                        : <span className="font-bold text-primary">{item.member}</span>}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+      </section>
+
+      <section className="py-24 bg-muted/50">
           <div className="container mx-auto px-4 text-center">
               <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
@@ -429,6 +478,53 @@ const NewHomepage = () => {
                   <span className="text-sm">Web</span>
                 </div>
               </div>
+          </div>
+      </section>
+
+      <section id="faq" className="py-20 bg-background">
+          <div className="container max-w-3xl mx-auto px-4">
+              <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold tracking-tight">Preguntas Frecuentes</h2>
+                  <p className="mt-3 text-muted-foreground">Resolvemos tus dudas más comunes.</p>
+              </div>
+              <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                      <AccordionTrigger>¿Qué es Hey Manito exactamente?</AccordionTrigger>
+                      <AccordionContent>
+                          Hey Manito es una plataforma que combina una red social de chat con la capacidad de crear y gestionar asistentes de inteligencia artificial. Puedes usarla para chatear con contactos o para que tus asistentes de IA atiendan a tus clientes, tomen pedidos, respondan preguntas y mucho más, directamente en WhatsApp.
+                      </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-2">
+                      <AccordionTrigger>¿Cómo funciona el asistente de IA?</AccordionTrigger>
+                      <AccordionContent>
+                          Tú defines el comportamiento del asistente mediante un "prompt", que son instrucciones en lenguaje natural. Además, puedes conectar una Hoja de Google como base de datos para que el asistente responda con información específica de tu negocio (productos, precios, etc.).
+                      </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-3">
+                      <AccordionTrigger>¿Realmente es gratis para empezar?</AccordionTrigger>
+                      <AccordionContent>
+                          Sí. El plan gratuito te permite crear asistentes ilimitados y te da un saldo de 100 mensajes al día para que pruebes la funcionalidad de la IA. Esto te permite experimentar y configurar tus asistentes sin ningún costo inicial.
+                      </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-4">
+                      <AccordionTrigger>¿Qué pasa si necesito más de 100 mensajes al día?</AccordionTrigger>
+                      <AccordionContent>
+                          Cuando estés listo para un mayor volumen, puedes suscribirte al Plan Miembro por $179 MXN al mes. Este plan te ofrece mensajes ilimitados para todos tus asistentes, transacciones ilimitadas en el banco, catálogos de productos más grandes y soporte prioritario.
+                      </AccordionContent>
+                  </AccordionItem>
+                   <AccordionItem value="item-5">
+                      <AccordionTrigger>¿Necesito un número de WhatsApp nuevo?</AccordionTrigger>
+                      <AccordionContent>
+                          Sí. Para que un asistente de IA funcione en WhatsApp, necesita controlar un número de teléfono. Debes usar un chip nuevo o un número que no esté actualmente registrado en WhatsApp (ni personal ni Business). Esto es necesario para que nuestra integración pueda conectar el asistente a la red de WhatsApp.
+                      </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-6">
+                      <AccordionTrigger>¿Mi información y la de mis clientes está segura?</AccordionTrigger>
+                      <AccordionContent>
+                          La seguridad es nuestra prioridad. Las conversaciones entre tus clientes y tus asistentes se procesan a través de la API de WhatsApp y no se almacenan en nuestros servidores. La información que proporcionas para configurar tu asistente (prompts, URLs de Hojas de Google) está protegida. Puedes leer más en nuestra <Link href="/privacy" className="text-primary hover:underline">Política de Privacidad</Link>.
+                      </AccordionContent>
+                  </AccordionItem>
+              </Accordion>
           </div>
       </section>
     </PageContainer>
