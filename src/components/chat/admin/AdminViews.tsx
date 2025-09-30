@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -347,7 +347,7 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                         Sigue los pasos para añadir un producto a tu catálogo. (Paso {step} de 3)
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4 flex-grow overflow-y-auto">
+                <div className="space-y-4 py-4 flex-grow overflow-y-auto px-6">
                     {renderStepContent()}
                 </div>
                 <DialogFooter className="flex justify-between w-full p-4 border-t">
@@ -372,6 +372,7 @@ export const ProductsView = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
     const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
+    const { toast } = useToast();
 
     const isMember = state.userProfile.accountType === 'business';
 
@@ -418,14 +419,13 @@ export const ProductsView = () => {
                     </div>
                 </ScrollArea>
                  <Button
-                    onClick={() => setIsAddProductDialogOpen(true)}
+                    onClick={() => toast({ title: "Próximamente", description: "Aquí se abriría un diálogo para crear un nuevo catálogo."})}
                     className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
                     size="icon"
-                    title="Crear Catálogo"
+                    title="Crear Nuevo Catálogo"
                 >
                     <Plus className="h-6 w-6" />
                 </Button>
-                <AddProductDialog isOpen={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen} />
             </>
         );
     }
