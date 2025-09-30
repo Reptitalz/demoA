@@ -1,11 +1,11 @@
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2 } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,10 +21,53 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { AssistantConfig } from '@/types';
+import { AssistantConfig, ChatMessage } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from './CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+// --- IndexedDB Helper Functions (replicated for this component) ---
+const DB_NAME = 'HeyManitoChatDB';
+const DB_VERSION = 1;
+const MESSAGES_STORE_NAME = 'messages';
+
+const openDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
+        db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+interface StoredMessage extends ChatMessage {
+    sessionId: string;
+    // IndexedDB adds a key property when using autoIncrement
+    id?: number; 
+}
+
+// Function to get all messages from all sessions
+const getAllMessagesFromDB = async (): Promise<StoredMessage[]> => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(MESSAGES_STORE_NAME, 'readonly');
+        const store = transaction.objectStore(MESSAGES_STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => {
+            resolve(request.result as StoredMessage[]);
+        };
+        request.onerror = () => {
+            console.error('Error fetching all messages:', request.error);
+            reject(request.error);
+        };
+    });
+};
+
 
 // Demo data for admin chat trays
 const demoAdminChats: AssistantConfig[] = [
@@ -48,42 +91,6 @@ const demoAdminChats: AssistantConfig[] = [
     },
 ];
 
-const demoPayments = [
-  {
-    id: 'pay-1',
-    product: 'Pastel de Chocolate Grande',
-    assistantName: 'Asistente de Ventas',
-    userName: 'Usuario B',
-    chatPath: 'usuario-b-123',
-    amount: 350.00,
-    receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
-    receivedAt: new Date(),
-    status: 'pending',
-  },
-  {
-    id: 'pay-2',
-    product: 'Servicio de Mantenimiento',
-    assistantName: 'Asistente Taller',
-    userName: 'Cliente Frecuente',
-    chatPath: 'cliente-f-456',
-    amount: 850.50,
-    receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
-    receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    status: 'pending',
-  },
-   {
-    id: 'pay-3',
-    product: 'Adelanto de Nómina',
-    assistantName: 'Créditos Rápidos',
-    userName: 'Empleado X',
-    chatPath: 'empleado-x-789',
-    amount: 2500.00,
-    receiptUrl: 'https://i.imgur.com/JzJzJzJ.jpeg',
-    receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-    status: 'completed',
-  },
-];
-
 const demoProducts = [
     { id: 'prod-1', name: 'Pastel de Chocolate', price: 350.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
     { id: 'prod-2', name: 'Galletas de Chispas', price: 150.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
@@ -97,30 +104,30 @@ const demoCatalogs = [
 ];
 
 
-const ReceiptDialog = ({ payment, isOpen, onOpenChange }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction: (id: string, action: 'authorize' | 'reject') => void }) => {
     if (!payment) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="w-screen h-screen max-w-full max-h-full p-0 flex flex-col bg-background">
                 <DialogHeader className="p-4 border-b">
-                    <DialogTitle>Recibo de Pago</DialogTitle>
+                    <DialogTitle>Revisar Comprobante</DialogTitle>
                     <DialogDescription>
-                        Recibido el {format(payment.receivedAt, "PPPp", { locale: es })}
+                        Recibido de {payment.userName} el {format(new Date(payment.receivedAt), "PPPp", { locale: es })}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex-grow overflow-auto p-4">
                     <Image
                         src={payment.receiptUrl}
-                        alt="Recibo de pago"
+                        alt="Comprobante de pago"
                         width={800}
                         height={1200}
                         className="rounded-md border w-full h-auto"
                     />
                 </div>
                 <DialogFooter className="p-4 bg-background border-t flex justify-end gap-2">
-                    <Button variant="destructive" onClick={() => onOpenChange(false)}><XCircle className="mr-2"/> Rechazar</Button>
-                    <Button variant="default" onClick={() => onOpenChange(false)} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
+                    <Button variant="destructive" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
+                    <Button variant="default" onClick={() => onAction(payment.id, 'authorize')} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -129,25 +136,72 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange }: { payment: any | null,
 
 
 export const BankView = () => {
+    const { state } = useApp();
+    const { assistants } = state.userProfile;
+    const { toast } = useToast();
+    const [allPayments, setAllPayments] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
     const [filter, setFilter] = useState<'pending' | 'completed'>('pending');
 
+    const fetchPayments = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const allMessages = await getAllMessagesFromDB();
+            const imagePayments = allMessages
+                .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && msg.content.type === 'image')
+                .map((msg, index) => {
+                    const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath))
+                    return {
+                        id: msg.id?.toString() || `img-${index}`,
+                        product: 'Comprobante de Pago',
+                        assistantName: assistant?.name || 'Desconocido',
+                        userName: `Usuario ${msg.sessionId.slice(-6)}`,
+                        chatPath: msg.sessionId,
+                        amount: 0.00, // Amount is unknown from just an image
+                        receiptUrl: (msg.content as { type: 'image', url: string }).url,
+                        receivedAt: new Date(), // Using current date as placeholder
+                        status: 'pending', // All found images are pending initially
+                    };
+                });
+            setAllPayments(imagePayments);
+        } catch (error) {
+            console.error(error);
+            toast({ title: 'Error', description: 'No se pudieron cargar los comprobantes desde la base de datos local.', variant: 'destructive'});
+        } finally {
+            setIsLoading(false);
+        }
+    }, [assistants, toast]);
+    
+    useEffect(() => {
+        fetchPayments();
+    }, [fetchPayments]);
+
     const filteredPayments = useMemo(() => {
-        return demoPayments.filter(p => p.status === filter);
-    }, [filter]);
+        return allPayments.filter(p => p.status === filter);
+    }, [filter, allPayments]);
 
     const totalIncome = useMemo(() => {
-        return demoPayments.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0);
-    }, []);
+        return allPayments.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0);
+    }, [allPayments]);
     
     const pendingCount = useMemo(() => {
-        return demoPayments.filter(p => p.status === 'pending').length;
-    }, []);
+        return allPayments.filter(p => p.status === 'pending').length;
+    }, [allPayments]);
 
     const handleViewReceipt = (payment: any) => {
         setSelectedPayment(payment);
         setIsReceiptOpen(true);
+    };
+    
+    const handleAction = (id: string, action: 'authorize' | 'reject') => {
+        setAllPayments(prev => prev.filter(p => p.id !== id));
+        setIsReceiptOpen(false);
+        toast({
+            title: `Acción Realizada`,
+            description: `El comprobante ha sido ${action === 'authorize' ? 'autorizado' : 'rechazado'}.`
+        });
     };
 
     return (
@@ -165,7 +219,7 @@ export const BankView = () => {
             <div className="p-4">
                  <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
                     <CardContent className="p-6">
-                        <p className="text-muted-foreground font-normal text-sm">Ingreso Total (Completado)</p>
+                        <p className="text-muted-foreground font-normal text-sm">Ingreso Total (Autorizado)</p>
                         <p className="text-4xl font-extrabold text-foreground mt-1">
                             ${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                         </p>
@@ -180,31 +234,32 @@ export const BankView = () => {
                         Por Autorizar
                     </Button>
                     <Button variant={filter === 'completed' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('completed')} className="h-8 text-xs flex-1">
-                        Completados
+                        Autorizados
                     </Button>
                 </div>
             </div>
 
             <ScrollArea className="flex-grow px-2">
                 <div className="p-2 space-y-3">
-                    {filteredPayments.length > 0 ? filteredPayments.map(payment => (
+                    {isLoading ? (
+                         <div className="flex justify-center items-center h-32">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : filteredPayments.length > 0 ? filteredPayments.map(payment => (
                          <Card key={payment.id} className="glow-card">
                             <CardContent className="p-3">
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-1">
                                         <p className="font-semibold text-sm">{payment.product}</p>
                                         <p className="text-xs text-muted-foreground">Asistente: {payment.assistantName}</p>
-                                        <p className="text-xs text-muted-foreground">De: {payment.userName} ({payment.chatPath})</p>
+                                        <p className="text-xs text-muted-foreground">De: {payment.userName}</p>
                                     </div>
-                                    <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>
+                                    {payment.amount > 0 && <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>}
                                 </div>
                                 {payment.status === 'pending' && (
                                     <div className="flex gap-2 mt-3 pt-3 border-t">
                                         <Button size="sm" className="flex-1" onClick={() => handleViewReceipt(payment)}>
-                                            <Eye className="mr-2"/>Ver Recibo
-                                        </Button>
-                                        <Button size="sm" variant="outline" className="flex-1">
-                                            <FileText className="mr-2"/>Ver Detalles
+                                            <Eye className="mr-2"/>Ver Comprobante
                                         </Button>
                                     </div>
                                 )}
@@ -212,7 +267,7 @@ export const BankView = () => {
                         </Card>
                     )) : (
                         <div className="text-center py-10 text-muted-foreground">
-                            <p>No hay pagos {filter === 'pending' ? 'pendientes' : 'completados'}.</p>
+                            <p>No hay pagos {filter === 'pending' ? 'pendientes' : 'autorizados'}.</p>
                         </div>
                     )}
                 </div>
@@ -221,6 +276,7 @@ export const BankView = () => {
                 payment={selectedPayment}
                 isOpen={isReceiptOpen}
                 onOpenChange={setIsReceiptOpen}
+                onAction={handleAction}
             />
         </>
     );
