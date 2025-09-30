@@ -57,6 +57,7 @@ const demoPayments = [
     amount: 350.00,
     receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
     receivedAt: new Date(),
+    status: 'pending',
   },
   {
     id: 'pay-2',
@@ -67,6 +68,18 @@ const demoPayments = [
     amount: 850.50,
     receiptUrl: 'https://i.imgur.com/L4i1i8K.png',
     receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    status: 'pending',
+  },
+   {
+    id: 'pay-3',
+    product: 'Adelanto de Nómina',
+    assistantName: 'Créditos Rápidos',
+    userName: 'Empleado X',
+    chatPath: 'empleado-x-789',
+    amount: 2500.00,
+    receiptUrl: 'https://i.imgur.com/JzJzJzJ.jpeg',
+    receivedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+    status: 'completed',
   },
 ];
 
@@ -109,9 +122,21 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange }: { payment: any | null,
 
 
 export const BankView = () => {
-    const totalIncome = demoPayments.reduce((sum, p) => sum + p.amount, 0);
     const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+    const [filter, setFilter] = useState<'pending' | 'completed'>('pending');
+
+    const filteredPayments = useMemo(() => {
+        return demoPayments.filter(p => p.status === filter);
+    }, [filter]);
+
+    const totalIncome = useMemo(() => {
+        return demoPayments.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0);
+    }, []);
+    
+    const pendingCount = useMemo(() => {
+        return demoPayments.filter(p => p.status === 'pending').length;
+    }, []);
 
     const handleViewReceipt = (payment: any) => {
         setSelectedPayment(payment);
@@ -133,17 +158,29 @@ export const BankView = () => {
             <div className="p-4">
                  <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
                     <CardContent className="p-6">
-                        <p className="text-muted-foreground font-normal text-sm">Ingreso Total</p>
+                        <p className="text-muted-foreground font-normal text-sm">Ingreso Total (Completado)</p>
                         <p className="text-4xl font-extrabold text-foreground mt-1">
                             ${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                         </p>
                     </CardContent>
                 </Card>
             </div>
+
+            <div className="px-4 pb-2 border-b">
+                <div className="flex gap-2">
+                    <Button variant={filter === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('pending')} className="h-8 text-xs flex-1 relative">
+                        {pendingCount > 0 && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>}
+                        Por Autorizar
+                    </Button>
+                    <Button variant={filter === 'completed' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('completed')} className="h-8 text-xs flex-1">
+                        Completados
+                    </Button>
+                </div>
+            </div>
+
             <ScrollArea className="flex-grow px-2">
                 <div className="p-2 space-y-3">
-                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Pagos Pendientes</h3>
-                    {demoPayments.map(payment => (
+                    {filteredPayments.length > 0 ? filteredPayments.map(payment => (
                          <Card key={payment.id} className="glow-card">
                             <CardContent className="p-3">
                                 <div className="flex justify-between items-start">
@@ -154,17 +191,23 @@ export const BankView = () => {
                                     </div>
                                     <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>
                                 </div>
-                                <div className="flex gap-2 mt-3 pt-3 border-t">
-                                    <Button size="sm" className="flex-1" onClick={() => handleViewReceipt(payment)}>
-                                        <Eye className="mr-2"/>Ver Recibo
-                                    </Button>
-                                    <Button size="sm" variant="outline" className="flex-1">
-                                        <FileText className="mr-2"/>Ver Detalles
-                                    </Button>
-                                </div>
+                                {payment.status === 'pending' && (
+                                    <div className="flex gap-2 mt-3 pt-3 border-t">
+                                        <Button size="sm" className="flex-1" onClick={() => handleViewReceipt(payment)}>
+                                            <Eye className="mr-2"/>Ver Recibo
+                                        </Button>
+                                        <Button size="sm" variant="outline" className="flex-1">
+                                            <FileText className="mr-2"/>Ver Detalles
+                                        </Button>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
-                    ))}
+                    )) : (
+                        <div className="text-center py-10 text-muted-foreground">
+                            <p>No hay pagos {filter === 'pending' ? 'pendientes' : 'completados'}.</p>
+                        </div>
+                    )}
                 </div>
             </ScrollArea>
              <ReceiptDialog 
