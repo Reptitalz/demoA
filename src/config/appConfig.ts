@@ -38,7 +38,7 @@ export const AUTH_METHODS: Array<{id: AuthProviderType; name: string; icon: Reac
 export const PRICE_PER_CREDIT = 65.00; // Precio base por crédito
 export const MAX_CUSTOM_CREDITS = 100;
 export const MESSAGES_PER_CREDIT = 1000;
-export const MONTHLY_PLAN_CREDIT_COST = 179 / PRICE_PER_CREDIT; // Approx 2.75 -> Price is $179 MXN
+export const MONTHLY_PLAN_CREDIT_COST = 179;
 export const UNLIMITED_MESSAGES_LIMIT = 1000000; // A high number to simulate unlimited
 
 export const CREDIT_PACKAGES = [

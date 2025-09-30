@@ -257,7 +257,7 @@ const NewHomepage = () => {
                   </p>
                   <div className="mt-8 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                     <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                        <Link href={"/begin"}>
+                        <Link href={"/chat/begin"}>
                             <FaRobot className="mr-2" />
                             Crear Asistente Gratis
                         </Link>
@@ -405,7 +405,7 @@ const NewHomepage = () => {
                   Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.
               </p>
               <Button size="lg" asChild className="mt-8 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                  <Link href="/begin">Crear mi Primer Asistente</Link>
+                  <Link href="/chat/begin">Crear mi Primer Asistente</Link>
               </Button>
                <div className="mt-8 flex justify-center items-center gap-6">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
