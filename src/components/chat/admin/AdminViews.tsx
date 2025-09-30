@@ -528,7 +528,7 @@ export const ProductsView = () => {
                     </div>
                     <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
                     {isMember && (
-                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => setIsCreateCatalogDialogOpen(true)}>
+                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => toast({ title: "Próximamente", description: "La creación de catálogos estará disponible para miembros."})}>
                             <Plus className="mr-1 h-4 w-4"/>
                             Crear Catálogo
                         </Button>
@@ -559,7 +559,6 @@ export const ProductsView = () => {
                 <Plus className="h-6 w-6" />
             </Button>
             <AddProductDialog isOpen={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen} />
-            <CreateCatalogDialog isOpen={isCreateCatalogDialogOpen} onOpenChange={setIsCreateCatalogDialogOpen} />
         </>
     );
 };
