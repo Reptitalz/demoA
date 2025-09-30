@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
+import DatabaseLinkDialog from './DatabaseLinkDialog';
 
 // Demo data for admin chat trays
 const demoAdminChats = [
@@ -308,6 +309,8 @@ export const AssistantsList = () => {
   const router = useRouter();
   const dragOccurred = useRef(false);
   const [isCreateAssistantDialogOpen, setIsCreateAssistantDialogOpen] = useState(false);
+  const [isDbLinkOpen, setIsDbLinkOpen] = useState(false);
+  const [selectedAsstIdForDb, setSelectedAsstIdForDb] = useState<string | null>(null);
 
   const filteredChats = demoAdminChats.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -315,6 +318,11 @@ export const AssistantsList = () => {
   
   const handleCreateAssistant = () => {
     setIsCreateAssistantDialogOpen(true);
+  };
+  
+  const handleDatabaseLink = (assistantId: string) => {
+    setSelectedAsstIdForDb(assistantId);
+    setIsDbLinkOpen(true);
   };
   
   return (
@@ -378,7 +386,11 @@ export const AssistantsList = () => {
                                 <BookText size={20}/>
                                 <span className="text-xs">Instrucciones</span>
                             </Button>
-                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5">
+                            <Button 
+                                variant="ghost" 
+                                className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5"
+                                onClick={() => handleDatabaseLink(chat.id)}
+                            >
                                 <Database size={20}/>
                                 <span className="text-xs">Base de datos</span>
                             </Button>
@@ -477,6 +489,13 @@ export const AssistantsList = () => {
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
        <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
+       {selectedAsstIdForDb && (
+         <DatabaseLinkDialog 
+            isOpen={isDbLinkOpen} 
+            onOpenChange={setIsDbLinkOpen} 
+            assistantId={selectedAsstIdForDb} 
+         />
+       )}
     </>
   );
 }
