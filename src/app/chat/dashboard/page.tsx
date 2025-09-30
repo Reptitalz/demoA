@@ -20,7 +20,8 @@ import { useRouter } from 'next/navigation';
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
-import { XCircle } from 'lucide-react';
+import { XCircle, Settings } from 'lucide-react';
+import DefineShowDialog from '@/components/chat/DefineShowDialog';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -42,6 +43,7 @@ const ChatListPage = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = React.useState(false);
   const [isCreditDetailsOpen, setIsCreditDetailsOpen] = React.useState(false);
+  const [isDefineShowOpen, setIsDefineShowOpen] = React.useState(false);
   
   const [activeSwipe, setActiveSwipe] = React.useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
@@ -86,16 +88,10 @@ const ChatListPage = () => {
                 <AppIcon className="h-7 w-7" />
                 <span>{APP_NAME}</span>
             </h1>
-            <div className="text-right">
-                <p className="text-xs text-muted-foreground">Crédito Disponible</p>
-                <p className="font-bold text-lg flex items-center gap-1.5 justify-end">
-                    <FaDollarSign className="text-green-500"/>
-                    $500.00
-                </p>
-                <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsCreditDetailsOpen(true)}>
-                    Ver Crédito
-                </Button>
-            </div>
+             <Button variant="outline" size="sm" onClick={() => setIsDefineShowOpen(true)}>
+                <Settings className="mr-2 h-4 w-4" />
+                Definir Muestra
+            </Button>
         </div>
         <div className="relative mt-2">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -272,10 +268,12 @@ const ChatListPage = () => {
         creditAmount={500.00} // Example amount
         creditProvider="demo-assistant-chat-path" // Example provider
     />
+    <DefineShowDialog
+        isOpen={isDefineShowOpen}
+        onOpenChange={setIsDefineShowOpen}
+    />
     </>
   );
 };
 
 export default ChatListPage;
-
-    
