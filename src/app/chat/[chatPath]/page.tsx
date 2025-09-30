@@ -1,4 +1,3 @@
-
 // src/app/chat/[chatPath]/page.tsx
 "use client";
 
@@ -20,6 +19,7 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
+import CreditApplicationDialog from '@/components/chat/CreditApplicationDialog';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -139,6 +139,7 @@ const DesktopChatPage = () => {
   
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isCreditAppOpen, setIsCreditAppOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
@@ -409,8 +410,8 @@ const DesktopChatPage = () => {
     return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
   
-  const showCreditButton = true; // For demonstration
-  const showProductsButton = true; // For demonstration
+  const showCreditButton = true;
+  const showProductsButton = true;
   
   return (
     <>
@@ -447,7 +448,7 @@ const DesktopChatPage = () => {
 
         {(showCreditButton || showProductsButton) && (
             <div className="bg-card/60 backdrop-blur-sm p-2 flex items-center justify-center gap-2 border-b">
-                {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => handleSendMessage(undefined, 'Quiero solicitar un crédito')}><FaCreditCard className="mr-1.5"/> Adquirir Crédito</Button>}
+                {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => setIsCreditAppOpen(true)}><FaCreditCard className="mr-1.5"/> Adquirir Crédito</Button>}
                 {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Ver Productos</Button>}
             </div>
         )}
@@ -532,6 +533,14 @@ const DesktopChatPage = () => {
              handleSendMessage(undefined, `Hola, me interesa el producto: ${product.name} ($${product.price}).`);
              setIsCatalogOpen(false);
           }}
+        />
+      )}
+
+      {assistant && (
+        <CreditApplicationDialog
+          isOpen={isCreditAppOpen}
+          onOpenChange={setIsCreditAppOpen}
+          assistant={assistant}
         />
       )}
       
