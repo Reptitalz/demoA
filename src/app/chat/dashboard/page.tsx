@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
+import { XCircle } from 'lucide-react';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -125,7 +126,11 @@ const ChatListPage = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-gray-500/20 hover:bg-gray-500/30 rounded-none">
+                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none">
+                                <XCircle size={20}/>
+                                <span className="text-xs mt-1">Limpiar</span>
+                            </Button>
+                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
                                 <FaTrash size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
@@ -150,7 +155,7 @@ const ChatListPage = () => {
                 </AnimatePresence>
                  <motion.div
                     drag="x"
-                    dragConstraints={{ left: -80, right: 112 }}
+                    dragConstraints={{ left: -160, right: 112 }}
                     onDragStart={(e) => {
                         e.stopPropagation();
                         dragOccurred.current = false;
@@ -162,8 +167,8 @@ const ChatListPage = () => {
                     onDragEnd={(event, info) => {
                         setTimeout(() => { dragOccurred.current = false; }, 50);
 
-                        const isSwipeLeft = info.offset.x < -50;
-                        const isSwipeRight = info.offset.x > 50;
+                        const isSwipeLeft = info.offset.x < -60;
+                        const isSwipeRight = info.offset.x > 60;
 
                         if (isSwipeLeft) {
                             setActiveSwipe({ id: chat.id, direction: 'left' });
@@ -182,7 +187,7 @@ const ChatListPage = () => {
                         router.push(`/chat/${chat.chatPath}`);
                     }}
                     animate={{ 
-                        x: isLeftSwiped ? -80 : isRightSwiped ? 112 : 0 
+                        x: isLeftSwiped ? -160 : isRightSwiped ? 112 : 0 
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative z-10 cursor-grab active:cursor-grabbing"
@@ -272,3 +277,5 @@ const ChatListPage = () => {
 };
 
 export default ChatListPage;
+
+    
