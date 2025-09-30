@@ -4,11 +4,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FaDollarSign, FaHandshake } from 'react-icons/fa';
+import { FaDollarSign, FaHandshake, FaSpinner } from 'react-icons/fa';
 import { Card, CardContent } from '../ui/card';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { CheckCircle } from 'lucide-react';
 
 interface CreditDetailsDialogProps {
   isOpen: boolean;
@@ -19,15 +20,23 @@ interface CreditDetailsDialogProps {
 
 // Example data for the carousel
 const demoCredits = [
-  { amount: 500.00, providerName: "Asistente de Ventas", providerImage: "https://i.imgur.com/8p8Yf9u.png" },
-  { amount: 1250.75, providerName: "Soporte Técnico", providerImage: "https://i.imgur.com/JzJzJzJ.jpeg" },
-  { amount: 300.00, providerName: "Agente de Cobranza", providerImage: "https://i.imgur.com/L4i1i8K.png" },
+  { id: 'credit-1', amount: 500.00, providerName: "Asistente de Ventas", providerImage: "https://i.imgur.com/8p8Yf9u.png" },
+  { id: 'credit-2', amount: 1250.75, providerName: "Soporte Técnico", providerImage: "https://i.imgur.com/JzJzJzJ.jpeg" },
+  { id: 'credit-3', amount: 300.00, providerName: "Agente de Cobranza", providerImage: "https://i.imgur.com/L4i1i8K.png" },
 ];
 
 
 const CreditDetailsDialog = ({ isOpen, onOpenChange }: CreditDetailsDialogProps) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [acceptedCreditId, setAcceptedCreditId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) {
+            // Reset state when dialog closes
+            setAcceptedCreditId(null);
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -61,22 +70,35 @@ const CreditDetailsDialog = ({ isOpen, onOpenChange }: CreditDetailsDialogProps)
         </DialogHeader>
         <div className="py-4 space-y-4 flex-grow flex flex-col justify-center">
              <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
-                {demoCredits.map((credit, index) => (
-                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
-                            <CardContent className="p-6">
-                                <Avatar className="mx-auto h-12 w-12 mb-2 border-2">
-                                    <AvatarImage src={credit.providerImage || DEFAULT_ASSISTANT_IMAGE_URL} />
-                                    <AvatarFallback>{credit.providerName.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <p className="text-muted-foreground font-normal text-xs">Autorizado por {credit.providerName}</p>
-                                <p className="text-4xl font-extrabold text-foreground mt-2">
-                                    ${credit.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                ))}
+                {demoCredits.map((credit, index) => {
+                    const isAccepted = acceptedCreditId === credit.id;
+                    return (
+                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                            <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
+                                <CardContent className="p-6 space-y-4">
+                                    <Avatar className="mx-auto h-12 w-12 mb-2 border-2">
+                                        <AvatarImage src={credit.providerImage || DEFAULT_ASSISTANT_IMAGE_URL} />
+                                        <AvatarFallback>{credit.providerName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="text-muted-foreground font-normal text-xs">Autorizado por {credit.providerName}</p>
+                                    <p className="text-4xl font-extrabold text-foreground mt-2">
+                                        ${credit.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                    </p>
+                                    
+                                    {isAccepted ? (
+                                        <div className="pt-2 text-green-600 dark:text-green-400">
+                                            <CheckCircle className="mx-auto h-6 w-6 mb-2"/>
+                                            <p className="font-semibold text-sm">Crédito aceptado.</p>
+                                            <p className="text-xs">Esperando a que el vendedor concrete la operación.</p>
+                                        </div>
+                                    ) : (
+                                        <Button className="w-full mt-2" onClick={() => setAcceptedCreditId(credit.id)}>Aceptar Crédito</Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    );
+                })}
             </div>
 
              <div className="flex justify-center mt-2 space-x-2">
