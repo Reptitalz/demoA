@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -80,44 +81,13 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
       businessInfo: businessInfo,
     };
     
-    // First, update the state and our own DB
+    // The AppProvider will handle saving this to the database.
     dispatch({ type: 'UPDATE_ASSISTANT', payload: updatedAssistant });
     
     toast({
       title: "Información Guardada",
       description: `La información de negocio para "${assistant.name}" ha sido actualizada en la plataforma.`,
     });
-
-    // If the assistant is active and has Gupshup credentials, call the API to update WA profile
-    if (assistant.numberReady && assistant.gupshupConfig?.appId && assistant.gupshupConfig?.apiKey) {
-      try {
-        const response = await fetch('/api/assistants/update-business-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              assistantId: assistant.id,
-              businessInfo: businessInfo
-            })
-        });
-
-        const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.message || "Error al sincronizar con WhatsApp.");
-        }
-        
-        toast({
-          title: "¡Perfil de WhatsApp Sincronizado!",
-          description: "La información de tu negocio se ha actualizado en WhatsApp.",
-        });
-
-      } catch (error: any) {
-        toast({
-          title: "Error de Sincronización con WhatsApp",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    }
     
     setIsProcessing(false);
     onOpenChange(false);
@@ -131,7 +101,7 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
             <FaBuilding /> Editar Información de "{assistant.name}"
           </DialogTitle>
           <DialogDescription>
-            Actualiza los detalles de tu negocio. Esta información puede ser utilizada por tu asistente y se mostrará en su perfil de WhatsApp.
+            Actualiza los detalles de tu negocio. Esta información puede ser utilizada por tu asistente y se mostrará en su perfil.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">

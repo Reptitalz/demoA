@@ -12,7 +12,7 @@ declare module 'next-auth' {
 }
 
 
-export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db";
+export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db" | "sell_credits" | "sell_products";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;
@@ -43,11 +43,6 @@ export interface AssistantBusinessInfo {
   vertical?: string; // e.g. "Restaurant", "Clothing", etc.
 }
 
-export interface GupshupConfig {
-    appId: string;
-    apiKey: string;
-}
-
 export interface GoogleSheetsTool {
   enabled: boolean;
   spreadsheetUrl?: string;
@@ -75,7 +70,6 @@ export interface AssistantConfig {
   verificationCode?: string;
   numberReady?: boolean;
   businessInfo?: AssistantBusinessInfo;
-  gupshupConfig?: GupshupConfig;
   tools?: AssistantTools;
   timezone?: string;
   isFirstDesktopAssistant?: boolean;
@@ -251,4 +245,12 @@ export interface Conversation {
     createdAt: string;
     updatedAt: string;
     lastMessage: string;
+}
+
+export interface Product {
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    imageUrl?: string;
 }
