@@ -20,28 +20,39 @@ import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
+import { useApp } from '@/providers/AppProvider';
+import { useToast } from '@/hooks/use-toast';
+import { AssistantConfig } from '@/types';
 
 // Demo data for admin chat trays
-const demoAdminChats = [
+const demoAdminChats: AssistantConfig[] = [
     {
         id: 'user-1',
         name: 'Cliente A - Asistente de Ventas',
-        status: 'en línea',
+        isActive: true,
         lastMessage: 'Sí, me gustaría confirmar el pedido.',
         timestamp: 'Ahora',
-        avatarUrl: 'https://i.imgur.com/8p8Yf9u.png',
-        memory: 123456,
-        prompt: 'Eres un asistente de ventas amigable y eficiente.'
+        imageUrl: 'https://i.imgur.com/8p8Yf9u.png',
+        totalMemory: 123456,
+        prompt: 'Eres un asistente de ventas amigable y eficiente.',
+        type: 'whatsapp',
+        messageCount: 0,
+        monthlyMessageLimit: 0,
+        purposes: [],
     },
     {
         id: 'user-2',
         name: 'Usuario B - Asistente de Soporte',
-        status: 'en línea',
+        isActive: false,
         lastMessage: 'Gracias por la ayuda, se ha solucionado.',
         timestamp: 'Hace 5m',
-        avatarUrl: 'https://i.imgur.com/8p8Yf9u.png',
-        memory: 78910,
-        prompt: 'Tu objetivo es resolver problemas técnicos de los usuarios.'
+        imageUrl: 'https://i.imgur.com/8p8Yf9u.png',
+        totalMemory: 78910,
+        prompt: 'Tu objetivo es resolver problemas técnicos de los usuarios.',
+        type: 'whatsapp',
+        messageCount: 0,
+        monthlyMessageLimit: 0,
+        purposes: [],
     },
 ];
 
@@ -307,6 +318,10 @@ export const ProductsView = () => {
 
 
 export const AssistantsList = () => {
+  const { state, dispatch } = useApp();
+  const { userProfile } = state;
+  const { toast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSwipe, setActiveSwipe] = useState<{ id: string; direction: 'left' | 'right' } | null>(null);
   const router = useRouter();
@@ -316,7 +331,7 @@ export const AssistantsList = () => {
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
 
-  const filteredChats = demoAdminChats.filter(chat =>
+  const filteredChats = userProfile.assistants.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
@@ -333,6 +348,33 @@ export const AssistantsList = () => {
     setSelectedAssistant(assistant);
     setIsInstructionsOpen(true);
   };
+
+  const handleToggleIA = async (assistant: AssistantConfig) => {
+    try {
+        const response = await fetch('/api/assistants/toggle-active', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                assistantId: assistant.id,
+                userId: userProfile._id?.toString(),
+            }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || 'No se pudo cambiar el estado.');
+        }
+
+        dispatch({ type: 'UPDATE_ASSISTANT', payload: result.updatedAssistant });
+        toast({
+            title: "Estado Actualizado",
+            description: `La IA para "${assistant.name}" ha sido ${result.updatedAssistant.isActive ? 'activada' : 'desactivada'}.`
+        });
+
+    } catch (error: any) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  }
   
   return (
     <>
@@ -376,7 +418,7 @@ export const AssistantsList = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-gray-500/20 hover:bg-gray-500/30 rounded-none">
+                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
                                 <Trash2 size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
@@ -403,9 +445,9 @@ export const AssistantsList = () => {
                                 <Database size={20}/>
                                 <span className="text-xs">Base de datos</span>
                             </Button>
-                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-green-500/20 hover:bg-green-500/30 rounded-none gap-0.5">
+                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-green-500/20 hover:bg-green-500/30 rounded-none gap-0.5" onClick={() => handleToggleIA(chat)}>
                                 <Bot size={20}/>
-                                <span className="text-xs">Activar IA</span>
+                                <span className="text-xs">{chat.isActive ? 'Desactivar IA' : 'Activar IA'}</span>
                             </Button>
                         </motion.div>
                     )}
@@ -453,7 +495,7 @@ export const AssistantsList = () => {
                                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                             >
                                 <Avatar className="h-12 w-12 border-2 border-primary/30">
-                                    <AvatarImage src={chat.avatarUrl} alt={chat.name} />
+                                    <AvatarImage src={chat.imageUrl} alt={chat.name} />
                                     <AvatarFallback className="text-lg bg-muted">
                                         {chat.name ? chat.name.charAt(0) : <User />}
                                     </AvatarFallback>
@@ -465,13 +507,13 @@ export const AssistantsList = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        <span className={cn("relative flex h-2 w-2", chat.isActive && "animate-pulse")}>
+                                            <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75", chat.isActive ? "bg-green-400" : "bg-gray-400")}></span>
+                                            <span className={cn("relative inline-flex rounded-full h-2 w-2", chat.isActive ? "bg-green-500" : "bg-gray-500")}></span>
                                         </span>
-                                        <p className="text-xs text-muted-foreground">{chat.status}</p>
+                                        <p className="text-xs text-muted-foreground">{chat.isActive ? 'en línea' : 'desconectado'}</p>
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{chat.timestamp}</p>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{ (chat as any).timestamp || 'Reciente'}</p>
                             </div>
                             </div>
                         </CardContent>
