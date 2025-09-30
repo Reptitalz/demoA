@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -179,6 +179,11 @@ export const BankView = () => {
 const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [step, setStep] = useState(1);
+    const [productName, setProductName] = useState('');
+    const [productPrice, setProductPrice] = useState('');
+    const [shippingMethod, setShippingMethod] = useState<'local' | 'delivery' | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | null>(null);
 
     const handleImageUploadClick = () => {
         fileInputRef.current?.click();
@@ -194,6 +199,95 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
             reader.readAsDataURL(file);
         }
     };
+    
+    const nextStep = () => setStep(s => s + 1);
+    const prevStep = () => setStep(s => s - 1);
+    
+    const renderStepContent = () => {
+        switch(step) {
+            case 1:
+                return (
+                    <div className="space-y-4 animate-fadeIn">
+                        <div className="space-y-2">
+                            <Label htmlFor="product-name">Nombre del Producto</Label>
+                            <Input id="product-name" placeholder="Ej: Pastel de Tres Leches" value={productName} onChange={e => setProductName(e.target.value)} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="product-price">Precio</Label>
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input id="product-price" type="number" placeholder="Ej: 250.00" className="pl-9" value={productPrice} onChange={e => setProductPrice(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Imagen del Producto</Label>
+                             <div
+                                onClick={handleImageUploadClick}
+                                className="aspect-video w-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground cursor-pointer hover:border-primary transition-colors bg-muted/50"
+                            >
+                                {imagePreview ? (
+                                    <Image src={imagePreview} alt="Vista previa" width={200} height={112} className="object-cover rounded-md" />
+                                ) : (
+                                    <>
+                                        <Upload className="h-8 w-8 mb-2" />
+                                        <p className="text-sm">Subir imagen</p>
+                                    </>
+                                )}
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                            />
+                        </div>
+                    </div>
+                );
+            case 2:
+                return (
+                     <div className="space-y-4 animate-fadeIn">
+                         <h3 className="text-lg font-semibold text-center">Método de Envío</h3>
+                         <div className="grid grid-cols-2 gap-4">
+                             <Card onClick={() => setShippingMethod('local')} className={cn("cursor-pointer transition-all", shippingMethod === 'local' && "border-primary ring-2 ring-primary")}>
+                                 <CardContent className="p-6 text-center space-y-2">
+                                     <Store className="h-8 w-8 mx-auto text-primary"/>
+                                     <p className="font-semibold">Ir a local</p>
+                                 </CardContent>
+                             </Card>
+                             <Card onClick={() => setShippingMethod('delivery')} className={cn("cursor-pointer transition-all", shippingMethod === 'delivery' && "border-primary ring-2 ring-primary")}>
+                                 <CardContent className="p-6 text-center space-y-2">
+                                     <Truck className="h-8 w-8 mx-auto text-primary"/>
+                                     <p className="font-semibold">Mandadito</p>
+                                 </CardContent>
+                             </Card>
+                         </div>
+                     </div>
+                )
+            case 3:
+                 return (
+                     <div className="space-y-4 animate-fadeIn">
+                         <h3 className="text-lg font-semibold text-center">Método de Pago</h3>
+                         <div className="grid grid-cols-2 gap-4">
+                              <Card onClick={() => setPaymentMethod('cash')} className={cn("cursor-pointer transition-all", paymentMethod === 'cash' && "border-primary ring-2 ring-primary")}>
+                                 <CardContent className="p-6 text-center space-y-2">
+                                     <Wallet className="h-8 w-8 mx-auto text-primary"/>
+                                     <p className="font-semibold">Pagar a repartidor</p>
+                                 </CardContent>
+                             </Card>
+                              <Card onClick={() => setPaymentMethod('transfer')} className={cn("cursor-pointer transition-all", paymentMethod === 'transfer' && "border-primary ring-2 ring-primary")}>
+                                 <CardContent className="p-6 text-center space-y-2">
+                                     <Send className="h-8 w-8 mx-auto text-primary"/>
+                                     <p className="font-semibold">Pagar transferencia</p>
+                                 </CardContent>
+                             </Card>
+                         </div>
+                     </div>
+                )
+            default:
+                return null;
+        }
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -201,48 +295,22 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
                 <DialogHeader>
                     <DialogTitle>Añadir Nuevo Producto</DialogTitle>
                     <DialogDescription>
-                        Ingresa los detalles del producto para añadirlo a tu catálogo.
+                        Sigue los pasos para añadir un producto a tu catálogo. (Paso {step} de 3)
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4 flex-grow overflow-y-auto">
-                    <div className="space-y-2">
-                        <Label htmlFor="product-name">Nombre del Producto</Label>
-                        <Input id="product-name" placeholder="Ej: Pastel de Tres Leches" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="product-price">Precio</Label>
-                        <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input id="product-price" type="number" placeholder="Ej: 250.00" className="pl-9" />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Imagen del Producto</Label>
-                         <div
-                            onClick={handleImageUploadClick}
-                            className="aspect-video w-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground cursor-pointer hover:border-primary transition-colors bg-muted/50"
-                        >
-                            {imagePreview ? (
-                                <Image src={imagePreview} alt="Vista previa" width={200} height={112} className="object-cover rounded-md" />
-                            ) : (
-                                <>
-                                    <Upload className="h-8 w-8 mb-2" />
-                                    <p className="text-sm">Subir imagen</p>
-                                </>
-                            )}
-                        </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                        />
-                    </div>
+                    {renderStepContent()}
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={() => onOpenChange(false)}>Guardar Producto</Button>
+                <DialogFooter className="flex justify-between w-full">
+                    {step > 1 ? (
+                        <Button variant="outline" onClick={prevStep}><ArrowLeft className="mr-2 h-4 w-4"/> Atrás</Button>
+                    ) : <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>}
+
+                    {step < 3 ? (
+                        <Button onClick={nextStep}>Siguiente <ArrowRight className="ml-2 h-4 w-4"/></Button>
+                    ) : (
+                        <Button onClick={() => onOpenChange(false)}>Guardar Producto</Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -580,7 +648,7 @@ export const AssistantsList = () => {
   );
 }
 
-export const CreditView = () => {
+export const CreditView = ({ viewName }: { viewName: string }) => {
     const activeLoans = [
         { id: 1, chatPath: 'cliente-a-xyz', amount: 5000.00, status: 'Al Corriente' },
         { id: 2, chatPath: 'usuario-b-123', amount: 10000.00, status: 'Atrasado' },
