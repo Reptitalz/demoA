@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { FaDollarSign, FaUniversity, FaBoxOpen, FaCheckCircle } from 'react-icons/fa';
-import { Settings } from 'lucide-react';
+import { Settings, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { cn } from '@/lib/utils';
 
-type ShowOption = 'credit' | 'bank' | 'products';
+type ShowOption = 'credit' | 'bank' | 'products' | 'none';
 
 interface DefineShowDialogProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ const options: { id: ShowOption; icon: React.ElementType; title: string; descrip
     { id: 'credit', icon: FaDollarSign, title: 'Crédito Disponible', description: 'Muestra tu línea de crédito para clientes.' },
     { id: 'bank', icon: FaUniversity, title: 'Ganancia en Banco', description: 'Muestra las ganancias totales de tus bots.' },
     { id: 'products', icon: FaBoxOpen, title: 'Productos por Recolectar', description: 'Muestra los pedidos pendientes.' },
+    { id: 'none', icon: XCircle, title: 'Nada', description: 'No mostrar información rápida en la cabecera.' },
 ];
 
 const DefineShowDialog = ({ isOpen, onOpenChange, onSelectShow }: DefineShowDialogProps) => {

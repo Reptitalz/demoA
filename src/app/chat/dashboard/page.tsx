@@ -23,7 +23,7 @@ import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
 import { XCircle, Settings, Banknote, Package } from 'lucide-react';
 import DefineShowDialog from '@/components/chat/DefineShowDialog';
 
-type ShowOption = 'credit' | 'bank' | 'products';
+type ShowOption = 'credit' | 'bank' | 'products' | 'none';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -81,10 +81,11 @@ const ChatListPage = () => {
     setIsAddChatDialogOpen(true);
   };
   
-  const showOptions: Record<ShowOption, { icon: React.ElementType, title: string, value: string, action: () => void, requiresAttention: boolean }> = {
+  const showOptions: Record<ShowOption, { icon: React.ElementType, title: string, value: string, action: () => void, requiresAttention: boolean } | null> = {
     credit: { icon: FaDollarSign, title: "Crédito Disponible", value: "$500.00", action: () => setIsCreditDetailsOpen(true), requiresAttention: false },
     bank: { icon: Banknote, title: "Ganancia en Banco", value: "$1,250.00", action: () => router.push('/chat/admin'), requiresAttention: true },
-    products: { icon: Package, title: "Productos por Recolectar", value: "3", action: () => router.push('/chat/admin'), requiresAttention: true }
+    products: { icon: Package, title: "Productos por Recolectar", value: "3", action: () => router.push('/chat/admin'), requiresAttention: true },
+    none: null,
   };
   const currentShow = showOptions[selectedShow];
 
@@ -98,33 +99,35 @@ const ChatListPage = () => {
                 <AppIcon className="h-7 w-7" />
                 <span>{APP_NAME}</span>
             </h1>
-             <div 
-                className="flex items-center gap-4 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50"
-                onClick={currentShow.action}
-             >
-                <div className="text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                       <span className={cn(
-                           "relative flex h-2 w-2",
-                           currentShow.requiresAttention && "animate-pulse"
-                       )}>
-                         <span className={cn(
-                             "absolute inline-flex h-full w-full rounded-full opacity-75",
-                             currentShow.requiresAttention ? "bg-red-400" : "bg-green-400"
-                         )}></span>
-                         <span className={cn(
-                             "relative inline-flex rounded-full h-2 w-2",
-                              currentShow.requiresAttention ? "bg-red-500" : "bg-green-500"
-                         )}></span>
-                       </span>
-                      <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+             {currentShow && (
+                 <div 
+                    className="flex items-center gap-4 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50"
+                    onClick={currentShow.action}
+                 >
+                    <div className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                        <span className={cn(
+                            "relative flex h-2 w-2",
+                            currentShow.requiresAttention && "animate-pulse"
+                        )}>
+                            <span className={cn(
+                                "absolute inline-flex h-full w-full rounded-full opacity-75",
+                                currentShow.requiresAttention ? "bg-red-400" : "bg-green-400"
+                            )}></span>
+                            <span className={cn(
+                                "relative inline-flex rounded-full h-2 w-2",
+                                currentShow.requiresAttention ? "bg-red-500" : "bg-green-500"
+                            )}></span>
+                        </span>
+                        <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+                        </div>
+                        <p className="font-bold text-lg">{currentShow.value}</p>
                     </div>
-                    <p className="font-bold text-lg">{currentShow.value}</p>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setIsDefineShowOpen(true); }} className="h-8 w-8">
+                    <Settings className="h-4 w-4" />
+                    </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setIsDefineShowOpen(true); }} className="h-8 w-8">
-                  <Settings className="h-4 w-4" />
-                </Button>
-            </div>
+             )}
         </div>
         <div className="relative mt-2">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
