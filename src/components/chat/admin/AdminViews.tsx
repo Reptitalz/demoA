@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import CreateAssistantDialog from '@/components/chat/CreateAssistantDialog';
+import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -548,7 +548,7 @@ export const AssistantsList = () => {
           >
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
-       <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
+       <RegisterAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
        {selectedAssistant && (
          <DatabaseLinkDialog 
             isOpen={isDbLinkOpen} 
