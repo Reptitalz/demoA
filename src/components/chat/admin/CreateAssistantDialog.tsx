@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistantConfig } from '@/types';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { ShoppingCart, HandCoins, Handshake, LifeBuoy, ClipboardList, CheckCircle } from 'lucide-react';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 interface CreateAssistantDialogProps {
   isOpen: boolean;
@@ -51,6 +52,8 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
         if (!isOpen) {
@@ -62,6 +65,23 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
             setIsProcessing(false);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                const scrollLeft = scrollRef.current.scrollLeft;
+                const cardWidth = scrollRef.current.offsetWidth;
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                setActiveIndex(newIndex);
+            }
+        };
+
+        const scroller = scrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleScroll);
+        }
+    }, []);
 
     const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => prev - 1);
@@ -130,19 +150,52 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                 return (
                     <div className="space-y-4 animate-fadeIn">
                         <Label>Rol del Asistente</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {roleOptions.map(role => {
+                         <div
+                            ref={scrollRef}
+                            className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
+                        >
+                            {roleOptions.map((role, index) => {
                                 const Icon = role.icon;
                                 const isSelected = selectedRole?.id === role.id;
                                 return (
-                                <div key={role.id} onClick={() => setSelectedRole(role)} className="cursor-pointer">
-                                    <div className={cn("p-4 rounded-lg border-2 transition-all flex flex-col items-center justify-center aspect-square text-center", isSelected ? "border-primary bg-primary/10" : "hover:border-primary/50")}>
-                                        <Icon className={cn("h-7 w-7 mb-2", isSelected ? "text-primary" : "text-muted-foreground")} />
-                                        <p className="text-xs font-semibold">{role.title}</p>
+                                     <div key={role.id} className="w-full flex-shrink-0 snap-center p-2">
+                                        <Card 
+                                            onClick={() => setSelectedRole(role)}
+                                            className={cn("transition-all border-2 overflow-hidden shadow-lg h-full cursor-pointer", isSelected ? "border-primary shadow-primary/20" : "hover:border-primary/50", "glow-card")}
+                                        >
+                                            <CardHeader className="p-4 pb-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="p-2 bg-primary/10 rounded-full">
+                                                        <Icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                                                    </div>
+                                                     {isSelected && <CheckCircle className="h-5 w-5 text-primary"/>}
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="p-4 pt-0">
+                                                <h5 className="font-semibold text-sm">{role.title}</h5>
+                                            </CardContent>
+                                        </Card>
                                     </div>
-                                </div>
                                 )
                             })}
+                        </div>
+                        <div className="flex justify-center mt-2 space-x-2">
+                            {roleOptions.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => {
+                                        if (scrollRef.current) {
+                                            const cardWidth = scrollRef.current.offsetWidth;
+                                            scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                        }
+                                    }}
+                                    className={cn(
+                                        "h-2 w-2 rounded-full transition-all",
+                                        activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                                    )}
+                                    aria-label={`Ir al rol ${index + 1}`}
+                                />
+                            ))}
                         </div>
                     </div>
                 );
