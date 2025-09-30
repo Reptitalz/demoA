@@ -197,14 +197,14 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Añadir Nuevo Producto</DialogTitle>
                     <DialogDescription>
                         Ingresa los detalles del producto para añadirlo a tu catálogo.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="space-y-4 py-4 flex-grow overflow-y-auto">
                     <div className="space-y-2">
                         <Label htmlFor="product-name">Nombre del Producto</Label>
                         <Input id="product-name" placeholder="Ej: Pastel de Tres Leches" />
