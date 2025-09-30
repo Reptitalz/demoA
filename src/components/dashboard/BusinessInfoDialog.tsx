@@ -14,6 +14,7 @@ import type { AssistantConfig, AssistantBusinessInfo } from '@/types';
 import Image from 'next/image';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface BusinessInfoDialogProps {
   isOpen: boolean;
@@ -95,8 +96,8 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-        <DialogHeader>
+      <DialogContent className="w-full h-full max-w-none sm:max-w-lg sm:h-auto sm:max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+        <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <FaBuilding /> Editar Información de "{assistant.name}"
           </DialogTitle>
@@ -104,7 +105,8 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
             Actualiza los detalles que tu asistente usará y que se mostrarán en su perfil.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto px-1">
+        <ScrollArea className="flex-grow">
+        <div className="p-6 grid grid-cols-1 gap-4">
             <div className="flex items-center gap-4">
               <Image 
                 src={assistantImageUrl}
@@ -204,7 +206,8 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
               />
             </div>
         </div>
-        <DialogFooter>
+        </ScrollArea>
+        <DialogFooter className="p-6 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cancelar</Button>
           <Button onClick={handleSave} disabled={isProcessing} className={cn("bg-brand-gradient text-primary-foreground hover:opacity-90")}>
             {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : <FaSave className="mr-2" />}
