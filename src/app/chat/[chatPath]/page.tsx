@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,7 @@ import BusinessInfoSheet from '@/components/chat/BusinessInfoSheet';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/providers/AppProvider';
+import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -137,6 +138,7 @@ const DesktopChatPage = () => {
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
@@ -316,21 +318,24 @@ const DesktopChatPage = () => {
   }, [assistant?.id, assistant?.chatPath, assistant?.isActive, sessionId, pollForResponse]);
 
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentMessage.trim() || isSending || error) return;
+  const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
+    if (e) e.preventDefault();
+    const messageToSend = messageOverride || currentMessage;
+    
+    if (!messageToSend.trim() || isSending || error) return;
     
     const userMessage: ChatMessage = {
       role: 'user',
-      content: currentMessage,
+      content: messageToSend,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages(prev => [...prev, userMessage]);
     await saveMessageToDB(userMessage, sessionId);
     
-    const messageToSend = currentMessage;
-    setCurrentMessage('');
+    if (!messageOverride) {
+      setCurrentMessage('');
+    }
 
     if (assistant?.isActive) {
         setIsSending(true);
@@ -401,25 +406,27 @@ const DesktopChatPage = () => {
 
 
   if (isLoading) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
+    return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
+  
+  const showCreditButton = assistant?.purposes.includes('sell_credits');
+  const showProductsButton = assistant?.purposes.includes('sell_products');
   
   return (
     <>
-      <div className="h-screen w-screen flex flex-col bg-transparent relative">
+      <div className="h-full w-screen flex flex-col bg-transparent relative">
           <div className="relative h-full flex flex-col">
             <header
-              className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 cursor-pointer border-b"
-              onClick={() => setIsInfoSheetOpen(true)}
+              className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b"
             >
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
-                <Link href="/chat/dashboard" onClick={(e) => e.stopPropagation()}><FaArrowLeft /></Link>
+                <Link href="/chat/dashboard"><FaArrowLeft /></Link>
               </Button>
-              <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50">
+              <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50" onClick={() => setIsInfoSheetOpen(true)}>
                   <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
                   <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
               </Avatar>
-              <div className="overflow-hidden">
+              <div className="overflow-hidden flex-grow" onClick={() => setIsInfoSheetOpen(true)}>
                 <div className="flex items-center gap-1.5">
                     <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
                     {state.userProfile.accountType === 'business' && (
@@ -436,6 +443,10 @@ const DesktopChatPage = () => {
                     )}
                 </div>
                 <p className="text-xs opacity-80">{error ? 'No disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                  {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => handleSendMessage(undefined, 'Quiero solicitar un crédito')}><FaCreditCard className="mr-1.5"/> Crédito</Button>}
+                  {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Productos</Button>}
               </div>
             </header>
             <main className="flex-1 p-4 overflow-y-auto">
@@ -506,6 +517,18 @@ const DesktopChatPage = () => {
           assistant={assistant}
           isOpen={isInfoSheetOpen}
           onOpenChange={setIsInfoSheetOpen}
+        />
+      )}
+      
+      {assistant && (
+        <ProductCatalogDialog
+          isOpen={isCatalogOpen}
+          onOpenChange={setIsCatalogOpen}
+          assistant={assistant}
+          onProductSelect={(product) => {
+             handleSendMessage(undefined, `Hola, me interesa el producto: ${product.name} ($${product.price}).`);
+             setIsCatalogOpen(false);
+          }}
         />
       )}
       
