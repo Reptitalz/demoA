@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -579,6 +579,74 @@ export const AssistantsList = () => {
     </>
   );
 }
+
+export const CreditView = () => {
+    const totalCapital = 25000.00;
+    const loansInProgress = [
+        { id: 1, name: 'Cliente A', amount: 5000.00, status: 'Documentos Recibidos' },
+        { id: 2, name: 'Cliente B', amount: 10000.00, status: 'Análisis de Crédito' },
+        { id: 3, name: 'Cliente C', amount: 2500.00, status: 'Aprobado, Pendiente Firma' },
+    ];
+
+    return (
+        <div className="flex flex-col h-full bg-transparent">
+             <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <DollarSign className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">Gestión de Crédito</h1>
+                    </div>
+                </div>
+            </header>
+             <div className="p-4">
+                 <Card className="shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Capital para Préstamos</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-bold text-foreground">
+                            ${totalCapital.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                        </div>
+                        <p className="text-xs text-muted-foreground pt-1">Balance total disponible</p>
+                    </CardContent>
+                    <CardContent>
+                         <Button className="w-full">
+                            <Plus className="mr-2 h-4 w-4" /> Añadir Capital
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+            <ScrollArea className="flex-grow px-2">
+                 <div className="p-2 space-y-3">
+                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Actividad de Préstamos</h3>
+                     {loansInProgress.map(loan => (
+                         <Card key={loan.id} className="glow-card">
+                            <CardContent className="p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarFallback>{loan.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="space-y-0.5">
+                                        <p className="font-semibold text-sm">{loan.name}</p>
+                                        <p className="text-xs text-muted-foreground">{loan.status}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-green-500">${loan.amount.toFixed(2)}</p>
+                                    <Button variant="link" size="sm" className="h-auto p-0 text-xs">Ver detalles</Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+        </div>
+    );
+};
+
 
 export const OtherView = ({ viewName }: { viewName: string }) => (
     <div className="flex flex-col h-full bg-transparent">
