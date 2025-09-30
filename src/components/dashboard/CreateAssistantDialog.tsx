@@ -1,5 +1,4 @@
-
-// src/components/chat/admin/CreateAssistantDialog.tsx
+// src/components/dashboard/CreateAssistantDialog.tsx
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -14,7 +13,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistantConfig } from '@/types';
-import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { DEFAULT_ASSISTANT_IMAGE_URL, UNLIMITED_MESSAGES_LIMIT } from '@/config/appConfig';
 import { ShoppingCart, HandCoins, Handshake, LifeBuoy, ClipboardList, CheckCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardDescription } from '@/components/ui/card';
 
@@ -74,8 +73,10 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
             if (scrollRef.current) {
                 const scrollLeft = scrollRef.current.scrollLeft;
                 const cardWidth = scrollRef.current.offsetWidth;
-                const newIndex = Math.round(scrollLeft / cardWidth);
-                setActiveIndex(newIndex);
+                if (cardWidth > 0) {
+                    const newIndex = Math.round(scrollLeft / cardWidth);
+                    setActiveIndex(newIndex);
+                }
             }
         };
 
@@ -114,17 +115,22 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 
         setIsProcessing(true);
         const finalImageUrl = imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
+        
+        // Determine message limit based on account type
+        const messageLimit = state.userProfile.accountType === 'business'
+            ? UNLIMITED_MESSAGES_LIMIT
+            : 100;
 
         const newAssistant: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             name: assistantName,
-            type: 'desktop', // Always create a desktop assistant from here
+            type: 'desktop',
             prompt: selectedRole.prompt,
             purposes: [],
-            isActive: true, // Should be active by default? Decided yes for now.
+            isActive: true, 
             numberReady: true,
             messageCount: 0,
-            monthlyMessageLimit: 0,
+            monthlyMessageLimit: messageLimit,
             imageUrl: finalImageUrl,
             chatPath: generateChatPath(assistantName),
         };
@@ -196,7 +202,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                             ref={scrollRef}
                             className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
                         >
-                            {roleOptions.map((role, index) => {
+                            {roleOptions.map((role) => {
                                 const Icon = role.icon;
                                 const isSelected = selectedRole?.id === role.id;
                                 return (

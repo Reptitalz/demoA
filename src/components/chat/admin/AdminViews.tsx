@@ -1,4 +1,3 @@
-
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -24,7 +23,7 @@ import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { AssistantConfig, ChatMessage } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
-import CreateAssistantDialog from './CreateAssistantDialog';
+import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   AlertDialog,

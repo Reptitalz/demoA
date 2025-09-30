@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { Loader2 } from 'lucide-react';
 import PersonalInfoDialog from './PersonalInfoDialog';
+import { differenceInDays } from 'date-fns';
 
 interface PlansDialogProps {
   isOpen: boolean;
@@ -35,13 +36,16 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
     initMercadoPago(publicKey, { locale: 'es-MX' });
   }
 
-  const hasUsedFreeTrial = useMemo(() => {
-    return userProfile.assistants.some(a => a.isFirstDesktopAssistant);
+  const firstDesktopAssistant = useMemo(() => {
+    return userProfile.assistants.find(a => a.isFirstDesktopAssistant);
   }, [userProfile.assistants]);
+
+  const trialDaysRemaining = firstDesktopAssistant?.trialStartDate ? 30 - differenceInDays(new Date(), new Date(firstDesktopAssistant.trialStartDate)) : 0;
+  const isTrialActive = trialDaysRemaining > 0;
   
   const availableAssistantsToAssign = useMemo(() => {
-    return userProfile.assistants.filter(a => a.type === 'desktop' && !a.isPlanActive && !(a.isFirstDesktopAssistant && (30 - (a.trialStartDate ? new Date().getDate() - new Date(a.trialStartDate).getDate() : 31)) > 0));
-  }, [userProfile.assistants]);
+    return userProfile.assistants.filter(a => a.type === 'desktop' && !a.isPlanActive && !(a.id === firstDesktopAssistant?.id && isTrialActive));
+  }, [userProfile.assistants, firstDesktopAssistant, isTrialActive]);
   
   useEffect(() => {
     if (!isOpen) {
@@ -144,8 +148,12 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {hasUsedFreeTrial ? (
-                        <p className="text-sm text-muted-foreground">Ya has utilizado tu prueba gratuita de 30 días para un asistente de escritorio.</p>
+                    {firstDesktopAssistant ? (
+                       isTrialActive ? (
+                           <p className="text-sm text-muted-foreground">Tu prueba gratuita está activa para "{firstDesktopAssistant.name}". Te quedan {trialDaysRemaining} días.</p>
+                       ) : (
+                           <p className="text-sm text-muted-foreground">Tu prueba gratuita para "{firstDesktopAssistant.name}" ha finalizado.</p>
+                       )
                     ) : (
                         <p className="text-sm text-muted-foreground">Obtén 30 días de mensajes ilimitados al crear tu primer asistente de escritorio. ¡Sin costo!</p>
                     )}
