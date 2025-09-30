@@ -58,11 +58,13 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
     useEffect(() => {
         if (!isOpen) {
             // Reset state when dialog is closed
-            setStep(1);
-            setAssistantName('');
-            setSelectedRole(null);
-            setImageUrl(null);
-            setIsProcessing(false);
+            setTimeout(() => {
+                setStep(1);
+                setAssistantName('');
+                setSelectedRole(null);
+                setImageUrl(null);
+                setIsProcessing(false);
+            }, 300); // Delay reset to allow for closing animation
         }
     }, [isOpen]);
 
@@ -141,15 +143,15 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
         switch (step) {
             case 1:
                 return (
-                    <div className="space-y-4 animate-fadeIn">
-                        <Label htmlFor="assistant-name">Nombre del Asistente</Label>
-                        <Input id="assistant-name" value={assistantName} onChange={e => setAssistantName(e.target.value)} placeholder="Ej: Asistente de Ventas" />
+                    <div className="space-y-4 animate-fadeIn w-full max-w-md mx-auto">
+                        <Label htmlFor="assistant-name" className="text-lg font-semibold">Nombre del Asistente</Label>
+                        <Input id="assistant-name" value={assistantName} onChange={e => setAssistantName(e.target.value)} placeholder="Ej: Asistente de Ventas" className="text-base py-6"/>
                     </div>
                 );
             case 2:
                 return (
-                    <div className="space-y-4 animate-fadeIn">
-                        <Label>Rol del Asistente</Label>
+                    <div className="space-y-4 animate-fadeIn w-full max-w-md mx-auto">
+                        <Label className="text-lg font-semibold">Rol del Asistente</Label>
                          <div
                             ref={scrollRef}
                             className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
@@ -201,8 +203,8 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                 );
             case 3:
                 return (
-                     <div className="space-y-4 animate-fadeIn">
-                        <Label>Imagen de Perfil (Opcional)</Label>
+                     <div className="space-y-4 animate-fadeIn w-full max-w-md mx-auto">
+                        <Label className="text-lg font-semibold">Imagen de Perfil (Opcional)</Label>
                          <div
                             onClick={() => fileInputRef.current?.click()}
                             className="aspect-square w-48 h-48 mx-auto border-2 border-dashed rounded-full flex flex-col items-center justify-center text-muted-foreground cursor-pointer hover:border-primary transition-colors bg-muted/50"
@@ -227,8 +229,8 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-                 <DialogHeader>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+                 <DialogHeader className="p-4 border-b">
                     <DialogTitle className="flex items-center gap-2">
                        <FaRobot/> Crear Nuevo Asistente
                     </DialogTitle>
@@ -237,19 +239,19 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                     </DialogDescription>
                 </DialogHeader>
                 
-                <div className="py-4 min-h-[250px]">
+                <div className="py-4 flex-grow flex items-center justify-center">
                     {renderContent()}
                 </div>
 
-                <DialogFooter className="flex justify-between w-full">
+                <DialogFooter className="flex justify-between w-full p-4 border-t">
                     {step > 1 ? (
                         <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
                             <FaArrowLeft className="mr-2"/> Atrás
                         </Button>
-                    ) : <div></div>}
+                    ) : <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>}
                     
                     {step < 3 ? (
-                        <Button onClick={handleNext} disabled={isProcessing}>
+                        <Button onClick={handleNext} disabled={isProcessing || !assistantName || (step === 2 && !selectedRole)}>
                            Siguiente <FaArrowRight className="ml-2"/>
                         </Button>
                     ) : (
