@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AssistantConfig } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from './CreateAssistantDialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 // Demo data for admin chat trays
 const demoAdminChats: AssistantConfig[] = [
@@ -366,33 +367,87 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
     );
 };
 
-const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
-                    <DialogDescription>
-                        Define el nombre de tu nuevo catálogo y el asistente que lo promocionará.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
-                        <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="promoter-chatpath">Chat Path del Promotor</Label>
-                        <Input id="promoter-chatpath" placeholder="Ej: asistente-ventas-xyz12" />
-                    </div>
+const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) => {
+  const { state } = useApp();
+  const [selectedPromoter, setSelectedPromoter] = useState<string>('owner'); // 'owner' or assistant id
+  const assistants = state.userProfile.assistants || [];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
+          <DialogDescription>
+            Define el nombre y el promotor de tu nuevo catálogo.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4 flex-1 overflow-y-hidden flex flex-col">
+          <div className="px-1 space-y-2">
+            <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
+            <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" />
+          </div>
+          <div className="px-1 space-y-2 flex-1 flex flex-col overflow-y-hidden">
+            <Label>¿Quién promocionará este catálogo?</Label>
+            <RadioGroup
+              value={selectedPromoter}
+              onValueChange={setSelectedPromoter}
+              className="flex-1 overflow-y-hidden flex flex-col"
+            >
+              <ScrollArea className="flex-1">
+                <div className="space-y-2 p-1">
+                  <Card
+                    onClick={() => setSelectedPromoter('owner')}
+                    className={cn(
+                      'cursor-pointer transition-all',
+                      selectedPromoter === 'owner' && 'border-primary ring-2 ring-primary'
+                    )}
+                  >
+                    <CardContent className="p-3 flex items-center gap-3">
+                      <RadioGroupItem value="owner" id="owner" />
+                      <Avatar>
+                        <AvatarImage src={state.userProfile.imageUrl} />
+                        <AvatarFallback>
+                          <User />
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="font-semibold">Tú Mismo</p>
+                    </CardContent>
+                  </Card>
+                  {assistants.map((asst) => (
+                    <Card
+                      key={asst.id}
+                      onClick={() => setSelectedPromoter(asst.id)}
+                      className={cn(
+                        'cursor-pointer transition-all',
+                        selectedPromoter === asst.id && 'border-primary ring-2 ring-primary'
+                      )}
+                    >
+                      <CardContent className="p-3 flex items-center gap-3">
+                        <RadioGroupItem value={asst.id} id={asst.id} />
+                        <Avatar>
+                          <AvatarImage src={asst.imageUrl} />
+                          <AvatarFallback>
+                            <Bot />
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="font-semibold truncate">{asst.name}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={() => onOpenChange(false)}>Crear Catálogo</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
+              </ScrollArea>
+            </RadioGroup>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={() => onOpenChange(false)}>Crear Catálogo</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 export const ProductsView = () => {
@@ -490,7 +545,7 @@ export const ProductsView = () => {
                     </div>
                     <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
                     {isMember && (
-                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => setIsCreateCatalogDialogOpen(true)}>
+                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => {toast({title: "Acción no disponible en demo."})}}>
                             <Plus className="mr-1 h-4 w-4"/>
                             Crear Catálogo
                         </Button>
