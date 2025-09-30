@@ -35,13 +35,10 @@ const CreditDetailsDialog = ({ isOpen, onOpenChange, creditAmount, creditProvide
                     </p>
                 </CardContent>
             </Card>
-            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <FaHandshake className="h-5 w-5 text-muted-foreground" />
-                <div>
-                    <p className="text-xs text-muted-foreground">Proveedor del Crédito</p>
-                    <p className="font-semibold text-sm">{creditProvider}</p>
-                </div>
-            </div>
+            <Button variant="outline" className="w-full">
+                <FaHandshake className="mr-2 h-4 w-4" />
+                Enviar CLABE Interbancaria
+            </Button>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
