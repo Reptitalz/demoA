@@ -476,9 +476,7 @@ const NewHomepage = () => {
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
                   Instala la PWA en tu dispositivo y comienza a automatizar tus ventas con asistentes inteligentes.
               </p>
-              <Button size="lg" asChild className="mt-8 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
-                  <Link href="/chat/begin">Crear mi Primer Asistente</Link>
-              </Button>
+              <p className="mt-8 font-semibold text-primary">Próximamente para iPhone...</p>
                <div className="mt-8 flex justify-center items-center gap-6">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
                   <FaApple className="h-8 w-8" />
@@ -536,7 +534,7 @@ const NewHomepage = () => {
                   <AccordionItem value="item-6">
                       <AccordionTrigger>¿Mi información y la de mis clientes está segura?</AccordionTrigger>
                       <AccordionContent>
-                          La seguridad es nuestra prioridad. Las conversaciones se guardan de forma local en tu dispositivo para mayor privacidad. La información de tu cuenta y la configuración de tus asistentes (prompts, URLs de Hojas de Google) está protegida en nuestra base de datos. Puedes leer más en nuestra <Link href="/privacy" className="text-primary hover:underline">Política de Privacidad</Link>.
+                          La seguridad es nuestra prioridad. Las conversaciones se guardan de forma local en tu dispositivo para mayor privacidad. La información de tu cuenta y de la configuración de tus asistentes (prompts, URLs de Hojas de Google) está protegida en nuestra base de datos. Puedes leer más en nuestra <Link href="/privacy" className="text-primary hover:underline">Política de Privacidad</Link>.
                       </AccordionContent>
                   </AccordionItem>
               </Accordion>
