@@ -1,10 +1,11 @@
+
 // src/app/chat/admin/page.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck } from 'lucide-react';
+import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BankView, AssistantsList, ProductsView, OtherView as CreditView } from '@/components/chat/admin/AdminViews';
 import { Button } from '@/components/ui/button';
@@ -53,7 +54,7 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
                 { icon: CreditCard, text: 'Múltiples líneas de crédito para tus clientes.' },
             ],
             button: <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
-                        <Star className="mr-2 h-3 w-3"/>
+                        <Crown className="mr-2 h-3 w-3"/>
                         Obtener Plan por $179/mes
                     </Button>
         }
