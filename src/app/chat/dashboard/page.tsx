@@ -89,6 +89,9 @@ const ChatListPage = () => {
                     <FaDollarSign className="text-green-500"/>
                     $500.00
                 </p>
+                <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                    Ver Crédito
+                </Button>
             </div>
         </div>
         <div className="relative mt-2">
