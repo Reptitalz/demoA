@@ -20,8 +20,10 @@ import { useRouter } from 'next/navigation';
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
-import { XCircle, Settings } from 'lucide-react';
+import { XCircle, Settings, Banknote, Package } from 'lucide-react';
 import DefineShowDialog from '@/components/chat/DefineShowDialog';
+
+type ShowOption = 'credit' | 'bank' | 'products';
 
 const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => {
     if (assistant.isPlanActive) {
@@ -44,6 +46,7 @@ const ChatListPage = () => {
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = React.useState(false);
   const [isCreditDetailsOpen, setIsCreditDetailsOpen] = React.useState(false);
   const [isDefineShowOpen, setIsDefineShowOpen] = React.useState(false);
+  const [selectedShow, setSelectedShow] = React.useState<ShowOption>('credit');
   
   const [activeSwipe, setActiveSwipe] = React.useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
@@ -77,21 +80,36 @@ const ChatListPage = () => {
   const handleAddNewContact = () => {
     setIsAddChatDialogOpen(true);
   };
+  
+  const showOptions: Record<ShowOption, { icon: React.ElementType, title: string, value: string, action: () => void }> = {
+    credit: { icon: FaDollarSign, title: "Crédito Disponible", value: "$500.00", action: () => setIsCreditDetailsOpen(true) },
+    bank: { icon: Banknote, title: "Ganancia en Banco", value: "$1,250.00", action: () => router.push('/chat/admin') },
+    products: { icon: Package, title: "Productos por Recolectar", value: "3", action: () => router.push('/chat/admin') }
+  };
+  const currentShow = showOptions[selectedShow];
 
 
   return (
     <>
     <div className="flex flex-col h-full bg-transparent relative" onClick={() => setActiveSwipe(null)}>
       <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-2">
             <h1 className="text-2xl font-bold flex items-center gap-2">
                 <AppIcon className="h-7 w-7" />
                 <span>{APP_NAME}</span>
             </h1>
-             <Button variant="outline" size="sm" onClick={() => setIsDefineShowOpen(true)}>
-                <Settings className="mr-2 h-4 w-4" />
-                Definir Muestra
-            </Button>
+             <div 
+                className="flex items-center gap-4 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50"
+                onClick={currentShow.action}
+             >
+                <div className="text-right">
+                    <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+                    <p className="font-bold text-lg">{currentShow.value}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setIsDefineShowOpen(true); }} className="h-8 w-8">
+                  <Settings className="h-4 w-4" />
+                </Button>
+            </div>
         </div>
         <div className="relative mt-2">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -271,6 +289,7 @@ const ChatListPage = () => {
     <DefineShowDialog
         isOpen={isDefineShowOpen}
         onOpenChange={setIsDefineShowOpen}
+        onSelectShow={setSelectedShow}
     />
     </>
   );

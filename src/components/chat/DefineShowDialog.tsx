@@ -10,12 +10,14 @@ import { Settings } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { cn } from '@/lib/utils';
 
+type ShowOption = 'credit' | 'bank' | 'products';
+
 interface DefineShowDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSelectShow: (option: ShowOption) => void;
 }
 
-type ShowOption = 'credit' | 'bank' | 'products';
 
 const options: { id: ShowOption; icon: React.ElementType; title: string; description: string }[] = [
     { id: 'credit', icon: FaDollarSign, title: 'Crédito Disponible', description: 'Muestra tu línea de crédito para clientes.' },
@@ -23,12 +25,12 @@ const options: { id: ShowOption; icon: React.ElementType; title: string; descrip
     { id: 'products', icon: FaBoxOpen, title: 'Productos por Recolectar', description: 'Muestra los pedidos pendientes.' },
 ];
 
-const DefineShowDialog = ({ isOpen, onOpenChange }: DefineShowDialogProps) => {
+const DefineShowDialog = ({ isOpen, onOpenChange, onSelectShow }: DefineShowDialogProps) => {
   const { toast } = useToast();
   const [selectedOption, setSelectedOption] = useState<ShowOption>('credit');
   
   const handleSave = () => {
-    // Here you would save the user's preference to the global state or backend.
+    onSelectShow(selectedOption);
     toast({
         title: "Preferencia Guardada",
         description: `Se mostrará "${options.find(o => o.id === selectedOption)?.title}" en la cabecera.`,
