@@ -1,7 +1,7 @@
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -451,7 +451,13 @@ export const AssistantsList = () => {
                                 <Database size={20}/>
                                 <span className="text-xs">Base de datos</span>
                             </Button>
-                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-green-500/20 hover:bg-green-500/30 rounded-none gap-0.5" onClick={() => handleToggleIA(chat)}>
+                            <Button 
+                                variant="ghost" 
+                                className={cn("h-full w-24 flex flex-col items-center justify-center text-muted-foreground rounded-none gap-0.5",
+                                    chat.isActive ? "bg-destructive/20 hover:bg-destructive/30" : "bg-green-500/20 hover:bg-green-500/30"
+                                )} 
+                                onClick={() => handleToggleIA(chat as AssistantConfig)}
+                            >
                                 <Bot size={20}/>
                                 <span className="text-xs">{chat.isActive ? 'Desactivar IA' : 'Activar IA'}</span>
                             </Button>
