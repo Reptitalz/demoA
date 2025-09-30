@@ -81,10 +81,10 @@ const ChatListPage = () => {
     setIsAddChatDialogOpen(true);
   };
   
-  const showOptions: Record<ShowOption, { icon: React.ElementType, title: string, value: string, action: () => void }> = {
-    credit: { icon: FaDollarSign, title: "Crédito Disponible", value: "$500.00", action: () => setIsCreditDetailsOpen(true) },
-    bank: { icon: Banknote, title: "Ganancia en Banco", value: "$1,250.00", action: () => router.push('/chat/admin') },
-    products: { icon: Package, title: "Productos por Recolectar", value: "3", action: () => router.push('/chat/admin') }
+  const showOptions: Record<ShowOption, { icon: React.ElementType, title: string, value: string, action: () => void, requiresAttention: boolean }> = {
+    credit: { icon: FaDollarSign, title: "Crédito Disponible", value: "$500.00", action: () => setIsCreditDetailsOpen(true), requiresAttention: false },
+    bank: { icon: Banknote, title: "Ganancia en Banco", value: "$1,250.00", action: () => router.push('/chat/admin'), requiresAttention: true },
+    products: { icon: Package, title: "Productos por Recolectar", value: "3", action: () => router.push('/chat/admin'), requiresAttention: true }
   };
   const currentShow = showOptions[selectedShow];
 
@@ -103,7 +103,22 @@ const ChatListPage = () => {
                 onClick={currentShow.action}
              >
                 <div className="text-right">
-                    <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+                    <div className="flex items-center justify-end gap-1.5">
+                       <span className={cn(
+                           "relative flex h-2 w-2",
+                           currentShow.requiresAttention && "animate-pulse"
+                       )}>
+                         <span className={cn(
+                             "absolute inline-flex h-full w-full rounded-full opacity-75",
+                             currentShow.requiresAttention ? "bg-red-400" : "bg-green-400"
+                         )}></span>
+                         <span className={cn(
+                             "relative inline-flex rounded-full h-2 w-2",
+                              currentShow.requiresAttention ? "bg-red-500" : "bg-green-500"
+                         )}></span>
+                       </span>
+                      <p className="text-xs text-muted-foreground">{currentShow.title}</p>
+                    </div>
                     <p className="font-bold text-lg">{currentShow.value}</p>
                 </div>
                 <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setIsDefineShowOpen(true); }} className="h-8 w-8">
