@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -369,8 +369,35 @@ const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCha
 
 const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) => {
   const { state } = useApp();
+  const [catalogName, setCatalogName] = useState('');
   const [selectedPromoter, setSelectedPromoter] = useState<string>('owner'); // 'owner' or assistant id
   const assistants = state.userProfile.assistants || [];
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const promoterOptions = useMemo(() => [
+    { id: 'owner', name: 'Tú Mismo', imageUrl: state.userProfile.imageUrl },
+    ...assistants
+  ], [assistants, state.userProfile.imageUrl]);
+
+   useEffect(() => {
+    const handleScroll = () => {
+        if (scrollRef.current) {
+            const scrollLeft = scrollRef.current.scrollLeft;
+            const cardWidth = scrollRef.current.offsetWidth;
+            if (cardWidth > 0) {
+              const newIndex = Math.round(scrollLeft / cardWidth);
+              setActiveIndex(newIndex);
+            }
+        }
+    };
+
+    const scroller = scrollRef.current;
+    if (scroller) {
+        scroller.addEventListener('scroll', handleScroll, { passive: true });
+        return () => scroller.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -384,59 +411,54 @@ const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpen
         <div className="space-y-4 py-4 flex-1 overflow-y-hidden flex flex-col">
           <div className="px-1 space-y-2">
             <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
-            <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" />
+            <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" value={catalogName} onChange={e => setCatalogName(e.target.value)} />
           </div>
           <div className="px-1 space-y-2 flex-1 flex flex-col overflow-y-hidden">
             <Label>¿Quién promocionará este catálogo?</Label>
-            <RadioGroup
-              value={selectedPromoter}
-              onValueChange={setSelectedPromoter}
-              className="flex-1 overflow-y-hidden flex flex-col"
+            <div
+                ref={scrollRef}
+                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
             >
-              <ScrollArea className="flex-1">
-                <div className="space-y-2 p-1">
-                  <Card
-                    onClick={() => setSelectedPromoter('owner')}
-                    className={cn(
-                      'cursor-pointer transition-all',
-                      selectedPromoter === 'owner' && 'border-primary ring-2 ring-primary'
-                    )}
-                  >
-                    <CardContent className="p-3 flex items-center gap-3">
-                      <RadioGroupItem value="owner" id="owner" />
-                      <Avatar>
-                        <AvatarImage src={state.userProfile.imageUrl} />
-                        <AvatarFallback>
-                          <User />
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="font-semibold">Tú Mismo</p>
-                    </CardContent>
-                  </Card>
-                  {assistants.map((asst) => (
-                    <Card
-                      key={asst.id}
-                      onClick={() => setSelectedPromoter(asst.id)}
-                      className={cn(
-                        'cursor-pointer transition-all',
-                        selectedPromoter === asst.id && 'border-primary ring-2 ring-primary'
-                      )}
-                    >
-                      <CardContent className="p-3 flex items-center gap-3">
-                        <RadioGroupItem value={asst.id} id={asst.id} />
-                        <Avatar>
-                          <AvatarImage src={asst.imageUrl} />
-                          <AvatarFallback>
-                            <Bot />
-                          </AvatarFallback>
-                        </Avatar>
-                        <p className="font-semibold truncate">{asst.name}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
-            </RadioGroup>
+                {promoterOptions.map((promoter) => {
+                    const isSelected = selectedPromoter === promoter.id;
+                    return (
+                        <div key={promoter.id} className="w-full flex-shrink-0 snap-center p-2" onClick={() => setSelectedPromoter(promoter.id)}>
+                            <Card 
+                                className={cn("transition-all border-2 overflow-hidden shadow-lg h-full cursor-pointer", isSelected ? "border-primary shadow-primary/20" : "hover:border-primary/50", "glow-card")}
+                            >
+                                <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-2">
+                                     {isSelected && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary"/>}
+                                     <Avatar className="h-16 w-16">
+                                        <AvatarImage src={promoter.imageUrl} />
+                                        <AvatarFallback>
+                                            {promoter.id === 'owner' ? <User /> : <Bot />}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <p className="font-semibold text-sm truncate">{promoter.name}</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )
+                })}
+            </div>
+             <div className="flex justify-center mt-2 space-x-2">
+                {promoterOptions.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => {
+                            if (scrollRef.current) {
+                                const cardWidth = scrollRef.current.offsetWidth;
+                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                            }
+                        }}
+                        className={cn(
+                            "h-2 w-2 rounded-full transition-all",
+                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                        )}
+                        aria-label={`Ir al promotor ${index + 1}`}
+                    />
+                ))}
+            </div>
           </div>
         </div>
         <DialogFooter>
@@ -545,7 +567,7 @@ export const ProductsView = () => {
                     </div>
                     <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
                     {isMember && (
-                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => {toast({title: "Acción no disponible en demo."})}}>
+                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => {setIsCreateCatalogDialogOpen(true)}}>
                             <Plus className="mr-1 h-4 w-4"/>
                             Crear Catálogo
                         </Button>
