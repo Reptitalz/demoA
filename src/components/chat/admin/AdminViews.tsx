@@ -12,7 +12,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -24,6 +23,7 @@ import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { AssistantConfig } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
+import CreateAssistantDialog from './CreateAssistantDialog';
 
 // Demo data for admin chat trays
 const demoAdminChats: AssistantConfig[] = [
@@ -451,7 +451,7 @@ export const AssistantsList = () => {
                             <Button 
                                 variant="ghost" 
                                 className={cn("h-full w-24 flex flex-col items-center justify-center text-muted-foreground rounded-none gap-0.5",
-                                    chat.isActive ? "bg-destructive/20 hover:bg-destructive/30" : "bg-green-500/20 hover:bg-green-500/30"
+                                    chat.isActive ? "bg-red-500/20 hover:bg-red-500/30" : "bg-green-500/20 hover:bg-green-500/30"
                                 )} 
                                 onClick={() => handleToggleIA(chat as AssistantConfig)}
                             >
@@ -548,7 +548,7 @@ export const AssistantsList = () => {
           >
             <MessageSquarePlus className="h-6 w-6" />
           </Button>
-       <RegisterAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
+       <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
        {selectedAssistant && (
          <DatabaseLinkDialog 
             isOpen={isDbLinkOpen} 
