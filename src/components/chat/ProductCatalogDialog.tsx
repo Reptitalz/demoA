@@ -39,7 +39,7 @@ const ProductCatalogDialog = ({ isOpen, onOpenChange, assistant, onProductSelect
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FaTags /> Catálogo de Productos
@@ -48,7 +48,7 @@ const ProductCatalogDialog = ({ isOpen, onOpenChange, assistant, onProductSelect
             Explora los productos disponibles de {assistant.name}.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-72">
+        <ScrollArea className="flex-grow">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <FaSpinner className="animate-spin text-primary h-8 w-8" />
