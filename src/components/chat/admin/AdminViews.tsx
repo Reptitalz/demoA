@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -379,13 +379,12 @@ export const AssistantsList = () => {
                             className="absolute inset-y-0 left-0 flex items-center"
                         >
                             <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5">
-                                <HardDrive size={20}/>
-                                <span className="text-xs">Memoria</span>
-                                <span className="text-[10px] font-bold">{formatBytes(chat.memory)}</span>
+                                <BookText size={20}/>
+                                <span className="text-xs">Instrucciones</span>
                             </Button>
-                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-green-500/20 hover:bg-green-500/30 rounded-none gap-0.5">
-                                <Bot size={20}/>
-                                <span className="text-xs">Activar IA</span>
+                             <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5">
+                                <Database size={20}/>
+                                <span className="text-xs">Base de datos</span>
                             </Button>
                         </motion.div>
                     )}
