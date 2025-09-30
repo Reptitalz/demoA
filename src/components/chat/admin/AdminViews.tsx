@@ -23,6 +23,7 @@ import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import { AssistantConfig } from '@/types';
+import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 
 // Demo data for admin chat trays
 const demoAdminChats: AssistantConfig[] = [
@@ -30,11 +31,6 @@ const demoAdminChats: AssistantConfig[] = [
         id: 'user-1',
         name: 'Cliente A - Asistente de Ventas',
         isActive: true,
-        lastMessage: 'Sí, me gustaría confirmar el pedido.',
-        timestamp: 'Ahora',
-        imageUrl: 'https://i.imgur.com/8p8Yf9u.png',
-        totalMemory: 123456,
-        prompt: 'Eres un asistente de ventas amigable y eficiente.',
         type: 'whatsapp',
         messageCount: 0,
         monthlyMessageLimit: 0,
@@ -44,11 +40,6 @@ const demoAdminChats: AssistantConfig[] = [
         id: 'user-2',
         name: 'Usuario B - Asistente de Soporte',
         isActive: false,
-        lastMessage: 'Gracias por la ayuda, se ha solucionado.',
-        timestamp: 'Hace 5m',
-        imageUrl: 'https://i.imgur.com/8p8Yf9u.png',
-        totalMemory: 78910,
-        prompt: 'Tu objetivo es resolver problemas técnicos de los usuarios.',
         type: 'whatsapp',
         messageCount: 0,
         monthlyMessageLimit: 0,
@@ -329,6 +320,7 @@ export const AssistantsList = () => {
   const [isCreateAssistantDialogOpen, setIsCreateAssistantDialogOpen] = useState(false);
   const [isDbLinkOpen, setIsDbLinkOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [isBusinessInfoOpen, setIsBusinessInfoOpen] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
   
   const assistantsToShow = userProfile.isAuthenticated ? userProfile.assistants : demoAdminChats;
@@ -350,6 +342,11 @@ export const AssistantsList = () => {
     setSelectedAssistant(assistant);
     setIsInstructionsOpen(true);
   };
+  
+  const handleBusinessInfoEdit = (assistant: any) => {
+    setSelectedAssistant(assistant);
+    setIsBusinessInfoOpen(true);
+  }
 
   const handleToggleIA = async (assistant: AssistantConfig) => {
     if (!userProfile.isAuthenticated) {
@@ -492,7 +489,7 @@ export const AssistantsList = () => {
                             return;
                         }
                         setActiveSwipe(null);
-                        // router.push(`/chat/admin/${chat.id}`); // Example path
+                        handleBusinessInfoEdit(chat);
                     }}
                     animate={{ 
                         x: isLeftSwiped ? -80 : isRightSwiped ? 288 : 0 
@@ -519,8 +516,8 @@ export const AssistantsList = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5">
-                                        <span className={cn("relative flex h-2 w-2", chat.isActive && "animate-pulse")}>
-                                            <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75", chat.isActive ? "bg-green-400" : "bg-gray-400")}></span>
+                                        <span className={cn("relative flex h-2 w-2")}>
+                                            <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75", chat.isActive ? "bg-green-400 animate-ping" : "bg-gray-400")}></span>
                                             <span className={cn("relative inline-flex rounded-full h-2 w-2", chat.isActive ? "bg-green-500" : "bg-gray-500")}></span>
                                         </span>
                                         <p className="text-xs text-muted-foreground">{chat.isActive ? 'en línea' : 'desconectado'}</p>
@@ -563,6 +560,13 @@ export const AssistantsList = () => {
         <InstructionsDialog
             isOpen={isInstructionsOpen}
             onOpenChange={setIsInstructionsOpen}
+            assistant={selectedAssistant}
+        />
+       )}
+       {selectedAssistant && (
+        <BusinessInfoDialog
+            isOpen={isBusinessInfoOpen}
+            onOpenChange={setIsBusinessInfoOpen}
             assistant={selectedAssistant}
         />
        )}

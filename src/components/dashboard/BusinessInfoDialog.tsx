@@ -25,13 +25,15 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
   
   const [businessInfo, setBusinessInfo] = useState<AssistantBusinessInfo>(assistant.businessInfo || {});
   const [assistantImageUrl, setAssistantImageUrl] = useState(assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
+  const [assistantName, setAssistantName] = useState(assistant.name || '');
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && assistant) {
       setBusinessInfo(assistant.businessInfo || {});
       setAssistantImageUrl(assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
+      setAssistantName(assistant.name || '');
     }
   }, [isOpen, assistant]);
   
@@ -60,10 +62,10 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
   };
 
   const handleSave = async () => {
-    if (!businessInfo.vertical) {
+    if (!businessInfo.vertical || !assistantName) {
       toast({
-        title: "Campo Requerido",
-        description: "Por favor, especifica la categoría del negocio.",
+        title: "Campos Requeridos",
+        description: "Por favor, especifica el nombre del asistente y la categoría del negocio.",
         variant: "destructive",
       });
       return;
@@ -73,6 +75,7 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
     
     const updatedAssistant: AssistantConfig = {
       ...assistant,
+      name: assistantName,
       imageUrl: assistantImageUrl,
       businessInfo: businessInfo,
     };
@@ -125,16 +128,16 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
       <DialogContent className="sm:max-w-lg" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaBuilding /> Información de Negocio para "{assistant.name}"
+            <FaBuilding /> Editar Información de "{assistant.name}"
           </DialogTitle>
           <DialogDescription>
-            Completa los detalles de tu negocio. Esta información puede ser utilizada por tu asistente y se mostrará en su perfil de WhatsApp.
+            Actualiza los detalles de tu negocio. Esta información puede ser utilizada por tu asistente y se mostrará en su perfil de WhatsApp.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="space-y-2">
             <Label htmlFor="assistant-image" className="flex items-center gap-2">
-              <FaImage /> Imagen del Asistente
+              <FaImage /> Imagen de Perfil
             </Label>
             <div className="flex items-center gap-4">
               <Image 
@@ -159,6 +162,21 @@ const BusinessInfoDialog = ({ isOpen, onOpenChange, assistant }: BusinessInfoDia
             </div>
           </div>
           
+           <div className="space-y-2">
+            <Label htmlFor="assistantName" className="flex items-center gap-2">
+              <FaBuilding /> Nombre del Asistente/Negocio
+            </Label>
+            <Input 
+              id="assistantName" 
+              name="assistantName" 
+              type="text"
+              placeholder="Ej: Pastelería Dulces Momentos"
+              value={assistantName}
+              onChange={(e) => setAssistantName(e.target.value)}
+              required
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="vertical" className="flex items-center gap-2">
               <FaBriefcase /> Categoría del Negocio (Vertical)
