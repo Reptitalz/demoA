@@ -125,7 +125,7 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
              <div>
                 <h4 className="text-sm font-semibold mb-2">1. Elige un rol (opcional)</h4>
                 <ScrollArea ref={scrollAreaRef} className="w-full">
-                  <div className="flex space-x-3 pb-4">
+                  <div className="flex space-x-3 pb-4 whitespace-nowrap">
                       {roleOptions.map(role => {
                           const Icon = role.icon;
                           const isSelected = selectedRoles.has(role.id);
@@ -134,7 +134,7 @@ const InstructionsDialog = ({ isOpen, onOpenChange, assistant }: InstructionsDia
                                 key={role.id} 
                                 onClick={() => handleRoleToggle(role.id)}
                                 className={cn(
-                                    "w-36 h-36 flex-shrink-0 cursor-pointer transition-all border-2 flex flex-col items-center justify-center text-center p-2 relative overflow-hidden",
+                                    "w-36 h-36 flex-shrink-0 cursor-pointer transition-all border-2 flex flex-col items-center justify-center text-center p-2 relative overflow-hidden inline-block",
                                     isSelected ? "border-primary bg-primary/10" : "hover:border-primary/50"
                                 )}
                               >
