@@ -12,6 +12,7 @@ import { signOut, useSession, signIn } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/providers/AppProvider';
+import { Badge } from '@/components/ui/badge';
 
 const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-card/80 cursor-pointer" onClick={!disabled ? onClick : undefined}>
@@ -24,6 +25,9 @@ const ChatProfilePage = () => {
   const { data: session, status } = useSession();
   const { toast } = useToast();
   const { state } = useApp();
+
+  const mainAssistant = state.userProfile.assistants.find(a => a.type === 'desktop');
+  const chatPath = mainAssistant?.chatPath;
 
   const handleLogout = () => {
       signOut({ callbackUrl: '/' });
@@ -89,6 +93,13 @@ const ChatProfilePage = () => {
                 <div>
                      <p className="text-xl font-bold">{session?.user?.name || 'Invitado'}</p>
                      <p className="text-sm text-muted-foreground">{session?.user?.email || 'Inicia sesión para sincronizar'}</p>
+                     {chatPath && (
+                        <div className="mt-1">
+                            <Badge variant="secondary">
+                                Tu ID de chat: {chatPath}
+                            </Badge>
+                        </div>
+                     )}
                 </div>
             </div>
 
