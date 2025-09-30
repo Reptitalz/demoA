@@ -57,7 +57,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   }, [pathname, router]);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-transparent overflow-x-hidden">
+    <div className="h-[100svh] w-screen flex flex-col bg-transparent overflow-x-hidden">
       <main 
           className={cn(
             "flex-grow overflow-y-auto",
