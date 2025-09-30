@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AssistantConfig, ChatMessage } from '@/types';
+import { AssistantConfig, ChatMessage, Product } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -443,7 +443,7 @@ const DesktopChatPage = () => {
   }
   
   const showCreditButton = true;
-  const showProductsButton = true;
+  const showProductsButton = assistant?.catalogId && state.userProfile.catalogs?.some(c => c.id === assistant.catalogId);
   
   return (
     <>
@@ -575,7 +575,7 @@ const DesktopChatPage = () => {
           isOpen={isCatalogOpen}
           onOpenChange={setIsCatalogOpen}
           assistant={assistant}
-          onProductSelect={(product) => {
+          onProductSelect={(product: Product) => {
              handleSendMessage(undefined, `Hola, me interesa el producto: ${product.name} ($${product.price}).`);
              setIsCatalogOpen(false);
           }}

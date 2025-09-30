@@ -21,7 +21,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { AssistantConfig, ChatMessage } from '@/types';
+import { AssistantConfig, ChatMessage, Product, Catalog } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -100,19 +100,6 @@ const demoAdminChats: AssistantConfig[] = [
         purposes: [],
     },
 ];
-
-const demoProducts = [
-    { id: 'prod-1', name: 'Pastel de Chocolate', price: 350.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
-    { id: 'prod-2', name: 'Galletas de Chispas', price: 150.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
-    { id: 'prod-3', name: 'Cupcakes de Vainilla (6)', price: 200.00, imageUrl: 'https://i.imgur.com/JzJzJzJ.jpeg' },
-];
-
-const demoCatalogs = [
-    { id: 'cat-1', name: 'Catálogo de Repostería', promoter: 'Asistente de Ventas', promoterType: 'bot' },
-    { id: 'cat-2', name: 'Servicios de Taller', promoter: 'Tú Mismo', promoterType: 'user' },
-    { id: 'cat-3', name: 'Catálogo General', promoter: 'Asistente de Soporte', promoterType: 'bot' },
-];
-
 
 const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction: (id: string, action: 'authorize' | 'reject') => void }) => {
     if (!payment) return null;
@@ -496,6 +483,7 @@ export const ProductsView = () => {
     const { toast } = useToast();
 
     const isMember = state.userProfile.accountType === 'business';
+    const catalogs = state.userProfile.catalogs || [];
 
     const handleSelectCatalog = (catalogId: string) => {
         setSelectedCatalogId(catalogId);
@@ -505,6 +493,11 @@ export const ProductsView = () => {
         setSelectedCatalogId(null);
         setSearchTerm('');
     };
+
+    const selectedCatalog = catalogs.find(c => c.id === selectedCatalogId);
+    const filteredProducts = selectedCatalog?.products?.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
     if (!selectedCatalogId) {
         return (
@@ -523,7 +516,13 @@ export const ProductsView = () => {
                 </header>
                 <ScrollArea className="flex-grow">
                     <div className="p-4 space-y-3">
-                        {demoCatalogs.map(catalog => (
+                        {catalogs.length > 0 ? catalogs.map(catalog => {
+                             const promoter = catalog.promoterType === 'user'
+                                ? state.userProfile
+                                : state.userProfile.assistants.find(a => a.id === catalog.promoterId);
+                            const promoterName = catalog.promoterType === 'user' ? 'Tú Mismo' : promoter?.name || 'Asistente Desconocido';
+                             
+                             return (
                              <Card key={catalog.id} className="glow-card cursor-pointer" onClick={() => handleSelectCatalog(catalog.id)}>
                                 <CardContent className="p-3 flex items-center gap-3">
                                     <div className="p-2 bg-muted rounded-full">
@@ -531,12 +530,16 @@ export const ProductsView = () => {
                                     </div>
                                     <div className="flex-grow">
                                         <p className="font-semibold text-sm">{catalog.name}</p>
-                                        <p className="text-xs text-muted-foreground">Promocionado por: {catalog.promoter}</p>
+                                        <p className="text-xs text-muted-foreground">Promocionado por: {promoterName}</p>
                                     </div>
                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                 </CardContent>
                             </Card>
-                        ))}
+                         )}) : (
+                            <div className="text-center py-10 text-muted-foreground">
+                                <p>No has creado ningún catálogo.</p>
+                            </div>
+                         )}
                     </div>
                 </ScrollArea>
                  <Button
@@ -552,12 +555,6 @@ export const ProductsView = () => {
         );
     }
 
-    const filteredProducts = demoProducts.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const selectedCatalog = demoCatalogs.find(c => c.id === selectedCatalogId);
-
     return (
         <>
             <header className="p-4 border-b bg-card/80 backdrop-blur-sm space-y-2">
@@ -567,7 +564,7 @@ export const ProductsView = () => {
                     </Button>
                     <div className="flex-grow">
                          <h1 className="text-xl font-bold">{selectedCatalog?.name || 'Catálogo de Productos'}</h1>
-                         <p className="text-xs text-muted-foreground">Promocionado por: {selectedCatalog?.promoter}</p>
+                         <p className="text-xs text-muted-foreground">Promocionado por: {selectedCatalog?.promoterType === 'user' ? 'Tú Mismo' : state.userProfile.assistants.find(a => a.id === selectedCatalog?.promoterId)?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -594,7 +591,7 @@ export const ProductsView = () => {
                     {filteredProducts.map(product => (
                         <Card key={product.id} className="overflow-hidden glow-card">
                             <div className="aspect-video relative">
-                                <Image src={product.imageUrl} alt={product.name} layout="fill" objectFit="cover" />
+                                <Image src={product.imageUrl || 'https://placehold.co/600x400'} alt={product.name} layout="fill" objectFit="cover" />
                             </div>
                             <CardContent className="p-3">
                                 <p className="font-semibold truncate text-sm">{product.name}</p>

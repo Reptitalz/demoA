@@ -1,15 +1,16 @@
 // src/components/chat/ProductCatalogDialog.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { FaTags, FaSpinner } from 'react-icons/fa';
-import type { AssistantConfig, Product } from '@/types';
+import type { AssistantConfig, Product, Catalog } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import Image from 'next/image';
 import { Card, CardContent } from '../ui/card';
+import { useApp } from '@/providers/AppProvider';
 
 interface ProductCatalogDialogProps {
   isOpen: boolean;
@@ -19,41 +20,30 @@ interface ProductCatalogDialogProps {
 }
 
 const ProductCatalogDialog = ({ isOpen, onOpenChange, assistant, onProductSelect }: ProductCatalogDialogProps) => {
+  const { state } = useApp();
+  const { userProfile } = state;
   const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-      fetch(`/api/products?assistantId=${assistant.id}`)
-        .then(res => {
-          if (!res.ok) throw new Error('No se pudo cargar el catálogo de productos.');
-          return res.json();
-        })
-        .then(data => setProducts(data.products))
-        .catch(err => toast({ title: "Error", description: err.message, variant: 'destructive' }))
-        .finally(() => setIsLoading(false));
-    }
-  }, [isOpen, assistant.id, toast]);
   
+  const catalog = useMemo(() => {
+    if (!assistant.catalogId) return null;
+    return userProfile.catalogs?.find(c => c.id === assistant.catalogId);
+  }, [assistant.catalogId, userProfile.catalogs]);
+  
+  const products = catalog?.products || [];
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen h-screen max-w-full flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaTags /> Catálogo de Productos
+            <FaTags /> {catalog?.name || 'Catálogo de Productos'}
           </DialogTitle>
           <DialogDescription>
             Explora los productos disponibles de {assistant.name}.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="flex-grow">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <FaSpinner className="animate-spin text-primary h-8 w-8" />
-            </div>
-          ) : products.length > 0 ? (
+          {products.length > 0 ? (
             <div className="p-1 grid grid-cols-2 gap-3">
               {products.map(product => (
                 <Card 
@@ -72,7 +62,9 @@ const ProductCatalogDialog = ({ isOpen, onOpenChange, assistant, onProductSelect
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground p-8">No hay productos en el catálogo.</p>
+            <div className="flex items-center justify-center h-full">
+                <p className="text-center text-muted-foreground p-8">Este asistente no tiene un catálogo de productos asignado.</p>
+            </div>
           )}
         </ScrollArea>
         <DialogFooter>

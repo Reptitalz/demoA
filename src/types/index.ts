@@ -23,6 +23,23 @@ export interface AssistantPurpose {
 
 export type DatabaseSource = "google_sheets" | "smart_db"; 
 
+export interface Product {
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    imageUrl?: string;
+}
+
+export interface Catalog {
+  id: string;
+  name: string;
+  promoterType: 'user' | 'bot';
+  promoterId: string; // userProfile._id or assistant.id
+  products: Product[];
+}
+
+
 export interface DatabaseConfig {
   id: string;
   name: string;
@@ -67,6 +84,7 @@ export interface AssistantConfig {
   imageUrl?: string;
   purposes: string[];
   databaseId?: string | null;
+  catalogId?: string | null; // <-- ADDED
   verificationCode?: string;
   numberReady?: boolean;
   businessInfo?: AssistantBusinessInfo;
@@ -122,6 +140,7 @@ export interface UserProfile {
   address?: UserAddress;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
+  catalogs?: Catalog[]; // <-- ADDED
   credits: number;
   pushSubscriptions?: any[];
   referredBy?: ObjectId; // Link to CollaboratorProfile
@@ -245,12 +264,4 @@ export interface Conversation {
     createdAt: string;
     updatedAt: string;
     lastMessage: string;
-}
-
-export interface Product {
-    id: string;
-    name: string;
-    description?: string;
-    price: number;
-    imageUrl?: string;
 }
