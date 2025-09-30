@@ -42,33 +42,28 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ id, label, onImageSelect, pre
     return (
         <div className="space-y-2">
             <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
-            <Card className={cn("overflow-hidden", previewUrl && "border-primary")}>
+            <Card className={cn("overflow-hidden w-full", previewUrl && "border-primary")}>
                 <CardContent className="p-2">
-                    <div className="aspect-video w-full border-2 border-dashed rounded-md flex items-center justify-center relative">
+                    <div 
+                        className="aspect-video w-full border-2 border-dashed rounded-md flex items-center justify-center relative cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
                         {previewUrl ? (
                             <>
                                 <Image src={previewUrl} alt="Vista previa" layout="fill" objectFit="contain" className="p-1" />
-                                <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-7 w-7 rounded-full" onClick={(e) => { e.stopPropagation(); onClear(); }}>
-                                    <FaTimes size={14}/>
+                                <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 rounded-full" onClick={(e) => { e.stopPropagation(); onClear(); }}>
+                                    <FaTimes size={12}/>
                                 </Button>
                             </>
                         ) : (
-                            <div className="text-muted-foreground text-center">
-                                <FaIdCard className="mx-auto h-8 w-8 mb-2" />
-                                <p className="text-xs">Toca para subir o tomar foto</p>
+                            <div className="text-muted-foreground text-center p-2">
+                                <FaIdCard className="mx-auto h-6 w-6 mb-1" />
+                                <p className="text-xs">Subir o tomar foto</p>
                             </div>
                         )}
                     </div>
                 </CardContent>
             </Card>
-            <div className="grid grid-cols-2 gap-2">
-                 <Button variant="outline" size="sm" onClick={() => cameraInputRef.current?.click()} className="text-xs">
-                    <FaCamera className="mr-2" /> Tomar Foto
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="text-xs">
-                    <FaUpload className="mr-2" /> Subir Archivo
-                </Button>
-            </div>
             <input type="file" ref={cameraInputRef} accept="image/*" capture="environment" onChange={handleFileChange} className="hidden" />
             <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="hidden" />
         </div>
@@ -151,15 +146,17 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                 
                 <Progress value={progress} className="w-full h-2" />
 
-                <div className="py-4 space-y-4 min-h-[350px]">
+                <div className="py-4 space-y-4 min-h-[400px]">
                     {step === 1 && (
                         <div className="space-y-4 animate-fadeIn">
                              <Alert>
                                 <AlertTitle>Paso 1: Identificación Oficial (INE)</AlertTitle>
                                 <AlertDescription>Sube una foto clara de la parte frontal y trasera de tu INE.</AlertDescription>
                             </Alert>
-                            <ImageUpload id="ine-front" label="Parte Frontal" onImageSelect={(f) => handleImageSelection(f, setIneFront, setIneFrontPreview)} previewUrl={ineFrontPreview} onClear={() => { setIneFront(null); setIneFrontPreview(null); }}/>
-                            <ImageUpload id="ine-back" label="Parte Trasera" onImageSelect={(f) => handleImageSelection(f, setIneBack, setIneBackPreview)} previewUrl={ineBackPreview} onClear={() => { setIneBack(null); setIneBackPreview(null); }} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <ImageUpload id="ine-front" label="Parte Frontal" onImageSelect={(f) => handleImageSelection(f, setIneFront, setIneFrontPreview)} previewUrl={ineFrontPreview} onClear={() => { setIneFront(null); setIneFrontPreview(null); }}/>
+                                <ImageUpload id="ine-back" label="Parte Trasera" onImageSelect={(f) => handleImageSelection(f, setIneBack, setIneBackPreview)} previewUrl={ineBackPreview} onClear={() => { setIneBack(null); setIneBackPreview(null); }} />
+                            </div>
                         </div>
                     )}
                     {step === 2 && (
