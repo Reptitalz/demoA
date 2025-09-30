@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -581,11 +581,10 @@ export const AssistantsList = () => {
 }
 
 export const CreditView = () => {
-    const totalCapital = 25000.00;
-    const loansInProgress = [
-        { id: 1, name: 'Cliente A', amount: 5000.00, status: 'Documentos Recibidos' },
-        { id: 2, name: 'Cliente B', amount: 10000.00, status: 'Análisis de Crédito' },
-        { id: 3, name: 'Cliente C', amount: 2500.00, status: 'Aprobado, Pendiente Firma' },
+    const activeLoans = [
+        { id: 1, chatPath: 'cliente-a-xyz', amount: 5000.00, status: 'Al Corriente' },
+        { id: 2, chatPath: 'usuario-b-123', amount: 10000.00, status: 'Atrasado' },
+        { id: 3, chatPath: 'nuevo-c-456', amount: 2500.00, status: 'Pagado' },
     ];
 
     return (
@@ -600,42 +599,50 @@ export const CreditView = () => {
                     </div>
                 </div>
             </header>
-             <div className="p-4">
-                 <Card className="shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Capital para Préstamos</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+             <div className="p-4 space-y-4">
+                 <Card className="shadow-lg glow-card">
+                    <CardHeader>
+                        <CardTitle className="text-lg flex items-center justify-between">
+                            <span>Definir Oferta de Crédito</span>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-4 w-4"/></Button>
+                        </CardTitle>
+                        <CardDescription>Establece las condiciones para los créditos que tus asistentes pueden ofrecer.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-4xl font-bold text-foreground">
-                            ${totalCapital.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-1">
+                                <Label>Monto Máximo</Label>
+                                <div className="font-semibold flex items-center gap-1.5"><DollarSign size={14}/> 15,000.00</div>
+                            </div>
+                             <div className="space-y-1">
+                                <Label>Tasa de Interés</Label>
+                                <div className="font-semibold flex items-center gap-1.5"><Percent size={14}/> 5% mensual</div>
+                            </div>
                         </div>
-                        <p className="text-xs text-muted-foreground pt-1">Balance total disponible</p>
-                    </CardContent>
-                    <CardContent>
-                         <Button className="w-full">
-                            <Plus className="mr-2 h-4 w-4" /> Añadir Capital
-                        </Button>
+                         <div className="space-y-1">
+                            <Label>Plazos Disponibles</Label>
+                            <div className="font-semibold flex items-center gap-1.5"><Calendar size={14}/> 3, 6 y 12 meses</div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
             <ScrollArea className="flex-grow px-2">
                  <div className="p-2 space-y-3">
-                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Actividad de Préstamos</h3>
-                     {loansInProgress.map(loan => (
+                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Créditos Activos</h3>
+                     {activeLoans.map(loan => (
                          <Card key={loan.id} className="glow-card">
                             <CardContent className="p-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Avatar>
-                                        <AvatarFallback>{loan.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{loan.chatPath.charAt(0).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-0.5">
-                                        <p className="font-semibold text-sm">{loan.name}</p>
-                                        <p className="text-xs text-muted-foreground">{loan.status}</p>
+                                        <p className="font-semibold text-sm truncate">{loan.chatPath}</p>
+                                        <p className={cn("text-xs", loan.status === 'Atrasado' ? 'text-destructive' : 'text-green-600')}>{loan.status}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-green-500">${loan.amount.toFixed(2)}</p>
+                                    <p className="font-bold text-lg">${loan.amount.toFixed(2)}</p>
                                     <Button variant="link" size="sm" className="h-auto p-0 text-xs">Ver detalles</Button>
                                 </div>
                             </CardContent>
