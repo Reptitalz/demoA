@@ -409,8 +409,8 @@ const DesktopChatPage = () => {
     return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
   
-  const showCreditButton = assistant?.purposes?.includes('sell_credits');
-  const showProductsButton = assistant?.purposes?.includes('sell_products');
+  const showCreditButton = true; // For demonstration
+  const showProductsButton = true; // For demonstration
   
   return (
     <>
