@@ -143,7 +143,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
         switch (step) {
             case 1:
                 return (
-                    <div className="space-y-6 animate-fadeIn w-full max-w-md mx-auto">
+                    <div className="space-y-6 animate-fadeIn w-full max-w-md mx-auto px-4">
                         <div className="space-y-2">
                             <Label htmlFor="assistant-name" className="text-lg font-semibold">Nombre del Asistente</Label>
                             <Input id="assistant-name" value={assistantName} onChange={e => setAssistantName(e.target.value)} placeholder="Ej: Asistente de Ventas" className="text-base py-6"/>
