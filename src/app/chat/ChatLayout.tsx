@@ -45,4 +45,8 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       
       {/* Mobile Bottom NavBar */}
       <div className="md:hidden">
-        {isBase
+        {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} />}
+      </div>
+    </div>
+  );
+}

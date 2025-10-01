@@ -89,14 +89,15 @@ body {
 
 @layer utilities {
   .animate-scroll {
-    animation: scroll var(--scroll-duration, 40s) linear infinite;
+    animation: scroll 40s linear infinite;
   }
 
   @keyframes scroll {
     to {
-      transform: translateX(-50%);
+      transform: translate(calc(-50%));
     }
   }
+
   .grid-areas-admin-hub {
     grid-template-areas:
       "a b"

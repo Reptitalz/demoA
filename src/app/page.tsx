@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from 'react';
@@ -212,14 +213,14 @@ const tools = [
 
 const ToolsCarousel = () => {
     return (
-        <div className="w-full relative group">
-            <div
-                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
-            >
-                {tools.map((tool, index) => {
+        <div
+            className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
+        >
+            <ul className="flex items-center justify-center md:justify-start [&_li]:mx-4 [&_img]:max-w-none animate-scroll">
+                {[...tools, ...tools].map((tool, index) => {
                     const Icon = tool.icon;
                     return (
-                        <div key={index} className="flex-shrink-0 w-64 p-3 snap-start">
+                       <li key={index} className="flex-shrink-0 w-64 p-3">
                             <div className="h-full bg-card/50 border rounded-lg p-4 flex items-center gap-4 backdrop-blur-sm transition-all hover:bg-card/80 hover:shadow-lg">
                                 <Icon className="h-8 w-8 text-primary shrink-0" />
                                 <div>
@@ -227,12 +228,10 @@ const ToolsCarousel = () => {
                                     <p className="text-xs text-muted-foreground">{tool.description}</p>
                                 </div>
                             </div>
-                        </div>
+                        </li>
                     );
                 })}
-            </div>
-             <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
-             <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
+            </ul>
         </div>
     );
 };
@@ -445,44 +444,7 @@ const NewHomepage = () => {
           </div>
       </section>
 
-      <section className="py-20 bg-background">
-        <div className="container max-w-4xl mx-auto px-4">
-            <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold tracking-tight">Comparación de Planes</h2>
-                <p className="mt-3 text-muted-foreground">Encuentra el plan que mejor se adapta a tus necesidades.</p>
-            </div>
-            <div className="border rounded-lg overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[50%]">Característica</TableHead>
-                            <TableHead className="text-center">Plan Gratuito</TableHead>
-                            <TableHead className="text-center">Plan Miembro</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {comparisonFeatures.map((item, index) => (
-                            <TableRow key={index}>
-                                <TableCell className="font-medium">{item.feature}</TableCell>
-                                <TableCell className="text-center">
-                                    {typeof item.free === 'boolean' ? 
-                                        (item.free ? <FaCheck className="mx-auto text-green-500"/> : <FaTimes className="mx-auto text-destructive"/>) 
-                                        : item.free}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    {typeof item.member === 'boolean' ? 
-                                        (item.member ? <FaCheck className="mx-auto text-green-500"/> : <FaTimes className="mx-auto text-destructive"/>) 
-                                        : <span className="font-bold text-primary">{item.member}</span>}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
-      </section>
-
-      <section className="py-24 bg-muted/50">
+      <section className="py-24 bg-background">
           <div className="container mx-auto px-4 text-center">
               <h2 className="text-3xl font-bold tracking-tight">¿Listo para Probar {APP_NAME}?</h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
@@ -506,7 +468,7 @@ const NewHomepage = () => {
           </div>
       </section>
 
-      <section id="faq" className="py-20 bg-background">
+      <section id="faq" className="py-20 bg-muted/50">
           <div className="container max-w-3xl mx-auto px-4">
               <div className="text-center mb-12">
                   <h2 className="text-3xl font-bold tracking-tight">Preguntas Frecuentes</h2>
