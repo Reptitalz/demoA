@@ -45,19 +45,22 @@ const PhoneCanvas = () => {
         ctx.scale(dpr, dpr);
 
         let frame = 0;
-        let animationFrameId: number;
         let currentRotationX = 0;
         let currentRotationY = 0;
 
-        const drawPhone = (rotationX: number, rotationY: number) => {
+        const drawPhone = (
+            offsetX: number,
+            offsetY: number,
+            rotationX: number,
+            rotationY: number,
+            conversation: 'user' | 'assistant'
+        ) => {
             const w = canvas.clientWidth;
             const h = canvas.clientHeight;
-            const phoneW = w * 0.5;
+            const phoneW = w * 0.4;
             const phoneH = phoneW * 1.95;
-            const x = (w - phoneW) / 2;
-            const y = (h - phoneH) / 2;
-
-            ctx.clearRect(0, 0, w, h);
+            const x = (w - phoneW) / 2 + offsetX;
+            const y = (h - phoneH) / 2 + offsetY;
 
             ctx.save();
             ctx.translate(w / 2, h / 2);
@@ -136,22 +139,10 @@ const PhoneCanvas = () => {
             
             ctx.globalAlpha = 1;
 
-            drawBubble('¡Hola! Soy tu asistente de ventas.', false, screenY + 20, 0);
-            drawBubble('Quiero un reporte de ventas.', true, screenY + 50, 60);
-            
-            const typingProgress = Math.max(0, Math.min(1, (frame - 120) / 20));
-            if(typingProgress > 0) {
-                 ctx.globalAlpha = typingProgress;
-                 ctx.fillStyle = '#ffffff';
-                 ctx.beginPath();
-                 ctx.roundRect(screenX + bubblePadding, screenY + 80, 50, 24, 12);
-                 ctx.fill();
-                 
-                 const dotProgress = (frame - 130) % 60;
-                 ctx.fillStyle = 'hsl(var(--muted-foreground))';
-                 if (dotProgress > 10) { ctx.beginPath(); ctx.arc(screenX + bubblePadding + 15, screenY + 92, 2, 0, Math.PI * 2); ctx.fill(); }
-                 if (dotProgress > 20) { ctx.beginPath(); ctx.arc(screenX + bubblePadding + 25, screenY + 92, 2, 0, Math.PI * 2); ctx.fill(); }
-                 if (dotProgress > 30) { ctx.beginPath(); ctx.arc(screenX + bubblePadding + 35, screenY + 92, 2, 0, Math.PI * 2); ctx.fill(); }
+            if (conversation === 'user') {
+                drawBubble('¿tienes pasteles de chocolate?', true, screenY + 20, 0);
+            } else {
+                 drawBubble('¡Claro! ¿para cuántas personas?', false, screenY + 20, 30);
             }
 
             ctx.restore();
@@ -168,7 +159,12 @@ const PhoneCanvas = () => {
             currentRotationX = lerp(currentRotationX, targetRotationX, 0.05);
             currentRotationY = lerp(currentRotationY, targetRotationY, 0.05);
 
-            drawPhone(currentRotationX, currentRotationY);
+            ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+            // Draw two phones
+            drawPhone(-canvas.clientWidth * 0.15, 20, currentRotationX, currentRotationY, 'user');
+            drawPhone(canvas.clientWidth * 0.15, -20, currentRotationX * -0.5, currentRotationY * -0.5, 'assistant');
+
             animationFrameId = requestAnimationFrame(animate);
         };
         animate();
