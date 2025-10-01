@@ -167,10 +167,6 @@ const AdminHomePage = () => {
                 </header>
 
                 <div className="p-4 space-y-4">
-                     <div className="px-2">
-                        <PlanCarousel onUpgrade={handleUpgradeClick} />
-                    </div>
-                
                     <div className="p-4 grid gap-3 grid-cols-2">
                         {menuItems.map((item, index) => (
                         <motion.div
@@ -199,6 +195,9 @@ const AdminHomePage = () => {
                             </Card>
                         </motion.div>
                         ))}
+                    </div>
+                     <div className="px-2">
+                        <PlanCarousel onUpgrade={handleUpgradeClick} />
                     </div>
                 </div>
             </>
