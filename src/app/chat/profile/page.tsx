@@ -118,7 +118,7 @@ const ChatProfilePage = () => {
             <div className="space-y-1">
                 <ProfileLink icon={FaUser} text="Cuenta" onClick={() => setIsInfoDialogOpen(true)} disabled={status !== 'authenticated'} />
                 <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
-                <ProfileLink icon={FaKey} text="Privacidad" />
+                <Link href="/privacy"><ProfileLink icon={FaKey} text="Privacidad" /></Link>
                 <ProfileLink icon={FaShieldAlt} text="Seguridad" />
                 <ProfileLink icon={FaQuestionCircle} text="Ayuda" />
             </div>
