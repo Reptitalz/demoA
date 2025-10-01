@@ -935,81 +935,6 @@ export const AssistantsList = () => {
   );
 }
 
-export const CreditView = () => {
-    const activeLoans = [
-        { id: 1, chatPath: 'cliente-a-xyz', amount: 5000.00, status: 'Al Corriente' },
-        { id: 2, chatPath: 'usuario-b-123', amount: 10000.00, status: 'Atrasado' },
-        { id: 3, chatPath: 'nuevo-c-456', amount: 2500.00, status: 'Pagado' },
-    ];
-
-    return (
-        <div className="flex flex-col h-full bg-transparent">
-             <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                        <DollarSign className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold">Gestión de Crédito</h1>
-                    </div>
-                </div>
-            </header>
-             <div className="p-4 space-y-4">
-                 <Card className="shadow-lg glow-card">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center justify-between">
-                            <span>Definir Oferta de Crédito</span>
-                            <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-4 w-4"/></Button>
-                        </CardTitle>
-                        <CardDescription>Establece las condiciones para los créditos que tus asistentes pueden ofrecer.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="space-y-1">
-                                <Label>Monto Máximo</Label>
-                                <div className="font-semibold flex items-center gap-1.5"><DollarSign size={14}/> 15,000.00</div>
-                            </div>
-                             <div className="space-y-1">
-                                <Label>Tasa de Interés</Label>
-                                <div className="font-semibold flex items-center gap-1.5"><Percent size={14}/> 5% mensual</div>
-                            </div>
-                        </div>
-                         <div className="space-y-1">
-                            <Label>Plazos Disponibles</Label>
-                            <div className="font-semibold flex items-center gap-1.5"><Calendar size={14}/> 3, 6 y 12 meses</div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <ScrollArea className="flex-grow px-2">
-                 <div className="p-2 space-y-3">
-                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Créditos Activos</h3>
-                     {activeLoans.map(loan => (
-                         <Card key={loan.id} className="glow-card">
-                            <CardContent className="p-3 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarFallback>{loan.chatPath.charAt(0).toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="space-y-0.5">
-                                        <p className="font-semibold text-sm truncate">{loan.chatPath}</p>
-                                        <p className={cn("text-xs", loan.status === 'Atrasado' ? 'text-destructive' : 'text-green-600')}>{loan.status}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-lg">${loan.amount.toFixed(2)}</p>
-                                    <Button variant="link" size="sm" className="h-auto p-0 text-xs">Ver detalles</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </ScrollArea>
-        </div>
-    );
-};
-
-
 export const OtherView = ({ viewName }: { viewName: string }) => (
     <div className="flex flex-col h-full bg-transparent">
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
@@ -1017,7 +942,7 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
              <p className="text-sm text-muted-foreground">Vista de {viewName}</p>
         </header>
         <div className="flex-grow flex items-center justify-center">
-            <p className="text-muted-foreground">Contenido para {viewName} irá aquí.</p>
+            <p className="text-muted-foreground">Porque no puedo ver este apartado aqui?</p>
         </div>
     </div>
 );
