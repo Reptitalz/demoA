@@ -1,42 +1,34 @@
 // src/components/chat/CreditDetailsDialog.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FaDollarSign, FaHandshake, FaSpinner } from 'react-icons/fa';
+import { FaDollarSign, FaHandshake } from 'react-icons/fa';
 import { Card, CardContent } from '../ui/card';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { CheckCircle } from 'lucide-react';
+import { useApp } from '@/providers/AppProvider';
 
 interface CreditDetailsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  creditAmount: number; // This can now be a default or fallback
-  creditProvider: string; // This can be a fallback
+  // These props are no longer used as we fetch from context, but kept for component signature stability
+  creditAmount?: number;
+  creditProvider?: string;
 }
 
-// Example data for the carousel
-const demoCredits = [
-  { id: 'credit-1', amount: 500.00, providerName: "Asistente de Ventas", providerImage: "https://i.imgur.com/8p8Yf9u.png" },
-  { id: 'credit-2', amount: 1250.75, providerName: "Soporte Técnico", providerImage: "https://i.imgur.com/JzJzJzJ.jpeg" },
-  { id: 'credit-3', amount: 300.00, providerName: "Agente de Cobranza", providerImage: "https://i.imgur.com/L4i1i8K.png" },
-];
-
-
 const CreditDetailsDialog = ({ isOpen, onOpenChange }: CreditDetailsDialogProps) => {
+    const { state } = useApp();
+    const { userProfile } = state;
     const scrollRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [acceptedCreditId, setAcceptedCreditId] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (!isOpen) {
-            // Reset state when dialog closes
-            setAcceptedCreditId(null);
-        }
-    }, [isOpen]);
+    const approvedCredits = useMemo(() => {
+        return userProfile.creditLines?.filter(cl => cl.status === 'approved') || [];
+    }, [userProfile.creditLines]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -65,64 +57,66 @@ const CreditDetailsDialog = ({ isOpen, onOpenChange }: CreditDetailsDialogProps)
             <FaDollarSign /> Tus Líneas de Crédito
           </DialogTitle>
           <DialogDescription>
-            Créditos autorizados por tus asistentes.
+            Créditos aprobados por tus asistentes para tus clientes.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4 flex-grow flex flex-col justify-center">
-             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
-                {demoCredits.map((credit, index) => {
-                    const isAccepted = acceptedCreditId === credit.id;
-                    return (
-                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                            <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
-                                <CardContent className="p-6 space-y-4">
-                                    <Avatar className="mx-auto h-12 w-12 mb-2 border-2">
-                                        <AvatarImage src={credit.providerImage || DEFAULT_ASSISTANT_IMAGE_URL} />
-                                        <AvatarFallback>{credit.providerName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <p className="text-muted-foreground font-normal text-xs">Autorizado por {credit.providerName}</p>
-                                    <p className="text-4xl font-extrabold text-foreground mt-2">
-                                        ${credit.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                                    </p>
-                                    
-                                    {isAccepted ? (
+             {approvedCredits.length > 0 ? (
+                <>
+                <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
+                    {approvedCredits.map((credit, index) => {
+                        const assistant = userProfile.assistants.find(a => a.id === credit.assistantId);
+                        return (
+                            <div key={credit.id} className="w-full flex-shrink-0 snap-center p-2">
+                                <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
+                                    <CardContent className="p-6 space-y-4">
+                                        <Avatar className="mx-auto h-12 w-12 mb-2 border-2">
+                                            <AvatarImage src={assistant?.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL} />
+                                            <AvatarFallback>{assistant?.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <p className="text-muted-foreground font-normal text-xs">Autorizado por {assistant?.name || 'Asistente Desconocido'}</p>
+                                        <p className="text-4xl font-extrabold text-foreground mt-2">
+                                            ${credit.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                        </p>
                                         <div className="pt-2 text-green-600 dark:text-green-400">
                                             <CheckCircle className="mx-auto h-6 w-6 mb-2"/>
-                                            <p className="font-semibold text-sm">Crédito aceptado.</p>
-                                            <p className="text-xs">Esperando a que el vendedor concrete la operación.</p>
+                                            <p className="font-semibold text-sm">Crédito aprobado para {credit.applicantIdentifier}.</p>
                                         </div>
-                                    ) : (
-                                        <Button className="w-full mt-2" onClick={() => setAcceptedCreditId(credit.id)}>Aceptar Crédito</Button>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    );
-                })}
-            </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        );
+                    })}
+                </div>
 
-             <div className="flex justify-center mt-2 space-x-2">
-                {demoCredits.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => {
-                            if (scrollRef.current) {
-                                const cardWidth = scrollRef.current.offsetWidth;
-                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                            }
-                        }}
-                        className={cn(
-                            "h-2 w-2 rounded-full transition-all",
-                            activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
-                        )}
-                        aria-label={`Ir al crédito ${index + 1}`}
-                    />
-                ))}
-            </div>
+                <div className="flex justify-center mt-2 space-x-2">
+                    {approvedCredits.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => {
+                                if (scrollRef.current) {
+                                    const cardWidth = scrollRef.current.offsetWidth;
+                                    scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                }
+                            }}
+                            className={cn(
+                                "h-2 w-2 rounded-full transition-all",
+                                activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                            )}
+                            aria-label={`Ir al crédito ${index + 1}`}
+                        />
+                    ))}
+                </div>
+                </>
+             ) : (
+                <div className="text-center text-muted-foreground p-8">
+                    <p>No tienes líneas de crédito aprobadas.</p>
+                </div>
+             )}
 
             <Button variant="outline" className="w-full">
                 <FaHandshake className="mr-2 h-4 w-4" />
-                Enviar CLABE Interbancaria
+                Ver Historial de Créditos
             </Button>
         </div>
         <DialogFooter>

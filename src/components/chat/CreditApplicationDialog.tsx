@@ -1,4 +1,3 @@
-
 // src/components/chat/CreditApplicationDialog.tsx
 "use client";
 
@@ -14,6 +13,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from '@/components/ui/label';
+import { useApp } from '@/providers/AppProvider';
 
 interface CreditApplicationDialogProps {
   isOpen: boolean;
@@ -28,6 +28,15 @@ interface ImageUploadProps {
   previewUrl: string | null;
   onClear: () => void;
 }
+
+const fileToDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ id, label, onImageSelect, previewUrl, onClear }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +81,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ id, label, onImageSelect, pre
 };
 
 const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditApplicationDialogProps) => {
+    const { state } = useApp();
     const { toast } = useToast();
     const [step, setStep] = useState(1);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -112,14 +122,50 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
 
     const handleBack = () => setStep(prev => prev - 1);
     
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        if (!ineFront || !ineBack || !proofOfAddress || !paymentFrequency) {
+            toast({ title: "Faltan Datos", description: "Completa todos los pasos antes de enviar.", variant: "destructive" });
+            return;
+        }
+
         setIsProcessing(true);
-        // Simulate API call to submit documents
-        setTimeout(() => {
+        
+        try {
+            const ineFrontDataUrl = await fileToDataURL(ineFront);
+            const ineBackDataUrl = await fileToDataURL(ineBack);
+            const proofOfAddressDataUrl = await fileToDataURL(proofOfAddress);
+            
+            const payload = {
+                applicantIdentifier: state.userProfile.chatPath, // Using user's chatPath as identifier
+                assistantId: assistant.id,
+                ownerId: state.userProfile._id, // The owner of the assistant
+                documents: {
+                    ineFront: ineFrontDataUrl,
+                    ineBack: ineBackDataUrl,
+                    proofOfAddress: proofOfAddressDataUrl,
+                },
+                paymentFrequency,
+            };
+
+            const response = await fetch('/api/credit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "No se pudo enviar la solicitud.");
+            }
+            
             toast({ title: "Solicitud Enviada", description: "Tus documentos han sido enviados para revisión." });
             setStep(5);
+
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+        } finally {
             setIsProcessing(false);
-        }, 2000);
+        }
     }
     
     const resetAndClose = () => {
@@ -205,7 +251,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                     )}
                      {step === 5 && (
                          <div className="space-y-4 animate-fadeIn text-center p-4 flex flex-col items-center justify-center h-full">
-                             <FaSpinner className="mx-auto h-16 w-16 text-primary animate-spin mb-4"/>
+                             <FaCheckCircle className="mx-auto h-16 w-16 text-primary mb-4"/>
                             <h3 className="text-lg font-semibold">Solicitud en Revisión</h3>
                             <p className="text-sm text-muted-foreground">Hemos recibido tus documentos. Te notificaremos en este chat en un plazo de 24 horas cuando tu línea de crédito preaprobada esté lista.</p>
                         </div>

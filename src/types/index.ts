@@ -38,6 +38,22 @@ export interface Catalog {
   products: Product[];
 }
 
+export interface CreditLine {
+  id: string;
+  amount: number;
+  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  applicantIdentifier: string; // e.g., a phone number or session ID
+  assistantId: string; // The assistant who processed the application
+  documents: {
+    ineFront: string; // Data URL
+    ineBack: string; // Data URL
+    proofOfAddress: string; // Data URL
+  };
+  paymentFrequency: 'weekly' | 'biweekly' | 'monthly';
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 export interface DatabaseConfig {
   id: string;
@@ -142,6 +158,7 @@ export interface UserProfile {
   databases: DatabaseConfig[];
   catalogs?: Catalog[];
   credits: number;
+  creditLines?: CreditLine[];
   pushSubscriptions?: any[];
   referredBy?: ObjectId; // Link to CollaboratorProfile
   ownerPhoneNumberForNotifications?: string;
