@@ -110,8 +110,9 @@ const ChatListPage = () => {
       trialStartDate: new Date().toISOString(),
   };
 
-  if (availableChats.length === 0 && !userProfile.isAuthenticated) {
-      availableChats = [demoAssistant];
+  // If not authenticated, always add the demo assistant to the list.
+  if (!userProfile.isAuthenticated) {
+      availableChats = [demoAssistant, ...availableChats];
   }
   
   const handleAddNewContact = () => {
