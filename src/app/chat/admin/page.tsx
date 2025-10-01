@@ -132,7 +132,7 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
 };
 
 
-const AdminHomePage = () => {
+export default function AdminHomePage() {
   const { state } = useApp();
   const router = useRouter();
   const { isAuthenticated } = state.userProfile;
@@ -219,9 +219,4 @@ const AdminHomePage = () => {
         {renderContent()}
       </div>
     </div>
-    <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
-    </>
-  );
-};
-
-export default AdminHomePage;
+    <PlansDialog isOpen={isPlansOpen} onOpenChange={

@@ -1,4 +1,3 @@
-
 // src/app/chat/updates/page.tsx
 "use client";
 
@@ -242,7 +241,7 @@ const AddStatusDialog = ({
 };
 
 
-const UpdatesPage = () => {
+export default function UpdatesPage() {
   const { data: session } = useSession();
   const [updates, setUpdates] = useState(initialDemoUpdates);
   const [viewingStatusIndex, setViewingStatusIndex] = useState<number | null>(null);
@@ -355,10 +354,4 @@ const UpdatesPage = () => {
     <AddStatusDialog 
         open={isAddStatusOpen}
         onOpenChange={setIsAddStatusOpen}
-        onStatusAdded={handleStatusAdded}
-    />
-    </>
-  );
-};
-
-export default UpdatesPage;
+        onStatus

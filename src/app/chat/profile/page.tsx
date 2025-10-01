@@ -23,7 +23,7 @@ const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.Elem
     </div>
 );
 
-const ChatProfilePage = () => {
+export default function ChatProfilePage() {
   const { data: session, status } = useSession();
   const { toast } = useToast();
   const { state } = useApp();
@@ -137,8 +137,4 @@ const ChatProfilePage = () => {
         isOpen={isInfoDialogOpen} 
         onOpenChange={setIsInfoDialogOpen} 
     />
-    </>
-  );
-};
-
-export default ChatProfilePage;
+    </

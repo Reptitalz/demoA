@@ -1,10 +1,12 @@
 // src/app/chat/layout.tsx
+"use client";
+
 import type { ReactNode } from 'react';
 import ChatLayout from './ChatLayout';
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-
+import ChatViewManager from './ChatViewManager';
 
 // Este layout envuelve todas las páginas dentro de /chat
 export default function ChatDashboardLayout({ children }: { children: ReactNode }) {
@@ -14,7 +16,4 @@ export default function ChatDashboardLayout({ children }: { children: ReactNode 
                 <LoadingSpinner size={36} />
             </PageContainer>
       }>
-        <ChatLayout>{children}</ChatLayout>
-    </Suspense>
-  );
-}
+        <ChatLayout>

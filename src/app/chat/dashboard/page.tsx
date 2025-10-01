@@ -71,7 +71,7 @@ const openDB = (): Promise<IDBDatabase> => {
 };
 
 
-const ChatListPage = () => {
+export default function ChatListPage() {
   const { data: session } = useSession();
   const { state, dispatch } = useApp();
   const router = useRouter();
@@ -422,8 +422,6 @@ const ChatListPage = () => {
     <CreditDetailsDialog
         isOpen={isCreditDetailsOpen}
         onOpenChange={setIsCreditDetailsOpen}
-        creditAmount={500.00} // Example amount
-        creditProvider="demo-assistant-chat-path" // Example provider
     />
     <DefineShowDialog
         isOpen={isDefineShowOpen}
@@ -449,5 +447,3 @@ const ChatListPage = () => {
     </>
   );
 };
-
-export default ChatListPage;
