@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt, FaImage } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,6 +21,7 @@ import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import CreditApplicationDialog from '@/components/chat/CreditApplicationDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { motion } from 'framer-motion';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -105,19 +106,19 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
       >
         {typeof message.content === 'string' ? (
           <p>{message.content}</p>
-        ) : (
-          message.content.type === 'image' && (
-            <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
-                <Image
-                src={message.content.url}
-                alt="Imagen enviada"
-                width={200}
-                height={200}
-                className="rounded-md"
-                />
-            </div>
-          )
-        )}
+        ) : message.content.type === 'image' ? (
+          <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
+              <Image
+              src={message.content.url}
+              alt="Imagen enviada"
+              width={200}
+              height={200}
+              className="rounded-md"
+              />
+          </div>
+        ) : message.content.type === 'audio' ? (
+            <audio controls src={message.content.url} className="w-full max-w-xs" />
+        ) : null}
         <p className="text-xs text-right mt-1.5 text-muted-foreground">{message.time}</p>
       </div>
     </div>
@@ -145,6 +146,15 @@ const DesktopChatPage = () => {
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingStartTimeRef = useRef<number | null>(null);
+
 
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return;
@@ -288,18 +298,22 @@ const DesktopChatPage = () => {
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [assistant?.id, processedEventIds, sessionId]);
   
-  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image'; url: string }) => {
+  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio'; url: string }) => {
     if (!assistant?.id || !assistant?.chatPath || !sessionId) return;
     
-    // Add image responses here
-    if (typeof messageContent !== 'string' && messageContent.type === 'image') {
-        const imageResponse: ChatMessage = {
+    // Add image/audio responses here
+    if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'audio')) {
+        const responseText = messageContent.type === 'image' 
+            ? "Recibí tu imagen. Será verificada por el propietario y pronto te daré una respuesta."
+            : "Recibí tu audio. Lo revisaré y te daré una respuesta.";
+            
+        const modelResponse: ChatMessage = {
             role: 'model',
-            content: "Recibí tu imagen. Será verificada por el propietario y pronto te daré una respuesta.",
+            content: responseText,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages(prev => [...prev, imageResponse]);
-        await saveMessageToDB(imageResponse, sessionId);
+        setMessages(prev => [...prev, modelResponse]);
+        await saveMessageToDB(modelResponse, sessionId);
     }
     
     fetch('/api/chat/send', {
@@ -436,6 +450,81 @@ const DesktopChatPage = () => {
       }
     );
   };
+  
+    // Audio Recording Handlers
+  const startRecording = async () => {
+    if (isRecording || !navigator.mediaDevices?.getUserMedia) return;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+
+        mediaRecorderRef.current.ondataavailable = (event) => {
+            audioChunksRef.current.push(event.data);
+        };
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+        recordingStartTimeRef.current = Date.now();
+        recordingTimerRef.current = setInterval(() => {
+            if (recordingStartTimeRef.current) {
+                setRecordingTime(Math.floor((Date.now() - recordingStartTimeRef.current) / 1000));
+            }
+        }, 1000);
+
+    } catch (err) {
+        console.error("Error accessing microphone:", err);
+        toast({
+            title: "Error de Micrófono",
+            description: "No se pudo acceder al micrófono. Asegúrate de tener los permisos activados.",
+            variant: "destructive",
+        });
+    }
+  };
+
+  const stopRecordingAndSend = () => {
+      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
+
+      mediaRecorderRef.current.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+              const base64Audio = reader.result as string;
+              
+              const audioMessage: ChatMessage = {
+                  role: 'user',
+                  content: { type: 'audio', url: base64Audio },
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              };
+
+              setMessages(prev => [...prev, audioMessage]);
+              await saveMessageToDB(audioMessage, sessionId);
+              sendMessageToServer({ type: 'audio', url: base64Audio });
+          };
+          reader.readAsDataURL(audioBlob);
+
+          // Cleanup
+          mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      setRecordingTime(0);
+  };
+  
+   const cancelRecording = () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          mediaRecorderRef.current.stop();
+          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
+      setIsRecording(false);
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      setRecordingTime(0);
+      toast({ title: 'Grabación Cancelada' });
+  };
 
 
   if (isLoading) {
@@ -503,6 +592,25 @@ const DesktopChatPage = () => {
           <div ref={chatEndRef} />
         </main>
       </div>
+      
+       {isRecording && (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-20 flex flex-col items-center justify-center"
+            >
+                <FaMicrophone className="h-16 w-16 text-white animate-pulse" />
+                <p className="text-white mt-4 font-mono text-2xl">
+                    {Math.floor(recordingTime / 60).toString().padStart(2, '0')}:
+                    {(recordingTime % 60).toString().padStart(2, '0')}
+                </p>
+                 <div className="absolute bottom-12 flex items-center text-white/70">
+                    <FaTrashAlt className="mr-2"/>
+                    <span>Desliza para cancelar</span>
+                </div>
+            </motion.div>
+        )}
 
       <div className="fixed bottom-0 left-0 right-0 z-10">
         <footer className="p-3 bg-background/80 backdrop-blur-sm flex items-center gap-3 border-t">
@@ -546,9 +654,24 @@ const DesktopChatPage = () => {
                 className="hidden"
                 accept="image/jpeg, image/png, image/webp"
             />
-            <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
-                <FaPaperPlane className="h-5 w-5" />
-            </Button>
+            {currentMessage.trim() ? (
+                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
+                    <FaPaperPlane className="h-5 w-5" />
+                </Button>
+            ) : (
+                 <Button 
+                    type="button" 
+                    size="icon" 
+                    className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" 
+                    disabled={isSending || !!error}
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecordingAndSend}
+                    onTouchStart={startRecording}
+                    onTouchEnd={stopRecordingAndSend}
+                >
+                    <FaMicrophone className="h-5 w-5" />
+                </Button>
+            )}
           </form>
         </footer>
         <div className="bg-background/80 backdrop-blur-sm px-3 pb-2 flex justify-between items-center">
