@@ -23,6 +23,16 @@ import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
 import { XCircle, Settings, Banknote, Package } from 'lucide-react';
 import DefineShowDialog from '@/components/chat/DefineShowDialog';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type ShowOption = 'credit' | 'bank' | 'products' | 'none';
 
@@ -72,6 +82,8 @@ const ChatListPage = () => {
   const [isCreditDetailsOpen, setIsCreditDetailsOpen] = React.useState(false);
   const [isDefineShowOpen, setIsDefineShowOpen] = React.useState(false);
   const [selectedShow, setSelectedShow] = React.useState<ShowOption>('credit');
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
+  const [assistantToDelete, setAssistantToDelete] = React.useState<AssistantConfig | null>(null);
   
   const [activeSwipe, setActiveSwipe] = React.useState<{ id: string; direction: 'left' | 'right' } | null>(null);
 
@@ -168,6 +180,24 @@ const ChatListPage = () => {
         });
     }
   };
+  
+  const handleDeleteAssistant = (assistant: AssistantConfig) => {
+    setAssistantToDelete(assistant);
+    setIsDeleteAlertOpen(true);
+  };
+  
+  const confirmDelete = () => {
+      if (!assistantToDelete) return;
+      dispatch({ type: 'REMOVE_ASSISTANT', payload: assistantToDelete.id });
+      toast({
+          title: "Asistente Eliminado",
+          description: `El asistente "${assistantToDelete.name}" ha sido eliminado.`,
+      });
+      setIsDeleteAlertOpen(false);
+      setAssistantToDelete(null);
+      setActiveSwipe(null);
+  };
+
 
   return (
     <>
@@ -252,7 +282,7 @@ const ChatListPage = () => {
                                 <XCircle size={20}/>
                                 <span className="text-xs mt-1">Limpiar</span>
                             </Button>
-                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none">
+                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={(e) => { e.stopPropagation(); handleDeleteAssistant(chat)}}>
                                 <FaTrash size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </Button>
@@ -399,6 +429,22 @@ const ChatListPage = () => {
         onOpenChange={setIsDefineShowOpen}
         onSelectShow={setSelectedShow}
     />
+    <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de que quieres eliminar este chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el asistente "{assistantToDelete?.name}" y todo su historial de chat asociado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setAssistantToDelete(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Sí, eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
