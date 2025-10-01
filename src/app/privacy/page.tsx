@@ -16,11 +16,11 @@ const PrivacyPolicyPage = () => {
         </header>
 
         <p className="mb-4 text-muted-foreground">
-          Última actualización: 28 de Julio de 2024
+          Última actualización: 29 de Julio de 2024
         </p>
 
         <p className="mb-4">
-          Bienvenido/a a {APP_NAME} ("nosotros", "nuestro"). Tu privacidad y la de los datos que gestionas a través de nuestra plataforma son de suma importancia para nosotros. Esta Política de Privacidad tiene como objetivo informarte sobre cómo manejamos la información en relación con el uso de nuestros servicios, incluyendo la interacción con tus asistentes de Inteligencia Artificial (IA) y las plataformas de WhatsApp y Facebook.
+          Bienvenido/a a {APP_NAME} ("nosotros", "nuestro"). Tu privacidad y la de los datos que gestionas a través de nuestra plataforma son de suma importancia para nosotros. Esta Política de Privacidad tiene como objetivo informarte sobre cómo manejamos la información en relación con el uso de nuestros servicios.
         </p>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
@@ -31,19 +31,19 @@ const PrivacyPolicyPage = () => {
         </p>
         <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
           <li>
-            <strong>Datos de tu Cuenta:</strong> Cuando te registras utilizando Google, recopilamos tu nombre, dirección de correo electrónico y tu identificador único de Firebase (Firebase UID) para crear y gestionar tu cuenta.
+            <strong>Datos de tu Cuenta:</strong> Cuando te registras, recopilamos tu nombre, dirección de correo electrónico y un identificador único para crear y gestionar tu cuenta.
           </li>
           <li>
-            <strong>Datos de Contacto y Facturación:</strong> Para procesar los pagos de créditos, te solicitamos que proporciones tu nombre, apellidos y, opcionalmente, tu dirección de facturación. Esta información es necesaria para nuestros proveedores de pago y para cumplir con las normativas fiscales.
-          </li>
-           <li>
-            <strong>Datos de Configuración de Asistentes:</strong> Almacenamos la configuración que defines para cada uno de tus asistentes. Esto incluye el nombre del asistente, el prompt (las instrucciones de comportamiento), los propósitos que has seleccionado, y la información de las bases de datos que vincules (como la URL y las columnas seleccionadas de una Hoja de Google).
-          </li>
-           <li>
-            <strong>Número de Teléfono Vinculado:</strong> Guardamos el número de teléfono que vinculas a cada asistente para permitir la comunicación a través de WhatsApp. Este número se utiliza exclusivamente para el funcionamiento del asistente que has configurado.
+            <strong>ID de Chat Personal:</strong> Generamos un "ID de chat" (o `chatPath`) único para tu perfil de usuario, que te permitirá comunicarte con otros usuarios en el futuro.
           </li>
           <li>
-            <strong>No Recopilación del Contenido de Conversaciones:</strong> {APP_NAME} NO recopila, almacena, ni monitorea activamente el contenido de las conversaciones que tus asistentes tienen con tus clientes a través de WhatsApp. La transmisión de mensajes es gestionada por proveedores externos y la lógica de tu asistente.
+            <strong>Datos de Configuración de Asistentes:</strong> Almacenamos la configuración que defines para tus asistentes, como su nombre, el "prompt" (instrucciones), y la información de las bases de datos que vincules.
+          </li>
+          <li>
+            <strong>Archivos Multimedia en Tránsito:</strong> Cuando un usuario envía un archivo (imagen, audio, video, etc.) a uno de tus asistentes, dicho archivo se convierte a un formato de texto (Data URL) en el dispositivo del usuario. Esta información se almacena temporalmente en el historial de chat local (en el navegador) y se envía a nuestros servicios para que tú, como propietario, puedas revisarla y autorizarla. No almacenamos estos archivos de forma permanente en nuestros servidores de archivos.
+          </li>
+          <li>
+            <strong>No Recopilación del Contenido de Conversaciones de IA:</strong> {APP_NAME} NO almacena el contenido de las conversaciones que tus asistentes tienen con tus clientes. La transmisión y el procesamiento de estos mensajes son gestionados por la lógica de tu asistente y los servicios de IA subyacentes. El historial de chat que visualizas se guarda localmente en tu dispositivo.
           </li>
         </ul>
 
@@ -55,28 +55,27 @@ const PrivacyPolicyPage = () => {
         </p>
         <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
           <li>Proporcionar, mantener y mejorar los servicios de {APP_NAME}.</li>
-          <li>Gestionar tu cuenta, incluyendo las recargas de créditos y la facturación.</li>
+          <li>Gestionar tu cuenta, incluyendo las recargas de créditos, suscripciones a planes y facturación.</li>
           <li>Permitir el funcionamiento técnico de tus asistentes según tu configuración.</li>
-          <li>Contactarte con información importante sobre tu cuenta, actualizaciones del servicio o notificaciones de seguridad.</li>
-          <li>Enviar notificaciones a tu número de WhatsApp personal si has habilitado esa función para uno de tus asistentes.</li>
+          <li>Contactarte con información importante sobre tu cuenta o actualizaciones del servicio.</li>
         </ul>
 
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
           3. Pagos y Proveedores Externos
         </h2>
         <p className="mb-4">
-          Para la recarga de créditos, utilizamos **Mercado Pago** como nuestro procesador de pagos. Nosotros no almacenamos los datos completos de tu tarjeta de crédito o débito. Al realizar un pago, proporcionas tu información directamente a Mercado Pago, y su uso de tu información personal se rige por su propia política de privacidad. Solo recibimos una confirmación del pago, tu nombre, correo y la información de facturación que proporcionaste para generar las órdenes de pago.
+          Para la compra de créditos y la suscripción a planes, utilizamos **Mercado Pago** como nuestro procesador de pagos. Nosotros no almacenamos los datos completos de tu tarjeta. Al realizar un pago, proporcionas tu información directamente a Mercado Pago, y su uso de tu información se rige por su propia política de privacidad.
         </p>
         
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground mt-6 mb-3">
           4. Tus Responsabilidades y el Control de tus Datos
         </h2>
         <p className="mb-4">
-          Tú eres el principal responsable de la gestión de los datos de tus usuarios finales y del cumplimiento de las normativas de privacidad aplicables:
+          Tú eres el principal responsable de la gestión de los datos de tus clientes y del cumplimiento de las normativas de privacidad aplicables:
         </p>
         <ul className="list-disc list-inside mb-4 space-y-2 pl-4">
           <li>
-            <strong>Plataformas de Terceros:</strong> Los datos de las conversaciones y la información de tus contactos residen en las plataformas que utilizas (por ejemplo, WhatsApp) y, si así lo configuras, en tus propias bases de datos (por ejemplo, Google Sheets). El manejo de esta información se rige por los términos de servicio y las políticas de privacidad de dichos proveedores (Meta, Google, etc.).
+            <strong>Datos en Plataformas de Terceros:</strong> Si conectas una Hoja de Google, el manejo de esa información se rige por los términos y políticas de Google.
           </li>
           <li>
             <strong>Cumplimiento Normativo:</strong> Eres responsable de asegurar que el uso que haces de {APP_NAME} cumple con todas las leyes de protección de datos aplicables en tu jurisdicción y en la de tus usuarios finales.
