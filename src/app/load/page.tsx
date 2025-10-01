@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
+import { motion } from 'framer-motion';
 
 const LoadPage = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
