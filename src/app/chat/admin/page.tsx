@@ -1,11 +1,10 @@
-
 // src/app/chat/admin/page.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown } from 'lucide-react';
+import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BankView, AssistantsList, ProductsView, OtherView as CreditView } from '@/components/chat/admin/AdminViews';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ import { List, ListItem } from '@/components/ui/list';
 type AdminView = 'home' | 'bank' | 'bots' | 'products' | 'credit';
 
 const menuItems = [
-    { view: 'bank' as AdminView, title: 'Banco', description: "Revisa y autoriza los pagos recibidos.", icon: Banknote, area: 'a' },
+    { view: 'bank' as AdminView, title: 'Autorizaciones', description: "Revisa y autoriza pagos y documentos.", icon: CheckSquare, area: 'a' },
     { view: 'bots' as AdminView, title: 'Bots', description: "Supervisa las conversaciones en tiempo real.", icon: Bot, area: 'b' },
     { view: 'products' as AdminView, title: 'Productos', description: "Gestiona tu catálogo de productos y servicios.", icon: Package, area: 'c' },
     { view: 'credit' as AdminView, title: 'Crédito', description: "Administra líneas de crédito para clientes.", icon: DollarSign, area: 'd' },
@@ -157,7 +156,7 @@ const AdminHomePage = () => {
       case 'products':
         return <ProductsView />;
       case 'credit':
-        return <CreditView viewName="Crédito" />;
+        return <CreditView />;
       case 'home':
       default:
         return (

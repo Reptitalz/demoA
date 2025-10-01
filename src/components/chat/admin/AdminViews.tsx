@@ -104,6 +104,11 @@ const demoAdminChats: AssistantConfig[] = [
 const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction: (id: string, action: 'authorize' | 'reject') => void }) => {
     if (!payment) return null;
 
+    const isVideo = payment.receiptUrl.startsWith('data:video');
+    const isAudio = payment.receiptUrl.startsWith('data:audio');
+    const isImage = payment.receiptUrl.startsWith('data:image');
+    const isPDF = payment.receiptUrl.includes('application/pdf');
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="w-screen h-screen max-w-full max-h-full p-0 flex flex-col bg-background">
@@ -113,14 +118,20 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                         Recibido de {payment.userName} el {format(new Date(payment.receivedAt), "PPPp", { locale: es })}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex-grow overflow-auto p-4">
-                    <Image
-                        src={payment.receiptUrl}
-                        alt="Comprobante de pago"
-                        width={800}
-                        height={1200}
-                        className="rounded-md border w-full h-auto"
-                    />
+                <div className="flex-grow overflow-auto p-4 flex items-center justify-center">
+                    {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="rounded-md border max-w-full h-auto" />}
+                    {isVideo && <video src={payment.receiptUrl} controls className="rounded-md border max-w-full h-auto" />}
+                    {isAudio && <audio src={payment.receiptUrl} controls className="w-full" />}
+                    {(isPDF || (!isImage && !isVideo && !isAudio)) && (
+                        <div className="text-center p-8 bg-muted rounded-lg">
+                            <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4"/>
+                            <p className="font-semibold">Documento: {payment.fileName || 'archivo'}</p>
+                            <p className="text-sm text-muted-foreground mb-4">La previsualización no está disponible.</p>
+                            <a href={payment.receiptUrl} download={payment.fileName || 'documento'}>
+                                <Button>Descargar Archivo</Button>
+                            </a>
+                        </div>
+                    )}
                 </div>
                 <DialogFooter className="p-4 bg-background border-t flex justify-end gap-2">
                     <Button variant="destructive" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
@@ -146,23 +157,25 @@ export const BankView = () => {
         setIsLoading(true);
         try {
             const allMessages = await getAllMessagesFromDB();
-            const imagePayments = allMessages
-                .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && msg.content.type === 'image')
+            const mediaMessages = allMessages
+                .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type))
                 .map((msg, index) => {
                     const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath))
+                    const content = msg.content as { type: string, url: string, name?: string };
                     return {
-                        id: msg.id?.toString() || `img-${index}`,
-                        product: 'Comprobante de Pago',
+                        id: msg.id?.toString() || `media-${index}`,
+                        product: `Comprobante (${content.type})`,
+                        fileName: content.name,
                         assistantName: assistant?.name || 'Desconocido',
                         userName: `Usuario ${msg.sessionId.slice(-6)}`,
                         chatPath: msg.sessionId,
                         amount: 0.00, // Amount is unknown from just an image
-                        receiptUrl: (msg.content as { type: 'image', url: string }).url,
+                        receiptUrl: content.url,
                         receivedAt: new Date(), // Using current date as placeholder
                         status: 'pending', // All found images are pending initially
                     };
                 });
-            setAllPayments(imagePayments);
+            setAllPayments(mediaMessages);
         } catch (error) {
             console.error(error);
             toast({ title: 'Error', description: 'No se pudieron cargar los comprobantes desde la base de datos local.', variant: 'destructive'});
@@ -206,10 +219,10 @@ export const BankView = () => {
             <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
                  <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
-                        <Banknote className="h-6 w-6 text-primary" />
+                        <CheckSquare className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold">Gestión de Banco</h1>
+                        <h1 className="text-xl font-bold">Bandeja de Autorizaciones</h1>
                     </div>
                 </div>
             </header>
