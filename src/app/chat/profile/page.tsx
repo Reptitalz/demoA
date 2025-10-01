@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/providers/AppProvider';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-card/80 cursor-pointer" onClick={!disabled ? onClick : undefined}>
