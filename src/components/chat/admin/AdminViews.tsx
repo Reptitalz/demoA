@@ -922,7 +922,7 @@ export const AssistantsList = () => {
   );
 }
 
-export const CreditView = ({ viewName }: { viewName: string }) => {
+export const CreditView = () => {
     const activeLoans = [
         { id: 1, chatPath: 'cliente-a-xyz', amount: 5000.00, status: 'Al Corriente' },
         { id: 2, chatPath: 'usuario-b-123', amount: 10000.00, status: 'Atrasado' },
