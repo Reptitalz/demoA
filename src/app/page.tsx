@@ -413,12 +413,7 @@ const NewHomepage = () => {
                           <li className="flex items-center gap-3"><FaCheck className="h-5 w-5 text-green-500" /> Instalación como PWA</li>
                       </ul>
                       <div className="mt-auto pt-6 text-center">
-                          <p className="text-xs text-muted-foreground mb-2">Pagos seguros vía Google Play</p>
-                          <div className="flex justify-center items-center gap-3">
-                              <FaCcVisa className="h-6 w-6 text-muted-foreground" />
-                              <FaCcMastercard className="h-6 w-6 text-muted-foreground" />
-                              <FaCcAmex className="h-6 w-6 text-muted-foreground" />
-                          </div>
+                          <p className="text-xs text-muted-foreground mb-2">No se requiere tarjeta.</p>
                       </div>
                   </div>
 
