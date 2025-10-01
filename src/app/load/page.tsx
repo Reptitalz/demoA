@@ -35,7 +35,6 @@ const LoadPage = () => {
         let animationFrameId: number;
         let particles: any[] = [];
         const numParticles = 50;
-        const iconSize = 60;
         let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
 
         const handleMouseMove = (e: MouseEvent) => {
@@ -57,27 +56,6 @@ const LoadPage = () => {
                     color: `hsla(${Math.random() * 50 + 240}, 80%, 60%, ${Math.random() * 0.5 + 0.2})`
                 });
             }
-        };
-
-        const drawIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, time: number) => {
-            const floatY = Math.sin(time / 800) * 8;
-            const glowSize = size + Math.sin(time / 600) * 5;
-
-            const glow = ctx.createRadialGradient(x, y + floatY, size * 0.4, x, y + floatY, glowSize);
-            glow.addColorStop(0, 'hsla(262, 80%, 58%, 0.4)'); 
-            glow.addColorStop(1, 'transparent');
-            ctx.fillStyle = glow;
-            ctx.fillRect(x - size * 2, y - size * 2, size * 4, size * 4);
-
-            ctx.fillStyle = 'hsl(262, 80%, 58%)';
-            ctx.beginPath();
-            ctx.roundRect(x - size/2, y - size/2 + floatY, size, size, size * 0.2);
-            ctx.fill();
-
-            ctx.fillStyle = 'white';
-            ctx.fillRect(x - size/4, y - size/4 + floatY, size/6, size/2);
-            ctx.fillRect(x + size/12, y - size/4 + floatY, size/6, size/2);
-            ctx.fillRect(x - size/4, y - size/12 + floatY, size/2, size/6);
         };
 
         const animate = (time: number) => {
@@ -118,8 +96,6 @@ const LoadPage = () => {
                 ctx.fill();
             });
             
-            drawIcon(ctx, w / 2 / dpr, h / 2 / dpr, iconSize, time);
-
             animationFrameId = requestAnimationFrame(animate);
         };
         
@@ -135,8 +111,48 @@ const LoadPage = () => {
     return (
         <div className="fixed inset-0 bg-background flex flex-col items-center justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 z-0" />
-            <div className="relative z-10 text-center">
-                <p className="text-xl font-semibold text-foreground animate-pulse flex items-center gap-2">
+            <div className="relative z-10 text-center flex flex-col items-center">
+                 <svg width="100" height="100" viewBox="0 0 100 100" className="drop-shadow-lg animate-pulse" style={{ animationDuration: '3s' }}>
+                  <style>
+                    {`
+                      @keyframes float {
+                        0% { transform: translateY(0px); }
+                        50% { transform: translateY(-10px); }
+                        100% { transform: translateY(0px); }
+                      }
+                      .icon-float {
+                        animation: float 4s ease-in-out infinite;
+                      }
+                    `}
+                  </style>
+                  <g className="icon-float">
+                    <defs>
+                        <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity: 1}} />
+                            <stop offset="100%" style={{stopColor: 'hsl(var(--accent))', stopOpacity: 1}} />
+                        </linearGradient>
+                         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <path 
+                      d="M20,10 C14.477,10 10,14.477 10,20 L10,80 C10,85.523 14.477,90 20,90 L80,90 C85.523,90 90,85.523 90,80 L90,20 C90,14.477 85.523,10 80,10 L20,10 Z" 
+                      fill="url(#icon-gradient)"
+                      filter="url(#glow)"
+                    />
+                    <path 
+                      d="M35,30 L35,70 M65,30 L65,70 M35,48 L65,48" 
+                      stroke="white" 
+                      strokeWidth="8" 
+                      strokeLinecap="round"
+                    />
+                  </g>
+                </svg>
+                <p className="text-xl font-semibold text-foreground mt-4 animate-pulse flex items-center gap-2">
                    Cargando...
                 </p>
             </div>
