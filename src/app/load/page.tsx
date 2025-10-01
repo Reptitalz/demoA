@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useRef } from 'react';
@@ -29,17 +28,17 @@ const LoadPage = () => {
         canvas.width = window.innerWidth * dpr;
         canvas.height = window.innerHeight * dpr;
         ctx.scale(dpr, dpr);
-        canvas.style.width = `${window.innerWidth}px`;
-        canvas.style.height = `${window.innerHeight}px`;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
         
         let animationFrameId: number;
         let particles: any[] = [];
         const numParticles = 50;
-        let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+        let mouse = { x: w / 2, y: h / 2 };
 
         const handleMouseMove = (e: MouseEvent) => {
-            mouse.x = e.clientX * dpr;
-            mouse.y = e.clientY * dpr;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
         };
         window.addEventListener('mousemove', handleMouseMove);
 
@@ -47,21 +46,47 @@ const LoadPage = () => {
             particles = [];
             for (let i = 0; i < numParticles; i++) {
                 particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
+                    x: Math.random() * w,
+                    y: Math.random() * h,
                     radius: Math.random() * 3 + 1,
-                    baseX: Math.random() * canvas.width,
-                    baseY: Math.random() * canvas.height,
+                    baseX: Math.random() * w,
+                    baseY: Math.random() * h,
                     density: (Math.random() * 30) + 1,
                     color: `hsla(${Math.random() * 50 + 240}, 80%, 60%, ${Math.random() * 0.5 + 0.2})`
                 });
             }
         };
+        
+        const drawIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+            // Main body
+            const gradient = ctx.createLinearGradient(x - size, y - size, x + size, y + size);
+            gradient.addColorStop(0, "hsl(262, 80%, 58%)");
+            gradient.addColorStop(1, "hsl(300, 85%, 60%)");
+            
+            ctx.fillStyle = gradient;
+            ctx.shadowColor = 'hsl(262, 80%, 58%, 0.5)';
+            ctx.shadowBlur = 15;
+            
+            ctx.beginPath();
+            ctx.roundRect(x - size / 2, y - size / 2, size, size, size * 0.2);
+            ctx.fill();
+
+            // Reset shadow for inner elements
+            ctx.shadowBlur = 0;
+            
+            // "H" symbol
+            const h_size = size * 0.4;
+            const h_x = x - h_size / 2;
+            const h_y = y - h_size / 2;
+            const bar_w = h_size / 3;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(h_x, h_y, bar_w, h_size);
+            ctx.fillRect(h_x + h_size - bar_w, h_y, bar_w, h_size);
+            ctx.fillRect(h_x, y - bar_w / 2, h_size, bar_w);
+        };
 
         const animate = (time: number) => {
-            const w = canvas.width;
-            const h = canvas.height;
-
             ctx.clearRect(0, 0, w, h);
 
             particles.forEach(p => {
@@ -70,7 +95,7 @@ const LoadPage = () => {
                 let distance = Math.sqrt(dx * dx + dy * dy);
                 let forceDirectionX = dx / distance;
                 let forceDirectionY = dy / distance;
-                let maxDistance = 200 * dpr;
+                let maxDistance = 100;
                 let force = (maxDistance - distance) / maxDistance;
                 
                 let directionX = forceDirectionX * force * p.density;
@@ -81,12 +106,12 @@ const LoadPage = () => {
                     p.y -= directionY;
                 } else {
                     if (p.x !== p.baseX) {
-                        let dx = p.x - p.baseX;
-                        p.x -= dx / 10;
+                        let dx_base = p.x - p.baseX;
+                        p.x -= dx_base / 10;
                     }
                     if (p.y !== p.baseY) {
-                        let dy = p.y - p.baseY;
-                        p.y -= dy / 10;
+                        let dy_base = p.y - p.baseY;
+                        p.y -= dy_base / 10;
                     }
                 }
 
@@ -95,6 +120,12 @@ const LoadPage = () => {
                 ctx.fillStyle = p.color;
                 ctx.fill();
             });
+
+            // Draw floating icon
+            const iconSize = 80 + Math.sin(time / 1000) * 5; // Breathing effect
+            const iconX = w / 2;
+            const iconY = h / 2 + Math.sin(time / 800) * 10; // Floating effect
+            drawIcon(ctx, iconX, iconY, iconSize);
             
             animationFrameId = requestAnimationFrame(animate);
         };
@@ -104,54 +135,14 @@ const LoadPage = () => {
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
-            cancelAnimationFrame(animationFrameId);
+            if(animationFrameId) cancelAnimationFrame(animationFrameId);
         };
     }, []);
 
     return (
         <div className="fixed inset-0 bg-background flex flex-col items-center justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 z-0" />
-            <div className="relative z-10 text-center flex flex-col items-center">
-                 <svg width="100" height="100" viewBox="0 0 100 100" className="drop-shadow-lg animate-pulse" style={{ animationDuration: '3s' }}>
-                  <style>
-                    {`
-                      @keyframes float {
-                        0% { transform: translateY(0px); }
-                        50% { transform: translateY(-10px); }
-                        100% { transform: translateY(0px); }
-                      }
-                      .icon-float {
-                        animation: float 4s ease-in-out infinite;
-                      }
-                    `}
-                  </style>
-                  <g className="icon-float">
-                    <defs>
-                        <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity: 1}} />
-                            <stop offset="100%" style={{stopColor: 'hsl(var(--accent))', stopOpacity: 1}} />
-                        </linearGradient>
-                         <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-                            <feMerge>
-                                <feMergeNode in="coloredBlur"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                    </defs>
-                    <path 
-                      d="M20,10 C14.477,10 10,14.477 10,20 L10,80 C10,85.523 14.477,90 20,90 L80,90 C85.523,90 90,85.523 90,80 L90,20 C90,14.477 85.523,10 80,10 L20,10 Z" 
-                      fill="url(#icon-gradient)"
-                      filter="url(#glow)"
-                    />
-                    <path 
-                      d="M35,30 L35,70 M65,30 L65,70 M35,48 L65,48" 
-                      stroke="white" 
-                      strokeWidth="8" 
-                      strokeLinecap="round"
-                    />
-                  </g>
-                </svg>
+            <div className="relative z-10 text-center flex flex-col items-center mt-48">
                 <p className="text-xl font-semibold text-foreground mt-4 animate-pulse flex items-center gap-2">
                    Cargando...
                 </p>
