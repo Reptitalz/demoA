@@ -92,8 +92,9 @@ type Action =
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
 
-function generateChatPath(assistantName: string): string {
-  const slug = assistantName
+function generateChatPath(name: string): string {
+  if (!name) return `user-${Date.now()}`;
+  const slug = name
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -313,13 +314,16 @@ async function createNewUserProfile(user: any, wizardState: WizardState): Promis
         });
     }
     
+    const userName = wizardState.firstName || user.name?.split(' ')[0] || '';
+    
     const newUserProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
       firebaseUid: user.id, // from next-auth user object
       authProvider: 'google',
       email: user.email!,
-      firstName: wizardState.firstName || user.name?.split(' ')[0] || '',
+      firstName: userName,
       lastName: wizardState.lastName || user.name?.split(' ').slice(1).join(' ') || '',
       imageUrl: wizardState.imageUrl || user.image || undefined,
+      chatPath: generateChatPath(userName), // Generate personal chat path
       assistants: newAssistants,
       databases: [],
       credits: 0,

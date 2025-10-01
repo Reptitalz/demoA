@@ -1,4 +1,3 @@
-
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -84,7 +83,7 @@ export interface AssistantConfig {
   imageUrl?: string;
   purposes: string[];
   databaseId?: string | null;
-  catalogId?: string | null; // <-- ADDED
+  catalogId?: string | null;
   verificationCode?: string;
   numberReady?: boolean;
   businessInfo?: AssistantBusinessInfo;
@@ -137,10 +136,11 @@ export interface UserProfile {
   firstName?: string;
   lastName?: string;
   imageUrl?: string;
+  chatPath?: string; // Personal chat path for user-to-user communication
   address?: UserAddress;
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
-  catalogs?: Catalog[]; // <-- ADDED
+  catalogs?: Catalog[];
   credits: number;
   pushSubscriptions?: any[];
   referredBy?: ObjectId; // Link to CollaboratorProfile

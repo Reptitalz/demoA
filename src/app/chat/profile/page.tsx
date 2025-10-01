@@ -1,4 +1,3 @@
-
 // src/app/chat/profile/page.tsx
 "use client";
 
@@ -13,6 +12,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/providers/AppProvider';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-card/80 cursor-pointer" onClick={!disabled ? onClick : undefined}>
@@ -25,9 +25,7 @@ const ChatProfilePage = () => {
   const { data: session, status } = useSession();
   const { toast } = useToast();
   const { state } = useApp();
-
-  const mainAssistant = state.userProfile.assistants.find(a => a.type === 'desktop');
-  const chatPath = mainAssistant?.chatPath;
+  const router = useRouter();
 
   const handleLogout = () => {
       signOut({ callbackUrl: '/' });
@@ -93,10 +91,10 @@ const ChatProfilePage = () => {
                 <div>
                      <p className="text-xl font-bold">{session?.user?.name || 'Invitado'}</p>
                      <p className="text-sm text-muted-foreground">{session?.user?.email || 'Inicia sesión para sincronizar'}</p>
-                     {chatPath && (
+                     {state.userProfile.chatPath && (
                         <div className="mt-1">
                             <Badge variant="secondary">
-                                Tu ID de chat: {chatPath}
+                                Tu ID de chat: {state.userProfile.chatPath}
                             </Badge>
                         </div>
                      )}
@@ -113,7 +111,7 @@ const ChatProfilePage = () => {
             
             {/* Menu Options */}
             <div className="space-y-1">
-                <ProfileLink icon={FaUser} text="Cuenta" />
+                <ProfileLink icon={FaUser} text="Cuenta" onClick={() => router.push('/dashboard/profile')} />
                 <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
                 <ProfileLink icon={FaKey} text="Privacidad" />
                 <ProfileLink icon={FaShieldAlt} text="Seguridad" />

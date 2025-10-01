@@ -1,4 +1,3 @@
-
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -26,10 +25,10 @@ function generateChatPath(assistantName: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, firstName, lastName } = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ message: 'Se requieren correo electrónico y contraseña.' }, { status: 400 });
+    if (!email || !password || !firstName || !lastName) {
+      return NextResponse.json({ message: 'Se requieren correo electrónico, contraseña, nombre y apellido.' }, { status: 400 });
     }
 
     const { db } = await connectToDatabase();
@@ -45,6 +44,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const assistantName = "Mi Primer Asistente";
+    const userName = `${firstName} ${lastName}`;
 
     const newAssistant: AssistantConfig = {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -67,6 +67,9 @@ export async function POST(request: NextRequest) {
       authProvider: 'email',
       email,
       password: hashedPassword,
+      firstName,
+      lastName,
+      chatPath: generateChatPath(userName), // Generate personal chat path
       assistants: [newAssistant],
       databases: [],
       credits: 0, // No credits given on signup
