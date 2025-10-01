@@ -49,18 +49,15 @@ const PhoneCanvas = () => {
         let currentRotationY = 0;
 
         const drawPhone = (
-            offsetX: number,
-            offsetY: number,
             rotationX: number,
-            rotationY: number,
-            conversation: 'user' | 'assistant'
+            rotationY: number
         ) => {
             const w = canvas.clientWidth;
             const h = canvas.clientHeight;
-            const phoneW = w * 0.4;
+            const phoneW = w * 0.5; // Made phone larger
             const phoneH = phoneW * 1.95;
-            const x = (w - phoneW) / 2 + offsetX;
-            const y = (h - phoneH) / 2 + offsetY;
+            const x = (w - phoneW) / 2;
+            const y = (h - phoneH) / 2;
 
             ctx.save();
             ctx.translate(w / 2, h / 2);
@@ -139,12 +136,11 @@ const PhoneCanvas = () => {
             
             ctx.globalAlpha = 1;
 
-            if (conversation === 'user') {
-                drawBubble('¿tienes pasteles de chocolate?', true, screenY + 20, 0);
-            } else {
-                 drawBubble('¡Claro! ¿para cuántas personas?', false, screenY + 20, 30);
-            }
-
+            drawBubble('¿Tienes pasteles de chocolate?', true, screenY + 20, 0);
+            drawBubble('¡Claro! Déjame revisar...', false, screenY + 50, 40);
+            drawBubble('Sí, el de chocolate para 10 personas cuesta $350.', false, screenY + 80, 90);
+            drawBubble('¿Te gustaría ordenar uno?', false, screenY + 110, 140);
+            
             ctx.restore();
             ctx.restore();
         };
@@ -162,9 +158,7 @@ const PhoneCanvas = () => {
 
             ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-            // Draw two phones
-            drawPhone(-canvas.clientWidth * 0.15, 20, currentRotationX, currentRotationY, 'user');
-            drawPhone(canvas.clientWidth * 0.15, -20, currentRotationX * -0.5, currentRotationY * -0.5, 'assistant');
+            drawPhone(currentRotationX, currentRotationY);
 
             animationFrameId = requestAnimationFrame(animate);
         };
