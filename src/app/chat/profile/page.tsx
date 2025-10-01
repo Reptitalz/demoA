@@ -107,7 +107,7 @@ const ChatProfilePage = () => {
             </div>
 
             {status !== 'authenticated' && (
-                <Button className="w-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20" onClick={() => signIn('google')}>
+                <Button className="w-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20" onClick={() => signIn('google', { callbackUrl: '/chat/dashboard' })}>
                     <FcGoogle className="mr-2" /> Iniciar Sesión con Google
                 </Button>
             )}
