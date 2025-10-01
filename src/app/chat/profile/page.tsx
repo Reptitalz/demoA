@@ -1,7 +1,7 @@
 // src/app/chat/profile/page.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useApp } from '@/providers/AppProvider';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 
 const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-card/80 cursor-pointer" onClick={!disabled ? onClick : undefined}>
@@ -27,6 +28,8 @@ const ChatProfilePage = () => {
   const { toast } = useToast();
   const { state } = useApp();
   const router = useRouter();
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
+
 
   const handleLogout = () => {
       signOut({ callbackUrl: '/' });
@@ -77,6 +80,7 @@ const ChatProfilePage = () => {
 
 
   return (
+    <>
     <div className="flex flex-col h-full bg-transparent">
        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
         <h1 className="text-2xl font-bold">Perfil</h1>
@@ -112,7 +116,7 @@ const ChatProfilePage = () => {
             
             {/* Menu Options */}
             <div className="space-y-1">
-                <ProfileLink icon={FaUser} text="Cuenta" onClick={() => router.push('/dashboard/profile')} />
+                <ProfileLink icon={FaUser} text="Cuenta" onClick={() => setIsInfoDialogOpen(true)} disabled={status !== 'authenticated'} />
                 <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
                 <ProfileLink icon={FaKey} text="Privacidad" />
                 <ProfileLink icon={FaShieldAlt} text="Seguridad" />
@@ -129,6 +133,11 @@ const ChatProfilePage = () => {
         </div>
       </ScrollArea>
     </div>
+    <PersonalInfoDialog 
+        isOpen={isInfoDialogOpen} 
+        onOpenChange={setIsInfoDialogOpen} 
+    />
+    </>
   );
 };
 
