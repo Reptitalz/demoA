@@ -42,7 +42,6 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  start_url: '/chat', // Set the start URL to /chat
 });
 
 const nextConfig = {
@@ -79,6 +78,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'maps.googleapis.com',
         port: '',
         pathname: '/**',
       }

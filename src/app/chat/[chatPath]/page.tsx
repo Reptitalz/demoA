@@ -1,9 +1,10 @@
+
 // src/app/chat/[chatPath]/page.tsx
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -94,35 +95,45 @@ const saveMessageToDB = async (message: ChatMessage, sessionId: string) => {
 
 // --- Component ---
 
-const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageClick: (url: string) => void; }) => (
-    <div className={cn("flex mb-2.5 animate-fadeIn", message.role === 'user' ? "justify-end" : "justify-start")}>
-      <div
-        className={cn(
-          "rounded-xl px-4 py-2.5 max-w-[85%] shadow-md text-sm leading-relaxed",
-          message.role === 'user'
-            ? "bg-primary text-primary-foreground"
-            : "bg-card/80 text-card-foreground"
-        )}
-      >
-        {typeof message.content === 'string' ? (
-          <p>{message.content}</p>
-        ) : message.content.type === 'image' ? (
-          <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
-              <Image
-              src={message.content.url}
-              alt="Imagen enviada"
-              width={200}
-              height={200}
-              className="rounded-md"
-              />
-          </div>
-        ) : message.content.type === 'audio' ? (
-            <audio controls src={message.content.url} className="w-full max-w-xs" />
-        ) : null}
-        <p className="text-xs text-right mt-1.5 text-muted-foreground">{message.time}</p>
-      </div>
-    </div>
-  );
+const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageClick: (url: string) => void; }) => {
+    const isUserMessage = message.role === 'user';
+    const isGoogleMapsImage = typeof message.content === 'string' && message.content.includes('maps.googleapis.com/maps/api/staticmap');
+
+    return (
+        <div className={cn("flex mb-2.5 animate-fadeIn", isUserMessage ? "justify-end" : "justify-start")}>
+            <div
+                className={cn(
+                    "rounded-xl max-w-[85%] shadow-md text-sm leading-relaxed",
+                    isUserMessage ? "bg-primary text-primary-foreground" : "bg-card/80 text-card-foreground",
+                    isGoogleMapsImage ? "p-1" : "px-4 py-2.5" // No padding for map image
+                )}
+            >
+                {typeof message.content === 'string' ? (
+                    isGoogleMapsImage ? (
+                        <a href={`https://www.google.com/maps/search/?api=1&query=${message.content.split('center=')[1]?.split('&')[0]}`} target="_blank" rel="noopener noreferrer">
+                            <Image src={message.content} alt="Ubicación en mapa" width={250} height={200} className="rounded-lg cursor-pointer" />
+                        </a>
+                    ) : (
+                        <p>{message.content}</p>
+                    )
+                ) : message.content.type === 'image' ? (
+                    <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
+                        <Image
+                            src={message.content.url}
+                            alt="Imagen enviada"
+                            width={200}
+                            height={200}
+                            className="rounded-md"
+                        />
+                    </div>
+                ) : message.content.type === 'audio' ? (
+                    <audio controls src={message.content.url} className="w-full max-w-xs" />
+                ) : null}
+                <p className="text-xs text-right mt-1.5 px-2 text-muted-foreground">{message.time}</p>
+            </div>
+        </div>
+    );
+};
 
 const DesktopChatPage = () => {
   const params = useParams();
@@ -137,6 +148,8 @@ const DesktopChatPage = () => {
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
@@ -298,7 +311,7 @@ const DesktopChatPage = () => {
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [assistant?.id, processedEventIds, sessionId]);
   
-  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio'; url: string }) => {
+  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }) => {
     if (!assistant?.id || !assistant?.chatPath || !sessionId) return;
     
     // Add image/audio responses here
@@ -431,13 +444,13 @@ const DesktopChatPage = () => {
       });
       return;
     }
-
+  
     setIsSending(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-        handleSendMessage(undefined, `Aquí está mi ubicación: ${mapsUrl}`);
+        const mapsUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${latitude},${longitude}&zoom=15&size=250x200&maptype=roadmap&markers=color:red%7C${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`;
+        handleSendMessage(undefined, mapsUrl);
         setIsSending(false);
       },
       (error) => {
@@ -525,6 +538,37 @@ const DesktopChatPage = () => {
       setRecordingTime(0);
       toast({ title: 'Grabación Cancelada' });
   };
+  
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'document') => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const MAX_DOC_SIZE = 25 * 1024 * 1024; // 25 MB
+
+        if (type === 'document' && file.size > MAX_DOC_SIZE) {
+            toast({ title: "Archivo demasiado grande", description: "El documento no puede exceder los 25MB.", variant: "destructive" });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const dataUrl = e.target?.result as string;
+            const fileMessageContent = { type, url: dataUrl, name: file.name };
+            
+            const userMessage: ChatMessage = {
+                role: 'user',
+                content: fileMessageContent,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            setMessages(prev => [...prev, userMessage]);
+            await saveMessageToDB(userMessage, sessionId);
+            sendMessageToServer(fileMessageContent);
+        };
+        reader.readAsDataURL(file);
+
+        if (event.target) event.target.value = '';
+    };
 
 
   if (isLoading) {
@@ -630,6 +674,14 @@ const DesktopChatPage = () => {
                 <FaImage className="mr-2" />
                 Enviar Imagen
               </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => videoInputRef.current?.click()}>
+                <FaVideo className="mr-2" />
+                Enviar Video
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => documentInputRef.current?.click()}>
+                <FaFileAlt className="mr-2" />
+                Enviar Documento
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={handleSendLocation}>
                 <FaMapMarkerAlt className="mr-2" />
                 Enviar Ubicación
@@ -653,6 +705,20 @@ const DesktopChatPage = () => {
                 onChange={handleImageUpload}
                 className="hidden"
                 accept="image/jpeg, image/png, image/webp"
+            />
+            <input
+                type="file"
+                ref={videoInputRef}
+                onChange={(e) => handleFileUpload(e, 'video')}
+                className="hidden"
+                accept="video/*"
+            />
+            <input
+                type="file"
+                ref={documentInputRef}
+                onChange={(e) => handleFileUpload(e, 'document')}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             />
             {currentMessage.trim() ? (
                 <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
