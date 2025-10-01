@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef } from 'react';
@@ -64,8 +65,8 @@ const LoadPage = () => {
             gradient.addColorStop(1, "hsl(300, 85%, 60%)");
             
             ctx.fillStyle = gradient;
-            ctx.shadowColor = 'hsl(262, 80%, 58%, 0.5)';
-            ctx.shadowBlur = 15;
+            ctx.shadowColor = 'hsla(262, 80%, 58%, 0.5)';
+            ctx.shadowBlur = 20;
             
             ctx.beginPath();
             ctx.roundRect(x - size / 2, y - size / 2, size, size, size * 0.2);
@@ -148,8 +149,9 @@ const LoadPage = () => {
                 </p>
             </div>
              {status === 'loading' && (
-                <div className="absolute bottom-10 z-10">
+                <div className="absolute bottom-10 z-10 flex flex-col items-center gap-2">
                     <FaSpinner className="animate-spin h-6 w-6 text-primary" />
+                    <p className="text-xs text-muted-foreground">Hey Manito App</p>
                 </div>
             )}
         </div>
