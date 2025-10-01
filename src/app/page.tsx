@@ -334,7 +334,7 @@ const NewHomepage = () => {
                     </Button>
                   </div>
                   <div className="mt-6 flex justify-center md:justify-start gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5"><FaCheck size={14} className="text-green-500" /> Sin tarjeta requerida</span>
+                      <span className="flex items-center gap-1.5"><FaGoogle size={14} className="text-blue-500" /> Accedes con tu cuenta Google</span>
                   </div>
               </motion.div>
               <motion.div 
