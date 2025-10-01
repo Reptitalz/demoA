@@ -354,4 +354,8 @@ export default function UpdatesPage() {
     <AddStatusDialog 
         open={isAddStatusOpen}
         onOpenChange={setIsAddStatusOpen}
-        onStatus
+        onStatusAdded={handleStatusAdded}
+    />
+    </>
+  );
+}

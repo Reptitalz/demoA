@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion } from 'framer-motion';
 import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BankView, AssistantsList, ProductsView, OtherView as CreditView } from '@/components/chat/admin/AdminViews';
+import { BankView, AssistantsList, ProductsView, CreditView } from '@/components/chat/admin/AdminViews';
 import { Button } from '@/components/ui/button';
 import PlansDialog from '@/components/dashboard/PlansDialog';
 import { useApp } from '@/providers/AppProvider';
@@ -219,4 +219,7 @@ export default function AdminHomePage() {
         {renderContent()}
       </div>
     </div>
-    <PlansDialog isOpen={isPlansOpen} onOpenChange={
+    <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
+    </>
+  );
+}

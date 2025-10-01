@@ -137,4 +137,6 @@ export default function ChatProfilePage() {
         isOpen={isInfoDialogOpen} 
         onOpenChange={setIsInfoDialogOpen} 
     />
-    </
+    </>
+  );
+}
