@@ -120,7 +120,7 @@ const ChatProfilePage = () => {
                 <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
                 <Link href="/privacy"><ProfileLink icon={FaKey} text="Privacidad" /></Link>
                 <ProfileLink icon={FaShieldAlt} text="Seguridad" onClick={() => toast({ title: 'Seguridad de la Cuenta', description: 'Tu cuenta está protegida mediante la autenticación segura de tu proveedor de inicio de sesión (Ej. Google). No almacenamos tus contraseñas.' })} />
-                <ProfileLink icon={FaQuestionCircle} text="Ayuda" />
+                <ProfileLink icon={FaQuestionCircle} text="Ayuda" onClick={() => toast({ title: 'Centro de Ayuda', description: 'Para obtener ayuda o reportar un problema, por favor contáctanos en contacto@heymanito.com.' })} />
             </div>
 
              {status === 'authenticated' && (
