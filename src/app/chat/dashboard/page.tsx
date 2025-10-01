@@ -22,6 +22,7 @@ import AppIcon from '@/components/shared/AppIcon';
 import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
 import { XCircle, Settings, Banknote, Package } from 'lucide-react';
 import DefineShowDialog from '@/components/chat/DefineShowDialog';
+import { useToast } from '@/hooks/use-toast';
 
 type ShowOption = 'credit' | 'bank' | 'products' | 'none';
 
@@ -36,12 +37,36 @@ const AssistantStatusBadge = ({ assistant }: { assistant: AssistantConfig }) => 
     return null;
 };
 
+// --- IndexedDB Helper ---
+const DB_NAME = 'HeyManitoChatDB';
+const DB_VERSION = 1;
+const MESSAGES_STORE_NAME = 'messages';
+const SESSION_STORE_NAME = 'session';
+
+const openDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
+        db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains(SESSION_STORE_NAME)) {
+        db.createObjectStore(SESSION_STORE_NAME, { keyPath: 'chatPath' });
+      }
+    };
+  });
+};
+
 
 const ChatListPage = () => {
   const { data: session } = useSession();
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { userProfile } = state;
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = React.useState(false);
   const [isCreditDetailsOpen, setIsCreditDetailsOpen] = React.useState(false);
@@ -89,6 +114,60 @@ const ChatListPage = () => {
   };
   const currentShow = showOptions[selectedShow];
 
+  const handleClearConversation = async (chatPath: string) => {
+    try {
+        const db = await openDB();
+        const sessionTx = db.transaction(SESSION_STORE_NAME, 'readonly');
+        const sessionStore = sessionTx.objectStore(SESSION_STORE_NAME);
+        const sessionReq = sessionStore.get(chatPath);
+
+        sessionReq.onsuccess = () => {
+            const sessionData = sessionReq.result;
+            if (sessionData && sessionData.sessionId) {
+                const sessionId = sessionData.sessionId;
+                const messagesTx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
+                const messagesStore = messagesTx.objectStore(MESSAGES_STORE_NAME);
+                const cursorReq = messagesStore.openCursor();
+                
+                cursorReq.onsuccess = (e) => {
+                    const cursor = (e.target as IDBRequest<IDBCursorWithValue>).result;
+                    if (cursor) {
+                        if (cursor.value.sessionId === sessionId) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    } else {
+                        toast({
+                            title: 'Conversación Limpiada',
+                            description: `Se borró el historial del chat para ${chatPath}.`,
+                        });
+                        setActiveSwipe(null);
+                    }
+                };
+                 cursorReq.onerror = () => {
+                    throw new Error('No se pudo iterar sobre los mensajes.');
+                };
+            } else {
+                 toast({
+                    title: 'Sin Historial',
+                    description: `No se encontró un historial para limpiar.`,
+                });
+                setActiveSwipe(null);
+            }
+        };
+        sessionReq.onerror = () => {
+            throw new Error('No se pudo encontrar la sesión del chat.');
+        };
+
+    } catch (error: any) {
+        console.error("Error clearing conversation:", error);
+        toast({
+            title: 'Error al Limpiar',
+            description: error.message || 'No se pudo limpiar la conversación.',
+            variant: 'destructive',
+        });
+    }
+  };
 
   return (
     <>
@@ -160,7 +239,16 @@ const ChatListPage = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none">
+                            <Button 
+                                variant="ghost" 
+                                className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if(chat.chatPath) {
+                                      handleClearConversation(chat.chatPath);
+                                    }
+                                }}
+                            >
                                 <XCircle size={20}/>
                                 <span className="text-xs mt-1">Limpiar</span>
                             </Button>
