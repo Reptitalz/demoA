@@ -119,7 +119,7 @@ const ChatProfilePage = () => {
                 <ProfileLink icon={FaUser} text="Cuenta" onClick={() => setIsInfoDialogOpen(true)} disabled={status !== 'authenticated'} />
                 <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
                 <Link href="/privacy"><ProfileLink icon={FaKey} text="Privacidad" /></Link>
-                <ProfileLink icon={FaShieldAlt} text="Seguridad" />
+                <ProfileLink icon={FaShieldAlt} text="Seguridad" onClick={() => toast({ title: 'Seguridad de la Cuenta', description: 'Tu cuenta está protegida mediante la autenticación segura de tu proveedor de inicio de sesión (Ej. Google). No almacenamos tus contraseñas.' })} />
                 <ProfileLink icon={FaQuestionCircle} text="Ayuda" />
             </div>
 
