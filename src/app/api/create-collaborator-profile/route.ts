@@ -1,7 +1,7 @@
 // src/app/api/create-collaborator-profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import type { CollaboratorProfile } from '@/types';
+import type { CollaboratorProfile, UserProfile } from '@/types';
 import bcrypt from 'bcryptjs';
 
 // Helper function to generate a unique referral code without using Node.js crypto
@@ -14,6 +14,12 @@ function generateReferralCode(): string {
     return result;
 }
 
+function generateChatPath(name: string): string {
+  const slug = name.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+  const randomSuffix = Math.random().toString(36).substring(2, 7);
+  return `${slug}-${randomSuffix}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password, firstName, lastName } = await request.json();
@@ -23,42 +29,49 @@ export async function POST(request: NextRequest) {
     }
 
     const { db } = await connectToDatabase();
-    const collection = db.collection<CollaboratorProfile>('collaboratorProfiles');
+    const collaboratorCollection = db.collection<CollaboratorProfile>('collaboratorProfiles');
+    const userCollection = db.collection<UserProfile>('userProfiles');
 
-    // Check if collaborator already exists
-    const existingCollaborator = await collection.findOne({ email });
-    if (existingCollaborator) {
-      return NextResponse.json({ message: "Este colaborador ya existe." }, { status: 409 });
+    // Check if user already exists in either collection
+    const existingCollaborator = await collaboratorCollection.findOne({ email });
+    const existingUser = await userCollection.findOne({ email });
+    if (existingCollaborator || existingUser) {
+      return NextResponse.json({ message: "Este correo electrónico ya está registrado." }, { status: 409 });
     }
     
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const fullName = `${firstName} ${lastName}`;
 
-    const newCollaboratorProfile: Omit<CollaboratorProfile, '_id'> = {
-      firebaseUid: '', // Not used for credential-based collaborators
+    const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+      firebaseUid: '', // Will be updated on first login
+      authProvider: 'email',
       email,
       password: hashedPassword,
       firstName,
       lastName,
-      isAuthenticated: true,
-      referralCode: generateReferralCode(),
-      referredUsers: [],
-      totalEarnings: 0,
-      conversionRate: 0,
+      isAuthenticated: false, // Will be true on first login
+      chatPath: generateChatPath(fullName),
+      assistants: [],
+      databases: [],
+      credits: 0,
+      accountType: 'business', // Collaborators are business accounts
+      referredBy: generateReferralCode(), // Use referral code to mark as collaborator
     };
 
-    const insertResult = await collection.insertOne(newCollaboratorProfile as CollaboratorProfile);
+    const insertResult = await userCollection.insertOne(newUserProfile as UserProfile);
 
     if (!insertResult.insertedId) {
       throw new Error("No se pudo insertar el perfil de colaborador en la base de datos.");
     }
     
-    const createdProfile: CollaboratorProfile = {
-        ...newCollaboratorProfile,
+    const createdProfile: UserProfile = {
+        ...newUserProfile,
         _id: insertResult.insertedId,
+        isAuthenticated: true,
     };
 
-    return NextResponse.json({ collaboratorProfile: createdProfile }, { status: 201 });
+    return NextResponse.json({ userProfile: createdProfile }, { status: 201 });
 
   } catch (error) {
     console.error("API Error (create-collaborator-profile):", error);

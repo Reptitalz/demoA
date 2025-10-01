@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
       assistants: [newAssistant],
       databases: [],
       credits: 0, // No credits given on signup
+      accountType: 'personal',
     };
 
     const insertResult = await userCollection.insertOne(newUserProfile as UserProfile);

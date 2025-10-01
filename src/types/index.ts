@@ -160,7 +160,7 @@ export interface UserProfile {
   credits: number;
   creditLines?: CreditLine[];
   pushSubscriptions?: any[];
-  referredBy?: ObjectId; // Link to CollaboratorProfile
+  referredBy?: string; // Link to CollaboratorProfile referral code
   ownerPhoneNumberForNotifications?: string;
   purchasedUnlimitedPlans?: number;
   accountType?: 'personal' | 'business';
