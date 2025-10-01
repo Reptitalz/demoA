@@ -5,10 +5,11 @@ import React, { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner } from 'react-icons/fa';
+import AppIcon from '@/components/shared/AppIcon';
 
 const LoadPage = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const { data: session, status } = useSession();
+    const { status } = useSession();
     const router = useRouter();
 
     useEffect(() => {
@@ -57,35 +58,6 @@ const LoadPage = () => {
                 });
             }
         };
-        
-        const drawIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
-            // Main body
-            const gradient = ctx.createLinearGradient(x - size, y - size, x + size, y + size);
-            gradient.addColorStop(0, "hsl(262, 80%, 58%)");
-            gradient.addColorStop(1, "hsl(300, 85%, 60%)");
-            
-            ctx.fillStyle = gradient;
-            ctx.shadowColor = 'hsla(262, 80%, 58%, 0.5)';
-            ctx.shadowBlur = 20;
-            
-            ctx.beginPath();
-            ctx.roundRect(x - size / 2, y - size / 2, size, size, size * 0.2);
-            ctx.fill();
-
-            // Reset shadow for inner elements
-            ctx.shadowBlur = 0;
-            
-            // "H" symbol
-            const h_size = size * 0.4;
-            const h_x = x - h_size / 2;
-            const h_y = y - h_size / 2;
-            const bar_w = h_size / 3;
-
-            ctx.fillStyle = 'white';
-            ctx.fillRect(h_x, h_y, bar_w, h_size);
-            ctx.fillRect(h_x + h_size - bar_w, h_y, bar_w, h_size);
-            ctx.fillRect(h_x, y - bar_w / 2, h_size, bar_w);
-        };
 
         const animate = (time: number) => {
             ctx.clearRect(0, 0, w, h);
@@ -121,12 +93,6 @@ const LoadPage = () => {
                 ctx.fillStyle = p.color;
                 ctx.fill();
             });
-
-            // Draw floating icon
-            const iconSize = 80 + Math.sin(time / 1000) * 5; // Breathing effect
-            const iconX = w / 2;
-            const iconY = h / 2 + Math.sin(time / 800) * 10; // Floating effect
-            drawIcon(ctx, iconX, iconY, iconSize);
             
             animationFrameId = requestAnimationFrame(animate);
         };
@@ -143,13 +109,19 @@ const LoadPage = () => {
     return (
         <div className="fixed inset-0 bg-background flex flex-col items-center justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 z-0" />
-            <div className="relative z-10 text-center flex flex-col items-center mt-48">
+            <div className="relative z-10 text-center flex flex-col items-center">
+                 <motion.div
+                    animate={{ y: [-10, 10, -10] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                 >
+                    <AppIcon className="h-24 w-24 drop-shadow-2xl" />
+                 </motion.div>
                 <p className="text-xl font-semibold text-foreground mt-4 animate-pulse flex items-center gap-2">
                    Cargando...
                 </p>
             </div>
              {status === 'loading' && (
-                <div className="absolute bottom-10 z-10 flex flex-col items-center gap-2">
+                <div className="absolute bottom-10 z-10 flex flex-col items-center gap-2 text-center">
                     <FaSpinner className="animate-spin h-6 w-6 text-primary" />
                     <p className="text-xs text-muted-foreground">Hey Manito App</p>
                 </div>
