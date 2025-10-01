@@ -37,12 +37,13 @@ const LoadPage = () => {
 
         const drawIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
             const glow = ctx.createRadialGradient(x, y, size * 0.5, x, y, size);
-            glow.addColorStop(0, 'hsla(var(--primary), 0.5)');
+            // Use the direct HSL value for the primary color as CSS variables don't work in canvas context
+            glow.addColorStop(0, 'hsla(262, 80%, 58%, 0.5)'); 
             glow.addColorStop(1, 'transparent');
             ctx.fillStyle = glow;
             ctx.fillRect(x - size * 1.5, y - size * 1.5, size * 3, size * 3);
 
-            ctx.fillStyle = 'hsl(var(--primary))';
+            ctx.fillStyle = 'hsl(262, 80%, 58%)';
             ctx.beginPath();
             ctx.roundRect(x - size/2, y - size/2, size, size, size * 0.2);
             ctx.fill();
