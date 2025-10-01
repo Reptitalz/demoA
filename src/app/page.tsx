@@ -54,7 +54,7 @@ const PhoneCanvas = () => {
         ) => {
             const w = canvas.clientWidth;
             const h = canvas.clientHeight;
-            const phoneW = w * 0.5; // Made phone larger
+            const phoneW = w * 0.5;
             const phoneH = phoneW * 1.95;
             const x = (w - phoneW) / 2;
             const y = (h - phoneH) / 2;
@@ -133,13 +133,42 @@ const PhoneCanvas = () => {
                     ctx.fillText(text, textX, yPos + bubbleHeight / 2);
                 }
             };
+
+            const drawTypingIndicator = (yPos: number, delay: number) => {
+                const startProgress = Math.max(0, Math.min(1, (frame - delay) / 20));
+                if (startProgress === 0) return;
+
+                const endProgress = Math.max(0, Math.min(1, (frame - (delay + 60)) / 20));
+
+                const bubbleHeight = 24;
+                const bubbleWidth = 40;
+                
+                const yOffset = (1 - startProgress) * 10;
+                ctx.globalAlpha = startProgress * (1 - endProgress);
+
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.roundRect(screenX + bubblePadding, yPos + yOffset, bubbleWidth, bubbleHeight, 12);
+                ctx.fill();
+
+                for (let i = 0; i < 3; i++) {
+                    const dotProgress = Math.max(0, Math.min(1, (frame - (delay + 10 + i * 15)) / 15));
+                    const dotYOffset = Math.sin(dotProgress * Math.PI) * -2;
+                    ctx.fillStyle = `rgba(0, 0, 0, ${0.2 + dotProgress * 0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(screenX + bubblePadding + 12 + i * 8, yPos + bubbleHeight/2 + dotYOffset, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+            }
             
             ctx.globalAlpha = 1;
 
             drawBubble('¿Tienes pasteles de chocolate?', true, screenY + 20, 0);
-            drawBubble('¡Claro! Déjame revisar...', false, screenY + 50, 40);
-            drawBubble('Sí, el de chocolate para 10 personas cuesta $350.', false, screenY + 80, 90);
-            drawBubble('¿Te gustaría ordenar uno?', false, screenY + 110, 140);
+            drawTypingIndicator(screenY + 50, 40);
+            drawBubble('Sí, para 10 personas cuesta $350.', false, screenY + 50, 100);
+            drawBubble('¿Te gustaría ordenar uno?', false, screenY + 80, 150);
             
             ctx.restore();
             ctx.restore();
@@ -184,17 +213,14 @@ const tools = [
 
 const ToolsCarousel = () => {
     return (
-        <div className="w-full overflow-hidden relative group">
+        <div className="w-full relative group">
             <div
-                className="flex animate-scroll group-hover:[animation-play-state:paused]"
-                style={{
-                    '--scroll-duration': `${tools.length * 4}s`,
-                } as React.CSSProperties}
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
             >
-                {[...tools, ...tools].map((tool, index) => {
+                {tools.map((tool, index) => {
                     const Icon = tool.icon;
                     return (
-                        <div key={index} className="flex-shrink-0 w-64 p-3">
+                        <div key={index} className="flex-shrink-0 w-64 p-3 snap-start">
                             <div className="h-full bg-card/50 border rounded-lg p-4 flex items-center gap-4 backdrop-blur-sm transition-all hover:bg-card/80 hover:shadow-lg">
                                 <Icon className="h-8 w-8 text-primary shrink-0" />
                                 <div>
@@ -206,7 +232,8 @@ const ToolsCarousel = () => {
                     );
                 })}
             </div>
-             <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background pointer-events-none"></div>
+             <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
+             <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
         </div>
     );
 };
