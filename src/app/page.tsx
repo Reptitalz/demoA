@@ -130,7 +130,7 @@ const PhoneCanvas = () => {
                     const textProgress = (progress - 0.8) * 5;
                     ctx.globalAlpha = textProgress;
                     ctx.fillStyle = isUser ? '#ffffff' : '#000000';
-                    const textX = isUser ? (bubbleX + bubbleW - animatedWidth + 10) : (bubbleX + 10);
+                    const textX = isUser ? (bubbleX + bubbleW - bubbleContentWidth + 10) : (bubbleX + 10);
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(text, textX, yPos + bubbleHeight / 2);
@@ -151,6 +151,7 @@ const PhoneCanvas = () => {
 
         const lerp = (start: number, end: number, amt: number) => (1 - amt) * start + amt * end;
 
+        let animationFrameId: number;
         const animate = () => {
             frame++;
             const targetRotationX = mousePos.current.x * 0.3;
