@@ -85,6 +85,7 @@ const PhoneCanvas = () => {
 
       // 📲 Pantalla
       const margin = 10;
+      const SCREEN_PADDING = 16; // 👈 Nuevo padding interno
       const screenW = phoneW - margin * 2;
       const screenH = phoneH - margin * 2;
       const screenX = x + margin;
@@ -106,10 +107,10 @@ const PhoneCanvas = () => {
       ctx.rect(screenX, screenY, screenW, screenH);
       ctx.clip();
 
-      drawBubble(ctx, "¿Tienes pasteles de chocolate?", true, screenX, screenY + 20, screenW, frame, 0);
-      drawTypingIndicator(ctx, screenX, screenY + 50, frame, 40);
-      drawBubble(ctx, "Sí, para 10 personas cuesta $350.", false, screenX, screenY + 50, screenW, frame, 100);
-      drawBubble(ctx, "¿Te gustaría ordenar uno?", false, screenX, screenY + 80, screenW, frame, 150);
+      drawBubble(ctx, "¿Tienes pasteles de chocolate?", true, screenX, screenY + 20, screenW, frame, 0, SCREEN_PADDING);
+      drawTypingIndicator(ctx, screenX, screenY + 50, frame, 40, SCREEN_PADDING);
+      drawBubble(ctx, "Sí, para 10 personas cuesta $350.", false, screenX, screenY + 50, screenW, frame, 100, SCREEN_PADDING);
+      drawBubble(ctx, "¿Te gustaría ordenar uno?", false, screenX, screenY + 80, screenW, frame, 150, SCREEN_PADDING);
 
       ctx.restore();
       ctx.restore();
@@ -146,7 +147,8 @@ function drawBubble(
   yPos: number,
   screenW: number,
   frame: number,
-  delay: number
+  delay: number,
+  padding: number
 ) {
   const progress = Math.max(0, Math.min(1, (frame - delay) / 30));
   if (progress === 0) return;
@@ -157,8 +159,8 @@ function drawBubble(
   const animatedWidth = bubbleWidth * progress;
 
   const bubbleX = isUser
-    ? screenX + screenW - animatedWidth - 10
-    : screenX + 10;
+    ? screenX + screenW - animatedWidth - padding
+    : screenX + padding;
 
   ctx.globalAlpha = progress;
   ctx.fillStyle = isUser ? BUBBLE_USER_COLOR : BUBBLE_BOT_COLOR;
@@ -184,7 +186,8 @@ function drawTypingIndicator(
   screenX: number,
   yPos: number,
   frame: number,
-  delay: number
+  delay: number,
+  padding: number
 ) {
   const startProgress = Math.max(0, Math.min(1, (frame - delay) / 20));
   if (startProgress === 0) return;
@@ -197,7 +200,13 @@ function drawTypingIndicator(
   ctx.globalAlpha = startProgress * (1 - endProgress);
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.roundRect(screenX + 10, yPos + yOffset, bubbleWidth, BUBBLE_HEIGHT, 12);
+  ctx.roundRect(
+    screenX + padding,
+    yPos + yOffset,
+    bubbleWidth,
+    BUBBLE_HEIGHT,
+    12
+  );
   ctx.fill();
 
   for (let i = 0; i < 3; i++) {
@@ -208,7 +217,7 @@ function drawTypingIndicator(
     const dotYOffset = Math.sin(dotProgress * Math.PI) * -2;
     ctx.fillStyle = `rgba(0, 0, 0, ${0.2 + dotProgress * 0.3})`;
     ctx.beginPath();
-    ctx.arc(screenX + 22 + i * 8, yPos + BUBBLE_HEIGHT / 2 + dotYOffset, 2, 0, Math.PI * 2);
+    ctx.arc(screenX + padding + 12 + i * 8, yPos + BUBBLE_HEIGHT / 2 + dotYOffset, 2, 0, Math.PI * 2);
     ctx.fill();
   }
 
