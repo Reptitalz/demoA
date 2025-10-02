@@ -38,7 +38,7 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
   }
   
   dbPromise = openIDB<HeyManitoDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
+    upgrade(db, oldVersion, newVersion, transaction) {
       if (oldVersion < 1) {
         // Initial schema from your original code
         if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
@@ -58,7 +58,8 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
         }
         
         // Add index to messages store for efficient lookup
-        const messagesStore = db.transaction.objectStore(MESSAGES_STORE_NAME);
+        // Correctly get the object store from the upgrade transaction
+        const messagesStore = transaction.objectStore(MESSAGES_STORE_NAME);
         if (!messagesStore.indexNames.contains('by_sessionId')) {
             messagesStore.createIndex('by_sessionId', 'sessionId');
         }
