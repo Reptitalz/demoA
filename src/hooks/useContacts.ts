@@ -49,7 +49,7 @@ export const useContacts = () => {
       // Get session to delete messages
       const session = await sessionsStore.get(chatPath);
       if (session) {
-          const messagesCursor = await messagesStore.openCursor(IDBKeyRange.bound([session.sessionId, ''], [session.sessionId, '\uffff']), 'next', 'by_sessionId');
+          const messagesCursor = await messagesStore.index('by_sessionId').openCursor(IDBKeyRange.only(session.sessionId));
           let cursor = messagesCursor;
           while(cursor) {
               cursor.delete();
