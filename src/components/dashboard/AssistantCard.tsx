@@ -22,7 +22,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -44,6 +45,7 @@ const AssistantCard = ({
   const [imageError, setImageError] = useState(false);
   const [isBusinessInfoDialogOpen, setIsBusinessInfoDialogOpen] = useState(false);
   const [isApiInfoDialogOpen, setIsApiInfoDialogOpen] = useState(false);
+  const [isPhoneSetupOpen, setIsPhoneSetupOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const shareUrl = `https://wa.me/${assistant.phoneLinked}`;
@@ -209,37 +211,52 @@ const AssistantCard = ({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-             <div className="flex items-center gap-2">
-               <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={!assistant.phoneLinked}>
-                   <Link href={shareUrl} target="_blank">
-                       <FaWhatsapp size={14} /> Chatear
-                   </Link>
-               </Button>
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                      <Button variant="secondary" size="icon" className="h-9 w-9">
-                          <FaEllipsisV />
-                      </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={handleShare}>
-                          <FaShareAlt className="mr-2"/> Compartir
-                      </DropdownMenuItem>
-                  </DropdownMenuContent>
-              </DropdownMenu>
-             </div>
-
-              <Button
-                  size="sm"
-                  onClick={handleReconfigureClick}
-                  className={cn(
+             {assistant.isActive && assistant.numberReady ? (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={!assistant.phoneLinked}>
+                            <Link href={shareUrl} target="_blank">
+                                <FaWhatsapp size={14} /> Chatear
+                            </Link>
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="secondary" size="icon" className="h-9 w-9">
+                                    <FaEllipsisV />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={handleShare}>
+                                    <FaShareAlt className="mr-2"/> Compartir
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    <Button
+                        size="sm"
+                        onClick={handleReconfigureClick}
+                        className={cn(
+                            "w-full text-xs transition-transform transform hover:scale-105",
+                            "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                        )}
+                    >
+                        <FaCog size={14} />
+                        Configurar
+                    </Button>
+                </>
+             ) : (
+                <Button
+                    size="sm"
+                    onClick={() => setIsPhoneSetupOpen(true)}
+                    className={cn(
                       "w-full text-xs transition-transform transform hover:scale-105",
                       "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
-                  )}
-              >
-                  <FaCog size={14} />
-                  Configurar
-              </Button>
+                    )}
+                >
+                    <FaBolt size={14} />
+                    {assistant.phoneLinked ? 'Verificar Número' : 'Activar Asistente'}
+                </Button>
+             )}
         </CardFooter>
       </Card>
       
@@ -252,6 +269,12 @@ const AssistantCard = ({
         isOpen={isApiInfoDialogOpen}
         onOpenChange={setIsApiInfoDialogOpen}
         assistant={assistant}
+      />
+      <PhoneNumberSetupDialog
+        isOpen={isPhoneSetupOpen}
+        onOpenChange={setIsPhoneSetupOpen}
+        assistantId={assistant.id}
+        assistantName={assistant.name}
       />
     </>
   );

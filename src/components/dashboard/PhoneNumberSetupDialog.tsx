@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -48,7 +49,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
     onOpenChange(false);
   };
 
-  const handleRequestCode = () => {
+  const handleRequestCode = async () => {
     if (!phoneNumber.trim() || !isValidPhoneNumber(phoneNumber)) {
       toast({
         title: "Número de Teléfono Inválido",
@@ -58,12 +59,30 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
       return;
     }
     setIsProcessing(true);
-    // Simulate API call to send code
-    setTimeout(() => {
-      setIsProcessing(false);
-      setStep(2);
-      toast({ title: "Código Enviado", description: `Hemos enviado un código SMS de verificación a ${phoneNumber}.` });
-    }, 1500);
+    try {
+        const response = await fetch('/api/assistants/link-phone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                assistantId: assistantId,
+                phoneNumber: phoneNumber,
+                userDbId: state.userProfile._id?.toString(),
+            }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || 'No se pudo vincular el número.');
+        }
+
+        dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...state.userProfile.assistants.find(a => a.id === assistantId)!, phoneLinked: phoneNumber, numberReady: false } });
+        setStep(2);
+        toast({ title: "Código de Verificación Solicitado", description: `Estamos generando un código para ${phoneNumber}. Esto puede tardar unos minutos.` });
+
+    } catch(error: any) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   const handleVerifyCode = async () => {
@@ -189,7 +208,7 @@ const PhoneNumberSetupDialog = ({ isOpen, onOpenChange, assistantId, assistantNa
             {step === 1 && (
                  <Button onClick={handleRequestCode} disabled={isProcessing || !isValidPhoneNumber(phoneNumber || '')}>
                     {isProcessing ? <FaSpinner className="animate-spin mr-2" /> : null}
-                    Enviar Código
+                    Solicitar Código
                 </Button>
             )}
             {step === 2 && (
