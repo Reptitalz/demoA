@@ -18,6 +18,7 @@ import Link from 'next/link';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import AppIcon from '@/components/shared/AppIcon';
+import RegisterAssistantDialog from '@/components/auth/RegisterAssistantDialog';
 
 const APP_NAME = "Hey Manito!";
 
@@ -32,6 +33,7 @@ const LoginPageContent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
   
   useEffect(() => {
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
@@ -160,7 +162,7 @@ const LoginPageContent = () => {
         </div>
 
         <Button
-            onClick={() => router.push('/begin')}
+            onClick={() => setIsRegisterDialogOpen(true)}
             className={cn(
                 "w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2",
                 "bg-brand-gradient text-primary-foreground hover:opacity-90",
@@ -179,6 +181,7 @@ const LoginPageContent = () => {
         
       </div>
     </div>
+    <RegisterAssistantDialog isOpen={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen} />
     </>
   );
 };
