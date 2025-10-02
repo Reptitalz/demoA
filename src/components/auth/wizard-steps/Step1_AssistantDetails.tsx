@@ -9,10 +9,12 @@ import type { AssistantPurposeType } from "@/types";
 import { FaCheckCircle, FaRegCircle } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { isValidPhoneNumber } from "react-phone-number-input";
 
 const Step1AssistantDetails = () => {
   const { state, dispatch } = useApp();
-  const { assistantName, selectedPurposes } = state.wizard;
+  const { assistantName, selectedPurposes, ownerPhoneNumberForNotifications } = state.wizard;
   
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: e.target.value });
@@ -22,8 +24,12 @@ const Step1AssistantDetails = () => {
     dispatch({ type: 'TOGGLE_ASSISTANT_PURPOSE', payload: purposeId });
   };
 
-  const availablePurposes = assistantPurposesConfig;
+  const handleOwnerPhoneChange = (value: string) => {
+    dispatch({ type: 'UPDATE_OWNER_PHONE_NUMBER', payload: value });
+  };
 
+  const availablePurposes = assistantPurposesConfig;
+  const showOwnerPhoneInput = selectedPurposes.has('notify_owner');
 
   return (
     <div className="w-full animate-fadeIn space-y-6">
@@ -86,6 +92,24 @@ const Step1AssistantDetails = () => {
               );
             })}
           </div>
+          {showOwnerPhoneInput && (
+              <div className="space-y-2 pt-4 animate-fadeIn">
+                <Label htmlFor="ownerPhone" className="text-base font-medium">
+                  Tu Número de WhatsApp para Notificaciones
+                </Label>
+                <PhoneInput
+                    id="ownerPhone"
+                    placeholder="Ingresa tu número de WhatsApp"
+                    value={ownerPhoneNumberForNotifications as any}
+                    onChange={(value) => handleOwnerPhoneChange(value || '')}
+                    defaultCountry="MX"
+                    aria-required="true"
+                />
+                 <p className="text-xs text-muted-foreground pt-1">
+                  Tu asistente usará este número para enviarte alertas importantes.
+                </p>
+              </div>
+          )}
         </div>
       </div>
     </div>

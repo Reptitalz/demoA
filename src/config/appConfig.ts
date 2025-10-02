@@ -1,6 +1,6 @@
 
 import type { AssistantPurpose, AuthProviderType } from '@/types';
-import { FaGoogle, FaBrain } from 'react-icons/fa';
+import { FaGoogle, FaBrain, FaBell } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
@@ -20,6 +20,12 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
     description: "Permite que la IA gestione una base de datos interna para el asistente.", 
     icon: FaBrain 
   },
+  {
+    id: "notify_owner",
+    name: "Notificar al Propietario",
+    description: "Recibe notificaciones en tu WhatsApp cuando ocurran eventos importantes.",
+    icon: FaBell
+  }
 ];
 
 export const WIZARD_STEP_TITLES: { [key: number]: string } = {
