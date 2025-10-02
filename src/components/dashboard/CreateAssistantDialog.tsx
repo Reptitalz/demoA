@@ -117,18 +117,16 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
         const finalImageUrl = imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
         
         // Determine message limit based on account type
-        const messageLimit = state.userProfile.accountType === 'business'
-            ? UNLIMITED_MESSAGES_LIMIT
-            : 100;
+        const messageLimit = 0; // WhatsApp assistants start with 0 messages, require a plan
 
         const newAssistant: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             name: assistantName,
-            type: 'desktop',
+            type: 'whatsapp', // Default to WhatsApp for dashboard creation
             prompt: selectedRole.prompt,
             purposes: [],
-            isActive: true, 
-            numberReady: true,
+            isActive: false, 
+            numberReady: false,
             messageCount: 0,
             monthlyMessageLimit: messageLimit,
             imageUrl: finalImageUrl,
@@ -139,7 +137,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 
         toast({
             title: "¡Asistente Creado!",
-            description: `Tu nuevo asistente "${assistantName}" está listo para usarse.`,
+            description: `Tu nuevo asistente de WhatsApp "${assistantName}" está listo para configurarse.`,
         });
 
         setIsProcessing(false);
