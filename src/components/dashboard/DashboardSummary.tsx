@@ -61,17 +61,16 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
 
   const allSummaryCards = [
     { id: 'assistants', title: 'Asistentes', value: whatsappAssistants.length, description: 'Total de WhatsApp', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
-    { id: 'plans', title: 'Planes', value: purchasedUnlimitedPlans || 0, description: 'Planes ilimitados', icon: FaStar, color: 'text-yellow-500', action: handlePlansClick },
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: FaWallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 mb-2">
+      <div className="grid grid-cols-2 gap-2 mb-2">
         {allSummaryCards.map((card, index) => {
            const Icon = card.icon;
            
-           if (card.id === 'credits' || card.id === 'plans') {
+           if (card.id === 'credits') {
              return (
                <div key={index} className="relative p-0.5 rounded-lg bg-brand-gradient shiny-border cursor-pointer" onClick={card.action}>
                   <div 
