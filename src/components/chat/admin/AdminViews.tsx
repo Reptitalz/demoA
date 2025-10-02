@@ -35,6 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
 const DB_NAME = 'HeyManitoChatDB';
@@ -419,7 +420,73 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
     );
 };
 
-const CreditOfferCarousel = () => {
+const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const { state } = useApp();
+    const { toast } = useToast();
+    const [amount, setAmount] = useState('');
+    const [interest, setInterest] = useState('');
+    const [term, setTerm] = useState('');
+    const [assistantId, setAssistantId] = useState<string | undefined>();
+
+    const assistants = state.userProfile.assistants || [];
+
+    const handleCreate = () => {
+        // Validation
+        if (!amount || !interest || !term || !assistantId) {
+            toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos para crear la oferta.", variant: "destructive" });
+            return;
+        }
+        // TODO: API call to save the new credit offer
+        toast({ title: "Oferta Creada", description: "La nueva oferta de crédito ha sido creada y asignada." });
+        onOpenChange(false);
+    }
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
+                    <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="amount">Monto Máximo del Crédito</Label>
+                        <Input id="amount" type="number" placeholder="Ej: 5000" value={amount} onChange={e => setAmount(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="interest">Tasa de Interés Mensual (%)</Label>
+                        <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="term">Plazo (meses)</Label>
+                        <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="assistant">Asistente Gestor</Label>
+                        <Select onValueChange={setAssistantId} value={assistantId}>
+                            <SelectTrigger id="assistant">
+                                <SelectValue placeholder="Selecciona un asistente..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {assistants.map(asst => (
+                                    <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
+                                ))}
+                                {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={handleCreate}>Crear Oferta</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
+const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -447,7 +514,7 @@ const CreditOfferCarousel = () => {
     }, []);
 
     return (
-        <div className="w-full">
+        <div className="w-full relative">
             <div
                 ref={scrollRef}
                 className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
@@ -506,6 +573,9 @@ const CreditOfferCarousel = () => {
                     />
                 ))}
             </div>
+            <Button size="icon" variant="outline" className="h-8 w-8 absolute top-2 right-2 bg-background/50" onClick={onAdd}>
+                <Plus className="h-4 w-4"/>
+            </Button>
         </div>
     );
 };
@@ -516,6 +586,7 @@ export const CreditView = () => {
     const [selectedCredit, setSelectedCredit] = useState<any | null>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isCompletedHistoryOpen, setIsCompletedHistoryOpen] = useState(false);
+    const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
 
     const activeCredits = [
         { id: 1, client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15' },
@@ -540,14 +611,11 @@ export const CreditView = () => {
                         <h1 className="text-xl font-bold">Gestión de Crédito</h1>
                     </div>
                 </div>
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => toast({title: "Próximamente", description: "Podrás crear nuevas ofertas de crédito."})}>
-                    <Plus className="h-4 w-4"/>
-                </Button>
             </div>
         </header>
         <ScrollArea className="flex-grow">
             <div className="p-4 space-y-6">
-                <CreditOfferCarousel />
+                <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
 
                  <Card>
                     <CardHeader>
@@ -590,6 +658,10 @@ export const CreditView = () => {
         <CompletedCreditsDialog
             isOpen={isCompletedHistoryOpen}
             onOpenChange={setIsCompletedHistoryOpen}
+        />
+        <CreateCreditOfferDialog 
+            isOpen={isCreateOfferOpen}
+            onOpenChange={setIsCreateOfferOpen}
         />
         </>
     );
