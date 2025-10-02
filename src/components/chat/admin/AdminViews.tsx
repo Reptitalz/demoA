@@ -304,7 +304,6 @@ export const BankView = () => {
 const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
 
-    // This data is now self-contained and does not depend on the `credit` prop during initialization
     const paymentHistory = useMemo(() => {
         if (!credit) return [];
         return [
@@ -420,12 +419,100 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
     );
 };
 
+const CreditOfferCarousel = () => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    const creditOffers = [
+        { maxAmount: 5000, interestRate: 10, term: 12 },
+        { maxAmount: 10000, interestRate: 8, term: 24 },
+        { maxAmount: 2000, interestRate: 12, term: 6 },
+    ];
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                const scrollLeft = scrollRef.current.scrollLeft;
+                const cardWidth = scrollRef.current.offsetWidth;
+                const newIndex = Math.round(scrollLeft / cardWidth);
+                setActiveIndex(newIndex);
+            }
+        };
+
+        const scroller = scrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleScroll);
+        }
+    }, []);
+
+    return (
+        <div className="w-full">
+            <div
+                ref={scrollRef}
+                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
+            >
+                {creditOffers.map((offer, index) => (
+                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                        <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
+                            <motion.div
+                                className="absolute -top-1/4 -right-1/4 w-1/2 h-full bg-white/10 rounded-full"
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                            />
+                            <div className="absolute inset-0 bg-black/20"/>
+                            <CardContent className="p-6 relative z-10">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <CardDescription className="text-blue-200">Oferta de Crédito</CardDescription>
+                                        <CardTitle className="text-4xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
+                                        <p className="text-blue-200 text-sm">Monto Máximo</p>
+                                    </div>
+                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-8" disabled>
+                                        <Edit className="mr-2 h-3 w-3"/>
+                                        Editar
+                                    </Button>
+                                </div>
+                                <div className="mt-6 flex justify-between items-center text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <Percent className="h-4 w-4 text-blue-300"/>
+                                        <span>Tasa: {offer.interestRate}%</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-blue-300"/>
+                                        <span>Plazo: {offer.term} meses</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                ))}
+            </div>
+            <div className="flex justify-center mt-2 space-x-2">
+                {creditOffers.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => {
+                            if (scrollRef.current) {
+                                const cardWidth = scrollRef.current.offsetWidth;
+                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                            }
+                        }}
+                        className={cn(
+                            "h-2 w-2 rounded-full transition-all",
+                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                        )}
+                        aria-label={`Ir a la oferta ${index + 1}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 export const CreditView = () => {
     const { toast } = useToast();
-    const [maxAmount, setMaxAmount] = useState(5000);
-    const [interestRate, setInterestRate] = useState(10);
-    const [term, setTerm] = useState(12);
     const [selectedCredit, setSelectedCredit] = useState<any | null>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isCompletedHistoryOpen, setIsCompletedHistoryOpen] = useState(false);
@@ -444,48 +531,24 @@ export const CreditView = () => {
     return (
         <>
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                    <DollarSign className="h-6 w-6 text-primary" />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <DollarSign className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">Gestión de Crédito</h1>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-xl font-bold">Gestión de Crédito</h1>
-                </div>
+                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => toast({title: "Próximamente", description: "Podrás crear nuevas ofertas de crédito."})}>
+                    <Plus className="h-4 w-4"/>
+                </Button>
             </div>
         </header>
         <ScrollArea className="flex-grow">
             <div className="p-4 space-y-6">
-                 <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
-                    <motion.div
-                        className="absolute -top-1/4 -right-1/4 w-1/2 h-full bg-white/10 rounded-full"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                    />
-                    <div className="absolute inset-0 bg-black/20"/>
-                     <CardContent className="p-6 relative z-10">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <CardDescription className="text-blue-200">Oferta de Crédito</CardDescription>
-                                <CardTitle className="text-4xl font-bold text-white drop-shadow-lg">${maxAmount.toLocaleString()}</CardTitle>
-                                <p className="text-blue-200 text-sm">Monto Máximo</p>
-                            </div>
-                            <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-8" disabled>
-                                <Edit className="mr-2 h-3 w-3"/>
-                                Editar Oferta
-                            </Button>
-                        </div>
-                        <div className="mt-6 flex justify-between items-center text-sm">
-                            <div className="flex items-center gap-2">
-                                <Percent className="h-4 w-4 text-blue-300"/>
-                                <span>Tasa: {interestRate}%</span>
-                            </div>
-                             <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-blue-300"/>
-                                <span>Plazo: {term} meses</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <CreditOfferCarousel />
+
                  <Card>
                     <CardHeader>
                         <CardTitle>Créditos Activos</CardTitle>
