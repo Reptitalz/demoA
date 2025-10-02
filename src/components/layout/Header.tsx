@@ -37,11 +37,6 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                 <FaSignInAlt className="mr-2 h-4 w-4" />
                 Iniciar sesión
             </Button>
-            {!isPWA && (
-             <Button onClick={() => router.push('/access')} className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-sm">
-                <FaDownload className="mr-2 h-4 w-4" /> Instalar App
-            </Button>
-            )}
         </div>
       </div>
     </header>
