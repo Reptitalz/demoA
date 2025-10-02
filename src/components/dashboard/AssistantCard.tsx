@@ -4,7 +4,7 @@ import type { AssistantConfig } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FaCog, FaBolt, FaCommentDots, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaCrown, FaStar, FaEllipsisV, FaRegCommentDots, FaDesktop } from "react-icons/fa";
+import { FaCog, FaBolt, FaCommentDots, FaShareAlt, FaChevronDown, FaChevronUp, FaSpinner, FaCrown, FaStar, FaEllipsisV, FaRegCommentDots, FaDesktop, FaWhatsapp } from "react-icons/fa";
 import { assistantPurposesConfig, DEFAULT_ASSISTANT_IMAGE_URL, DEFAULT_ASSISTANT_IMAGE_HINT, MONTHLY_PLAN_CREDIT_COST, UNLIMITED_MESSAGES_LIMIT } from "@/config/appConfig";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
@@ -46,24 +46,21 @@ const AssistantCard = ({
   const [isApiInfoDialogOpen, setIsApiInfoDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-
-  const desktopChatUrl = assistant.chatPath ? `/chat/${assistant.chatPath}` : `/chat/not-found`;
-  const shareUrl = desktopChatUrl;
-
+  const shareUrl = `https://wa.me/${assistant.phoneLinked}`;
 
   const handleReconfigureClick = () => {
     onReconfigure(assistant.id);
   };
 
   const handleShare = async () => {
-    if (!assistant.isActive) {
-        toast({ title: "Error", description: "El asistente debe estar activo para compartirlo.", variant: "destructive"});
+    if (!assistant.isActive || !assistant.phoneLinked) {
+        toast({ title: "Error", description: "El asistente debe estar activo y tener un número vinculado para compartirlo.", variant: "destructive"});
         return;
     }
     
     const shareData = {
       title: `Chatea con ${assistant.name}`,
-      text: `Inicia una conversación con ${assistant.name}.`,
+      text: `Inicia una conversación con ${assistant.name} en WhatsApp.`,
       url: shareUrl,
     };
 
@@ -77,7 +74,7 @@ const AssistantCard = ({
     } catch (err) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "Enlace Copiado", description: "Enlace de chat copiado al portapapeles." });
+        toast({ title: "Enlace Copiado", description: "Enlace de chat de WhatsApp copiado al portapapeles." });
       } catch (copyError) {
         toast({ title: "Error al Copiar", description: "No se pudo copiar el enlace.", variant: "destructive" });
       }
@@ -93,36 +90,26 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  // Trial logic
-  const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
-  const isTrialActive = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining > 0;
-  const isTrialExpired = assistant.type === 'desktop' && !!assistant.isFirstDesktopAssistant && trialDaysRemaining <= 0;
-
-  // Status logic refined
+  // Status logic for WhatsApp assistants
   let badgeText = "Inactivo";
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-  
-  if (isTrialExpired && !assistant.isPlanActive) {
-      badgeText = "Prueba Finalizada";
-      badgeVariant = "destructive";
-  } else if (isTrialActive) {
-      badgeText = "Prueba Gratuita";
-      badgeVariant = "default";
-  } else if (assistant.isActive || assistant.isPlanActive) {
+
+  if (assistant.isActive && assistant.numberReady) {
       badgeText = "Activo";
       badgeVariant = "default";
+  } else if (assistant.phoneLinked && !assistant.numberReady) {
+      badgeText = "Activando";
+      badgeVariant = "outline";
   }
     
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      (badgeText === "Activo" || assistant.isPlanActive) && "bg-brand-gradient text-primary-foreground",
-      badgeText === "Prueba Gratuita" && "bg-gradient-to-r from-yellow-400 to-orange-500 text-white",
+      badgeText === "Activo" && "bg-brand-gradient text-primary-foreground",
       badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
     )}>
-      {badgeText === "Prueba Gratuita" && <FaCrown className="mr-1 h-3 w-3" />}
-      {assistant.isPlanActive && <FaStar className="mr-1 h-3 w-3" />}
-      {assistant.isPlanActive ? "Plan Activo" : badgeText}
+      {isProcessing ? <FaSpinner className="mr-1 h-3 w-3 animate-spin" /> : null}
+      {badgeText}
     </Badge>
   );
   
@@ -135,11 +122,11 @@ const AssistantCard = ({
       variant="outline" 
       className={cn(
         "flex items-center gap-1 text-xs",
-        'border-blue-500 text-blue-600 dark:text-blue-400'
+        'border-green-500 text-green-600 dark:text-green-400'
       )}
     >
-      <FaDesktop size={12} />
-      Desktop
+      <FaWhatsapp size={12} />
+      WhatsApp
     </Badge>
   );
 
@@ -169,7 +156,7 @@ const AssistantCard = ({
                 </div>
                 <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
                   <div className="flex items-center gap-1 text-muted-foreground">
-                      Activo en la web
+                      {assistant.phoneLinked || 'Sin número vinculado'}
                   </div>
                 </CardDescription>
               </div>
@@ -178,15 +165,6 @@ const AssistantCard = ({
           </div>
         </CardHeader>
         <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
-          {isTrialActive || assistant.isPlanActive ? (
-             <div className="flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 p-2.5 text-sm font-semibold text-gray-800 shadow-md">
-              <FaCrown />
-              <div>
-                <span>Modo Ilimitado</span>
-                  {isTrialActive && <span className="block text-xs font-normal opacity-90">Te quedan {trialDaysRemaining} días</span>}
-              </div>
-            </div>
-          ) : !isTrialExpired ? (
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
                 <FaRegCommentDots size={14} className="text-accent" /> Consumo Mensual:
@@ -199,7 +177,6 @@ const AssistantCard = ({
                 </div>
               </div>
             </div>
-          ) : null}
           <div>
             <div className="flex justify-between items-center mb-1 sm:mb-1.5">
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
@@ -233,9 +210,9 @@ const AssistantCard = ({
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
              <div className="flex items-center gap-2">
-               <Button asChild size="sm" className="flex-1 bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border transition-transform transform hover:scale-105">
-                   <Link href={desktopChatUrl}>
-                       <FaRobot size={14} /> Chatear
+               <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={!assistant.phoneLinked}>
+                   <Link href={shareUrl} target="_blank">
+                       <FaWhatsapp size={14} /> Chatear
                    </Link>
                </Button>
                <DropdownMenu>

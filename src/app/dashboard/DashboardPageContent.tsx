@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -10,14 +9,13 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, User, Bot, Database, Brain, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -54,36 +52,24 @@ const DashboardPageContent = () => {
           monthlyMessageLimit: 5000,
           purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
           databaseId: 'demo-db-1'
-      },
-      {
-          id: 'demo-asst-2',
-          name: 'Asistente de Soporte (Demo)',
-          isActive: true,
-          type: 'desktop' as const,
-          numberReady: true,
-          messageCount: 300,
-          monthlyMessageLimit: 1000,
-          purposes: ['create_smart_db'],
-          databaseId: 'demo-db-2',
-          isFirstDesktopAssistant: true, // This assistant is in free trial
-          trialStartDate: subDays(new Date(), 5).toISOString(), // Trial started 5 days ago
       }],
       databases: [{
           id: 'demo-db-1',
           name: 'Inventario de Productos (Demo)',
           source: 'google_sheets' as const,
           accessUrl: '#'
-      },
-      {
-          id: 'demo-db-2',
-          name: 'Base de Conocimiento (Demo)',
-          source: 'smart_db' as const,
-          storageSize: 15 * 1024 * 1024, // 15MB
       }],
       credits: 5
   };
+  
+  // Filter assistants to only show 'whatsapp' type
+  const whatsappAssistants = (isDemoMode ? demoProfile.assistants : userProfile.assistants).filter(a => a.type === 'whatsapp');
 
-  const profileToRender = isDemoMode ? demoProfile : userProfile;
+  const profileToRender = {
+    ... (isDemoMode ? demoProfile : userProfile),
+    assistants: whatsappAssistants
+  };
+  
   const isDatabasesPage = pathname.endsWith('/databases');
 
   useEffect(() => {
@@ -92,10 +78,12 @@ const DashboardPageContent = () => {
         fetch(`/api/assistants/memory?userId=${userProfile._id}`)
             .then(res => res.json())
             .then((memoryData: AssistantMemory[]) => {
-                const assistantsWithMemory = userProfile.assistants.map(asst => ({
-                    ...asst,
-                    totalMemory: memoryData.find(m => m.assistantId === asst.id)?.totalMemory || 0
-                }));
+                const assistantsWithMemory = userProfile.assistants
+                    .filter(asst => asst.type === 'whatsapp') // Filter here as well for memory view
+                    .map(asst => ({
+                        ...asst,
+                        totalMemory: memoryData.find(m => m.assistantId === asst.id)?.totalMemory || 0
+                    }));
                 setAssistantsMemory(assistantsWithMemory);
             })
             .catch(err => toast({ title: 'Error', description: 'No se pudo cargar la memoria de los asistentes.', variant: 'destructive' }))
@@ -186,10 +174,11 @@ const DashboardPageContent = () => {
       return;
     }
     dispatch({ type: 'RESET_WIZARD' });
+    dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'whatsapp' }); // Default to WhatsApp
     router.push('/app?action=add'); 
   };
   
-  const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId);
+  const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId && a.type === 'whatsapp');
 
   if (loadingStatus.active && !isDemoMode) {
     return (
@@ -209,8 +198,8 @@ const DashboardPageContent = () => {
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
             <h3 className="text-lg font-semibold flex items-center gap-2"> 
-                <Bot size={18} className="text-primary" /> 
-                Tus Asistentes
+                <FaWhatsapp size={18} className="text-green-500" /> 
+                Asistentes de WhatsApp
             </h3>
             <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
                 <FaStar size={13} className="mr-1" />
@@ -231,10 +220,10 @@ const DashboardPageContent = () => {
             ) : (
             <Card className="text-center py-10 animate-fadeIn" style={{animationDelay: "0.4s"}}> 
                 <CardContent className="flex flex-col items-center gap-3"> 
-                <Bot size={40} className="text-muted-foreground" /> 
-                <h3 className="text-lg font-semibold">No has creado ningún asistente</h3>
+                <FaWhatsapp size={40} className="text-muted-foreground" /> 
+                <h3 className="text-lg font-semibold">No tienes asistentes de WhatsApp</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                    Los asistentes son agentes de IA que puedes personalizar para realizar tareas como responder preguntas, agendar citas o gestionar datos.
+                    Crea un asistente para automatizar tus conversaciones y ventas en WhatsApp.
                 </p>
                 <Button onClick={handleAddNewAssistant} size="sm" className="text-sm px-4 py-2 mt-2">Crear mi Primer Asistente</Button> 
                 </CardContent>
@@ -250,7 +239,7 @@ const DashboardPageContent = () => {
             <div>
                 <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Database size={18} className="text-primary" />
+                        <FaDatabase size={18} className="text-primary" />
                         Bases de Datos Vinculadas
                     </h3>
                     {showAddDatabaseButton && (
@@ -269,7 +258,7 @@ const DashboardPageContent = () => {
                 ) : (
                     <Card className="text-center py-10 animate-fadeIn mt-4" style={{ animationDelay: '0.2s' }}>
                         <CardContent className="flex flex-col items-center gap-3">
-                            <Database size={40} className="text-muted-foreground" />
+                            <FaDatabase size={40} className="text-muted-foreground" />
                             <h3 className="text-lg font-semibold">No tienes bases de datos</h3>
                             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                                 Conecta una Hoja de Google o crea una Base de Datos Inteligente para darle a tus asistentes el conocimiento que necesitan para operar.
@@ -286,12 +275,12 @@ const DashboardPageContent = () => {
             
             <div>
                  <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-                    <Brain size={18} className="text-primary" />
-                    Memoria de los Asistentes
+                    <FaBrain size={18} className="text-primary" />
+                    Memoria de los Asistentes de WhatsApp
                 </h3>
                 {isLoadingMemory ? (
                      <div className="flex items-center justify-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <FaSpinner className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : assistantsMemory.length > 0 ? (
                      <div className="space-y-4">
@@ -302,7 +291,7 @@ const DashboardPageContent = () => {
                 ) : (
                     <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
                         <CardContent className="flex flex-col items-center gap-3">
-                            <Brain size={40} className="text-muted-foreground" />
+                            <FaBrain size={40} className="text-muted-foreground" />
                             <h3 className="text-lg font-semibold">Sin Actividad de Memoria</h3>
                             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                                 Tus asistentes aún no han almacenado ninguna conversación. La memoria se irá llenando a medida que interactúen.
@@ -326,7 +315,7 @@ const DashboardPageContent = () => {
               {/* Personal Info Section */}
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <User className="h-6 w-6 text-primary" />
+                  <FaUser className="h-6 w-6 text-primary" />
                   <div>
                     <h3 className="font-semibold">Información Personal</h3>
                     <p className="text-sm text-muted-foreground">
@@ -374,7 +363,7 @@ const DashboardPageContent = () => {
               {/* Support Section */}
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <MessageSquare className="h-6 w-6 text-green-500" />
+                  <FaRegCommentDots className="h-6 w-6 text-green-500" />
                   <div>
                     <h3 className="font-semibold">Soporte Técnico</h3>
                     <p className="text-sm text-muted-foreground">

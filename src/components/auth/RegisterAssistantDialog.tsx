@@ -79,17 +79,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, acceptedTerms } = state.wizard;
+  const { currentStep, assistantName, assistantPrompt, selectedPurposes, databaseOption, acceptedTerms, assistantType } = state.wizard;
   
   const [isFinalizingSetup, setIsFinalizingSetup] = useState(false);
-
-  // Set assistant type to desktop by default
-  useEffect(() => {
-    if (isOpen) {
-      dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' });
-    }
-  }, [isOpen, dispatch]);
-
 
   const dbNeeded = useMemo(() => {
     return selectedPurposes.has('import_spreadsheet') || selectedPurposes.has('create_smart_db');
@@ -153,7 +145,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     
     let nextStep = currentStep + 1;
 
-    // Skip DB config if not needed
+    // This logic is now more complex. It's better to manage step transitions carefully.
+    // If we're on step 2 and no DB is needed, we jump to the 'terms' step, which is now 4.
     if (currentStep === 2 && !dbNeeded) {
         nextStep = 4; 
     }
@@ -182,26 +175,26 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         const userEmail = user.email;
         if (!userEmail) throw new Error("No se pudo obtener el email del usuario.");
 
-        const isDesktopAssistant = true; // Always desktop
+        const isDesktopAssistant = assistantType === 'desktop';
         const userHasDesktopAssistant = state.userProfile.isAuthenticated && state.userProfile.assistants.some(a => a.type === 'desktop');
         const isFirstDesktopAssistantForUser = isDesktopAssistant && !userHasDesktopAssistant;
         
         const finalAssistantConfig: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            name: assistantName || "Mi Asistente de Escritorio",
-            type: 'desktop',
+            name: assistantName || (isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp"),
+            type: assistantType || 'desktop',
             prompt: assistantPrompt || "Eres un asistente amigable y servicial.",
             purposes: Array.from(selectedPurposes),
             databaseId: dbNeeded && databaseOption.type ? `db_${Date.now()}` : undefined,
             imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-            isActive: isFirstDesktopAssistantForUser, // Only active if it's the first desktop one (free trial)
-            numberReady: isFirstDesktopAssistantForUser,
+            isActive: isDesktopAssistant && isFirstDesktopAssistantForUser,
+            numberReady: isDesktopAssistant && isFirstDesktopAssistantForUser,
             messageCount: 0,
-            monthlyMessageLimit: isFirstDesktopAssistantForUser ? 10000 : 0, // High limit for trial, 0 otherwise
+            monthlyMessageLimit: isDesktopAssistant && isFirstDesktopAssistantForUser ? 10000 : 0,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             chatPath: generateChatPath(assistantName),
-            isFirstDesktopAssistant: isFirstDesktopAssistantForUser,
-            trialStartDate: isFirstDesktopAssistantForUser ? new Date().toISOString() : undefined,
+            isFirstDesktopAssistant: isDesktopAssistant ? isFirstDesktopAssistantForUser : undefined,
+            trialStartDate: isDesktopAssistant && isFirstDesktopAssistantForUser ? new Date().toISOString() : undefined,
         };
 
         const newDbEntry: DatabaseConfig | undefined = dbNeeded && databaseOption.type ? {
@@ -218,7 +211,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         let finalProfile: Partial<UserProfile>;
 
         if (state.userProfile.isAuthenticated) {
-            // User is already logged in, just add the new assistant and DB
             finalProfile = {
                 assistants: [...state.userProfile.assistants, finalAssistantConfig],
                 databases: newDbEntry ? [...(state.userProfile.databases || []), newDbEntry] : state.userProfile.databases,
@@ -233,7 +225,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
               authProvider: 'google',
               assistants: [finalAssistantConfig],
               databases: newDbEntry ? [newDbEntry] : [],
-              credits: 0, // No credits on creation
+              credits: 0,
             };
             
             const response = await fetch('/api/create-user-profile', {
@@ -252,7 +244,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
           
         toast({ title: "¡Asistente Creado!", description: `Tu nuevo asistente está listo.` });
         onOpenChange(false);
-        router.push('/chat/dashboard');
+        router.push(finalAssistantConfig.type === 'whatsapp' ? '/dashboard/assistants' : '/chat/dashboard');
 
       } catch (error: any) {
           console.error("Profile creation error:", error);
@@ -260,10 +252,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
       } finally {
         setIsFinalizingSetup(false);
       }
-  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, state.userProfile]);
+  }, [dbNeeded, databaseOption, assistantName, assistantPrompt, selectedPurposes, toast, router, onOpenChange, dispatch, state.userProfile, assistantType]);
 
   useEffect(() => {
-    // This effect triggers when the user is already authenticated and reaches the final step
     if (status === 'authenticated' && isOpen && currentStep === effectiveMaxSteps) {
       if (session?.user) {
         createOrUpdateProfileAndFinalize(session.user);
@@ -280,7 +271,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, []);
 
   const renderStepContent = () => {
-    // If user is logged in, skip the auth step and show a finalizing message
     if (currentStep === effectiveMaxSteps && status === 'authenticated') {
       return (
          <div className="animate-fadeIn space-y-6 flex flex-col items-center justify-center h-full">
