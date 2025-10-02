@@ -1,4 +1,3 @@
-
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -147,7 +146,7 @@ export default function ChatListPage() {
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = React.useState(false);
   const [isCreditDetailsOpen, setIsCreditDetailsOpen] = React.useState(false);
   const [isDefineShowOpen, setIsDefineShowOpen] = React.useState(false);
-  const [selectedShow, setSelectedShow] = React.useState<ShowOption>('credit');
+  const [selectedShow, setSelectedShow] = React.useState<ShowOption>('none');
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = React.useState(false);
   const [itemToDelete, setItemToDelete] = React.useState<{ id: string; type: 'assistant' | 'contact' } | null>(null);
 

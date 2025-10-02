@@ -28,7 +28,7 @@ const options: { id: ShowOption; icon: React.ElementType; title: string; descrip
 
 const DefineShowDialog = ({ isOpen, onOpenChange, onSelectShow }: DefineShowDialogProps) => {
   const { toast } = useToast();
-  const [selectedOption, setSelectedOption] = useState<ShowOption>('credit');
+  const [selectedOption, setSelectedOption] = useState<ShowOption>('none');
   
   const handleSave = () => {
     onSelectShow(selectedOption);
