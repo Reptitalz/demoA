@@ -35,7 +35,7 @@ const LoginPageContent = () => {
   
   useEffect(() => {
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
-      router.replace('/chat/dashboard');
+      router.replace('/dashboard');
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
@@ -57,7 +57,7 @@ const LoginPageContent = () => {
     setIsLoggingIn(true);
     
     // Default callback for dashboard login
-    const callbackUrl = searchParams.get('callbackUrl') || '/chat/dashboard';
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
     
     let result;
     if (provider === 'credentials') {
