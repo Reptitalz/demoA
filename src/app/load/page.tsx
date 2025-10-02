@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner } from 'react-icons/fa';
@@ -12,14 +12,30 @@ const LoadPage = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const { status } = useSession();
     const router = useRouter();
+    const [isMinTimePassed, setIsMinTimePassed] = useState(false);
 
     useEffect(() => {
-        if (status === 'authenticated') {
-            router.replace('/chat/dashboard');
-        } else if (status === 'unauthenticated') {
-            router.replace('/chat');
+        // Set a minimum display time of 3 seconds
+        const timer = setTimeout(() => {
+            setIsMinTimePassed(true);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+
+    useEffect(() => {
+        // Only redirect when both conditions are met:
+        // 1. The minimum time has passed.
+        // 2. The session status has been determined.
+        if (isMinTimePassed && status !== 'loading') {
+            if (status === 'authenticated') {
+                router.replace('/chat/dashboard');
+            } else if (status === 'unauthenticated') {
+                router.replace('/chat');
+            }
         }
-    }, [status, router]);
+    }, [status, router, isMinTimePassed]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
