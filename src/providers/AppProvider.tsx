@@ -321,7 +321,7 @@ async function createNewUserProfile(user: any, wizardState: WizardState): Promis
           messageCount: 0,
           monthlyMessageLimit: isDesktopAssistant ? 10000 : 0,
           imageUrl: wizardState.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
-          chatPath: isDesktopAssistant ? generateChatPath(assistantName) : undefined,
+          chatPath: generateChatPath(assistantName),
           isFirstDesktopAssistant: isDesktopAssistant,
           trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
         });
