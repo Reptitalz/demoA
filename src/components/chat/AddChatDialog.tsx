@@ -13,17 +13,26 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { FaUser } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useContacts } from '@/hooks/useContacts';
+import { useRouter } from 'next/navigation';
 
 interface AddChatDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  initialChatPath?: string; // Optional prop to pre-fill the input
 }
 
-const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
-  const [chatPath, setChatPath] = useState('');
+const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDialogProps) => {
+  const [chatPath, setChatPath] = useState(initialChatPath);
   const [isVerifying, setIsVerifying] = useState(false);
   const { addContact } = useContacts();
   const { toast } = useToast();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setChatPath(initialChatPath);
+    }
+  }, [isOpen, initialChatPath]);
 
   const handleAddContact = async () => {
     if (!chatPath.trim()) {
@@ -41,20 +50,21 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
         throw new Error('No se encontró ningún asistente o usuario con ese ID.');
       }
       const data = await res.json();
-      const assistant = data.assistant;
+      const userAsContact = data.assistant; // Endpoint returns a user/assistant profile
 
       await addContact({
-        chatPath: assistant.chatPath,
-        name: assistant.name,
-        imageUrl: assistant.imageUrl,
+        chatPath: userAsContact.chatPath,
+        name: userAsContact.name,
+        imageUrl: userAsContact.imageUrl,
       });
 
       toast({
         title: "Contacto Agregado",
-        description: `Has añadido a "${assistant.name}" a tus contactos.`,
+        description: `Has añadido a "${userAsContact.name}" a tus contactos.`,
       });
       onOpenChange(false);
       setChatPath('');
+      router.replace('/chat/dashboard'); // Clean URL just in case
     } catch (error: any) {
       toast({
         title: 'Error al agregar contacto',
@@ -65,6 +75,15 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
       setIsVerifying(false);
     }
   };
+  
+  // Automatically try to add if dialog opens with an initial path
+  React.useEffect(() => {
+    if (isOpen && initialChatPath) {
+      handleAddContact();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialChatPath]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

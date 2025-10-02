@@ -2,11 +2,11 @@
 // src/app/chat/dashboard/page.tsx
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaHdd, FaDollarSign } from 'react-icons/fa';
+import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaHdd, FaDollarSign, FaShareAlt } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -16,7 +16,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import AppIcon from '@/components/shared/AppIcon';
 import CreditDetailsDialog from '@/components/chat/CreditDetailsDialog';
@@ -136,8 +136,10 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onSwipe, onClear, onDelete, a
 
 export default function ChatListPage() {
   const { data: session } = useSession();
+  const { state } = useApp();
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [activeSwipe, setActiveSwipe] = React.useState<{ id: string; direction: 'left' | 'right' } | null>(null);
   
@@ -150,10 +152,64 @@ export default function ChatListPage() {
   const [itemToDelete, setItemToDelete] = React.useState<{ id: string; type: 'assistant' | 'contact' } | null>(null);
 
   const { assistants, removeAssistant } = useAssistants();
-  const { contacts, removeContact, clearContactChat } = useContacts();
+  const { contacts, removeContact, clearContactChat, addContact } = useContacts();
 
   const filteredAssistants = useMemo(() => assistants.filter(asst => asst.name.toLowerCase().includes(searchTerm.toLowerCase())), [assistants, searchTerm]);
   const filteredContacts = useMemo(() => contacts.filter(contact => contact.name.toLowerCase().includes(searchTerm.toLowerCase())), [contacts, searchTerm]);
+
+  // Handle adding contact from URL
+  useEffect(() => {
+    const contactPath = searchParams.get('contact');
+    if (contactPath && !contacts.some(c => c.chatPath === contactPath)) {
+        toast({ title: "Agregando Contacto...", description: `Buscando usuario con ID: ${contactPath}` });
+        
+        fetch(`/api/assistants/public?chatPath=${encodeURIComponent(contactPath)}`)
+            .then(res => {
+                if (!res.ok) throw new Error('No se encontró a nadie con ese ID.');
+                return res.json();
+            })
+            .then(data => {
+                const userAsContact = data.assistant; // The endpoint returns a user/assistant profile
+                addContact({
+                    chatPath: userAsContact.chatPath,
+                    name: userAsContact.name,
+                    imageUrl: userAsContact.imageUrl,
+                });
+                toast({ title: "Contacto Agregado", description: `Has añadido a "${userAsContact.name}".` });
+                router.replace('/chat/dashboard'); // Clean URL
+            })
+            .catch(error => {
+                toast({ title: 'Error', description: error.message, variant: 'destructive' });
+                router.replace('/chat/dashboard'); // Clean URL
+            });
+    }
+  }, [searchParams, contacts, addContact, toast, router]);
+  
+  const handleShareProfile = async () => {
+    if (!state.userProfile.isAuthenticated || !state.userProfile.chatPath) {
+        toast({ title: "Inicia Sesión", description: "Debes iniciar sesión para compartir tu perfil.", variant: "default" });
+        router.push('/chat');
+        return;
+    }
+
+    const shareUrl = `${window.location.origin}/chat/dashboard?contact=${state.userProfile.chatPath}`;
+    const shareData = {
+        title: `Chatea conmigo en ${APP_NAME}`,
+        text: `¡Hola! Agrégameme como contacto en ${APP_NAME} para que podamos chatear.`,
+        url: shareUrl,
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(shareUrl);
+            toast({ title: "Enlace Copiado", description: "Tu enlace de perfil ha sido copiado al portapapeles." });
+        }
+    } catch (err) {
+        toast({ title: "Error", description: "No se pudo compartir o copiar tu enlace de perfil.", variant: "destructive" });
+    }
+  };
 
   const showOptions: Record<ShowOption, { icon: React.ElementType, title: string, value: string, action: () => void, requiresAttention: boolean } | null> = {
     credit: { icon: FaDollarSign, title: "Crédito Disponible", value: "$500.00", action: () => setIsCreditDetailsOpen(true), requiresAttention: false },
@@ -236,7 +292,14 @@ export default function ChatListPage() {
           </div>
         </ScrollArea>
         
-        <Button onClick={() => setIsAddChatDialogOpen(true)} className="absolute bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground" size="icon" title="Añadir nuevo contacto"><FaPlus className="h-6 w-6" /></Button>
+        <div className="absolute bottom-4 right-4 flex flex-col items-center gap-3">
+             <Button onClick={handleShareProfile} className="h-14 w-14 rounded-full shadow-lg bg-blue-500 hover:bg-blue-600 text-white" size="icon" title="Compartir mi perfil">
+                <FaShareAlt className="h-6 w-6" />
+            </Button>
+            <Button onClick={() => setIsAddChatDialogOpen(true)} className="h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground" size="icon" title="Añadir nuevo contacto">
+                <FaPlus className="h-6 w-6" />
+            </Button>
+        </div>
       </div>
 
       <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
