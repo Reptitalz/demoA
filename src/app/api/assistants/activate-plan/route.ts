@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     const assistant = user.assistants[assistantIndex];
-    if (assistant.type !== 'desktop') {
-        return NextResponse.json({ message: 'Los planes solo se pueden asignar a asistentes de escritorio.' }, { status: 400 });
+    if (assistant.type !== 'whatsapp') {
+        return NextResponse.json({ message: 'Los planes solo se pueden asignar a asistentes de WhatsApp.' }, { status: 400 });
     }
     if (assistant.isPlanActive) {
         return NextResponse.json({ message: 'Este asistente ya tiene un plan activo.' }, { status: 400 });
