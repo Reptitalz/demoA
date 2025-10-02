@@ -38,17 +38,24 @@ import {
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
 const DB_NAME = 'HeyManitoChatDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Make sure this matches your db.ts
 const MESSAGES_STORE_NAME = 'messages';
 
 const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = (event) => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
-        db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
-      }
+        const db = request.result;
+        const transaction = request.transaction;
+        if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
+            db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
+        }
+        if (transaction) {
+            const messagesStore = transaction.objectStore(MESSAGES_STORE_NAME);
+            if (!messagesStore.indexNames.contains('by_sessionId')) {
+                messagesStore.createIndex('by_sessionId', 'sessionId');
+            }
+        }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -317,37 +324,37 @@ export const CreditView = () => {
         </header>
         <ScrollArea className="flex-grow">
             <div className="p-4 space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Definir Oferta de Crédito</CardTitle>
-                        <CardDescription>Establece las condiciones que tus asistentes ofrecerán.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="max-amount">Monto Máximo a Ofrecer</Label>
-                            <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="max-amount" type="number" value={maxAmount} onChange={e => setMaxAmount(Number(e.target.value))} className="pl-9" />
+                <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
+                    <motion.div
+                        className="absolute -top-1/4 -right-1/4 w-1/2 h-full bg-white/10 rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <div className="absolute inset-0 bg-black/20"/>
+                     <CardContent className="p-6 relative z-10">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <CardDescription className="text-blue-200">Oferta de Crédito</CardDescription>
+                                <CardTitle className="text-4xl font-bold text-white drop-shadow-lg">${maxAmount.toLocaleString()}</CardTitle>
+                                <p className="text-blue-200 text-sm">Monto Máximo</p>
+                            </div>
+                            <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-8" disabled>
+                                <Edit className="mr-2 h-3 w-3"/>
+                                Editar Oferta
+                            </Button>
+                        </div>
+                        <div className="mt-6 flex justify-between items-center text-sm">
+                            <div className="flex items-center gap-2">
+                                <Percent className="h-4 w-4 text-blue-300"/>
+                                <span>Tasa: {interestRate}%</span>
+                            </div>
+                             <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-blue-300"/>
+                                <span>Plazo: {term} meses</span>
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="interest-rate">Tasa de Interés (%)</Label>
-                             <div className="relative">
-                                <Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="interest-rate" type="number" value={interestRate} onChange={e => setInterestRate(Number(e.target.value))} className="pl-9"/>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="term">Plazo Máximo (meses)</Label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="term" type="number" value={term} onChange={e => setTerm(Number(e.target.value))} className="pl-9"/>
-                            </div>
-                        </div>
-                        <Button className="w-full">Guardar Configuración</Button>
                     </CardContent>
                 </Card>
-
                  <Card>
                     <CardHeader>
                         <CardTitle>Créditos Activos</CardTitle>
