@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
+import MessageLimitDialog from "./MessageLimitDialog";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -47,6 +48,7 @@ const AssistantCard = ({
   const [isApiInfoDialogOpen, setIsApiInfoDialogOpen] = useState(false);
   const [isPhoneSetupOpen, setIsPhoneSetupOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false);
 
   const shareUrl = `https://wa.me/${assistant.phoneLinked}`;
 
@@ -229,6 +231,9 @@ const AssistantCard = ({
                                 <DropdownMenuItem onClick={handleShare}>
                                     <FaShareAlt className="mr-2"/> Compartir
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setIsLimitDialogOpen(true)}>
+                                  <FaRegCommentDots className="mr-2"/> Asignar Límite
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -275,6 +280,11 @@ const AssistantCard = ({
         onOpenChange={setIsPhoneSetupOpen}
         assistantId={assistant.id}
         assistantName={assistant.name}
+      />
+      <MessageLimitDialog 
+        isOpen={isLimitDialogOpen} 
+        onOpenChange={setIsLimitDialogOpen} 
+        assistant={assistant} 
       />
     </>
   );
