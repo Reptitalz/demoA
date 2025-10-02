@@ -12,7 +12,7 @@ import { FaArrowLeft, FaArrowRight, FaSpinner, FaImage, FaUser, FaRobot } from '
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AssistantConfig } from '@/types';
+import { AssistantConfig, DatabaseConfig } from '@/types';
 import { DEFAULT_ASSISTANT_IMAGE_URL, UNLIMITED_MESSAGES_LIMIT } from '@/config/appConfig';
 import { ShoppingCart, HandCoins, Handshake, LifeBuoy, ClipboardList, CheckCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardDescription } from '@/components/ui/card';
@@ -114,22 +114,18 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
         }
 
         setIsProcessing(true);
-        const finalImageUrl = imageUrl || DEFAULT_ASSISTANT_IMAGE_URL;
-        
-        // Determine message limit based on account type
-        const messageLimit = 0; // WhatsApp assistants start with 0 messages, require a plan
 
         const newAssistant: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             name: assistantName,
-            type: 'whatsapp', // Default to WhatsApp for dashboard creation
+            type: 'whatsapp',
             prompt: selectedRole.prompt,
             purposes: [],
             isActive: false, 
             numberReady: false,
             messageCount: 0,
-            monthlyMessageLimit: messageLimit,
-            imageUrl: finalImageUrl,
+            monthlyMessageLimit: 0,
+            imageUrl: imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
             chatPath: generateChatPath(assistantName),
         };
 
