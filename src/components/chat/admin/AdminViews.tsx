@@ -108,7 +108,7 @@ const demoAdminChats: AssistantConfig[] = [
     },
 ];
 
-const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction: (id: string, action: 'authorize' | 'reject') => void }) => {
+const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (id: string, action: 'authorize' | 'reject') => void }) => {
     if (!payment) return null;
 
     const isVideo = payment.receiptUrl.startsWith('data:video');
@@ -140,10 +140,12 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                         </div>
                     )}
                 </div>
-                <DialogFooter className="p-4 bg-background border-t flex justify-end gap-2">
-                    <Button variant="destructive" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
-                    <Button variant="default" onClick={() => onAction(payment.id, 'authorize')} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
-                </DialogFooter>
+                {onAction && (
+                    <DialogFooter className="p-4 bg-background border-t flex justify-end gap-2">
+                        <Button variant="destructive" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
+                        <Button variant="default" onClick={() => onAction(payment.id, 'authorize')} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );
@@ -299,17 +301,85 @@ export const BankView = () => {
     );
 }
 
+const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
+
+    // Placeholder for payment history
+    const paymentHistory = [
+        { id: 1, date: '2024-07-28', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+        { id: 2, date: '2024-07-21', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+    ];
+
+    return (
+        <>
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Historial de Crédito: {credit.client}</DialogTitle>
+                        <DialogDescription>Revisa los detalles y pagos de esta línea de crédito.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-grow overflow-y-auto pr-2 space-y-4">
+                        <Card>
+                            <CardContent className="p-4 grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Monto Total</p>
+                                    <p className="text-2xl font-bold">${credit.amount.toFixed(2)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Estado</p>
+                                    <p className={cn("text-2xl font-bold", credit.status === 'Atrasado' ? 'text-destructive' : 'text-green-600')}>{credit.status}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <div>
+                            <h4 className="font-semibold mb-2">Historial de Pagos</h4>
+                            <div className="space-y-2">
+                                {paymentHistory.map(payment => (
+                                    <div key={payment.id} className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                                        <div>
+                                            <p className="text-sm font-semibold">${payment.amount.toFixed(2)}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {format(new Date(payment.date), 'dd MMM, yyyy', { locale: es })}
+                                            </p>
+                                        </div>
+                                        <Button size="sm" variant="outline" onClick={() => setSelectedReceipt(payment)}>
+                                            <Eye className="mr-2 h-4 w-4"/> Ver Comprobante
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <ReceiptDialog 
+                payment={selectedReceipt}
+                isOpen={!!selectedReceipt}
+                onOpenChange={(open) => !open && setSelectedReceipt(null)}
+            />
+        </>
+    )
+}
+
 export const CreditView = () => {
     const [maxAmount, setMaxAmount] = useState(5000);
     const [interestRate, setInterestRate] = useState(10);
     const [term, setTerm] = useState(12);
+    const [selectedCredit, setSelectedCredit] = useState<any | null>(null);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
     const activeCredits = [
-        { client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15' },
-        { client: 'Cliente B', amount: 1000, status: 'Al Corriente', nextPayment: '2024-08-10' },
-        { client: 'Cliente C', amount: 3000, status: 'Atrasado', nextPayment: '2024-07-30' },
+        { id: 1, client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15' },
+        { id: 2, client: 'Cliente B', amount: 1000, status: 'Al Corriente', nextPayment: '2024-08-10' },
+        { id: 3, client: 'Cliente C', amount: 3000, status: 'Atrasado', nextPayment: '2024-07-30' },
     ];
     
+    const handleCreditClick = (credit: any) => {
+        setSelectedCredit(credit);
+        setIsHistoryOpen(true);
+    };
+
     return (
         <>
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
@@ -324,7 +394,7 @@ export const CreditView = () => {
         </header>
         <ScrollArea className="flex-grow">
             <div className="p-4 space-y-6">
-                <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
+                 <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
                     <motion.div
                         className="absolute -top-1/4 -right-1/4 w-1/2 h-full bg-white/10 rounded-full"
                         animate={{ rotate: 360 }}
@@ -360,8 +430,8 @@ export const CreditView = () => {
                         <CardTitle>Créditos Activos</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        {activeCredits.map((credit, index) => (
-                            <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        {activeCredits.map((credit) => (
+                            <div key={credit.id} onClick={() => handleCreditClick(credit)} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted">
                                 <div className="space-y-0.5">
                                     <p className="font-semibold text-sm">{credit.client}</p>
                                     <p className="text-xs text-muted-foreground">Próx. pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
@@ -376,6 +446,13 @@ export const CreditView = () => {
                 </Card>
             </div>
         </ScrollArea>
+         {selectedCredit && (
+            <CreditHistoryDialog 
+                credit={selectedCredit}
+                isOpen={isHistoryOpen}
+                onOpenChange={setIsHistoryOpen}
+            />
+        )}
         </>
     );
 };
