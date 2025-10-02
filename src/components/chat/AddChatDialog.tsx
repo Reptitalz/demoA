@@ -1,3 +1,4 @@
+
 // src/components/chat/AddChatDialog.tsx
 "use client";
 
@@ -134,9 +135,9 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
               </div>
             </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying}>Cancelar</Button>
-          <Button onClick={handleAddContact} disabled={isVerifying || !chatPath.trim()}>
+        <DialogFooter className="flex-col sm:flex-row gap-2 sm:justify-end w-full">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying} className="w-full sm:w-auto">Cancelar</Button>
+          <Button onClick={handleAddContact} disabled={isVerifying || !chatPath.trim()} className="w-full sm:w-auto">
             {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Agregar Contacto
           </Button>
