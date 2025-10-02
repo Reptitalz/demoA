@@ -1,3 +1,4 @@
+
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -5,7 +6,7 @@ import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaHdd } from 'react-icons/fa';
+import { FaSearch, FaRobot, FaUser, FaPlus, FaTrash, FaHdd, FaDollarSign } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -24,6 +25,8 @@ import DefineShowDialog from '@/components/chat/DefineShowDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useContacts } from '@/hooks/useContacts';
 import { useAssistants } from '@/hooks/useAssistants';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 
 type ShowOption = 'credit' | 'bank' | 'products' | 'none';
 
