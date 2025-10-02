@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus, Contact } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
@@ -53,6 +53,7 @@ const initialLoadingStatus: LoadingStatus = {
 const initialState: AppState = {
   wizard: initialWizardState,
   userProfile: initialUserProfileState,
+  contacts: [],
   isSetupComplete: false,
   loadingStatus: initialLoadingStatus,
 };
@@ -90,7 +91,10 @@ type Action =
   | { type: 'REMOVE_DATABASE'; payload: string }
   | { type: 'LOGOUT_USER' }
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
-  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null };
+  | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null }
+  | { type: 'SET_CONTACTS'; payload: Contact[] }
+  | { type: 'ADD_CONTACT'; payload: Contact };
+
 
 function generateChatPath(name: string): string {
   if (!name) return `user-${Date.now()}`;
@@ -258,6 +262,15 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, isReconfiguring: action.payload } };
     case 'SET_EDITING_ASSISTANT_ID':
       return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
+    case 'SET_CONTACTS':
+      return { ...state, contacts: action.payload };
+    case 'ADD_CONTACT': {
+      const existingContact = state.contacts.find(c => c.chatPath === action.payload.chatPath);
+      if (existingContact) {
+        return state; // Avoid duplicates
+      }
+      return { ...state, contacts: [...state.contacts, action.payload] };
+    }
     default:
       return state;
   }

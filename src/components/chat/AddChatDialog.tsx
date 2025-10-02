@@ -7,13 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { FaUser } from 'react-icons/fa';
-import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useContacts } from '@/hooks/useContacts';
 
 interface AddChatDialogProps {
   isOpen: boolean;
@@ -22,10 +21,11 @@ interface AddChatDialogProps {
 
 const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
   const [chatPath, setChatPath] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const { addContact } = useContacts();
   const { toast } = useToast();
-  const router = useRouter();
 
-  const handleAddContact = () => {
+  const handleAddContact = async () => {
     if (!chatPath.trim()) {
       toast({
         title: "Campo requerido",
@@ -34,19 +34,41 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
       });
       return;
     }
-    // For now, we just show a success message and close the dialog.
-    // The chat will appear implicitly when navigated to, or could be added to a local list.
-    toast({
+    setIsVerifying(true);
+    try {
+      const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath.trim())}`);
+      if (!res.ok) {
+        throw new Error('No se encontró ningún asistente o usuario con ese ID.');
+      }
+      const data = await res.json();
+      const assistant = data.assistant;
+
+      await addContact({
+        chatPath: assistant.chatPath,
+        name: assistant.name,
+        imageUrl: assistant.imageUrl,
+      });
+
+      toast({
         title: "Contacto Agregado",
-        description: "El nuevo chat aparecerá en tu lista.",
-    });
-    onOpenChange(false);
-    // router.push(`/chat/${chatPath.trim()}`); // This line is removed to prevent navigation.
+        description: `Has añadido a "${assistant.name}" a tus contactos.`,
+      });
+      onOpenChange(false);
+      setChatPath('');
+    } catch (error: any) {
+      toast({
+        title: 'Error al agregar contacto',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col sm:w-full sm:max-w-md sm:h-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus /> Agregar Nuevo Contacto
@@ -65,6 +87,7 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
                   value={chatPath}
                   onChange={(e) => setChatPath(e.target.value)}
                   className="text-lg py-6"
+                  disabled={isVerifying}
                 />
               </div>
 
@@ -84,19 +107,8 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
                             </Avatar>
                         </motion.div>
                         <div className="flex-grow overflow-hidden">
-                        <div className="flex items-center justify-between">
-                            <p className="font-semibold truncate text-sm">{chatPath || 'Nombre del Contacto'}</p>
-                        </div>
-                        <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                    </span>
-                                    <p className="text-xs text-muted-foreground">en línea</p>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">Ahora</p>
-                        </div>
+                          <p className="font-semibold truncate text-sm">{chatPath || 'Nombre del Contacto'}</p>
+                          <p className="text-xs text-muted-foreground">Buscando...</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -104,8 +116,11 @@ const AddChatDialog = ({ isOpen, onOpenChange }: AddChatDialogProps) => {
             </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleAddContact}>Agregar Contacto</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying}>Cancelar</Button>
+          <Button onClick={handleAddContact} disabled={isVerifying || !chatPath.trim()}>
+            {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Agregar Contacto
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

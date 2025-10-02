@@ -142,6 +142,14 @@ export interface CollaboratorProfile {
   bankInfo?: CollaboratorBankInfo;
 }
 
+export interface Contact {
+  chatPath: string;
+  name: string;
+  imageUrl?: string;
+  lastMessage?: string;
+  lastMessageTimestamp?: number;
+}
+
 export interface UserProfile {
   _id?: ObjectId;
   firebaseUid: string; // This will now hold the user's unique ID from next-auth
@@ -157,6 +165,7 @@ export interface UserProfile {
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   catalogs?: Catalog[];
+  contacts?: Contact[]; // User's saved contacts
   credits: number;
   creditLines?: CreditLine[];
   pushSubscriptions?: any[];
@@ -204,6 +213,7 @@ export interface LoadingStatus {
 export interface AppState {
   wizard: WizardState;
   userProfile: UserProfile;
+  contacts: Contact[];
   isSetupComplete: boolean;
   loadingStatus: LoadingStatus;
 }
@@ -250,7 +260,7 @@ export interface ContactImage {
     read: boolean;
 }
 
-export interface Contact {
+export interface ContactWithImages extends Contact {
   _id: string; // This will be the _id of the conversation document
   name: string; // This will be the userIdentifier
   destination: string; // This will be the userIdentifier
