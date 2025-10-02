@@ -292,6 +292,87 @@ export const BankView = () => {
     );
 }
 
+export const CreditView = () => {
+    const [maxAmount, setMaxAmount] = useState(5000);
+    const [interestRate, setInterestRate] = useState(10);
+    const [term, setTerm] = useState(12);
+
+    const activeCredits = [
+        { client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15' },
+        { client: 'Cliente B', amount: 1000, status: 'Al Corriente', nextPayment: '2024-08-10' },
+        { client: 'Cliente C', amount: 3000, status: 'Atrasado', nextPayment: '2024-07-30' },
+    ];
+    
+    return (
+        <>
+        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                    <DollarSign className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                    <h1 className="text-xl font-bold">Gestión de Crédito</h1>
+                </div>
+            </div>
+        </header>
+        <ScrollArea className="flex-grow">
+            <div className="p-4 space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Definir Oferta de Crédito</CardTitle>
+                        <CardDescription>Establece las condiciones que tus asistentes ofrecerán.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="max-amount">Monto Máximo a Ofrecer</Label>
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input id="max-amount" type="number" value={maxAmount} onChange={e => setMaxAmount(Number(e.target.value))} className="pl-9" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="interest-rate">Tasa de Interés (%)</Label>
+                             <div className="relative">
+                                <Percent className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input id="interest-rate" type="number" value={interestRate} onChange={e => setInterestRate(Number(e.target.value))} className="pl-9"/>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="term">Plazo Máximo (meses)</Label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input id="term" type="number" value={term} onChange={e => setTerm(Number(e.target.value))} className="pl-9"/>
+                            </div>
+                        </div>
+                        <Button className="w-full">Guardar Configuración</Button>
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Créditos Activos</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {activeCredits.map((credit, index) => (
+                            <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                                <div className="space-y-0.5">
+                                    <p className="font-semibold text-sm">{credit.client}</p>
+                                    <p className="text-xs text-muted-foreground">Próx. pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold">${credit.amount.toFixed(2)}</p>
+                                    <span className={cn("text-xs font-semibold", credit.status === 'Atrasado' ? 'text-destructive' : 'text-green-600')}>{credit.status}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+        </ScrollArea>
+        </>
+    );
+};
+
 const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
