@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import React, { useRef, useEffect } from 'react';
 import { FaBullhorn, FaLightbulb, FaRocket } from "react-icons/fa";
 
-const drawNavPreview = (ctx: CanvasRenderingContext2D, t: number) => {
+const drawAnnouncementPreview = (ctx: CanvasRenderingContext2D, t: number) => {
     const w = ctx.canvas.width / (window.devicePixelRatio || 1);
     const h = ctx.canvas.height / (window.devicePixelRatio || 1);
     ctx.clearRect(0, 0, w, h);
+    const x = w / 2;
     const floatY = Math.sin(t / 600) * 5;
     const y = h / 2 + floatY;
-    const x = w / 2;
     const size = 20;
     const highlightProgress = (Math.sin(t / 800) + 1) / 2;
     const radius = size * 1.2 + 4 * highlightProgress;
@@ -27,21 +27,12 @@ const drawNavPreview = (ctx: CanvasRenderingContext2D, t: number) => {
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1.5;
-    const iconSize = 7;
-    const iconY = y - 5;
-    ctx.fillRect(x - iconSize, iconY + iconSize/2, iconSize * 2, iconSize / 4);
-    ctx.fillRect(x - iconSize * 0.7, iconY - iconSize/2, iconSize / 3, iconSize);
-    ctx.fillRect(x - iconSize * 0.2, iconY - iconSize/2, iconSize / 3, iconSize);
-    ctx.fillRect(x + iconSize * 0.3, iconY - iconSize/2, iconSize / 3, iconSize);
-    ctx.beginPath();
-    ctx.moveTo(x - iconSize - 2, iconY - iconSize/2);
-    ctx.lineTo(x, iconY - iconSize * 1.2);
-    ctx.lineTo(x + iconSize + 2, iconY - iconSize/2);
-    ctx.closePath();
-    ctx.fill();
+    ctx.font = 'bold 16px "Font Awesome 5 Free"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('\uf0a1', x, y); // Bullhorn icon
 };
+
 
 const drawDbPreview = (ctx: CanvasRenderingContext2D, t: number) => {
     const w = ctx.canvas.width / (window.devicePixelRatio || 1);
@@ -121,7 +112,7 @@ const AnimatedCanvas = ({ newsId }: { newsId: string }) => {
         let animationFrameId: number;
         const loop = (t: number) => {
             if (newsId === 'database') drawDbPreview(ctx, t);
-            else if (newsId === 'announcement') drawNavPreview(ctx, t);
+            else if (newsId === 'announcement') drawAnnouncementPreview(ctx, t);
             else if (newsId === 'pro-tip') drawCreditPreview(ctx, t); // Using credit preview as an example for pro-tip
             animationFrameId = requestAnimationFrame(loop);
         };
