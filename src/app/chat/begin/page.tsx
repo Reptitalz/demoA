@@ -28,87 +28,45 @@ const drawNavPreview = (ctx: CanvasRenderingContext2D, t: number) => {
     const h = ctx.canvas.height / (window.devicePixelRatio || 1);
 
     ctx.clearRect(0, 0, w, h);
-    
-    const navHeight = 50;
-    const navY = (h - navHeight) / 2;
-    ctx.fillStyle = 'hsl(var(--card))';
-    ctx.strokeStyle = 'hsl(var(--border))';
-    ctx.lineWidth = 1;
+
+    const x = w / 2;
+    const floatY = Math.sin(t / 600) * 5;
+    const y = h / 2 + floatY;
+    const size = 20;
+
+    const highlightProgress = (Math.sin(t / 800) + 1) / 2;
+    const radius = size * 1.2 + 4 * highlightProgress;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
+    glow.addColorStop(0, `hsla(262, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - 80, y - 80, 160, 160);
+
+    ctx.fillStyle = 'hsl(var(--primary))';
     ctx.beginPath();
-    ctx.roundRect(w * 0.1, navY, w * 0.8, navHeight, 25);
+    ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
+    const iconSize = 7;
+    const iconY = y - 5;
+    ctx.beginPath();
+    ctx.rect(x - iconSize, iconY + iconSize/2, iconSize * 2, iconSize / 4);
+    ctx.rect(x - iconSize * 0.7, iconY - iconSize/2, iconSize / 3, iconSize);
+    ctx.rect(x - iconSize * 0.2, iconY - iconSize/2, iconSize / 3, iconSize);
+    ctx.rect(x + iconSize * 0.3, iconY - iconSize/2, iconSize / 3, iconSize);
+    ctx.moveTo(x - iconSize - 2, iconY - iconSize/2);
+    ctx.lineTo(x, iconY - iconSize * 1.2);
+    ctx.lineTo(x + iconSize + 2, iconY - iconSize/2);
+    ctx.closePath();
     ctx.stroke();
 
-    const icons = ['panel', 'clientes', 'banco', 'perfil'];
-    const iconCount = icons.length;
-    const totalWidth = w * 0.8;
-    const iconSpacing = totalWidth / iconCount;
 
-    const scrollSpeed = 20;
-    const scrollOffset = (t / 1000 * scrollSpeed) % (iconSpacing * iconCount);
-
-    const drawIconSet = (offset: number) => {
-        icons.forEach((icon, index) => {
-            let x = w * 0.1 + iconSpacing * (index + 0.5) - offset;
-             if (x < w * 0.1 - iconSpacing/2) {
-                x += iconSpacing * iconCount;
-            }
-
-            const y = navY + navHeight / 2;
-            const isHighlighted = icon === 'banco';
-
-            ctx.save();
-            ctx.textAlign = 'center';
-            
-            if (isHighlighted) {
-                const highlightProgress = (Math.sin(t / 800) + 1) / 2;
-                const radius = 18 + 2 * highlightProgress;
-                const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.5);
-                glow.addColorStop(0, `hsla(262, 80%, 58%, ${0.3 + highlightProgress * 0.2})`);
-                glow.addColorStop(1, 'transparent');
-                ctx.fillStyle = glow;
-                ctx.fillRect(x - 40, y - 40, 80, 80);
-
-                ctx.fillStyle = 'hsl(var(--primary))';
-                ctx.beginPath();
-                ctx.arc(x, y, 18, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.fillStyle = 'white';
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 1.5;
-                const iconSize = 7;
-                const iconY = y - 5;
-                ctx.fillRect(x - iconSize, iconY + iconSize/2, iconSize * 2, iconSize / 4);
-                ctx.fillRect(x - iconSize * 0.7, iconY - iconSize/2, iconSize / 3, iconSize);
-                ctx.fillRect(x - iconSize * 0.2, iconY - iconSize/2, iconSize / 3, iconSize);
-                ctx.fillRect(x + iconSize * 0.3, iconY - iconSize/2, iconSize / 3, iconSize);
-                ctx.beginPath();
-                ctx.moveTo(x - iconSize - 2, iconY - iconSize/2);
-                ctx.lineTo(x, iconY - iconSize * 1.2);
-                ctx.lineTo(x + iconSize + 2, iconY - iconSize/2);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.font = `bold 9px sans-serif`;
-                ctx.fillText('Banco', x, y + 12);
-            } else {
-                ctx.font = `12px sans-serif`;
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = 'hsl(var(--muted-foreground))';
-                ctx.fillText(icon.charAt(0).toUpperCase() + icon.slice(1), x, y);
-            }
-            
-            ctx.restore();
-        });
-    };
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(w * 0.1, navY, w * 0.8, navHeight);
-    ctx.clip();
-    drawIconSet(scrollOffset);
-    ctx.restore();
+    ctx.fillStyle = 'hsl(var(--foreground))';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('Gestión de Ganancias', x, y + size + 18);
 };
 
 const drawDbPreview = (ctx: CanvasRenderingContext2D, t: number) => {
