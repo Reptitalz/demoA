@@ -301,14 +301,19 @@ export const BankView = () => {
     );
 }
 
-const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
 
-    // Placeholder for payment history
-    const paymentHistory = [
-        { id: 1, date: '2024-07-28', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
-        { id: 2, date: '2024-07-21', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
-    ];
+    // This data is now self-contained and does not depend on the `credit` prop during initialization
+    const paymentHistory = useMemo(() => {
+        if (!credit) return [];
+        return [
+            { id: 1, date: '2024-07-28', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+            { id: 2, date: '2024-07-21', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+        ];
+    }, [credit]);
+    
+    if (!credit) return null;
 
     return (
         <>
@@ -367,6 +372,55 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any, is
     )
 }
 
+const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    // Demo data for completed credits
+    const completedCredits = [
+        { id: 4, client: 'Cliente D', amount: 1500, completedDate: '2024-07-15' },
+        { id: 5, client: 'Cliente E', amount: 2000, completedDate: '2024-06-30' },
+    ];
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+                <DialogHeader className="p-4 border-b">
+                    <DialogTitle className="flex items-center gap-2">
+                        <History className="h-5 w-5" /> Historial de Créditos Completados
+                    </DialogTitle>
+                    <DialogDescription>Aquí se muestran los créditos que han sido pagados en su totalidad.</DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 space-y-3">
+                        {completedCredits.length > 0 ? completedCredits.map(credit => (
+                            <Card key={credit.id}>
+                                <CardContent className="p-3 flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-green-500/10 rounded-full">
+                                            <CheckCircle className="h-5 w-5 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm">{credit.client}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Completado el {format(new Date(credit.completedDate), 'dd MMM, yyyy', { locale: es })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p className="font-bold text-green-600">${credit.amount.toFixed(2)}</p>
+                                </CardContent>
+                            </Card>
+                        )) : (
+                            <p className="text-center text-muted-foreground p-8">No hay créditos completados.</p>
+                        )}
+                    </div>
+                </ScrollArea>
+                <DialogFooter className="p-4 border-t">
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
 export const CreditView = () => {
     const { toast } = useToast();
     const [maxAmount, setMaxAmount] = useState(5000);
@@ -374,6 +428,7 @@ export const CreditView = () => {
     const [term, setTerm] = useState(12);
     const [selectedCredit, setSelectedCredit] = useState<any | null>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [isCompletedHistoryOpen, setIsCompletedHistoryOpen] = useState(false);
 
     const activeCredits = [
         { id: 1, client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15' },
@@ -454,7 +509,7 @@ export const CreditView = () => {
                     <Button 
                         variant="outline" 
                         className="w-full"
-                        onClick={() => toast({ title: "Próximamente", description: "El historial de créditos completados y no pagados estará disponible aquí."})}
+                        onClick={() => setIsCompletedHistoryOpen(true)}
                     >
                         <History className="mr-2 h-4 w-4" />
                         Ver Historial de Créditos
@@ -469,6 +524,10 @@ export const CreditView = () => {
                 onOpenChange={setIsHistoryOpen}
             />
         )}
+        <CompletedCreditsDialog
+            isOpen={isCompletedHistoryOpen}
+            onOpenChange={setIsCompletedHistoryOpen}
+        />
         </>
     );
 };
