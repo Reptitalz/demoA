@@ -40,7 +40,7 @@ const PhoneCanvas = () => {
     let tiltY = 0;
     let animationFrameId: number;
     
-    const phoneW = 250;
+    const phoneW = 220; // Reduced from 250
     const phoneH = phoneW * 2.1;
 
     const drawPhone = (rotationX: number, rotationY: number) => {
