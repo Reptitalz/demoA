@@ -1,4 +1,3 @@
-
 // src/components/chat/AddChatDialog.tsx
 "use client";
 
@@ -15,6 +14,7 @@ import { FaUser } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useContacts } from '@/hooks/useContacts';
 import { useRouter } from 'next/navigation';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 interface AddChatDialogProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ interface AddChatDialogProps {
 const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDialogProps) => {
   const [chatPath, setChatPath] = useState(initialChatPath);
   const [isVerifying, setIsVerifying] = useState(false);
-  const { addContact } = useContacts();
+  const { addContact, removeContact } = useContacts();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -36,7 +36,8 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
   }, [isOpen, initialChatPath]);
 
   const handleAddContact = async () => {
-    if (!chatPath.trim()) {
+    const trimmedChatPath = chatPath.trim();
+    if (!trimmedChatPath) {
       toast({
         title: "Campo requerido",
         description: "Por favor, ingresa el ID del chat del contacto.",
@@ -44,36 +45,58 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
       });
       return;
     }
+    
     setIsVerifying(true);
+    onOpenChange(false); // Close dialog immediately
+
+    // 1. Optimistically add the contact with placeholder data
+    const tempContact = {
+        chatPath: trimmedChatPath,
+        name: trimmedChatPath, // Use chatPath as temporary name
+        imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+    };
+    addContact(tempContact);
+    toast({
+        title: "Agregando Contacto...",
+        description: `Buscando a "${trimmedChatPath}".`,
+    });
+
     try {
-      const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath.trim())}`);
+      // 2. Verify the contact in the background
+      const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(trimmedChatPath)}`);
+      
       if (!res.ok) {
-        throw new Error('No se encontró ningún asistente o usuario con ese ID.');
+        throw new Error('No se encontró ningún usuario con ese ID.');
       }
+      
       const data = await res.json();
-      const userAsContact = data.assistant; // Endpoint returns a user/assistant profile
+      const verifiedContact = data.assistant;
 
+      // 3. Update the contact with real data
       await addContact({
-        chatPath: userAsContact.chatPath,
-        name: userAsContact.name,
-        imageUrl: userAsContact.imageUrl,
+        chatPath: verifiedContact.chatPath,
+        name: verifiedContact.name,
+        imageUrl: verifiedContact.imageUrl,
       });
 
       toast({
-        title: "Contacto Agregado",
-        description: `Has añadido a "${userAsContact.name}" a tus contactos.`,
+        title: "Contacto Verificado",
+        description: `Has añadido a "${verifiedContact.name}".`,
       });
-      onOpenChange(false);
-      setChatPath('');
-      router.replace('/chat/dashboard'); // Clean URL just in case
+
     } catch (error: any) {
+      // 4. If verification fails, remove the optimistic contact
       toast({
-        title: 'Error al agregar contacto',
+        title: 'Error al verificar contacto',
         description: error.message,
         variant: 'destructive',
       });
+      await removeContact(trimmedChatPath); // Remove by chatPath
     } finally {
+      // 5. Reset state
       setIsVerifying(false);
+      setChatPath('');
+      router.replace('/chat/dashboard'); // Clean URL just in case
     }
   };
   
