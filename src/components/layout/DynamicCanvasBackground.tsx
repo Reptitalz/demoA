@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback } from 'react';
-import { useTheme } from 'next-themes';
+
+type ParticleType = 'circle' | 'heart' | 'bubble';
 
 interface Particle {
   x: number;
@@ -12,7 +13,34 @@ interface Particle {
   alpha: number;
   vx: number;
   vy: number;
+  type: ParticleType;
 }
+
+const drawHeart = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    const topCurveHeight = size * 0.3;
+    ctx.moveTo(x, y + topCurveHeight);
+    // Top left curve
+    ctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + topCurveHeight);
+    // Bottom left curve
+    ctx.bezierCurveTo(x - size / 2, y + (size + topCurveHeight) / 2, x, y + (size + topCurveHeight) / 2, x, y + size);
+    // Bottom right curve
+    ctx.bezierCurveTo(x, y + (size + topCurveHeight) / 2, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
+    // Top right curve
+    ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
+    ctx.closePath();
+    ctx.fill();
+};
+
+const drawBubble = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x - size, y - size, size * 2, size * 1.5, size * 0.5);
+    ctx.closePath();
+    ctx.fill();
+};
+
 
 const DynamicCanvasBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,18 +58,21 @@ const DynamicCanvasBackground: React.FC = () => {
     
     const { clientWidth: w, clientHeight: h } = canvas;
     const rand = (min: number, max: number) => Math.random() * (max - min) + min;
-    const numberOfParticles = Math.floor((w * h) / 45000);
+    const numberOfParticles = Math.floor((w * h) / 35000);
+    const particleTypes: ParticleType[] = ['heart', 'bubble', 'circle'];
     
     particles.current = [];
     for (let i = 0; i < numberOfParticles; i++) {
+        const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
         particles.current.push({
             x: rand(0, w),
             y: rand(0, h),
-            radius: rand(8, 20),
-            hue: rand(200, 260),
+            radius: rand(5, 15),
+            hue: rand(200, 300),
             alpha: rand(0.1, 0.4),
-            vx: rand(-0.1, 0.1),
-            vy: rand(-0.1, 0.1),
+            vx: rand(-0.15, 0.15),
+            vy: rand(-0.15, 0.15),
+            type: type
         });
     }
   }, []);
@@ -54,17 +85,14 @@ const DynamicCanvasBackground: React.FC = () => {
 
     const { clientWidth: w, clientHeight: h } = canvas;
     
-    // Clear canvas
     ctx.clearRect(0, 0, w, h);
 
-    // Theme-aware gradient backdrop
     const g = ctx.createLinearGradient(0, 0, w, h);
     g.addColorStop(0, "rgba(240, 245, 255, 0.9)");
     g.addColorStop(1, "rgba(230, 235, 250, 0.75)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
-    // Draw and update particles
     particles.current.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
@@ -74,27 +102,41 @@ const DynamicCanvasBackground: React.FC = () => {
         if (p.y - p.radius > h) p.y = -p.radius;
         if (p.y + p.radius < 0) p.y = h + p.radius;
 
-        const floatY = Math.sin(time / (1000 + p.radius * 20)) * 2;
+        const floatY = Math.sin(time / (1000 + p.radius * 20)) * 5;
+        const particleColor = `hsla(${p.hue}, 80%, 70%, ${p.alpha})`;
+
+        ctx.save();
+        ctx.translate(p.x, p.y + floatY);
         
-        const grd = ctx.createRadialGradient(p.x, p.y + floatY, 0, p.x, p.y + floatY, p.radius * 2);
-        grd.addColorStop(0, `hsla(${p.hue},80%,70%,${p.alpha})`);
-        grd.addColorStop(0.4, `hsla(${(p.hue + 40) % 360},70%,60%,${p.alpha * 0.5})`);
-        grd.addColorStop(1, `rgba(0,0,0,0)`);
-        
-        ctx.beginPath();
-        ctx.fillStyle = grd;
-        ctx.arc(p.x, p.y + floatY, p.radius, 0, Math.PI * 2);
-        ctx.fill();
+        switch (p.type) {
+            case 'heart':
+                drawHeart(ctx, 0, 0, p.radius, particleColor);
+                break;
+            case 'bubble':
+                drawBubble(ctx, 0, 0, p.radius, particleColor);
+                break;
+            case 'circle':
+            default:
+                const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, p.radius * 2);
+                grd.addColorStop(0, `hsla(${p.hue}, 80%, 70%, ${p.alpha})`);
+                grd.addColorStop(0.5, `hsla(${(p.hue + 40) % 360}, 70%, 60%, ${p.alpha * 0.5})`);
+                grd.addColorStop(1, `rgba(0,0,0,0)`);
+                ctx.fillStyle = grd;
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+        }
+        ctx.restore();
     });
     
-    // Draw animated grid
-    const gridSize = 48;
-    const scrollSpeed = 0.05;
+    const gridSize = 50;
+    const scrollSpeed = 0.04;
     const offsetX = (time * scrollSpeed) % gridSize;
     const offsetY = (time * scrollSpeed) % gridSize;
 
-    ctx.strokeStyle = "hsla(220, 40%, 50%, 0.08)";
-    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = "hsla(220, 40%, 50%, 0.07)";
+    ctx.lineWidth = 1;
     for (let x = -offsetX; x < w; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
