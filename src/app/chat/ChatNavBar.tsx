@@ -77,7 +77,7 @@ const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
         const deltaX = touchEndX.current - touchStartX.current;
         const deltaY = touchEndY.current - touchStartY.current;
 
-        if (Math.abs(deltaX) > 75 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+        if (Math.abs(deltaX) > 100 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) { // Increased from 75 to 100
             const currentIndex = navItems.findIndex(item => pathname.startsWith(item.href));
             if (currentIndex === -1) return;
 

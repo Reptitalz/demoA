@@ -104,14 +104,14 @@ export default function DashboardLayout({
         const deltaY = touchEndY.current - touchStartY.current;
 
         // Ensure it's a horizontal swipe and not a vertical scroll
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 75) {
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) { // Increased from 75 to 100
             const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
             if (currentIndex === -1) return;
 
-            if (deltaX < -75) { // Swiped left
+            if (deltaX < -100) { // Swiped left
                 const nextIndex = (currentIndex + 1) % menuItems.length;
                 handleRouteChange(menuItems[nextIndex].path);
-            } else if (deltaX > 75) { // Swiped right
+            } else if (deltaX > 100) { // Swiped right
                 const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
                 handleRouteChange(menuItems[prevIndex].path);
             }
