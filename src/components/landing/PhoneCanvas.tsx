@@ -164,17 +164,17 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     const bubbleX = isUser ? screenX + screenW - animatedWidth - padding : screenX + padding;
     
     ctx.globalAlpha = easedProgress;
-    ctx.fillStyle = isUser ? "hsl(262, 80%, 58%)" : "#FFFFFF"; // primary color for user
+    ctx.fillStyle = isUser ? "#dcf8c6" : "#FFFFFF";
     
     ctx.beginPath();
-    ctx.roundRect(bubbleX, yPos, animatedWidth, bubbleHeight, 8);
+    ctx.roundRect(bubbleX, yPos, animatedWidth, bubbleHeight, 12);
     ctx.fill();
     
     if (progress > 0.8) {
         ctx.globalAlpha = (progress - 0.8) * 5;
-        ctx.fillStyle = isUser ? "#FFFFFF" : "hsl(224, 71%, 4%)"; // primary-foreground and foreground
-        ctx.textAlign = isUser ? "right" : "left";
-        const textX = isUser ? bubbleX + animatedWidth - bubblePadding : bubbleX + bubblePadding;
+        ctx.fillStyle = "#111"; // Black text for both
+        ctx.textAlign = "left"; // Always align left for wrapped text
+        const textX = bubbleX + bubblePadding;
         
         for (let i = 0; i < lines.length; i++) {
             ctx.fillText(lines[i], textX, yPos + bubblePadding + (i * lineHeight) + 3);
@@ -199,7 +199,7 @@ function drawTypingIndicator(ctx: CanvasRenderingContext2D, screenX: number, yPo
     ctx.fillStyle = "#FFFFFF";
     
     ctx.beginPath();
-    ctx.roundRect(screenX + padding, yPos + yOffset, bubbleWidth, bubbleHeight, 8);
+    ctx.roundRect(screenX + padding, yPos + yOffset, bubbleWidth, bubbleHeight, 12);
     ctx.fill();
     
     for (let i = 0; i < 3; i++) {
