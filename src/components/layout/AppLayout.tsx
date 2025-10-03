@@ -1,3 +1,4 @@
+
 "use client"; 
 import type { ReactNode } from 'react';
 import Header from '@/components/layout/Header';
@@ -13,7 +14,7 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
-  const isMarketingPage = ['/', '/begin', '/terms', '/privacy', '/colaboradores', '/make', '/try', '/access'].includes(pathname);
+  const isMarketingPage = ['/', '/begin', '/terms', '/privacy', '/colaboradores', '/make', '/try', '/access', '/whatsapp'].includes(pathname);
   
   return (
     <div className={cn("min-h-screen flex flex-col text-foreground bg-background")}>
