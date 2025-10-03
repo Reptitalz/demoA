@@ -14,38 +14,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { cn } from '@/lib/utils';
 
 const CreditPackagesCarousel = () => {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            if (scrollRef.current) {
-                const scrollLeft = scrollRef.current.scrollLeft;
-                const cardWidth = scrollRef.current.offsetWidth;
-                if (cardWidth > 0) {
-                    const newIndex = Math.round(scrollLeft / cardWidth);
-                    setActiveIndex(newIndex);
-                }
-            }
-        };
-
-        const scroller = scrollRef.current;
-        if (scroller) {
-            scroller.addEventListener('scroll', handleScroll, { passive: true });
-            return () => scroller.removeEventListener('scroll', handleScroll);
-        }
-    }, []);
-
     return (
-        <div className="w-full">
-            <div
-                ref={scrollRef}
-                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
-            >
-                {CREDIT_PACKAGES.map((pkg, index) => {
+        <div
+            className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
+        >
+            <ul className="flex items-center justify-center md:justify-start [&_li]:mx-2 animate-scroll">
+                {[...CREDIT_PACKAGES, ...CREDIT_PACKAGES].map((pkg, index) => {
                     const messages = Math.floor(pkg.credits * MESSAGES_PER_CREDIT);
                     return (
-                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                        <li key={index} className="flex-shrink-0 w-64 p-2">
                              <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card h-full flex flex-col">
                                 <CardHeader>
                                     <CardTitle className="text-2xl font-bold">{pkg.name}</CardTitle>
@@ -64,28 +41,10 @@ const CreditPackagesCarousel = () => {
                                     <p className="text-xs text-muted-foreground">Ideal para empezar a automatizar.</p>
                                 </CardFooter>
                             </Card>
-                        </div>
+                        </li>
                     );
                 })}
-            </div>
-             <div className="flex justify-center mt-4 space-x-2">
-                {CREDIT_PACKAGES.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => {
-                            if (scrollRef.current) {
-                                const cardWidth = scrollRef.current.offsetWidth;
-                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                            }
-                        }}
-                        className={cn(
-                            "h-2 w-2 rounded-full transition-all",
-                            activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
-                        )}
-                        aria-label={`Ir al paquete ${index + 1}`}
-                    />
-                ))}
-            </div>
+            </ul>
         </div>
     );
 };
@@ -163,11 +122,11 @@ const WhatsAppPage = () => {
       </section>
 
       <section className="py-20 bg-background">
-          <div className="container max-w-4xl mx-auto px-4 text-center">
+          <div className="container max-w-6xl mx-auto px-4 text-center">
               <h2 className="text-3xl font-bold tracking-tight">Planes para WhatsApp</h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Elige el plan que se adapte al tamaño y las necesidades de tu negocio.</p>
               
-              <div className="mt-10 max-w-lg mx-auto">
+              <div className="mt-10">
                 <CreditPackagesCarousel />
                  <div className="mt-8 text-center">
                       <p className="text-xs text-muted-foreground mb-2">Paga de forma segura con Mercado Pago.</p>
