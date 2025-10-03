@@ -47,7 +47,7 @@ const PhoneCanvas = () => {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
         const x = (w - phoneW) / 2;
-        const y = (h - phoneH) / 2;
+        const y = (h - phoneH) / 2 - 20; // Adjusted for better centering
         const borderRadius = 40;
 
         ctx.save();
@@ -85,7 +85,7 @@ const PhoneCanvas = () => {
         // Notch
         ctx.fillStyle = "#111";
         ctx.beginPath();
-        ctx.roundRect(x + phoneW / 2 - 50, y + margin, 100, 25, 12);
+        ctx.roundRect(x + phoneW / 2 - 25, y, 50, 8, 5);
         ctx.fill();
         
         ctx.save();
@@ -122,17 +122,23 @@ const PhoneCanvas = () => {
 };
 
 function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, frame: number) {
-    const headerH = 50;
-    const footerH = 55;
+    const headerH = 40;
+    const footerH = 45;
     const padding = 10;
     
     // Header
     ctx.fillStyle = "#075E54";
     ctx.fillRect(x, y, w, headerH);
     ctx.fillStyle = "white";
-    ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Mi Pizzería", x + w / 2, y + headerH / 2 + 5);
+    ctx.font = "bold 12px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Mi Pizzería", x + padding + 30, y + headerH / 2 + 4);
+    
+    // Avatar in header
+    ctx.fillStyle = "#ccc";
+    ctx.beginPath();
+    ctx.arc(x + padding + 12, y + headerH / 2, 12, 0, Math.PI * 2);
+    ctx.fill();
 
     // Messages
     const contentY = y + headerH;
@@ -145,7 +151,7 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
     
     drawBubble(ctx, "Hola, me interesa una pizza.", true, x, contentY + 20, w, frame, 0, padding);
     drawTypingIndicator(ctx, x, contentY + 70, w, frame, 60, padding);
-    drawBubble(ctx, "¡Claro! ¿Qué pizza te gustaría ordenar?", false, x, contentY + 70, w, frame, 140, padding);
+    drawBubble(ctx, "¡Claro! La de peperoni cuesta $150.", false, x, contentY + 70, w, frame, 140, padding);
 
     ctx.restore();
 
@@ -157,13 +163,13 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
     // Input field
     ctx.fillStyle = "white";
     ctx.beginPath();
-    ctx.roundRect(x + padding, footerY + 10, w - (padding * 2) - 45, footerH - 20, 20);
+    ctx.roundRect(x + padding, footerY + 8, w - (padding * 2) - 40, footerH - 16, 15);
     ctx.fill();
     
     // Send button
     ctx.fillStyle = "#128C7E";
     ctx.beginPath();
-    ctx.arc(x + w - padding - 20, footerY + footerH / 2, 18, 0, Math.PI * 2);
+    ctx.arc(x + w - padding - 18, footerY + footerH / 2, 16, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -171,11 +177,11 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     const progress = Math.max(0, Math.min(1, (frame - delay) / 30));
     if (progress === 0) return;
 
-    ctx.font = "12px sans-serif";
+    ctx.font = "11px sans-serif";
     const textMetrics = ctx.measureText(text);
     const textWidth = textMetrics.width;
-    const bubbleWidth = textWidth + 20;
-    const bubbleHeight = 35;
+    const bubbleWidth = textWidth + 16;
+    const bubbleHeight = 30;
     
     const easedProgress = 1 - Math.pow(1 - progress, 3);
     const animatedWidth = bubbleWidth * easedProgress;
@@ -186,14 +192,14 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     ctx.fillStyle = isUser ? "#DCF8C6" : "#FFFFFF";
     
     ctx.beginPath();
-    ctx.roundRect(bubbleX, yPos, animatedWidth, bubbleHeight, 10);
+    ctx.roundRect(bubbleX, yPos, animatedWidth, bubbleHeight, 8);
     ctx.fill();
     
     if (progress > 0.8) {
         ctx.globalAlpha = (progress - 0.8) * 5;
         ctx.fillStyle = "#111";
         ctx.textAlign = isUser ? "right" : "left";
-        const textX = isUser ? bubbleX + animatedWidth - 10 : bubbleX + 10;
+        const textX = isUser ? bubbleX + animatedWidth - 8 : bubbleX + 8;
         ctx.fillText(text, textX, yPos + bubbleHeight / 2 + 4);
     }
     ctx.globalAlpha = 1;
@@ -207,23 +213,23 @@ function drawTypingIndicator(ctx: CanvasRenderingContext2D, screenX: number, yPo
     const alpha = startProgress * (1 - endProgress);
     if (alpha <= 0) return;
 
-    const bubbleWidth = 60;
-    const bubbleHeight = 35;
+    const bubbleWidth = 50;
+    const bubbleHeight = 30;
     const yOffset = (1 - startProgress) * 10;
     
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "#FFFFFF";
     
     ctx.beginPath();
-    ctx.roundRect(screenX + padding, yPos + yOffset, bubbleWidth, bubbleHeight, 10);
+    ctx.roundRect(screenX + padding, yPos + yOffset, bubbleWidth, bubbleHeight, 8);
     ctx.fill();
     
     for (let i = 0; i < 3; i++) {
         const dotPhase = (frame - (delay + 15 + i * 10)) / 20;
-        const dotYOffset = Math.sin(dotPhase * Math.PI) * -2.5;
+        const dotYOffset = Math.sin(dotPhase * Math.PI) * -2;
         ctx.fillStyle = `rgba(0, 0, 0, 0.4)`;
         ctx.beginPath();
-        ctx.arc(screenX + padding + 18 + i * 12, yPos + bubbleHeight / 2 + dotYOffset, 3, 0, Math.PI * 2);
+        ctx.arc(screenX + padding + 15 + i * 10, yPos + bubbleHeight / 2 + dotYOffset, 2.5, 0, Math.PI * 2);
         ctx.fill();
     }
     
