@@ -2,7 +2,7 @@
 "use client";
 
 import { useApp } from "@/providers/AppProvider";
-import { FaRobot, FaPlus } from "react-icons/fa";
+import { FaRobot, FaPlus, FaWallet, FaRegCommentDots, FaStar } from "react-icons/fa";
 import { useState } from 'react';
 import RechargeCreditsDialog from './RechargeCreditsDialog';
 import { MESSAGES_PER_CREDIT } from "@/config/appConfig";
@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
 import MessagesInfoDialog from "./MessagesInfoDialog";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import PlansDialog from "./PlansDialog"; // Import the new dialog
-import { FaStar, FaWallet, FaRegCommentDots } from "react-icons/fa";
+import PlansDialog from "./PlansDialog";
 
 interface DashboardSummaryProps {
   currentPath: string;
@@ -24,15 +23,15 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [isMessagesInfoOpen, setIsMessagesInfoOpen] = useState(false);
-  const [isPlansOpen, setIsPlansOpen] = useState(false); // State for the new dialog
+  const [isPlansOpen, setIsPlansOpen] = useState(false);
 
   const isDemoMode = !isAuthenticated;
 
-  // Calculate total messages from credits
+  // Filter for WhatsApp assistants only
+  const whatsAppAssistants = assistants.filter(a => a.type === 'whatsapp');
+
   const totalMessagesFromCredits = (credits || 0) * MESSAGES_PER_CREDIT;
-  // Calculate total consumed messages from all assistants (you might want to specify this to only whatsapp or all)
-  const totalConsumedMessages = assistants.reduce((sum, asst) => sum + (asst.messageCount || 0), 0);
-  // The final available messages is the difference
+  const totalConsumedMessages = whatsAppAssistants.reduce((sum, asst) => sum + (asst.messageCount || 0), 0);
   const availableMessages = totalMessagesFromCredits - totalConsumedMessages;
 
   const handleRechargeClick = () => {
@@ -41,7 +40,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
     } else {
       setIsRechargeOpen(true);
     }
-  }
+  };
 
   const handlePlansClick = () => {
     if (isDemoMode) {
@@ -51,23 +50,23 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
     }
   };
   
-  // Hide all summary cards if on the databases page.
   if (currentPath.endsWith('/databases')) {
     return null;
   }
 
-  const allSummaryCards = [
-    { id: 'assistants', title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
+  const summaryCards = [
+    { id: 'assistants', title: 'Asistentes WA', value: whatsAppAssistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
+    { id: 'plans', title: 'Planes WA', value: purchasedUnlimitedPlans || 0, description: 'Planes ilimitados', icon: FaStar, color: 'text-yellow-500', action: handlePlansClick },
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: FaWallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 mb-2">
-        {allSummaryCards.map((card, index) => {
+      <div className="grid grid-cols-3 gap-2 mb-2">
+        {summaryCards.map((card, index) => {
            const Icon = card.icon;
            
-           if (card.id === 'credits') {
+           if (card.id === 'credits' || card.id === 'plans') {
              return (
                <div key={index} className="relative p-0.5 rounded-lg bg-brand-gradient shiny-border cursor-pointer" onClick={card.action}>
                   <div 
@@ -117,7 +116,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
             <FaRegCommentDots className="h-6 w-6 text-green-500" />
             <div>
             <h3 className="font-semibold text-sm">Mensajes</h3>
-            <p className="text-xs text-muted-foreground">Disponibles</p>
+            <p className="text-xs text-muted-foreground">Disponibles (WhatsApp)</p>
             </div>
         </div>
         <p className="text-2xl font-bold text-foreground">{availableMessages.toLocaleString()}</p>
