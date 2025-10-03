@@ -76,7 +76,7 @@ const PhoneCanvas = () => {
         const screenX = x + margin;
         const screenY = y + margin;
         
-        ctx.fillStyle = "#E0F2E0"; // WhatsApp-like background
+        ctx.fillStyle = "hsl(220, 20%, 98%)"; // background
         ctx.beginPath();
         ctx.roundRect(screenX, screenY, screenW, screenH, 28);
         ctx.fill();
@@ -164,7 +164,7 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     const bubbleX = isUser ? screenX + screenW - animatedWidth - padding : screenX + padding;
     
     ctx.globalAlpha = easedProgress;
-    ctx.fillStyle = isUser ? "#DCF8C6" : "#FFFFFF";
+    ctx.fillStyle = isUser ? "hsl(262, 80%, 58%)" : "#FFFFFF"; // primary color for user
     
     ctx.beginPath();
     ctx.roundRect(bubbleX, yPos, animatedWidth, bubbleHeight, 8);
@@ -172,7 +172,7 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     
     if (progress > 0.8) {
         ctx.globalAlpha = (progress - 0.8) * 5;
-        ctx.fillStyle = "#111";
+        ctx.fillStyle = isUser ? "#FFFFFF" : "hsl(224, 71%, 4%)"; // primary-foreground and foreground
         ctx.textAlign = isUser ? "right" : "left";
         const textX = isUser ? bubbleX + animatedWidth - bubblePadding : bubbleX + bubblePadding;
         
@@ -221,15 +221,15 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
     const padding = 10;
     
     // Header
-    ctx.fillStyle = "#075E54";
+    ctx.fillStyle = "hsl(var(--card))";
     ctx.fillRect(x, y, w, headerH);
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "hsl(var(--card-foreground))";
     ctx.font = "bold 12px sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("Mi Pizzería", x + padding + 30, y + headerH / 2 + 4);
     
     // Avatar in header
-    ctx.fillStyle = "#ccc";
+    ctx.fillStyle = "hsl(var(--muted))";
     ctx.beginPath();
     ctx.arc(x + padding + 12, y + headerH / 2, 12, 0, Math.PI * 2);
     ctx.fill();
@@ -255,7 +255,7 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
 
     // Footer
     const footerY = y + h - footerH;
-    ctx.fillStyle = "#F0F0F0";
+    ctx.fillStyle = "hsl(var(--muted))";
     ctx.fillRect(x, footerY, w, footerH);
     
     // Input field
@@ -265,7 +265,7 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
     ctx.fill();
     
     // Send button
-    ctx.fillStyle = "#128C7E";
+    ctx.fillStyle = "hsl(var(--primary))";
     ctx.beginPath();
     ctx.arc(x + w - padding - 18, footerY + footerH / 2, 16, 0, Math.PI * 2);
     ctx.fill();
@@ -273,5 +273,3 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
 
 
 export default PhoneCanvas;
-
-    
