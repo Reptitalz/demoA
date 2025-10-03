@@ -13,7 +13,7 @@ import { HandCoins, ShoppingCart } from 'lucide-react';
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import PhoneCanvas from '@/components/landing/PhoneCanvas';
+import PhoneMockup from '@/components/landing/PhoneMockup';
 
 
 const tools = [
@@ -153,12 +153,12 @@ const NewHomepage = () => {
                   </div>
               </motion.div>
               <motion.div 
-                className="h-[500px] w-full max-w-sm mx-auto"
+                className="h-[500px] w-full max-w-sm mx-auto flex items-center justify-center"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                >
-                  <PhoneCanvas />
+                  <PhoneMockup />
               </motion.div>
           </div>
       </section>
