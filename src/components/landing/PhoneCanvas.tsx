@@ -67,7 +67,10 @@ const PhoneCanvas = () => {
 
         // Reflective glare
         ctx.save();
-        ctx.clip(new Path2D(ctx.roundRect(x,y, phoneW, phoneH, 40).roundRect));
+        const clipPath = new Path2D();
+        clipPath.roundRect(x,y, phoneW, phoneH, 40);
+        ctx.clip(clipPath);
+
         ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
         ctx.beginPath();
         ctx.ellipse(x + phoneW * 0.8 + (tiltX * -40), y + phoneH * 0.2 + (tiltY * -40), 100, 200, Math.PI / 4, 0, Math.PI * 2);
@@ -176,11 +179,23 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     ctx.globalAlpha = easedProgress;
 
     // Draw Avatar
-    ctx.fillStyle = isUser ? "hsl(var(--secondary))" : "hsl(var(--muted))";
-    const avatarX = isUser ? screenX + screenW - padding - avatarSize / 2 : screenX + padding + avatarSize / 2;
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(avatarX, yPos + bubbleHeight - avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.fill();
+    const avatarX = isUser ? screenX + screenW - padding - avatarSize / 2 : screenX + padding + avatarSize / 2;
+    const avatarY = yPos + bubbleHeight - avatarSize / 2
+    ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = isUser ? "hsl(var(--secondary))" : "hsl(var(--muted))";
+    ctx.fillRect(avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize);
+    // You would draw an actual icon/image here
+    // For demo, just a placeholder letter or icon
+    ctx.fillStyle = isUser ? 'hsl(var(--secondary-foreground))' : 'hsl(var(--muted-foreground))';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(isUser ? 'U' : 'B', avatarX, avatarY);
+    ctx.restore();
+
 
     // Draw Bubble
     ctx.fillStyle = isUser ? "hsl(var(--primary))" : "hsl(var(--card))";
@@ -198,7 +213,7 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
         const textX = bubbleX + bubblePadding;
         
         for (let i = 0; i < lines.length; i++) {
-            ctx.fillText(lines[i], textX, yPos + bubblePadding + (i * lineHeight));
+            ctx.fillText(lines[i], textX, yPos + bubblePadding + (i * lineHeight) + lineHeight/2);
         }
     }
     ctx.globalAlpha = 1;
@@ -221,10 +236,21 @@ function drawTypingIndicator(ctx: CanvasRenderingContext2D, screenX: number, yPo
     ctx.globalAlpha = alpha;
 
     // Avatar
-    ctx.fillStyle = "hsl(var(--muted))";
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(screenX + padding + avatarSize / 2, yPos + bubbleHeight - avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.fill();
+    const avatarX = screenX + padding + avatarSize / 2;
+    const avatarY = yPos + bubbleHeight - avatarSize / 2;
+    ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = "hsl(var(--muted))";
+    ctx.fillRect(avatarX-avatarSize/2, avatarY - avatarSize/2, avatarSize, avatarSize);
+    ctx.fillStyle = 'hsl(var(--muted-foreground))';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('B', avatarX, avatarY);
+    ctx.restore();
+
 
     // Bubble
     ctx.fillStyle = "hsl(var(--card))";
@@ -263,16 +289,28 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
     ctx.stroke();
 
     // Avatar in header
-    ctx.fillStyle = "hsl(var(--muted))";
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(x + padding + 12, y + headerH / 2, 12, 0, Math.PI * 2);
-    ctx.fill();
+    const avatarX = x + padding + 12;
+    const avatarY = y + headerH / 2;
+    ctx.arc(avatarX, avatarY, 12, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = "hsl(var(--muted))";
+    ctx.fillRect(avatarX - 12, avatarY - 12, 24, 24);
+    ctx.fillStyle = 'hsl(var(--muted-foreground))';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('B', avatarX, avatarY);
+    ctx.restore();
+
 
     // Bot name in header
     ctx.fillStyle = "hsl(var(--card-foreground))";
     ctx.font = "bold 11px sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("Mi Pizzería", x + padding + 30, y + headerH / 2 + 4);
+    ctx.textBaseline = "middle";
+    ctx.fillText("Mi Pizzería", x + padding + 30, y + headerH / 2);
 
     // Messages
     const contentY = y + headerH;
