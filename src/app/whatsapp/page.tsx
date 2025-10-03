@@ -10,7 +10,7 @@ import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversi
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const CreditPackagesCarousel = () => {
