@@ -47,8 +47,7 @@ const PhoneCanvas = () => {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
         const x = (w - phoneW) / 2;
-        const y = (h - phoneH) / 2 - 20; // Adjusted for better centering
-        const borderRadius = 40;
+        const y = (h - phoneH) / 2 - 20;
 
         ctx.save();
         ctx.translate(w / 2, h / 2);
@@ -66,7 +65,7 @@ const PhoneCanvas = () => {
         phoneGradient.addColorStop(1, '#e0e0e0');
         ctx.fillStyle = phoneGradient;
         ctx.beginPath();
-        ctx.roundRect(x, y, phoneW, phoneH, borderRadius);
+        ctx.roundRect(x, y, phoneW, phoneH, 40);
         ctx.fill();
         
         // Screen
@@ -150,8 +149,12 @@ function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, 
     ctx.clip();
     
     drawBubble(ctx, "Hola, me interesa una pizza.", true, x, contentY + 20, w, frame, 0, padding);
-    drawTypingIndicator(ctx, x, contentY + 70, w, frame, 60, padding);
-    drawBubble(ctx, "¡Claro! La de peperoni cuesta $150.", false, x, contentY + 70, w, frame, 140, padding);
+    drawTypingIndicator(ctx, x, contentY + 60, w, frame, 60, padding);
+    drawBubble(ctx, "¡Claro! Tenemos Peperoni, Hawaiana y Mexicana.", false, x, contentY + 60, w, frame, 140, padding);
+    drawBubble(ctx, "Quiero la de peperoni.", true, x, contentY + 100, w, frame, 200, padding);
+    drawTypingIndicator(ctx, x, contentY + 140, w, frame, 260, padding);
+    drawBubble(ctx, "Excelente elección. El costo es de $150. ¿Deseas confirmar tu pedido?", false, x, contentY + 140, w, frame, 340, padding);
+
 
     ctx.restore();
 
@@ -177,11 +180,11 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     const progress = Math.max(0, Math.min(1, (frame - delay) / 30));
     if (progress === 0) return;
 
-    ctx.font = "11px sans-serif";
+    ctx.font = "10px sans-serif";
     const textMetrics = ctx.measureText(text);
     const textWidth = textMetrics.width;
     const bubbleWidth = textWidth + 16;
-    const bubbleHeight = 30;
+    const bubbleHeight = 26;
     
     const easedProgress = 1 - Math.pow(1 - progress, 3);
     const animatedWidth = bubbleWidth * easedProgress;
@@ -200,7 +203,7 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
         ctx.fillStyle = "#111";
         ctx.textAlign = isUser ? "right" : "left";
         const textX = isUser ? bubbleX + animatedWidth - 8 : bubbleX + 8;
-        ctx.fillText(text, textX, yPos + bubbleHeight / 2 + 4);
+        ctx.fillText(text, textX, yPos + bubbleHeight / 2 + 3);
     }
     ctx.globalAlpha = 1;
 }
@@ -214,7 +217,7 @@ function drawTypingIndicator(ctx: CanvasRenderingContext2D, screenX: number, yPo
     if (alpha <= 0) return;
 
     const bubbleWidth = 50;
-    const bubbleHeight = 30;
+    const bubbleHeight = 26;
     const yOffset = (1 - startProgress) * 10;
     
     ctx.globalAlpha = alpha;
