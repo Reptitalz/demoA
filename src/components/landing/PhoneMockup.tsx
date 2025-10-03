@@ -29,6 +29,7 @@ const ChatBubble = ({ from, text, isTyping }: { from: 'user' | 'bot'; text: stri
     >
       {!isUser && (
         <Avatar className="h-6 w-6">
+           <AvatarImage src="/heymanito.svg" alt="Bot Avatar" />
           <AvatarFallback><FaRobot /></AvatarFallback>
         </Avatar>
       )}
@@ -61,24 +62,68 @@ const ChatBubble = ({ from, text, isTyping }: { from: 'user' | 'bot'; text: stri
 
 
 const PhoneMockup = () => {
-    const [messages, setMessages] = React.useState(conversation.slice(0, 1));
+    const [messages, setMessages] = React.useState<typeof conversation>([]);
+    const [typingText, setTypingText] = React.useState('');
   
     React.useEffect(() => {
-      let index = 1;
-      const interval = setInterval(() => {
-        if (index < conversation.length) {
-          setMessages(prev => [...prev, conversation[index]]);
-          index++;
+      let messageIndex = 0;
+      let typingInterval: NodeJS.Timeout;
+      let messageInterval: NodeJS.Timeout;
+
+      const typeMessage = (msg: typeof conversation[0]) => {
+          if (msg.from !== 'user') return;
+          let charIndex = 0;
+          typingInterval = setInterval(() => {
+              if (charIndex < msg.text.length) {
+                  setTypingText(msg.text.substring(0, charIndex + 1));
+                  charIndex++;
+              } else {
+                  clearInterval(typingInterval);
+              }
+          }, 50); // Typing speed
+      }
+
+      const showNextMessage = () => {
+        if (messageIndex < conversation.length) {
+            const currentMsg = conversation[messageIndex];
+            
+            if (currentMsg.from === 'user') {
+                typeMessage(currentMsg);
+                // Wait for typing to finish before showing the message bubble
+                setTimeout(() => {
+                    setMessages(prev => [...prev, currentMsg]);
+                    setTypingText('');
+                    messageIndex++;
+                    scheduleNext();
+                }, 50 * currentMsg.text.length + 500); // 50ms per char + 0.5s pause
+            } else {
+                 setMessages(prev => [...prev, currentMsg]);
+                 messageIndex++;
+                 scheduleNext();
+            }
+
         } else {
-          // Restart animation
+          // Restart animation after a delay
           setTimeout(() => {
-            setMessages(conversation.slice(0, 1));
-            index = 1;
-          }, 3000);
+            setMessages([]);
+            messageIndex = 0;
+            scheduleNext();
+          }, 4000);
         }
-      }, 2000);
+      };
+      
+      const scheduleNext = () => {
+          const currentMsg = conversation[messageIndex -1];
+          const delay = currentMsg?.isTyping ? 1500 : (currentMsg?.text.length || 20) * 40;
+          messageInterval = setTimeout(showNextMessage, delay);
+      }
+
+      showNextMessage();
   
-      return () => clearInterval(interval);
+      return () => {
+          clearInterval(typingInterval);
+          clearTimeout(messageInterval);
+      }
     }, []);
 
   return (
@@ -91,6 +136,7 @@ const PhoneMockup = () => {
         {/* Header */}
         <div className="flex-shrink-0 p-3 bg-card/80 backdrop-blur-sm border-b z-10 flex items-center gap-2">
             <Avatar className="h-8 w-8">
+              <AvatarImage src="/heymanito.svg" alt="Bot Avatar" />
               <AvatarFallback><FaRobot /></AvatarFallback>
             </Avatar>
             <div>
@@ -103,16 +149,18 @@ const PhoneMockup = () => {
         <div className="flex-grow p-3 flex flex-col gap-3 overflow-y-auto">
             <AnimatePresence>
                 {messages.map((msg, i) => (
-                    msg && <ChatBubble key={i} from={msg.from as 'user' | 'bot'} text={msg.text} isTyping={msg.isTyping} />
+                    msg && <ChatBubble key={i} from={msg.from as 'user' | 'bot'} text={msg.text} isTyping={!!msg.isTyping} />
                 ))}
             </AnimatePresence>
         </div>
 
         {/* Footer */}
         <div className="flex-shrink-0 p-2 bg-card/80 backdrop-blur-sm border-t z-10 flex items-center gap-2">
-            <div className="flex-grow bg-muted rounded-full h-8"/>
+            <div className="flex-grow bg-muted rounded-full h-8 flex items-center px-3">
+              <p className="text-sm text-muted-foreground">{typingText}</p>
+            </div>
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <FaPaperPlane className="text-primary-foreground h-4 w-4 -ml-0.5" />
+                <FaPaperPlane className="text-primary-foreground h-4 w-4" />
             </div>
         </div>
       </div>
