@@ -13,6 +13,8 @@ const PhoneCanvas = () => {
     const currentMount = mountRef.current;
     if (!currentMount) return;
 
+    let animationFrameId: number;
+
     // --- Constantes de Diseño ---
     const PHONE_W = 1.8;
     const PHONE_H = PHONE_W * 2;
@@ -108,9 +110,10 @@ const PhoneCanvas = () => {
       renderer.render(scene, camera);
     }
     
-    let animationFrameId = animate(0);
+    animate(0);
 
     const onWindowResize = () => {
+      if(!currentMount) return;
       camera.aspect = currentMount.clientWidth / currentMount.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
@@ -159,7 +162,9 @@ const PhoneCanvas = () => {
 
     // --- Limpieza ---
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       currentMount.removeChild(renderer.domElement);
       window.removeEventListener('resize', onWindowResize);
       currentMount.removeEventListener('pointerdown', onPointerDown);
