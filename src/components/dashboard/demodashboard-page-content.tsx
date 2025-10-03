@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaRobot, FaDatabase, FaUser, FaBrain, FaSpinner } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaRobot, FaDatabase, FaUser, FaBrain, FaSpinner, FaRegCommentDots } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,7 +78,8 @@ const DashboardPageContent = () => {
           source: 'smart_db' as const,
           storageSize: 15 * 1024 * 1024, // 15MB
       }],
-      credits: 5
+      credits: 5,
+      purchasedUnlimitedPlans: 0,
   };
 
   const profileToRender = isDemoMode ? demoProfile : userProfile;

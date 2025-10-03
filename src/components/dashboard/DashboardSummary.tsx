@@ -28,9 +28,6 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
 
   const isDemoMode = !isAuthenticated;
 
-  // Filter for WhatsApp assistants only
-  const whatsappAssistants = assistants.filter(a => a.type === 'whatsapp');
-
   // Calculate total messages from credits
   const totalMessagesFromCredits = (credits || 0) * MESSAGES_PER_CREDIT;
   // Calculate total consumed messages from all assistants (you might want to specify this to only whatsapp or all)
@@ -60,7 +57,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
   }
 
   const allSummaryCards = [
-    { id: 'assistants', title: 'Asistentes', value: whatsappAssistants.length, description: 'Total de WhatsApp', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
+    { id: 'assistants', title: 'Asistentes', value: assistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: FaWallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 
