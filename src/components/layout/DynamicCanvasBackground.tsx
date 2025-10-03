@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 
 type ParticleType = 'circle' | 'heart' | 'bubble';
 
@@ -46,6 +46,12 @@ const DynamicCanvasBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
   const particles = useRef<Particle[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This will run only on the client, after the initial render.
+    setIsClient(true);
+  }, []);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -153,6 +159,8 @@ const DynamicCanvasBackground: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!isClient) return; // Don't run this effect on the server
+
     initCanvas();
 
     const animate = (time: number) => {
@@ -173,7 +181,12 @@ const DynamicCanvasBackground: React.FC = () => {
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, [initCanvas, drawScene]);
+  }, [isClient, initCanvas, drawScene]);
+
+  // Render nothing on the server, and the canvas on the client
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <canvas
