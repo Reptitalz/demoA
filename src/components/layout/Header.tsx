@@ -1,13 +1,11 @@
-
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
-import { FaDownload, FaSignInAlt } from 'react-icons/fa';
+import { FaSignInAlt } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 
 interface HeaderProps {
