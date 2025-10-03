@@ -120,60 +120,23 @@ const PhoneCanvas = () => {
   return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
-function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, frame: number) {
-    const headerH = 40;
-    const footerH = 45;
-    const padding = 10;
-    
-    // Header
-    ctx.fillStyle = "#075E54";
-    ctx.fillRect(x, y, w, headerH);
-    ctx.fillStyle = "white";
-    ctx.font = "bold 12px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("Mi Pizzería", x + padding + 30, y + headerH / 2 + 4);
-    
-    // Avatar in header
-    ctx.fillStyle = "#ccc";
-    ctx.beginPath();
-    ctx.arc(x + padding + 12, y + headerH / 2, 12, 0, Math.PI * 2);
-    ctx.fill();
+function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+    const words = text.split(' ');
+    let lines: string[] = [];
+    let currentLine = words[0];
 
-    // Messages
-    const contentY = y + headerH;
-    const contentH = h - headerH - footerH;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, contentY, w, contentH);
-    ctx.clip();
-    
-    drawBubble(ctx, "Hola, me interesa una pizza.", true, x, contentY + 20, w, frame, 0, padding);
-    drawTypingIndicator(ctx, x, contentY + 60, w, frame, 60, padding);
-    drawBubble(ctx, "¡Claro! Tenemos Peperoni, Hawaiana y Mexicana.", false, x, contentY + 60, w, frame, 140, padding);
-    drawBubble(ctx, "Quiero la de peperoni.", true, x, contentY + 100, w, frame, 200, padding);
-    drawTypingIndicator(ctx, x, contentY + 140, w, frame, 260, padding);
-    drawBubble(ctx, "Excelente elección. El costo es de $150. ¿Deseas confirmar tu pedido?", false, x, contentY + 140, w, frame, 340, padding);
-
-
-    ctx.restore();
-
-    // Footer
-    const footerY = y + h - footerH;
-    ctx.fillStyle = "#F0F0F0";
-    ctx.fillRect(x, footerY, w, footerH);
-    
-    // Input field
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.roundRect(x + padding, footerY + 8, w - (padding * 2) - 40, footerH - 16, 15);
-    ctx.fill();
-    
-    // Send button
-    ctx.fillStyle = "#128C7E";
-    ctx.beginPath();
-    ctx.arc(x + w - padding - 18, footerY + footerH / 2, 16, 0, Math.PI * 2);
-    ctx.fill();
+    for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = context.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
 }
 
 function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean, screenX: number, yPos: number, screenW: number, frame: number, delay: number, padding: number) {
@@ -181,10 +144,19 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
     if (progress === 0) return;
 
     ctx.font = "10px sans-serif";
-    const textMetrics = ctx.measureText(text);
-    const textWidth = textMetrics.width;
-    const bubbleWidth = textWidth + 16;
-    const bubbleHeight = 26;
+    const maxWidth = screenW * 0.75;
+    const lines = wrapText(ctx, text, maxWidth);
+    
+    const bubblePadding = 8;
+    const lineHeight = 12;
+    const bubbleHeight = (lines.length * lineHeight) + (bubblePadding * 2);
+    
+    let bubbleWidth = 0;
+    if (lines.length === 1) {
+        bubbleWidth = ctx.measureText(lines[0]).width + (bubblePadding * 2);
+    } else {
+        bubbleWidth = maxWidth + (bubblePadding * 2);
+    }
     
     const easedProgress = 1 - Math.pow(1 - progress, 3);
     const animatedWidth = bubbleWidth * easedProgress;
@@ -202,8 +174,11 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, isUser: boolean
         ctx.globalAlpha = (progress - 0.8) * 5;
         ctx.fillStyle = "#111";
         ctx.textAlign = isUser ? "right" : "left";
-        const textX = isUser ? bubbleX + animatedWidth - 8 : bubbleX + 8;
-        ctx.fillText(text, textX, yPos + bubbleHeight / 2 + 3);
+        const textX = isUser ? bubbleX + animatedWidth - bubblePadding : bubbleX + bubblePadding;
+        
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], textX, yPos + bubblePadding + (i * lineHeight) + 3);
+        }
     }
     ctx.globalAlpha = 1;
 }
@@ -239,4 +214,64 @@ function drawTypingIndicator(ctx: CanvasRenderingContext2D, screenX: number, yPo
     ctx.globalAlpha = 1;
 }
 
+
+function drawScreenContent(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, frame: number) {
+    const headerH = 40;
+    const footerH = 45;
+    const padding = 10;
+    
+    // Header
+    ctx.fillStyle = "#075E54";
+    ctx.fillRect(x, y, w, headerH);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 12px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Mi Pizzería", x + padding + 30, y + headerH / 2 + 4);
+    
+    // Avatar in header
+    ctx.fillStyle = "#ccc";
+    ctx.beginPath();
+    ctx.arc(x + padding + 12, y + headerH / 2, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Messages
+    const contentY = y + headerH;
+    const contentH = h - headerH - footerH;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, contentY, w, contentH);
+    ctx.clip();
+    
+    drawBubble(ctx, "Hola, me interesa una pizza.", true, x, contentY + 10, w, frame, 0, padding);
+    drawTypingIndicator(ctx, x, contentY + 50, w, frame, 60, padding);
+    drawBubble(ctx, "¡Claro! Tenemos Peperoni, Hawaiana y Mexicana. ¿Cuál te gustaría?", false, x, contentY + 50, w, frame, 140, padding);
+    drawBubble(ctx, "Quiero la de peperoni, por favor.", true, x, contentY + 100, w, frame, 200, padding);
+    drawTypingIndicator(ctx, x, contentY + 140, w, frame, 260, padding);
+    drawBubble(ctx, "Excelente elección. El costo es de $150. ¿Deseas confirmar tu pedido ahora?", false, x, contentY + 140, w, frame, 340, padding);
+
+
+    ctx.restore();
+
+    // Footer
+    const footerY = y + h - footerH;
+    ctx.fillStyle = "#F0F0F0";
+    ctx.fillRect(x, footerY, w, footerH);
+    
+    // Input field
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.roundRect(x + padding, footerY + 8, w - (padding * 2) - 40, footerH - 16, 15);
+    ctx.fill();
+    
+    // Send button
+    ctx.fillStyle = "#128C7E";
+    ctx.beginPath();
+    ctx.arc(x + w - padding - 18, footerY + footerH / 2, 16, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+
 export default PhoneCanvas;
+
+    
