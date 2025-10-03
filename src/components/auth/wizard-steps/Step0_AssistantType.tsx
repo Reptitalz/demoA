@@ -9,12 +9,6 @@ import { Label } from "@/components/ui/label";
 
 const assistantTypeOptions = [
     {
-        id: 'desktop' as const,
-        name: "Asistente en Navegador (Desktop)",
-        description: "Ideal para pruebas rápidas y desarrollo. Tu asistente vivirá en una página web, sin necesidad de vincular un teléfono.",
-        icon: AppWindow
-    },
-    {
         id: 'whatsapp' as const,
         name: "Asistente en WhatsApp",
         description: "La solución completa para automatizar la comunicación con tus clientes directamente en la plataforma que más usan.",
