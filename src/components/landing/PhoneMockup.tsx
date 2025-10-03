@@ -103,7 +103,7 @@ const PhoneMockup = () => {
         <div className="flex-grow p-3 flex flex-col gap-3 overflow-y-auto">
             <AnimatePresence>
                 {messages.map((msg, i) => (
-                    <ChatBubble key={i} from={msg.from as 'user' | 'bot'} text={msg.text} isTyping={msg.isTyping} />
+                    msg && <ChatBubble key={i} from={msg.from as 'user' | 'bot'} text={msg.text} isTyping={msg.isTyping} />
                 ))}
             </AnimatePresence>
         </div>
