@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import SetupProgressBar from '@/components/setup/SetupProgressBar';
+import Step0AssistantType from '@/components/auth/wizard-steps/Step0_AssistantType';
 import Step1AssistantDetails from '@/components/auth/wizard-steps/Step1_AssistantDetails';
 import Step2AssistantPrompt from '@/components/auth/wizard-steps/Step2_AssistantPrompt';
 import Step2DatabaseConfig from '@/components/auth/wizard-steps/Step2_DatabaseConfig';
@@ -88,8 +89,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   }, [selectedPurposes]);
   
   const effectiveMaxSteps = useMemo(() => {
-    // Step 1: Details, Step 2: Prompt, Step 3: (DB or Terms), Step 4: (Terms or Auth), Step 5: Auth
-    let baseSteps = 1; // Details is now step 1
+    let baseSteps = 2; // Type, Details
     baseSteps++; // Prompt
     if (dbNeeded) baseSteps++; // DB config
     baseSteps++; // Terms
@@ -101,12 +101,15 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const getValidationMessageForStep = useCallback((step: number): string | null => {
     switch (step) {
         case 1:
-            if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
+            if (!assistantType) return "Por favor, selecciona un tipo de asistente.";
             return null;
         case 2:
-            if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+            if (!assistantName.trim()) return "Por favor, ingresa un nombre para el asistente.";
             return null;
         case 3:
+            if (!assistantPrompt.trim()) return "Por favor, escribe un prompt para tu asistente.";
+            return null;
+        case 4:
             if (dbNeeded) {
                 if (!databaseOption.type) return "Por favor, selecciona una opción de base de datos.";
                 if (!databaseOption.name?.trim()) return `Por favor, proporciona un nombre para tu base de datos.`;
@@ -116,17 +119,17 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
                 if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
             }
             return null;
-        case 4:
+        case 5:
              if (dbNeeded) {
                  if (!acceptedTerms) return "Debes aceptar los términos y condiciones.";
              }
              return null;
-        case 5:
+        case 6:
              return null;
         default:
             return "Paso inválido";
     }
-  }, [assistantName, assistantPrompt, dbNeeded, databaseOption, acceptedTerms]);
+  }, [assistantType, assistantName, assistantPrompt, dbNeeded, databaseOption, acceptedTerms]);
   
   const isStepValid = useMemo((): boolean => {
     if (isFinalizingSetup) return false;
@@ -146,9 +149,9 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     let nextStep = currentStep + 1;
 
     // This logic is now more complex. It's better to manage step transitions carefully.
-    // If we're on step 2 and no DB is needed, we jump to the 'terms' step, which is now 4.
-    if (currentStep === 2 && !dbNeeded) {
-        nextStep = 4; 
+    // If we're on step 3 and no DB is needed, we jump to the 'terms' step, which is now 5.
+    if (currentStep === 3 && !dbNeeded) {
+        nextStep = 5; 
     }
     
     if (nextStep <= effectiveMaxSteps) {
@@ -160,8 +163,8 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     if (currentStep > 1) { 
         let prevStep = currentStep - 1;
         // Correctly go back from Terms to Prompt if DB was skipped
-        if (currentStep === 4 && !dbNeeded) {
-            prevStep = 2; 
+        if (currentStep === 5 && !dbNeeded) {
+            prevStep = 3; 
         }
         dispatch({ type: 'SET_WIZARD_STEP', payload: prevStep });
     } else {
@@ -286,11 +289,12 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
     }
     
     const stepMap: Record<number, React.ReactNode> = {
-        1: <Step1AssistantDetails />,
-        2: <Step2AssistantPrompt />,
-        3: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
-        4: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
-        5: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+        1: <Step0AssistantType />,
+        2: <Step1AssistantDetails />,
+        3: <Step2AssistantPrompt />,
+        4: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
+        5: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
     };
 
     return stepMap[currentStep] || null;

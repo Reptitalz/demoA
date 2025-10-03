@@ -17,19 +17,25 @@ const SetupProgressBar = () => {
   const dbNeeded = needsDatabaseConfiguration();
   
   const { effectiveMaxSteps, stepTitleKey, currentDisplayStep } = useMemo(() => {
-    const totalSteps = dbNeeded ? 5 : 4;
+    let totalSteps = 2; // Type, Details
+    totalSteps++; // Prompt
+    if (dbNeeded) totalSteps++;
+    totalSteps++; // Terms
+    totalSteps++; // Auth
+    
     let displayStep = currentStep;
     
-    // Map logical step to a display number, accounting for skips
-    if(isReconfiguring){
-        if (currentStep === 3 && !dbNeeded) displayStep = 3;
-        if (currentStep === 4 && !dbNeeded) displayStep = 4;
+    if(!isReconfiguring) {
+      // Normal flow with Type selection
+      if (currentStep >= 5 && !dbNeeded) displayStep = currentStep - 1;
     } else {
-        if (currentStep === 4 && !dbNeeded) displayStep = 3;
-        if (currentStep === 5 && !dbNeeded) displayStep = 4;
+      // Reconfiguring flow (no Type, no Auth)
+      totalSteps = 2; // Details, Prompt
+      if (dbNeeded) totalSteps++;
+      totalSteps++; // Terms
+      if (currentStep >= 3 && !dbNeeded) displayStep = currentStep - 1;
     }
-
-
+    
     const keyMap: Record<number, number> = isReconfiguring 
     ? {
         1: 2, // Details
