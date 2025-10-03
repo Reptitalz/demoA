@@ -16,13 +16,6 @@ interface HeaderProps {
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
   const router = useRouter();
-  const [isPWA, setIsPWA] = React.useState(false);
-
-    React.useEffect(() => {
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            setIsPWA(true);
-        }
-    }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm border-b">
