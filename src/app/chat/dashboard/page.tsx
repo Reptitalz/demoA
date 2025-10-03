@@ -58,7 +58,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onSwipe, onClear, onDelete, a
             transition={{ duration: 0.2 }}
             className="absolute inset-y-0 right-0 flex items-center"
           >
-            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={(e) => { e.stopPropagation(); onClear(chatPath); }}>
+            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={(e) => { e.stopPropagation(); onClear(chatPath!); }}>
               <XCircle size={20}/>
               <span className="text-xs mt-1">Limpiar</span>
             </Button>
@@ -92,8 +92,8 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onSwipe, onClear, onDelete, a
           setTimeout(() => { dragOccurred.current = false; }, 50);
           const isSwipeLeft = info.offset.x < -60;
           const isSwipeRight = info.offset.x > 60;
-          if (isSwipeLeft) onSwipe(chat.id, 'left');
-          else if (isSwipeRight) onSwipe(chat.id, 'right');
+          if (isSwipeLeft) onSwipe(chat.id!, 'left');
+          else if (isSwipeRight) onSwipe(chat.id!, 'right');
           else setActiveSwipe(null);
         }}
         onClick={(e) => {
@@ -153,7 +153,8 @@ export default function ChatListPage() {
   const { assistants, removeAssistant } = useAssistants();
   const { contacts, removeContact, clearContactChat, addContact } = useContacts();
 
-  const filteredAssistants = useMemo(() => assistants.filter(asst => asst.name.toLowerCase().includes(searchTerm.toLowerCase())), [assistants, searchTerm]);
+  const desktopAssistants = useMemo(() => assistants.filter(a => a.type === 'desktop'), [assistants]);
+  const filteredAssistants = useMemo(() => desktopAssistants.filter(asst => asst.name.toLowerCase().includes(searchTerm.toLowerCase())), [desktopAssistants, searchTerm]);
   const filteredContacts = useMemo(() => contacts.filter(contact => contact.name.toLowerCase().includes(searchTerm.toLowerCase())), [contacts, searchTerm]);
 
   // Handle adding contact from URL
@@ -225,6 +226,10 @@ export default function ChatListPage() {
   
   const confirmDelete = () => {
     if (!itemToDelete) return;
+    const itemPath = itemToDelete.type === 'assistant' 
+      ? assistants.find(a => a.id === itemToDelete.id)?.chatPath 
+      : contacts.find(c => c.chatPath === itemToDelete.id)?.chatPath;
+
     if (itemToDelete.type === 'assistant') {
         removeAssistant(itemToDelete.id);
         toast({ title: "Asistente Eliminado", description: "El asistente ha sido eliminado." });
@@ -232,6 +237,11 @@ export default function ChatListPage() {
         removeContact(itemToDelete.id);
         toast({ title: "Contacto Eliminado", description: "El contacto ha sido eliminado." });
     }
+    
+    if (itemPath) {
+      clearContactChat(itemPath);
+    }
+    
     setIsDeleteAlertOpen(false);
     setItemToDelete(null);
     setActiveSwipe(null);

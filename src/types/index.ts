@@ -145,6 +145,7 @@ export interface CollaboratorProfile {
 export interface Contact {
   chatPath: string;
   name: string;
+  id?: string;
   imageUrl?: string;
   lastMessage?: string;
   lastMessageTimestamp?: number;

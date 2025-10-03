@@ -26,13 +26,14 @@ export const useContacts = () => {
     loadContacts();
   }, [dispatch]);
 
-  const addContact = useCallback(async (contact: Contact) => {
+  const addContact = useCallback(async (contact: Omit<Contact, 'id'>) => {
     try {
       const db = await openDB();
       const tx = db.transaction(CONTACTS_STORE_NAME, 'readwrite');
+      // The key is chatPath, which is already in the contact object
       await tx.objectStore(CONTACTS_STORE_NAME).put(contact);
       await tx.done;
-      dispatch({ type: 'ADD_CONTACT', payload: contact });
+      dispatch({ type: 'ADD_CONTACT', payload: contact as Contact });
     } catch (error) {
       console.error("Failed to add contact to IndexedDB:", error);
     }
