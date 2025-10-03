@@ -2,7 +2,7 @@
 "use client";
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaUser } from 'react-icons/fa';
+import { FaRobot, FaUser, FaPaperPlane } from 'react-icons/fa';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -109,8 +109,11 @@ const PhoneMockup = () => {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 p-2 bg-card/80 backdrop-blur-sm border-t z-10">
-            <div className="bg-muted rounded-full h-8"/>
+        <div className="flex-shrink-0 p-2 bg-card/80 backdrop-blur-sm border-t z-10 flex items-center gap-2">
+            <div className="flex-grow bg-muted rounded-full h-8"/>
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                <FaPaperPlane className="text-primary-foreground h-4 w-4 -ml-0.5" />
+            </div>
         </div>
       </div>
     </div>
