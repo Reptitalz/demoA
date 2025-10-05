@@ -528,25 +528,25 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                 transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
                             />
                             <div className="absolute inset-0 bg-black/20"/>
-                            <CardContent className="p-4 sm:p-6 relative z-10">
+                            <CardContent className="p-4 relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <CardDescription className="text-blue-200 text-xs sm:text-sm">Oferta de Crédito</CardDescription>
-                                        <CardTitle className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
-                                        <p className="text-blue-200 text-xs sm:text-sm">Monto Máximo</p>
+                                        <CardDescription className="text-blue-200 text-xs">Oferta de Crédito</CardDescription>
+                                        <CardTitle className="text-3xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
+                                        <p className="text-blue-200 text-xs">Monto Máximo</p>
                                     </div>
-                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-7 sm:h-8 text-xs px-2" disabled>
-                                        <Edit className="mr-1 sm:mr-2 h-3 w-3"/>
+                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-7 text-xs px-2" disabled>
+                                        <Edit className="mr-1 h-3 w-3"/>
                                         Editar
                                     </Button>
                                 </div>
-                                <div className="mt-4 sm:mt-6 flex justify-between items-center text-xs sm:text-sm">
-                                    <div className="flex items-center gap-1 sm:gap-2">
-                                        <Percent className="h-3 w-3 sm:h-4 sm:w-4 text-blue-300"/>
+                                <div className="mt-4 flex justify-between items-center text-xs">
+                                    <div className="flex items-center gap-1">
+                                        <Percent className="h-3 w-3 text-blue-300"/>
                                         <span>Tasa: {offer.interestRate}%</span>
                                     </div>
-                                    <div className="flex items-center gap-1 sm:gap-2">
-                                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-300"/>
+                                    <div className="flex items-center gap-1">
+                                        <Calendar className="h-3 w-3 text-blue-300"/>
                                         <span>Plazo: {offer.term} meses</span>
                                     </div>
                                 </div>
