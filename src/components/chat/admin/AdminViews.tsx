@@ -308,8 +308,8 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | n
     const paymentHistory = useMemo(() => {
         if (!credit) return [];
         return [
-            { id: 1, date: '2024-07-28', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
-            { id: 2, date: '2024-07-21', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+            { id: 1, receivedAt: '2024-07-28', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+            { id: 2, receivedAt: '2024-07-21', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
         ];
     }, [credit]);
     
@@ -346,7 +346,7 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | n
                                             <div>
                                                 <p className="text-sm font-semibold">${payment.amount.toFixed(2)}</p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {format(new Date(payment.date), 'dd MMM, yyyy', { locale: es })}
+                                                    {format(new Date(payment.receivedAt), 'dd MMM, yyyy', { locale: es })}
                                                 </p>
                                             </div>
                                             <Button size="sm" variant="outline" onClick={() => setSelectedReceipt(payment)}>
@@ -532,7 +532,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardDescription className="text-blue-200 text-xs">Oferta de Crédito</CardDescription>
-                                        <CardTitle className="text-3xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
+                                        <CardTitle className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
                                         <p className="text-blue-200 text-xs">Monto Máximo</p>
                                     </div>
                                     <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-7 text-xs px-2" disabled>
@@ -540,7 +540,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                         Editar
                                     </Button>
                                 </div>
-                                <div className="mt-4 flex justify-between items-center text-xs">
+                                <div className="mt-3 flex justify-between items-center text-xs">
                                     <div className="flex items-center gap-1">
                                         <Percent className="h-3 w-3 text-blue-300"/>
                                         <span>Tasa: {offer.interestRate}%</span>
