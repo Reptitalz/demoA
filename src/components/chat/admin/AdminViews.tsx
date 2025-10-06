@@ -520,7 +520,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
                             <motion.div
                                 className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl"
                                 animate={{ rotate: 360 }}
@@ -528,26 +528,26 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             />
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-1.5">
-                                    <AppIcon className="h-6 w-6"/>
-                                    <span className="font-semibold text-sm">{APP_NAME}</span>
+                                    <AppIcon className="h-5 w-5"/>
+                                    <span className="font-semibold text-xs">{APP_NAME}</span>
                                 </div>
-                                <Banknote className="h-6 w-6 text-yellow-300"/>
+                                <Banknote className="h-5 w-5 text-yellow-300"/>
                             </div>
                             <div className="text-left">
-                                <p className="font-mono text-xl tracking-wider">${offer.maxAmount.toLocaleString()}</p>
-                                <p className="text-xs opacity-70">Línea de Crédito</p>
+                                <p className="font-mono text-lg tracking-wider">${offer.maxAmount.toLocaleString()}</p>
+                                <p className="text-[10px] opacity-70">Línea de Crédito</p>
                             </div>
                              <div className="flex justify-between items-end text-xs font-mono">
                                 <div className="flex items-center gap-2">
                                      <Radio className="h-4 w-4 text-white/50"/>
                                      <div>
                                         <p className="opacity-70 text-[8px] leading-tight">TASA</p>
-                                        <p className="font-medium leading-tight">{offer.interestRate}%</p>
+                                        <p className="font-medium text-[10px] leading-tight">{offer.interestRate}%</p>
                                      </div>
                                 </div>
                                 <div className="text-right">
                                     <p className="opacity-70 text-[8px] leading-tight">PLAZO</p>
-                                    <p className="font-medium leading-tight">{offer.term} MESES</p>
+                                    <p className="font-medium text-[10px] leading-tight">{offer.term} MESES</p>
                                 </div>
                             </div>
                         </div>
