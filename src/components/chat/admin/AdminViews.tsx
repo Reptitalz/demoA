@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { AssistantConfig, ChatMessage, Product, Catalog } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
@@ -405,7 +405,7 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | n
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+                <DialogContent className="w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh]">
                     <DialogHeader className="p-4 border-b">
                         <DialogTitle>Historial de Crédito: {credit.client}</DialogTitle>
                         <DialogDescription>Revisa los detalles y pagos de esta línea de crédito.</DialogDescription>
@@ -468,7 +468,7 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh]">
                 <DialogHeader className="p-4 border-b">
                     <DialogTitle className="flex items-center gap-2">
                         <History className="h-5 w-5" /> Historial de Créditos Completados
