@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppIcon from '@/components/shared/AppIcon';
+import { Progress } from '@/components/ui/progress';
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
 const DB_NAME = 'HeyManitoChatDB';
@@ -424,64 +425,99 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
     const { toast } = useToast();
+    const [step, setStep] = useState(1);
     const [amount, setAmount] = useState('');
     const [interest, setInterest] = useState('');
     const [term, setTerm] = useState('');
     const [assistantId, setAssistantId] = useState<string | undefined>();
 
     const assistants = state.userProfile.assistants || [];
+    const totalSteps = 4;
 
+    const handleNext = () => {
+        if (step === 1 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
+        if (step === 2 && !interest) return toast({ title: "Campo requerido", description: "Por favor, ingresa una tasa de interés.", variant: "destructive" });
+        if (step === 3 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
+        setStep(s => s + 1);
+    };
+    const handleBack = () => setStep(s => s - 1);
     const handleCreate = () => {
-        // Validation
         if (!amount || !interest || !term || !assistantId) {
             toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos para crear la oferta.", variant: "destructive" });
             return;
         }
-        // TODO: API call to save the new credit offer
         toast({ title: "Oferta Creada", description: "La nueva oferta de crédito ha sido creada y asignada." });
         onOpenChange(false);
     }
     
+    const stepContent = () => {
+        switch(step) {
+            case 1: return (
+                <div className="space-y-2">
+                    <Label htmlFor="amount" className="text-base">Monto Máximo del Crédito</Label>
+                    <Input id="amount" type="number" placeholder="Ej: 5000" value={amount} onChange={e => setAmount(e.target.value)} className="text-lg py-6" />
+                </div>
+            );
+            case 2: return (
+                <div className="space-y-2">
+                    <Label htmlFor="interest" className="text-base">Tasa de Interés Mensual (%)</Label>
+                    <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} className="text-lg py-6" />
+                </div>
+            );
+            case 3: return (
+                <div className="space-y-2">
+                    <Label htmlFor="term" className="text-base">Plazo (meses)</Label>
+                    <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} className="text-lg py-6" />
+                </div>
+            );
+            case 4: return (
+                <div className="space-y-2">
+                    <Label htmlFor="assistant" className="text-base">Asistente Gestor</Label>
+                    <Select onValueChange={setAssistantId} value={assistantId}>
+                        <SelectTrigger id="assistant" className="text-lg py-6">
+                            <SelectValue placeholder="Selecciona un asistente..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {assistants.map(asst => (
+                                <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
+                            ))}
+                            {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
+                        </SelectContent>
+                    </Select>
+                </div>
+            );
+            default: return null;
+        }
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg">
                 <DialogHeader className="p-4 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
                 </DialogHeader>
-                <ScrollArea className="flex-grow">
-                    <div className="p-4 space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="amount">Monto Máximo del Crédito</Label>
-                            <Input id="amount" type="number" placeholder="Ej: 5000" value={amount} onChange={e => setAmount(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="interest">Tasa de Interés Mensual (%)</Label>
-                            <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="term">Plazo (meses)</Label>
-                            <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="assistant">Asistente Gestor</Label>
-                            <Select onValueChange={setAssistantId} value={assistantId}>
-                                <SelectTrigger id="assistant">
-                                    <SelectValue placeholder="Selecciona un asistente..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {assistants.map(asst => (
-                                        <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
-                                    ))}
-                                    {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                 <div className="px-4 pt-4">
+                    <Progress value={(step / totalSteps) * 100} className="w-full h-2" />
+                    <p className="text-xs text-muted-foreground text-center mt-1">Paso {step} de {totalSteps}</p>
+                </div>
+                <div className="flex-grow flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm animate-fadeIn">
+                        {stepContent()}
                     </div>
-                </ScrollArea>
-                <DialogFooter className="p-4 border-t">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={handleCreate}>Crear Oferta</Button>
+                </div>
+                <DialogFooter className="p-4 border-t flex justify-between w-full">
+                    {step > 1 ? (
+                        <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 h-4 w-4"/> Atrás</Button>
+                    ) : (
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    )}
+                    
+                    {step < totalSteps ? (
+                        <Button onClick={handleNext}>Siguiente <ArrowRight className="ml-2 h-4 w-4"/></Button>
+                    ) : (
+                        <Button onClick={handleCreate}>Crear Oferta</Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -522,7 +558,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
                             <motion.div
                                 className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl"
                                 animate={{ rotate: 360 }}
@@ -530,13 +566,13 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             />
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-1.5">
-                                    <AppIcon className="h-5 w-5"/>
+                                    <AppIcon className="h-4 w-4"/>
                                     <span className="font-semibold text-xs">Hey Manito!</span>
                                 </div>
                                 <Banknote className="h-5 w-5 text-yellow-300"/>
                             </div>
                             <div className="text-left">
-                                <p className="font-mono text-xl tracking-wider">${offer.maxAmount.toLocaleString()}</p>
+                                <p className="font-mono text-lg tracking-wider">${offer.maxAmount.toLocaleString()}</p>
                                 <p className="text-[10px] opacity-70">Línea de Crédito</p>
                             </div>
                              <div className="flex justify-between items-end text-xs font-mono">
@@ -641,7 +677,9 @@ export const CreditView = () => {
                                 onClick={() => handleCreditClick(credit)} 
                                 className="p-3 rounded-xl border bg-card/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 relative overflow-hidden group"
                             >
-                                <div className="absolute -inset-px bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
+                                <div className={cn("absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                                  credit.status === 'Atrasado' ? 'bg-gradient-to-r from-red-500/20 via-orange-500/20 to-yellow-500/20' : 'bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20'
+                                )}/>
                                 <div className="relative z-10 space-y-1.5">
                                     <div className="flex justify-between items-center">
                                         <p className="font-bold text-sm">{credit.client}</p>
