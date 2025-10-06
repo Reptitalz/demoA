@@ -123,7 +123,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                 <DialogHeader className="p-4 border-b">
                     <DialogTitle>Revisar Comprobante</DialogTitle>
                     <DialogDescription>
-                        Recibido de {payment.userName} el {format(new Date(payment.receivedAt), "PPPp", { locale: es })}
+                         Recibido de {payment.userName} el {format(new Date(payment.receivedAt), "PPPp", { locale: es })}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex-grow overflow-auto p-4 flex items-center justify-center">
@@ -531,15 +531,15 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardDescription className="text-blue-200 text-xs">Oferta de Crédito</CardDescription>
-                                        <CardTitle className="text-2xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
+                                        <CardTitle className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
                                         <p className="text-blue-200 text-xs">Monto Máximo</p>
                                     </div>
-                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-7 text-xs px-2" disabled>
+                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-6 text-[10px] px-1.5" disabled>
                                         <Edit className="mr-1 h-3 w-3"/>
                                         Editar
                                     </Button>
                                 </div>
-                                <div className="mt-3 flex justify-between items-center text-xs">
+                                <div className="mt-2 flex justify-between items-center text-[10px] sm:text-xs">
                                     <div className="flex items-center gap-1">
                                         <Percent className="h-3 w-3 text-blue-300"/>
                                         <span>Tasa: {offer.interestRate}%</span>
@@ -644,7 +644,7 @@ export const CreditView = () => {
                                 <div className="absolute -inset-px bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-center mb-3">
-                                        <p className="font-bold text-lg">{credit.client}</p>
+                                        <p className="font-bold text-base">{credit.client}</p>
                                         <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                     </div>
                                     <p className="font-mono text-2xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
