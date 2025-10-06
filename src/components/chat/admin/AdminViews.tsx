@@ -422,6 +422,13 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
     );
 };
 
+const cardStyles = [
+    { id: 'slate', name: 'Gris Pizarra', gradient: 'from-slate-900 to-slate-800' },
+    { id: 'blue', name: 'Azul Cósmico', gradient: 'from-blue-900 to-cyan-800' },
+    { id: 'purple', name: 'Púrpura Galáctico', gradient: 'from-purple-900 to-violet-800' },
+    { id: 'green', name: 'Verde Esmeralda', gradient: 'from-green-900 to-teal-800' },
+];
+
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
     const { toast } = useToast();
@@ -429,10 +436,11 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [amount, setAmount] = useState('');
     const [interest, setInterest] = useState('');
     const [term, setTerm] = useState('');
+    const [cardStyle, setCardStyle] = useState('slate');
     const [assistantId, setAssistantId] = useState<string | undefined>();
 
     const assistants = state.userProfile.assistants || [];
-    const totalSteps = 4;
+    const totalSteps = 5;
 
     const handleNext = () => {
         if (step === 1 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
@@ -470,7 +478,34 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                     <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} className="text-lg py-6" />
                 </div>
             );
-            case 4: return (
+            case 4:
+                const selectedStyle = cardStyles.find(s => s.id === cardStyle);
+                return (
+                    <div className="space-y-4">
+                        <Label className="text-base">Diseño de la Tarjeta</Label>
+                        <div className={cn("bg-gradient-to-br text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden transition-all", selectedStyle?.gradient)}>
+                             <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-xs">Hey Manito!</span></div>
+                                <Banknote className="h-5 w-5 text-yellow-300"/>
+                            </div>
+                            <div className="text-left"><p className="font-mono text-lg tracking-wider">${parseInt(amount || '0').toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
+                             <div className="flex justify-between items-end text-xs font-mono">
+                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{interest || '0'}%</p></div></div>
+                                <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{term || '0'} MESES</p></div>
+                            </div>
+                        </div>
+                        <RadioGroup value={cardStyle} onValueChange={(val) => setCardStyle(val)} className="grid grid-cols-4 gap-2">
+                           {cardStyles.map(style => (
+                               <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-10 w-10 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
+                                   <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
+                                   <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
+                               </Label>
+                           ))}
+                        </RadioGroup>
+                    </div>
+                );
+            case 5: return (
                 <div className="space-y-2">
                     <Label htmlFor="assistant" className="text-base">Asistente Gestor</Label>
                     <Select onValueChange={setAssistantId} value={assistantId}>
@@ -558,41 +593,29 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
                             <motion.div
                                 className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl"
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
                             />
                             <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-1.5">
-                                    <AppIcon className="h-4 w-4"/>
-                                    <span className="font-semibold text-xs">Hey Manito!</span>
-                                </div>
-                                <Banknote className="h-5 w-5 text-yellow-300"/>
+                                <div className="flex items-center gap-2"><AppIcon className="h-5 w-5 brightness-0 invert"/> <span className="font-semibold text-xs">Hey Manito!</span></div>
+                                <Banknote className="h-6 w-6 text-yellow-300"/>
                             </div>
                             <div className="text-left">
-                                <p className="font-mono text-lg tracking-wider">${offer.maxAmount.toLocaleString()}</p>
-                                <p className="text-[10px] opacity-70">Línea de Crédito</p>
+                                <p className="font-mono text-2xl tracking-wider">${offer.maxAmount.toLocaleString()}</p>
+                                <p className="text-xs opacity-70">Línea de Crédito</p>
                             </div>
-                             <div className="flex justify-between items-end text-xs font-mono">
-                                <div className="flex items-center gap-2">
-                                     <Radio className="h-4 w-4 text-white/50"/>
-                                     <div>
-                                        <p className="opacity-70 text-[8px] leading-tight">TASA</p>
-                                        <p className="font-medium text-[10px] leading-tight">{offer.interestRate}%</p>
-                                     </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="opacity-70 text-[8px] leading-tight">PLAZO</p>
-                                    <p className="font-medium text-[10px] leading-tight">{offer.term} MESES</p>
-                                </div>
+                             <div className="flex justify-between items-end text-sm font-mono">
+                                <div className="flex items-center gap-2"><Radio className="h-5 w-5 text-white/50"/> <div><p className="opacity-70 text-xs leading-tight">TASA</p><p className="font-medium text-sm leading-tight">{offer.interestRate}%</p></div></div>
+                                <div className="text-right"><p className="opacity-70 text-xs leading-tight">PLAZO</p><p className="font-medium text-sm leading-tight">{offer.term} MESES</p></div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-             <div className="flex justify-center mt-2 space-x-2">
+             <div className="flex justify-center mt-4 space-x-2">
                 {creditOffers.map((_, index) => (
                     <button
                         key={index}
@@ -604,7 +627,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                         }}
                         className={cn(
                             "h-2 w-2 rounded-full transition-all",
-                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                            activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
                         )}
                         aria-label={`Ir a la oferta ${index + 1}`}
                     />
