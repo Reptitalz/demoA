@@ -485,7 +485,6 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     );
 };
 
-
 const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -532,7 +531,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <CardDescription className="text-blue-200 text-xs">Oferta de Crédito</CardDescription>
-                                        <CardTitle className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
+                                        <CardTitle className="text-2xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
                                         <p className="text-blue-200 text-xs">Monto Máximo</p>
                                     </div>
                                     <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-7 text-xs px-2" disabled>
@@ -611,40 +610,49 @@ export const CreditView = () => {
                         <h1 className="text-xl font-bold">Gestión de Crédito</h1>
                     </div>
                 </div>
+                 <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsCompletedHistoryOpen(true)}
+                >
+                    <History className="mr-2 h-4 w-4" />
+                    Historial
+                </Button>
             </div>
         </header>
         <ScrollArea className="flex-grow">
             <div className="p-4 space-y-6">
-                <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+                <div>
+                     <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-foreground">Ofertas de Crédito</h3>
+                        <Button variant="ghost" size="sm" className="text-xs" onClick={() => setIsCreateOfferOpen(true)}>
+                            <Plus className="mr-1 h-3 w-3"/> Nueva Oferta
+                        </Button>
+                     </div>
+                    <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+                </div>
 
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Créditos Activos</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                 <div>
+                    <h3 className="font-semibold text-foreground mb-2">Créditos Activos</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {activeCredits.map((credit) => (
-                            <div key={credit.id} onClick={() => handleCreditClick(credit)} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted">
-                                <div className="space-y-0.5">
-                                    <p className="font-semibold text-sm">{credit.client}</p>
-                                    <p className="text-xs text-muted-foreground">Próx. pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold">${credit.amount.toFixed(2)}</p>
-                                    <span className={cn("text-xs font-semibold", credit.status === 'Atrasado' ? 'text-destructive' : 'text-green-600')}>{credit.status}</span>
+                            <div 
+                                key={credit.id} 
+                                onClick={() => handleCreditClick(credit)} 
+                                className="p-4 rounded-xl border bg-card/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 relative overflow-hidden group"
+                            >
+                                <div className="absolute -inset-px bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <p className="font-bold text-lg">{credit.client}</p>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
+                                    </div>
+                                    <p className="font-mono text-2xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
                                 </div>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
-                <div className="pt-4">
-                    <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => setIsCompletedHistoryOpen(true)}
-                    >
-                        <History className="mr-2 h-4 w-4" />
-                        Ver Historial de Créditos
-                    </Button>
+                    </div>
                 </div>
             </div>
         </ScrollArea>
