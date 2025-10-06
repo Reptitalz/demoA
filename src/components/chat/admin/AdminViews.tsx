@@ -465,7 +465,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             </div>
                             <div className="text-left"><p className="font-mono text-lg tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
                             <div className="flex justify-between items-end text-xs font-mono">
-                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50" /> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
+                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} MESES</p></div>
                             </div>
                         </div>
@@ -538,6 +538,36 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             reader.readAsDataURL(file);
         }
     };
+    
+    const calculateProfit = useCallback(() => {
+        const principal = parseFloat(amount) || 0;
+        const monthlyRate = (parseFloat(interest) || 0) / 100;
+        const numTerms = parseInt(term) || 0;
+
+        if (principal <= 0 || monthlyRate <= 0 || numTerms <= 0) {
+            return 0;
+        }
+        
+        // Simple interest calculation: P * r * t
+        // 'r' needs to match the time unit 't'
+        let totalInterest = 0;
+        switch (termUnit) {
+            case 'weeks':
+                // Assuming 4 weeks per month for simplicity
+                totalInterest = principal * (monthlyRate / 4) * numTerms;
+                break;
+            case 'fortnights':
+                // Assuming 2 fortnights per month
+                totalInterest = principal * (monthlyRate / 2) * numTerms;
+                break;
+            case 'months':
+            default:
+                totalInterest = principal * monthlyRate * numTerms;
+                break;
+        }
+        return totalInterest;
+    }, [amount, interest, term, termUnit]);
+
 
     const stepContent = () => {
         switch(step) {
@@ -553,21 +583,31 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                     <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} className="text-lg py-6" />
                 </div>
             );
-            case 3: return (
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="term" className="text-base">Plazo de Pago</Label>
-                        <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} className="text-lg py-6" />
+            case 3: 
+                const profit = calculateProfit();
+                return (
+                    <div className="space-y-4">
+                        {profit > 0 && (
+                             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 bg-green-500/10 rounded-lg text-center">
+                                <Label className="text-xs text-green-700 dark:text-green-300">Ganancia Total Estimada</Label>
+                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                    ${profit.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                            </motion.div>
+                        )}
+                        <div className="space-y-2">
+                            <Label htmlFor="term" className="text-base">Plazo de Pago</Label>
+                            <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} className="text-lg py-6" />
+                        </div>
+                        <RadioGroup value={termUnit} onValueChange={(val: any) => setTermUnit(val)} className="grid grid-cols-3 gap-2">
+                            {(['weeks', 'fortnights', 'months'] as const).map(unit => (
+                                <Label key={unit} htmlFor={`unit-${unit}`} className={cn("p-2 border rounded-md text-center text-xs cursor-pointer", termUnit === unit && "bg-primary text-primary-foreground border-primary")}>
+                                    <RadioGroupItem value={unit} id={`unit-${unit}`} className="sr-only"/>
+                                    {{'weeks': 'Semanas', 'fortnights': 'Quincenas', 'months': 'Meses'}[unit]}
+                                </Label>
+                            ))}
+                        </RadioGroup>
                     </div>
-                    <RadioGroup value={termUnit} onValueChange={(val: any) => setTermUnit(val)} className="grid grid-cols-3 gap-2">
-                        {(['weeks', 'fortnights', 'months'] as const).map(unit => (
-                            <Label key={unit} htmlFor={`unit-${unit}`} className={cn("p-2 border rounded-md text-center text-xs cursor-pointer", termUnit === unit && "bg-primary text-primary-foreground border-primary")}>
-                                <RadioGroupItem value={unit} id={`unit-${unit}`} className="sr-only"/>
-                                {{'weeks': 'Semanas', 'fortnights': 'Quincenas', 'months': 'Meses'}[unit]}
-                            </Label>
-                        ))}
-                    </RadioGroup>
-                </div>
             );
             case 4:
                 const selectedStyle = cardStyles.find(s => s.id === cardStyle);
@@ -643,21 +683,21 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-xl">
-                 <DialogHeader className="p-4 sm:p-6 border-b">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg">
+                 <DialogHeader className="p-4 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
                 </DialogHeader>
-                <div className="px-4 sm:px-6 pt-4">
+                <div className="px-4 pt-4">
                     <Progress value={(step / totalSteps) * 100} className="w-full h-2" />
                     <p className="text-xs text-muted-foreground text-center mt-1">Paso {step} de {totalSteps}</p>
                 </div>
-                <div className="flex-grow flex items-center justify-center p-4 sm:p-6">
+                <div className="flex-grow flex items-center justify-center p-4">
                     <div className="w-full max-w-sm animate-fadeIn">
                         {stepContent()}
                     </div>
                 </div>
-                <DialogFooter className="p-4 sm:p-6 border-t flex justify-between w-full">
+                <DialogFooter className="p-4 border-t flex justify-between w-full">
                     {step > 1 ? (
                         <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 h-4 w-4"/> Atrás</Button>
                     ) : (
