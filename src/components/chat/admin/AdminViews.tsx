@@ -154,16 +154,16 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:rounded-lg sm:p-6" onInteractOutside={(e) => { if (isReadingAmount) e.preventDefault(); }}>
-                <DialogHeader className="p-4 sm:p-0">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:rounded-lg" onInteractOutside={(e) => { if (isReadingAmount) e.preventDefault(); }}>
+                <DialogHeader className="p-4 sm:p-6 border-b">
                     <DialogTitle>Revisar Comprobante</DialogTitle>
                      <DialogDescription>
                          Recibido de {payment.userName} el {payment.receivedAt ? format(new Date(payment.receivedAt), "PPPp", { locale: es }) : 'fecha desconocida'}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="h-full sm:h-[60vh] flex items-center justify-center bg-muted/50 rounded-lg overflow-hidden">
-                    {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="max-w-full max-h-full object-contain" />}
-                    {isVideo && <video src={payment.receiptUrl} controls className="max-w-full max-h-full" />}
+                <div className="h-full flex-grow flex items-center justify-center bg-muted/30 overflow-hidden p-2">
+                    {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="max-w-full max-h-full object-contain rounded-md" />}
+                    {isVideo && <video src={payment.receiptUrl} controls className="max-w-full max-h-full rounded-md" />}
                     {isAudio && <audio src={payment.receiptUrl} controls className="w-full" />}
                     {(isPDF || (!isImage && !isVideo && !isAudio)) && (
                         <div className="text-center p-8">
@@ -737,7 +737,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                  <DialogHeader className="p-4 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
@@ -844,7 +844,11 @@ export const CreditView = () => {
                         <Card 
                             key={credit.id} 
                             onClick={() => handleCreditClick(credit)} 
-                            className="glow-card cursor-pointer overflow-hidden"
+                            className={cn(
+                              "glow-card cursor-pointer overflow-hidden transition-all",
+                              credit.status === 'Atrasado' ? 'border-destructive/50 ring-2 ring-destructive/20' : 'border-border',
+                              credit.status === 'Al Corriente' ? 'border-green-500/50' : 'border-border'
+                            )}
                         >
                             <CardContent className="p-3">
                                 <div className="flex justify-between items-start">
