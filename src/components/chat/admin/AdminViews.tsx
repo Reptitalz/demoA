@@ -1,3 +1,4 @@
+
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -13,7 +14,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { format } from 'date-fns';
+import { format, addWeeks, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
@@ -121,10 +122,10 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-2xl p-0 border-0 bg-black/50 backdrop-blur-sm">
+            <DialogContent className="sm:max-w-2xl p-0 border-0 bg-background/90 backdrop-blur-sm">
                 <DialogHeader className="p-4 absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent z-10">
                     <DialogTitle className="text-white">Revisar Comprobante</DialogTitle>
-                    <DialogDescription className="text-gray-300">
+                     <DialogDescription className="text-gray-300">
                          Recibido de {payment.userName} el {payment.receivedAt ? format(new Date(payment.receivedAt), "PPPp", { locale: es }) : 'fecha desconocida'}
                     </DialogDescription>
                 </DialogHeader>
@@ -422,12 +423,67 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
     );
 };
 
-const cardStyles = [
-    { id: 'slate', name: 'Gris Pizarra', gradient: 'from-slate-900 to-slate-800' },
-    { id: 'blue', name: 'Azul Cósmico', gradient: 'from-blue-900 to-cyan-800' },
-    { id: 'purple', name: 'Púrpura Galáctico', gradient: 'from-purple-900 to-violet-800' },
-    { id: 'green', name: 'Verde Esmeralda', gradient: 'from-green-900 to-teal-800' },
-];
+const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    const demoOffers = [
+        { amount: 5000, interest: 10, term: 12 },
+        { amount: 10000, interest: 8, term: 24 },
+        { amount: 2000, interest: 12, term: 6 },
+    ];
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                const scrollLeft = scrollRef.current.scrollLeft;
+                const cardWidth = scrollRef.current.offsetWidth;
+                if (cardWidth > 0) {
+                    const newIndex = Math.round(scrollLeft / cardWidth);
+                    setActiveIndex(newIndex);
+                }
+            }
+        };
+        const scroller = scrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleScroll);
+        }
+    }, []);
+
+    return (
+        <div className="w-full">
+            <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
+                {demoOffers.map((offer, index) => (
+                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-lg shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
+                            <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-1"><AppIcon className="h-3 w-3 brightness-0 invert" /> <span className="font-semibold text-xs opacity-80">Hey Manito!</span></div>
+                                <Banknote className="h-4 w-4 text-yellow-300" />
+                            </div>
+                            <div className="text-left"><p className="font-mono text-lg tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
+                            <div className="flex justify-between items-end text-xs font-mono">
+                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50" /> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
+                                <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} MESES</p></div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="flex justify-center mt-2 space-x-2">
+                {demoOffers.map((_, index) => (
+                    <button
+                        key={index}
+                        onClick={() => { if (scrollRef.current) { const cardWidth = scrollRef.current.offsetWidth; scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' }); } }}
+                        className={cn("h-1.5 w-1.5 rounded-full transition-all", activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50")}
+                        aria-label={`Ir a la oferta ${index + 1}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
 
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
@@ -539,7 +595,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-xl">
                  <DialogHeader className="p-4 sm:p-6 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
@@ -667,200 +723,12 @@ export const CreditView = () => {
     );
 };
 
-const AddProductDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [step, setStep] = useState(1);
-    const [productName, setProductName] = useState('');
-    const [productPrice, setProductPrice] = useState('');
-    const [shippingMethod, setShippingMethod] = useState<'local' | 'delivery' | null>(null);
-    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | null>(null);
-
-    const handleImageUploadClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    const nextStep = () => setStep(s => s + 1);
-    const prevStep = () => setStep(s => s - 1);
-    
-    const renderStepContent = () => {
-        switch(step) {
-            case 1:
-                return (
-                    <div className="space-y-4 animate-fadeIn">
-                        <div className="space-y-2">
-                            <Label htmlFor="product-name">Nombre del Producto</Label>
-                            <Input id="product-name" placeholder="Ej: Pastel de Tres Leches" value={productName} onChange={e => setProductName(e.target.value)} />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="product-price">Precio</Label>
-                            <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="product-price" type="number" placeholder="Ej: 250.00" className="pl-9" value={productPrice} onChange={e => setProductPrice(e.target.value)} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Imagen del Producto</Label>
-                             <div
-                                onClick={handleImageUploadClick}
-                                className="aspect-video w-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground cursor-pointer hover:border-primary transition-colors bg-muted/50"
-                            >
-                                {imagePreview ? (
-                                    <Image src={imagePreview} alt="Vista previa" width={200} height={112} className="object-cover rounded-md" />
-                                ) : (
-                                    <>
-                                        <Upload className="h-8 w-8 mb-2" />
-                                        <p className="text-sm">Subir imagen</p>
-                                    </>
-                                )}
-                            </div>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                            />
-                        </div>
-                    </div>
-                );
-            case 2:
-                return (
-                     <div className="space-y-4 animate-fadeIn">
-                         <h3 className="text-lg font-semibold text-center">Método de Envío</h3>
-                         <div className="grid grid-cols-2 gap-4">
-                             <Card onClick={() => setShippingMethod('local')} className={cn("cursor-pointer transition-all", shippingMethod === 'local' && "border-primary ring-2 ring-primary")}>
-                                 <CardContent className="p-6 text-center space-y-2">
-                                     <Store className="h-8 w-8 mx-auto text-primary"/>
-                                     <p className="font-semibold">Ir a local</p>
-                                 </CardContent>
-                             </Card>
-                             <Card onClick={() => setShippingMethod('delivery')} className={cn("cursor-pointer transition-all", shippingMethod === 'delivery' && "border-primary ring-2 ring-primary")}>
-                                 <CardContent className="p-6 text-center space-y-2">
-                                     <Truck className="h-8 w-8 mx-auto text-primary"/>
-                                     <p className="font-semibold">Mandadito</p>
-                                 </CardContent>
-                             </Card>
-                         </div>
-                     </div>
-                )
-            case 3:
-                 return (
-                     <div className="space-y-4 animate-fadeIn">
-                         <h3 className="text-lg font-semibold text-center">Método de Pago</h3>
-                         <div className="grid grid-cols-2 gap-4">
-                              <Card onClick={() => setPaymentMethod('cash')} className={cn("cursor-pointer transition-all", paymentMethod === 'cash' && "border-primary ring-2 ring-primary")}>
-                                 <CardContent className="p-6 text-center space-y-2">
-                                     <Wallet className="h-8 w-8 mx-auto text-primary"/>
-                                     <p className="font-semibold">Pagar a repartidor</p>
-                                 </CardContent>
-                             </Card>
-                              <Card onClick={() => setPaymentMethod('transfer')} className={cn("cursor-pointer transition-all", paymentMethod === 'transfer' && "border-primary ring-2 ring-primary")}>
-                                 <CardContent className="p-6 text-center space-y-2">
-                                     <Send className="h-8 w-8 mx-auto text-primary"/>
-                                     <p className="font-semibold">Pagar transferencia</p>
-                                 </CardContent>
-                             </Card>
-                         </div>
-                     </div>
-                )
-            default:
-                return null;
-        }
-    }
-
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col p-0">
-                <DialogHeader className="p-4 border-b">
-                    <DialogTitle>Añadir Nuevo Producto</DialogTitle>
-                    <DialogDescription>
-                        Sigue los pasos para añadir un producto a tu catálogo. (Paso {step} de 3)
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4 flex-grow overflow-y-auto px-6">
-                    {renderStepContent()}
-                </div>
-                <DialogFooter className="flex justify-between w-full p-4 border-t">
-                    {step > 1 ? (
-                        <Button variant="outline" onClick={prevStep}><ArrowLeft className="mr-2 h-4 w-4"/> Atrás</Button>
-                    ) : <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>}
-
-                    {step < 3 ? (
-                        <Button onClick={nextStep}>Siguiente <ArrowRight className="ml-2 h-4 w-4"/></Button>
-                    ) : (
-                        <Button onClick={() => onOpenChange(false)}>Guardar Producto</Button>
-                    )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
-const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) => {
-    const { state } = useApp();
-    const [catalogName, setCatalogName] = useState('');
-    const [selectedPromoter, setSelectedPromoter] = useState<string>('owner'); // 'owner' or assistant id
-    const assistants = state.userProfile.assistants || [];
-  
-    const promoterOptions = useMemo(() => [
-      { id: 'owner', name: 'Tú Mismo', imageUrl: state.userProfile.imageUrl },
-      ...assistants
-    ], [assistants, state.userProfile.imageUrl]);
-  
-    return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
-            <DialogDescription>
-              Define el nombre y el promotor de tu nuevo catálogo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4 flex-1 overflow-y-auto">
-            <div className="px-1 space-y-2">
-              <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
-              <Input id="catalog-name" placeholder="Ej: Menú de Fin de Semana" value={catalogName} onChange={e => setCatalogName(e.target.value)} />
-            </div>
-            <div className="px-1 space-y-2">
-              <Label>¿Quién promocionará este catálogo?</Label>
-              <RadioGroup value={selectedPromoter} onValueChange={setSelectedPromoter} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {promoterOptions.map((promoter) => (
-                      <Label key={promoter.id} htmlFor={`promoter-${promoter.id}`} className={cn("p-3 border rounded-lg flex items-center gap-3 cursor-pointer transition-all", selectedPromoter === promoter.id ? "border-primary ring-1 ring-primary" : "hover:border-muted-foreground")}>
-                          <RadioGroupItem value={promoter.id} id={`promoter-${promoter.id}`} />
-                          <Avatar className="h-10 w-10">
-                              <AvatarImage src={promoter.imageUrl} />
-                              <AvatarFallback>
-                                  {promoter.id === 'owner' ? <User /> : <Bot />}
-                              </AvatarFallback>
-                          </Avatar>
-                          <span className="font-semibold text-sm truncate">{promoter.name}</span>
-                      </Label>
-                  ))}
-              </RadioGroup>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => onOpenChange(false)}>Crear Catálogo</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  };
+const cardStyles = [
+    { id: 'slate', name: 'Gris Pizarra', gradient: 'from-slate-900 to-slate-800' },
+    { id: 'blue', name: 'Azul Cósmico', gradient: 'from-blue-900 to-cyan-800' },
+    { id: 'purple', name: 'Púrpura Galáctico', gradient: 'from-purple-900 to-violet-800' },
+    { id: 'green', name: 'Verde Esmeralda', gradient: 'from-green-900 to-teal-800' },
+];
 
 export const ProductsView = () => {
     const { state } = useApp();
