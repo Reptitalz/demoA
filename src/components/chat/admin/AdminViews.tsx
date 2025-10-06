@@ -579,8 +579,9 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             );
             case 2: return (
                 <div className="space-y-2">
-                    <Label htmlFor="interest" className="text-base">Tasa de Interés Mensual (%)</Label>
+                    <Label htmlFor="interest" className="text-base">Tasa de Interés</Label>
                     <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} className="text-lg py-6" />
+                    <p className="text-xs text-muted-foreground pt-1">¿Cuánto quieres ganar de interés?</p>
                 </div>
             );
             case 3: 
