@@ -1,4 +1,5 @@
 
+
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -6,7 +7,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +15,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { format, addWeeks, addMonths } from 'date-fns';
+import { format, addWeeks, addMonths, add } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
@@ -455,7 +456,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
         <div className="w-full">
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {demoOffers.map((offer, index) => (
-                    <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
                         <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-lg shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
                             <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
                             <div className="flex justify-between items-start">
@@ -485,6 +486,13 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
     );
 };
 
+const cardStyles = [
+    { id: 'slate', name: 'Gris Pizarra', gradient: 'from-slate-900 to-slate-800' },
+    { id: 'blue', name: 'Azul Cósmico', gradient: 'from-blue-900 to-cyan-800' },
+    { id: 'purple', name: 'Púrpura Galáctico', gradient: 'from-purple-900 to-violet-800' },
+    { id: 'green', name: 'Verde Esmeralda', gradient: 'from-green-900 to-teal-800' },
+];
+
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
     const { toast } = useToast();
@@ -494,7 +502,10 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [term, setTerm] = useState('');
     const [termUnit, setTermUnit] = useState<'weeks' | 'fortnights' | 'months'>('months');
     const [cardStyle, setCardStyle] = useState('slate');
+    const [customColor, setCustomColor] = useState("#000000");
+    const [cardImage, setCardImage] = useState<string | null>(null);
     const [assistantId, setAssistantId] = useState<string | undefined>();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const assistants = state.userProfile.assistants || [];
     const totalSteps = 5;
@@ -516,6 +527,18 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         onOpenChange(false);
     }
     
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCardImage(reader.result as string);
+                setCardStyle('custom-image'); // A special id to know an image is used
+            }
+            reader.readAsDataURL(file);
+        }
+    };
+
     const stepContent = () => {
         switch(step) {
             case 1: return (
@@ -548,11 +571,24 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             );
             case 4:
                 const selectedStyle = cardStyles.find(s => s.id === cardStyle);
+                const cardBgStyle = cardStyle === 'custom-image' && cardImage
+                    ? { backgroundImage: `url(${cardImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                    : {};
+                const cardGradientClass = cardStyle === 'custom-color' 
+                    ? '' 
+                    : selectedStyle?.gradient;
+                const customGradientStyle = cardStyle === 'custom-color' 
+                    ? { background: `linear-gradient(to bottom right, ${customColor}, #000)` }
+                    : {};
+
                 return (
                     <div className="space-y-4">
                         <Label className="text-base">Diseño de la Tarjeta</Label>
-                        <div className={cn("bg-gradient-to-br text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden transition-all", selectedStyle?.gradient)}>
-                             <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
+                        <div 
+                           style={{...cardBgStyle, ...customGradientStyle}}
+                           className={cn("bg-gradient-to-br text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden transition-all", cardGradientClass)}
+                        >
+                            <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-xs">Hey Manito!</span></div>
                                 <Banknote className="h-5 w-5 text-yellow-300"/>
@@ -563,14 +599,26 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{term || '0'} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[termUnit]}</p></div>
                             </div>
                         </div>
-                        <RadioGroup value={cardStyle} onValueChange={(val) => setCardStyle(val)} className="grid grid-cols-4 gap-2">
-                           {cardStyles.map(style => (
-                               <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-10 w-10 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
-                                   <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
-                                   <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
-                               </Label>
-                           ))}
-                        </RadioGroup>
+                        <div className="flex items-center gap-2">
+                             <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImage(null); }} className="flex gap-2">
+                               {cardStyles.map(style => (
+                                   <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
+                                       <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
+                                       <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
+                                   </Label>
+                               ))}
+                            </RadioGroup>
+                             <Label htmlFor="custom-color-picker" className="h-8 w-8 rounded-full border-2 p-0.5 cursor-pointer flex items-center justify-center" style={{ borderColor: cardStyle === 'custom-color' ? 'hsl(var(--primary))' : 'transparent' }}>
+                                <div className="w-full h-full rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
+                                    <Palette className="h-4 w-4 text-white"/>
+                                </div>
+                                <input id="custom-color-picker" type="color" value={customColor} onChange={(e) => { setCustomColor(e.target.value); setCardStyle('custom-color'); setCardImage(null); }} className="sr-only"/>
+                             </Label>
+                             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fileInputRef.current?.click()}>
+                                <ImageIcon className="h-4 w-4"/>
+                             </Button>
+                             <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                        </div>
                     </div>
                 );
             case 5: return (
@@ -636,15 +684,30 @@ export const CreditView = () => {
     const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
 
     const activeCredits = [
-        { id: 1, client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15' },
-        { id: 2, client: 'Cliente B', amount: 1000, status: 'Al Corriente', nextPayment: '2024-08-10' },
-        { id: 3, client: 'Cliente C', amount: 3000, status: 'Atrasado', nextPayment: '2024-07-30' },
+        { id: 1, client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15', termType: 'monthly' },
+        { id: 2, client: 'Cliente B', amount: 1000, status: 'Al Corriente', nextPayment: '2024-08-10', termType: 'weekly' },
+        { id: 3, client: 'Cliente C', amount: 3000, status: 'Atrasado', nextPayment: '2024-07-30', termType: 'biweekly' },
     ];
     
     const handleCreditClick = (credit: any) => {
         setSelectedCredit(credit);
         setIsHistoryOpen(true);
     };
+    
+    const getNextPaymentDate = (lastPaymentDate: string, termType: 'weekly' | 'biweekly' | 'monthly'): Date => {
+        const date = new Date(lastPaymentDate);
+        switch (termType) {
+            case 'weekly':
+                return add(date, { weeks: 1 });
+            case 'biweekly':
+                 return add(date, { weeks: 2 });
+            case 'monthly':
+                return add(date, { months: 1 });
+            default:
+                return date;
+        }
+    };
+
 
     return (
         <>
@@ -683,24 +746,35 @@ export const CreditView = () => {
 
                  <div className="space-y-3">
                     <h3 className="font-semibold text-foreground">Créditos Activos</h3>
-                     {activeCredits.map((credit) => (
+                    {activeCredits.length > 0 ? activeCredits.map((credit) => (
                         <Card 
                             key={credit.id} 
                             onClick={() => handleCreditClick(credit)} 
-                            className="glow-card cursor-pointer"
+                            className="glow-card cursor-pointer overflow-hidden"
                         >
-                            <CardContent className="p-3 flex justify-between items-center">
-                                <div className="space-y-0.5">
-                                    <p className="font-bold text-sm">{credit.client}</p>
-                                     <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
+                            <CardContent className="p-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-2 bg-muted rounded-full"><User className="h-4 w-4 text-muted-foreground"/></div>
+                                        <p className="font-bold text-sm">{credit.client}</p>
+                                    </div>
+                                    <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-mono text-lg font-medium text-foreground">${credit.amount.toFixed(2)}</p>
-                                    <p className="text-[10px] text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
+                                <div className="mt-2 pt-2 border-t flex justify-between items-end">
+                                    <div className="text-left">
+                                        <p className="text-xs text-muted-foreground">Monto</p>
+                                        <p className="font-mono text-base font-medium text-foreground">${credit.amount.toFixed(2)}</p>
+                                    </div>
+                                     <div className="text-right">
+                                        <p className="text-xs text-muted-foreground">Próximo pago</p>
+                                        <p className="text-xs font-semibold">{format(getNextPaymentDate(credit.nextPayment, credit.termType as any), 'dd MMM, yyyy', { locale: es })}</p>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
-                    ))}
+                    )) : (
+                         <p className="text-center text-muted-foreground text-sm py-4">No hay créditos activos.</p>
+                    )}
                 </div>
             </div>
         </ScrollArea>
@@ -722,13 +796,6 @@ export const CreditView = () => {
         </>
     );
 };
-
-const cardStyles = [
-    { id: 'slate', name: 'Gris Pizarra', gradient: 'from-slate-900 to-slate-800' },
-    { id: 'blue', name: 'Azul Cósmico', gradient: 'from-blue-900 to-cyan-800' },
-    { id: 'purple', name: 'Púrpura Galáctico', gradient: 'from-purple-900 to-violet-800' },
-    { id: 'green', name: 'Verde Esmeralda', gradient: 'from-green-900 to-teal-800' },
-];
 
 export const ProductsView = () => {
     const { state } = useApp();
@@ -806,7 +873,7 @@ export const ProductsView = () => {
                 >
                     <Plus className="h-6 w-6" />
                 </Button>
-                <CreateCatalogDialog isOpen={isCreateCatalogDialogOpen} onOpenChange={setIsCreateCatalogDialogOpen} />
+                
             </>
         );
     }
@@ -858,14 +925,14 @@ export const ProductsView = () => {
                 </div>
             </ScrollArea>
              <Button
-                onClick={() => setIsAddProductDialogOpen(true)}
+                
                 className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
                 size="icon"
                 title="Añadir Producto"
             >
                 <Plus className="h-6 w-6" />
             </Button>
-            <AddProductDialog isOpen={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen} />
+            
         </>
     );
 };
