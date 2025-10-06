@@ -444,40 +444,42 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+                <DialogHeader className="p-4 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
                 </DialogHeader>
-                <div className="py-4 space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="amount">Monto Máximo del Crédito</Label>
-                        <Input id="amount" type="number" placeholder="Ej: 5000" value={amount} onChange={e => setAmount(e.target.value)} />
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="amount">Monto Máximo del Crédito</Label>
+                            <Input id="amount" type="number" placeholder="Ej: 5000" value={amount} onChange={e => setAmount(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="interest">Tasa de Interés Mensual (%)</Label>
+                            <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="term">Plazo (meses)</Label>
+                            <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="assistant">Asistente Gestor</Label>
+                            <Select onValueChange={setAssistantId} value={assistantId}>
+                                <SelectTrigger id="assistant">
+                                    <SelectValue placeholder="Selecciona un asistente..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {assistants.map(asst => (
+                                        <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
+                                    ))}
+                                    {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="interest">Tasa de Interés Mensual (%)</Label>
-                        <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="term">Plazo (meses)</Label>
-                        <Input id="term" type="number" placeholder="Ej: 12" value={term} onChange={e => setTerm(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="assistant">Asistente Gestor</Label>
-                        <Select onValueChange={setAssistantId} value={assistantId}>
-                            <SelectTrigger id="assistant">
-                                <SelectValue placeholder="Selecciona un asistente..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {assistants.map(asst => (
-                                    <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
-                                ))}
-                                {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-                <DialogFooter>
+                </ScrollArea>
+                <DialogFooter className="p-4 border-t">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button onClick={handleCreate}>Crear Oferta</Button>
                 </DialogFooter>
@@ -520,7 +522,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
                             <motion.div
                                 className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl"
                                 animate={{ rotate: 360 }}
@@ -529,12 +531,12 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-1.5">
                                     <AppIcon className="h-5 w-5"/>
-                                    <span className="font-semibold text-xs">{APP_NAME}</span>
+                                    <span className="font-semibold text-xs">Hey Manito!</span>
                                 </div>
                                 <Banknote className="h-5 w-5 text-yellow-300"/>
                             </div>
                             <div className="text-left">
-                                <p className="font-mono text-lg tracking-wider">${offer.maxAmount.toLocaleString()}</p>
+                                <p className="font-mono text-xl tracking-wider">${offer.maxAmount.toLocaleString()}</p>
                                 <p className="text-[10px] opacity-70">Línea de Crédito</p>
                             </div>
                              <div className="flex justify-between items-end text-xs font-mono">
@@ -642,10 +644,10 @@ export const CreditView = () => {
                                 <div className="absolute -inset-px bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
                                 <div className="relative z-10 space-y-1.5">
                                     <div className="flex justify-between items-center">
-                                        <p className="font-bold text-xs">{credit.client}</p>
+                                        <p className="font-bold text-sm">{credit.client}</p>
                                         <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                     </div>
-                                    <p className="font-mono text-lg font-medium text-foreground">${credit.amount.toFixed(2)}</p>
+                                    <p className="font-mono text-xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
                                     <p className="text-[10px] text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
                                 </div>
                             </div>
