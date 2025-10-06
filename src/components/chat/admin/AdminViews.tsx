@@ -308,8 +308,8 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | n
     const paymentHistory = useMemo(() => {
         if (!credit) return [];
         return [
-            { id: 1, receivedAt: '2024-07-28', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
-            { id: 2, receivedAt: '2024-07-21', amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+            { id: 1, receivedAt: new Date('2024-07-28'), amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+            { id: 2, receivedAt: new Date('2024-07-21'), amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
         ];
     }, [credit]);
     
@@ -527,19 +527,19 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                 transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
                             />
                             <div className="absolute inset-0 bg-black/20"/>
-                            <CardContent className="p-4 relative z-10">
+                            <CardContent className="p-3 relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <CardDescription className="text-blue-200 text-xs">Oferta de Crédito</CardDescription>
-                                        <CardTitle className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
-                                        <p className="text-blue-200 text-xs">Monto Máximo</p>
+                                        <CardDescription className="text-blue-200 text-[10px]">Oferta de Crédito</CardDescription>
+                                        <CardTitle className="text-lg font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
+                                        <p className="text-blue-200 text-[10px]">Monto Máximo</p>
                                     </div>
-                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-6 text-[10px] px-1.5" disabled>
-                                        <Edit className="mr-1 h-3 w-3"/>
+                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-5 text-[9px] px-1" disabled>
+                                        <Edit className="mr-1 h-2 w-2"/>
                                         Editar
                                     </Button>
                                 </div>
-                                <div className="mt-2 flex justify-between items-center text-[10px] sm:text-xs">
+                                <div className="mt-1 flex justify-between items-center text-[10px]">
                                     <div className="flex items-center gap-1">
                                         <Percent className="h-3 w-3 text-blue-300"/>
                                         <span>Tasa: {offer.interestRate}%</span>
@@ -614,6 +614,7 @@ export const CreditView = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => setIsCompletedHistoryOpen(true)}
+                    className="h-8 text-xs"
                 >
                     <History className="mr-2 h-4 w-4" />
                     Historial
@@ -625,9 +626,6 @@ export const CreditView = () => {
                 <div>
                      <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-foreground">Ofertas de Crédito</h3>
-                        <Button variant="ghost" size="sm" className="text-xs" onClick={() => setIsCreateOfferOpen(true)}>
-                            <Plus className="mr-1 h-3 w-3"/> Nueva Oferta
-                        </Button>
                      </div>
                     <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
                 </div>
@@ -644,10 +642,10 @@ export const CreditView = () => {
                                 <div className="absolute -inset-px bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-center mb-3">
-                                        <p className="font-bold text-base">{credit.client}</p>
+                                        <p className="font-bold text-sm">{credit.client}</p>
                                         <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                     </div>
-                                    <p className="font-mono text-2xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
+                                    <p className="font-mono text-xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
                                     <p className="text-xs text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
                                 </div>
                             </div>
