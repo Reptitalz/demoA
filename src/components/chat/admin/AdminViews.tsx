@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/hooks/use-toast';
 import { AssistantConfig, ChatMessage, Product, Catalog } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
@@ -190,7 +190,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                         <div className='flex items-center gap-2 w-full'>
                             <Button variant="outline" className="flex-1" onClick={handleReadAmount} disabled={isReadingAmount || !isImage}>
                                 {isReadingAmount ? <Loader2 className="mr-2 animate-spin"/> : <Bot className="mr-2"/>}
-                                Leer Monto
+                                Leer Monto con IA
                             </Button>
                             {extractedAmount !== null && (
                                 <Input 
