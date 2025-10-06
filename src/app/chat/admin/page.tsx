@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Banknote, Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown, CheckSquare } from 'lucide-react';
+import { Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BankView, AssistantsList, ProductsView, CreditView } from '@/components/chat/admin/AdminViews';
 import { Button } from '@/components/ui/button';
@@ -80,11 +80,11 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
         <div className="w-full">
             <div
                 ref={scrollRef}
-                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide md:grid md:grid-cols-2 md:gap-4"
             >
                 {plans.map((plan, index) => (
-                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <Card className="w-full text-left glow-card bg-card border shadow-lg overflow-hidden">
+                     <div key={index} className="w-full flex-shrink-0 snap-center p-2 md:p-0">
+                        <Card className="w-full text-left glow-card bg-card border shadow-lg overflow-hidden h-full flex flex-col">
                              <CardHeader className="p-4 bg-muted/50 border-b">
                                 <div className="flex items-center justify-between">
                                    <CardTitle className="text-base flex items-center gap-2">
@@ -94,7 +94,7 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
                                    {plan.badge}
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-4 space-y-3">
+                            <CardContent className="p-4 space-y-3 flex-grow">
                                 <List>
                                     {plan.features.map((item, itemIndex) => (
                                         <ListItem key={itemIndex} className="text-xs">
@@ -103,13 +103,15 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
                                         </ListItem>
                                     ))}
                                 </List>
-                                {plan.button}
                             </CardContent>
+                             <div className="p-4 pt-0 mt-auto">
+                                {plan.button}
+                            </div>
                         </Card>
                     </div>
                 ))}
             </div>
-             <div className="flex justify-center mt-2 space-x-2">
+             <div className="flex justify-center mt-2 space-x-2 md:hidden">
                 {plans.map((_, index) => (
                     <button
                         key={index}
@@ -166,38 +168,40 @@ export default function AdminHomePage() {
                     <p className="text-sm text-muted-foreground">Gestiona tus operaciones y asistentes.</p>
                 </header>
 
-                <div className="p-4 space-y-4">
-                    <div className="p-4 grid gap-3 grid-cols-2">
-                        {menuItems.map((item, index) => (
-                        <motion.div
-                            key={item.view}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
-                            className="aspect-square"
-                        >
-                            <Card
-                                onClick={() => setActiveView(item.view)}
-                                className={cn(
-                                    "h-full w-full flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300",
-                                    "bg-card/50 hover:bg-card/90 hover:shadow-primary/10 hover:border-primary/20 border"
-                                )}
+                <div className="p-4 space-y-8">
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                        <div className="p-4 grid gap-3 grid-cols-2">
+                            {menuItems.map((item, index) => (
+                            <motion.div
+                                key={item.view}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3, delay: index * 0.1 }}
+                                className="aspect-square"
                             >
-                                <CardHeader className="p-2">
-                                    <div className="p-2 bg-primary/10 rounded-full mx-auto">
-                                        <item.icon className="h-4 w-4 text-primary" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-2 pt-0">
-                                    <CardTitle className="text-sm font-semibold">{item.title}</CardTitle>
-                                    <CardDescription className="text-xs mt-1">{item.description}</CardDescription>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                        ))}
-                    </div>
-                     <div className="px-2">
-                        <PlanCarousel onUpgrade={handleUpgradeClick} />
+                                <Card
+                                    onClick={() => setActiveView(item.view)}
+                                    className={cn(
+                                        "h-full w-full flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300",
+                                        "bg-card/50 hover:bg-card/90 hover:shadow-primary/10 hover:border-primary/20 border"
+                                    )}
+                                >
+                                    <CardHeader className="p-2">
+                                        <div className="p-3 bg-primary/10 rounded-full mx-auto">
+                                            <item.icon className="h-5 w-5 text-primary" />
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-2 pt-0">
+                                        <CardTitle className="text-sm font-semibold">{item.title}</CardTitle>
+                                        <CardDescription className="text-xs mt-1">{item.description}</CardDescription>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                            ))}
+                        </div>
+                        <div className="px-2">
+                            <PlanCarousel onUpgrade={handleUpgradeClick} />
+                        </div>
                     </div>
                 </div>
             </>
