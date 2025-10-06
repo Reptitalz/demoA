@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppIcon from '@/components/shared/AppIcon';
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
 const DB_NAME = 'HeyManitoChatDB';
@@ -123,7 +124,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                 <DialogHeader className="p-4 border-b">
                     <DialogTitle>Revisar Comprobante</DialogTitle>
                     <DialogDescription>
-                         Recibido de {payment.userName} el {format(new Date(payment.receivedAt), "PPPp", { locale: es })}
+                         Recibido de {payment.userName} el {payment.receivedAt ? format(new Date(payment.receivedAt), "PPPp", { locale: es }) : 'fecha desconocida'}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex-grow overflow-auto p-4 flex items-center justify-center">
@@ -516,43 +517,40 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
 
     return (
         <div className="w-full relative">
-            <div
-                ref={scrollRef}
-                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2"
-            >
+            <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
-                             <motion.div
-                                className="absolute -top-1/4 -right-1/4 w-1/2 h-full bg-white/10 rounded-full"
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
+                            <motion.div
+                                className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl"
                                 animate={{ rotate: 360 }}
-                                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                                transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
                             />
-                            <div className="absolute inset-0 bg-black/20"/>
-                            <CardContent className="p-3 relative z-10">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardDescription className="text-blue-200 text-[10px]">Oferta de Crédito</CardDescription>
-                                        <CardTitle className="text-xl font-bold text-white drop-shadow-lg">${offer.maxAmount.toLocaleString()}</CardTitle>
-                                        <p className="text-blue-200 text-[10px]">Monto Máximo</p>
-                                    </div>
-                                    <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white h-5 text-[9px] px-1" disabled>
-                                        <Edit className="mr-1 h-2 w-2"/>
-                                        Editar
-                                    </Button>
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-1.5">
+                                    <AppIcon className="h-6 w-6"/>
+                                    <span className="font-semibold text-sm">{APP_NAME}</span>
                                 </div>
-                                <div className="mt-1 flex justify-between items-center text-[10px]">
-                                    <div className="flex items-center gap-1">
-                                        <Percent className="h-3 w-3 text-blue-300"/>
-                                        <span>Tasa: {offer.interestRate}%</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <Calendar className="h-3 w-3 text-blue-300"/>
-                                        <span>Plazo: {offer.term} meses</span>
-                                    </div>
+                                <Banknote className="h-6 w-6 text-yellow-300"/>
+                            </div>
+                            <div className="text-left">
+                                <p className="font-mono text-xl tracking-wider">${offer.maxAmount.toLocaleString()}</p>
+                                <p className="text-xs opacity-70">Línea de Crédito</p>
+                            </div>
+                             <div className="flex justify-between items-end text-xs font-mono">
+                                <div className="flex items-center gap-2">
+                                     <Radio className="h-4 w-4 text-white/50"/>
+                                     <div>
+                                        <p className="opacity-70 text-[8px] leading-tight">TASA</p>
+                                        <p className="font-medium leading-tight">{offer.interestRate}%</p>
+                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <div className="text-right">
+                                    <p className="opacity-70 text-[8px] leading-tight">PLAZO</p>
+                                    <p className="font-medium leading-tight">{offer.term} MESES</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
