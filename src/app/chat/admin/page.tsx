@@ -64,14 +64,16 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
             if (scrollRef.current) {
                 const scrollLeft = scrollRef.current.scrollLeft;
                 const cardWidth = scrollRef.current.offsetWidth;
-                const newIndex = Math.round(scrollLeft / cardWidth);
-                setActiveIndex(newIndex);
+                if (cardWidth > 0) {
+                    const newIndex = Math.round(scrollLeft / cardWidth);
+                    setActiveIndex(newIndex);
+                }
             }
         };
 
         const scroller = scrollRef.current;
         if (scroller) {
-            scroller.addEventListener('scroll', handleScroll);
+            scroller.addEventListener('scroll', handleScroll, { passive: true });
             return () => scroller.removeEventListener('scroll', handleScroll);
         }
     }, []);
@@ -168,9 +170,9 @@ export default function AdminHomePage() {
                     <p className="text-sm text-muted-foreground">Gestiona tus operaciones y asistentes.</p>
                 </header>
 
-                <div className="p-4 space-y-8">
+                <div className="p-4 md:p-8 space-y-8">
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                        <div className="p-4 grid gap-3 grid-cols-2">
+                        <div className="p-0 md:p-4 grid gap-3 grid-cols-2">
                             {menuItems.map((item, index) => (
                             <motion.div
                                 key={item.view}
