@@ -523,7 +523,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
                         <Card className="bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-900 text-white shadow-2xl relative overflow-hidden">
-                            <motion.div
+                             <motion.div
                                 className="absolute -top-1/4 -right-1/4 w-1/2 h-full bg-white/10 rounded-full"
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
@@ -556,7 +556,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                     </div>
                 ))}
             </div>
-            <div className="flex justify-center mt-2 space-x-2">
+             <div className="flex justify-center mt-2 space-x-2">
                 {creditOffers.map((_, index) => (
                     <button
                         key={index}
@@ -634,7 +634,7 @@ export const CreditView = () => {
 
                  <div>
                     <h3 className="font-semibold text-foreground mb-2">Créditos Activos</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-3">
                         {activeCredits.map((credit) => (
                             <div 
                                 key={credit.id} 
@@ -647,7 +647,7 @@ export const CreditView = () => {
                                         <p className="font-bold text-xs">{credit.client}</p>
                                         <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                     </div>
-                                    <p className="font-mono text-xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
+                                    <p className="font-mono text-lg font-medium text-foreground">${credit.amount.toFixed(2)}</p>
                                     <p className="text-[10px] text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
                                 </div>
                             </div>
