@@ -500,8 +500,10 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             if (scrollRef.current) {
                 const scrollLeft = scrollRef.current.scrollLeft;
                 const cardWidth = scrollRef.current.offsetWidth;
-                const newIndex = Math.round(scrollLeft / cardWidth);
-                setActiveIndex(newIndex);
+                if (cardWidth > 0) {
+                    const newIndex = Math.round(scrollLeft / cardWidth);
+                    setActiveIndex(newIndex);
+                }
             }
         };
 
@@ -626,6 +628,9 @@ export const CreditView = () => {
                 <div>
                      <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-foreground">Ofertas de Crédito</h3>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setIsCreateOfferOpen(true)}>
+                            <Plus className="mr-1 h-3 w-3"/> Nueva Oferta
+                        </Button>
                      </div>
                     <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
                 </div>
@@ -637,13 +642,13 @@ export const CreditView = () => {
                             <div 
                                 key={credit.id} 
                                 onClick={() => handleCreditClick(credit)} 
-                                className="p-4 rounded-xl border bg-card/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 relative overflow-hidden group"
+                                className="p-3 rounded-xl border bg-card/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 relative overflow-hidden group"
                             >
                                 <div className="absolute -inset-px bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
                                 <div className="relative z-10">
-                                    <div className="flex justify-between items-center mb-3">
+                                    <div className="flex justify-between items-center mb-2">
                                         <p className="font-bold text-sm">{credit.client}</p>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
+                                        <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                     </div>
                                     <p className="font-mono text-xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
                                     <p className="text-xs text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
