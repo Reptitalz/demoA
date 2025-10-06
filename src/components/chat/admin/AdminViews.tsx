@@ -1,5 +1,3 @@
-
-
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -40,6 +38,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppIcon from '@/components/shared/AppIcon';
 import { Progress } from '@/components/ui/progress';
+import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
+
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
 const DB_NAME = 'HeyManitoChatDB';
@@ -113,7 +113,17 @@ const demoAdminChats: AssistantConfig[] = [
     },
 ];
 
-const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (id: string, action: 'authorize' | 'reject') => void }) => {
+const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (id: string, action: 'authorize' | 'reject', amount?: number) => void }) => {
+    const { toast } = useToast();
+    const [isReadingAmount, setIsReadingAmount] = useState(false);
+    const [extractedAmount, setExtractedAmount] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setExtractedAmount(null);
+        }
+    }, [isOpen]);
+
     if (!payment) return null;
 
     const isVideo = payment.receiptUrl.startsWith('data:video');
@@ -121,21 +131,42 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
     const isImage = payment.receiptUrl.startsWith('data:image');
     const isPDF = payment.receiptUrl.includes('application/pdf');
 
+    const handleReadAmount = async () => {
+        if (!isImage) {
+            toast({ title: 'No Soportado', description: 'La lectura de monto solo está disponible para imágenes.', variant: 'default' });
+            return;
+        }
+        setIsReadingAmount(true);
+        try {
+            const result = await extractAmountFromImage({ image: payment.receiptUrl });
+            if (result > 0) {
+                setExtractedAmount(result);
+                toast({ title: 'Monto Encontrado', description: `Se detectó un monto de $${result.toLocaleString()}` });
+            } else {
+                toast({ title: 'No se encontró un monto', description: 'No se pudo extraer un valor monetario de la imagen.', variant: 'destructive' });
+            }
+        } catch (error) {
+            toast({ title: 'Error de IA', description: 'No se pudo procesar la imagen.', variant: 'destructive' });
+        } finally {
+            setIsReadingAmount(false);
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-2xl p-0 border-0 bg-background/90 backdrop-blur-sm">
-                <DialogHeader className="p-4 absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent z-10">
-                    <DialogTitle className="text-white">Revisar Comprobante</DialogTitle>
-                     <DialogDescription className="text-gray-300">
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:rounded-lg sm:p-6" onInteractOutside={(e) => { if (isReadingAmount) e.preventDefault(); }}>
+                <DialogHeader className="p-4 sm:p-0">
+                    <DialogTitle>Revisar Comprobante</DialogTitle>
+                     <DialogDescription>
                          Recibido de {payment.userName} el {payment.receivedAt ? format(new Date(payment.receivedAt), "PPPp", { locale: es }) : 'fecha desconocida'}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="h-[80vh] flex items-center justify-center">
+                <div className="h-full sm:h-[60vh] flex items-center justify-center bg-muted/50 rounded-lg overflow-hidden">
                     {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="max-w-full max-h-full object-contain" />}
                     {isVideo && <video src={payment.receiptUrl} controls className="max-w-full max-h-full" />}
                     {isAudio && <audio src={payment.receiptUrl} controls className="w-full" />}
                     {(isPDF || (!isImage && !isVideo && !isAudio)) && (
-                        <div className="text-center p-8 bg-muted rounded-lg">
+                        <div className="text-center p-8">
                             <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4"/>
                             <p className="font-semibold">Documento: {payment.fileName || 'archivo'}</p>
                             <p className="text-sm text-muted-foreground mb-4">La previsualización no está disponible.</p>
@@ -145,10 +176,28 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                         </div>
                     )}
                 </div>
-                {onAction && (
-                    <DialogFooter className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent z-10 flex justify-end gap-2">
-                        <Button variant="destructive" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
-                        <Button variant="default" onClick={() => onAction(payment.id, 'authorize')} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
+                 {onAction && (
+                    <DialogFooter className="p-4 flex-col sm:flex-row gap-2">
+                        <div className='flex items-center gap-2 w-full'>
+                            <Button variant="outline" className="flex-1" onClick={handleReadAmount} disabled={isReadingAmount || !isImage}>
+                                {isReadingAmount ? <Loader2 className="mr-2 animate-spin"/> : <Bot className="mr-2"/>}
+                                Leer Monto
+                            </Button>
+                            {extractedAmount !== null && (
+                                <Input 
+                                    type="number" 
+                                    value={extractedAmount}
+                                    onChange={(e) => setExtractedAmount(parseFloat(e.target.value))}
+                                    className="w-28 text-center font-bold"
+                                />
+                            )}
+                        </div>
+                        <div className='flex items-center gap-2 w-full'>
+                            <Button variant="destructive" className="flex-1" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
+                            <Button className="flex-1 bg-green-600 hover:bg-green-700" disabled={extractedAmount === null || extractedAmount <= 0} onClick={() => onAction(payment.id, 'authorize', extractedAmount || 0)}>
+                                <Check className="mr-2"/> Autorizar Monto
+                            </Button>
+                        </div>
                     </DialogFooter>
                 )}
             </DialogContent>
@@ -219,8 +268,12 @@ export const BankView = () => {
         setIsReceiptOpen(true);
     };
     
-    const handleAction = (id: string, action: 'authorize' | 'reject') => {
-        setAllPayments(prev => prev.filter(p => p.id !== id));
+    const handleAction = (id: string, action: 'authorize' | 'reject', amount?: number) => {
+        if (action === 'authorize' && amount) {
+             setAllPayments(prev => prev.map(p => p.id === id ? { ...p, status: 'completed', amount: amount } : p));
+        } else {
+             setAllPayments(prev => prev.filter(p => p.id !== id));
+        }
         setIsReceiptOpen(false);
         toast({
             title: `Acción Realizada`,
@@ -457,13 +510,13 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {demoOffers.map((offer, index) => (
                      <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-lg shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
                             <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
                             <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-1"><AppIcon className="h-3 w-3 brightness-0 invert" /> <span className="font-semibold text-xs opacity-80">Hey Manito!</span></div>
-                                <Banknote className="h-4 w-4 text-yellow-300" />
+                                <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert" /> <span className="font-semibold text-xs opacity-80">Hey Manito!</span></div>
+                                <Banknote className="h-5 w-5 text-yellow-300" />
                             </div>
-                            <div className="text-left"><p className="font-mono text-lg tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
+                            <div className="text-left"><p className="font-mono text-xl tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
                             <div className="flex justify-between items-end text-xs font-mono">
                                 <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} MESES</p></div>
@@ -634,7 +687,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                                 <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-xs">Hey Manito!</span></div>
                                 <Banknote className="h-5 w-5 text-yellow-300"/>
                             </div>
-                            <div className="text-left"><p className="font-mono text-lg tracking-wider">${parseInt(amount || '0').toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
+                            <div className="text-left"><p className="font-mono text-xl tracking-wider">${parseInt(amount || '0').toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
                              <div className="flex justify-between items-end text-xs font-mono">
                                 <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{interest || '0'}%</p></div></div>
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{term || '0'} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[termUnit]}</p></div>
