@@ -39,33 +39,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppIcon from '@/components/shared/AppIcon';
 import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
+import { openDB } from '@/lib/db';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
-const DB_NAME = 'HeyManitoChatDB';
-const DB_VERSION = 2; // Make sure this matches your db.ts
 const MESSAGES_STORE_NAME = 'messages';
-
-const openDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (event) => {
-        const db = request.result;
-        const transaction = request.transaction;
-        if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
-            db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
-        }
-        if (transaction) {
-            const messagesStore = transaction.objectStore(MESSAGES_STORE_NAME);
-            if (!messagesStore.indexNames.contains('by_sessionId')) {
-                messagesStore.createIndex('by_sessionId', 'sessionId');
-            }
-        }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-};
+const AUTHORIZED_PAYMENTS_STORE_NAME = 'authorized_payments';
 
 interface StoredMessage extends ChatMessage {
     sessionId: string;
@@ -73,7 +52,6 @@ interface StoredMessage extends ChatMessage {
     id?: number; 
 }
 
-// Function to get all messages from all sessions
 const getAllMessagesFromDB = async (): Promise<StoredMessage[]> => {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -89,6 +67,37 @@ const getAllMessagesFromDB = async (): Promise<StoredMessage[]> => {
         };
     });
 };
+
+const getAllAuthorizedPayments = async (): Promise<any[]> => {
+    const db = await openDB();
+    return new Promise((resolve) => {
+        const tx = db.transaction(AUTHORIZED_PAYMENTS_STORE_NAME, 'readonly');
+        const store = tx.objectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve([]);
+    });
+}
+
+const authorizePaymentInDB = async (payment: any) => {
+    const db = await openDB();
+    const tx = db.transaction([AUTHORIZED_PAYMENTS_STORE_NAME, MESSAGES_STORE_NAME], 'readwrite');
+    const authStore = tx.objectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
+    const msgStore = tx.objectStore(MESSAGES_STORE_NAME);
+    await authStore.put(payment);
+    // After authorizing, delete the original message to remove it from "pending"
+    if (payment.messageId) {
+        await msgStore.delete(payment.messageId);
+    }
+    await tx.done;
+}
+
+const rejectPaymentInDB = async (messageId: number) => {
+     const db = await openDB();
+     const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
+     await tx.objectStore(MESSAGES_STORE_NAME).delete(messageId);
+     await tx.done;
+}
 
 
 // Demo data for admin chat trays
@@ -193,8 +202,8 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                             )}
                         </div>
                         <div className='flex items-center gap-2 w-full'>
-                            <Button variant="destructive" className="flex-1" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
-                            <Button className="flex-1 bg-green-600 hover:bg-green-700" disabled={extractedAmount === null || extractedAmount <= 0} onClick={() => onAction(payment.id, 'authorize', extractedAmount || 0)}>
+                            <Button variant="destructive" className="flex-1" onClick={() => onAction(payment.messageId, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
+                            <Button className="flex-1 bg-green-600 hover:bg-green-700" disabled={extractedAmount === null || extractedAmount <= 0} onClick={() => onAction(payment.messageId, 'authorize', extractedAmount || 0)}>
                                 <Check className="mr-2"/> Autorizar Monto
                             </Button>
                         </div>
@@ -219,26 +228,35 @@ export const BankView = () => {
     const fetchPayments = useCallback(async () => {
         setIsLoading(true);
         try {
-            const allMessages = await getAllMessagesFromDB();
-            const mediaMessages = allMessages
+            const [pendingMessages, authorizedPayments] = await Promise.all([
+                getAllMessagesFromDB(),
+                getAllAuthorizedPayments()
+            ]);
+
+            const pending = pendingMessages
                 .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type))
-                .map((msg, index) => {
+                .map((msg) => {
                     const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath))
                     const content = msg.content as { type: string, url: string, name?: string };
                     return {
-                        id: msg.id?.toString() || `media-${index}`,
+                        id: `pending-${msg.id}`,
+                        messageId: msg.id,
                         product: `Comprobante (${content.type})`,
                         fileName: content.name,
                         assistantName: assistant?.name || 'Desconocido',
                         userName: `Usuario ${msg.sessionId.slice(-6)}`,
                         chatPath: msg.sessionId,
-                        amount: 0.00, // Amount is unknown from just an image
+                        amount: 0.00,
                         receiptUrl: content.url,
-                        receivedAt: new Date(), // Using current date as placeholder
-                        status: 'pending', // All found images are pending initially
+                        receivedAt: new Date(msg.time),
+                        status: 'pending',
                     };
                 });
-            setAllPayments(mediaMessages);
+            
+            const completed = authorizedPayments.map(p => ({ ...p, status: 'completed' }));
+            
+            setAllPayments([...pending, ...completed]);
+
         } catch (error) {
             console.error(error);
             toast({ title: 'Error', description: 'No se pudieron cargar los comprobantes desde la base de datos local.', variant: 'destructive'});
@@ -268,17 +286,29 @@ export const BankView = () => {
         setIsReceiptOpen(true);
     };
     
-    const handleAction = (id: string, action: 'authorize' | 'reject', amount?: number) => {
+    const handleAction = async (messageId: number, action: 'authorize' | 'reject', amount?: number) => {
+        const paymentToProcess = allPayments.find(p => p.messageId === messageId);
+        if (!paymentToProcess) return;
+
         if (action === 'authorize' && amount) {
-             setAllPayments(prev => prev.map(p => p.id === id ? { ...p, status: 'completed', amount: amount } : p));
-        } else {
-             setAllPayments(prev => prev.filter(p => p.id !== id));
+            const authorizedPayment = { ...paymentToProcess, status: 'completed', amount: amount, authorizedAt: new Date() };
+            try {
+                await authorizePaymentInDB(authorizedPayment);
+                setAllPayments(prev => prev.map(p => p.id === paymentToProcess.id ? authorizedPayment : p).filter(p => p.id !== paymentToProcess.id || p.status === 'completed'));
+                 toast({ title: "Acción Realizada", description: "El comprobante ha sido autorizado."});
+            } catch (error) {
+                toast({ title: "Error", description: "No se pudo guardar la autorización.", variant: "destructive" });
+            }
+        } else if (action === 'reject') {
+            try {
+                await rejectPaymentInDB(messageId);
+                setAllPayments(prev => prev.filter(p => p.messageId !== messageId));
+                toast({ title: "Acción Realizada", description: "El comprobante ha sido rechazado y eliminado."});
+            } catch (error) {
+                 toast({ title: "Error", description: "No se pudo eliminar el comprobante.", variant: "destructive" });
+            }
         }
         setIsReceiptOpen(false);
-        toast({
-            title: `Acción Realizada`,
-            description: `El comprobante ha sido ${action === 'authorize' ? 'autorizado' : 'rechazado'}.`
-        });
     };
 
     return (
@@ -559,6 +589,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [cardImage, setCardImage] = useState<string | null>(null);
     const [assistantId, setAssistantId] = useState<string | undefined>();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const assistants = state.userProfile.assistants || [];
     const totalSteps = 5;
@@ -737,7 +768,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                  <DialogHeader className="p-4 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
