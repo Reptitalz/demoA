@@ -111,7 +111,7 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col sm:w-full sm:max-w-md sm:h-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus /> Agregar Nuevo Contacto
@@ -120,43 +120,17 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
             Ingresa el ID de chat (chat path) del contacto que quieres agregar a tu lista.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4 flex-grow flex flex-col items-center justify-center">
-            <div className='w-full max-w-sm space-y-6'>
-              <div>
-                <Label htmlFor="chatPath">ID de Chat del Contacto</Label>
-                <Input
-                  id="chatPath"
-                  placeholder="ejemplo-asistente-abc12"
-                  value={chatPath}
-                  onChange={(e) => setChatPath(e.target.value)}
-                  className="text-lg py-6"
-                  disabled={isVerifying}
-                />
-              </div>
-
-              {/* Chat Preview */}
-              <div className="space-y-2">
-                <Label>Vista Previa</Label>
-                <Card className="glow-card">
-                    <CardContent className="p-3 flex items-center gap-3">
-                        <motion.div
-                            animate={{ y: [-1, 1, -1] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                        >
-                            <Avatar className="h-12 w-12 border-2 border-primary/30">
-                                <AvatarFallback className="text-lg bg-muted">
-                                    {chatPath ? chatPath.charAt(0).toUpperCase() : <FaUser />}
-                                </AvatarFallback>
-                            </Avatar>
-                        </motion.div>
-                        <div className="flex-grow overflow-hidden">
-                          <p className="font-semibold truncate text-sm">{chatPath || 'Nombre del Contacto'}</p>
-                          <p className="text-xs text-muted-foreground">Buscando...</p>
-                        </div>
-                    </CardContent>
-                </Card>
-              </div>
-            </div>
+        <div className="py-4 space-y-4">
+          <div>
+            <Label htmlFor="chatPath">ID de Chat del Contacto</Label>
+            <Input
+              id="chatPath"
+              placeholder="ejemplo-asistente-abc12"
+              value={chatPath}
+              onChange={(e) => setChatPath(e.target.value)}
+              disabled={isVerifying}
+            />
+          </div>
         </div>
         <DialogFooter className="flex-col sm:flex-row gap-2 sm:justify-end w-full">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying} className="w-full sm:w-auto">Cancelar</Button>

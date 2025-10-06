@@ -121,16 +121,16 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-screen h-screen max-w-full max-h-full p-0 flex flex-col bg-background">
-                <DialogHeader className="p-4 border-b">
-                    <DialogTitle>Revisar Comprobante</DialogTitle>
-                    <DialogDescription>
+            <DialogContent className="max-w-4xl p-0 border-0 bg-black/50 backdrop-blur-sm">
+                <DialogHeader className="p-4 absolute top-0 left-0 right-0 bg-gradient-to-b from-black/50 to-transparent z-10">
+                    <DialogTitle className="text-white">Revisar Comprobante</DialogTitle>
+                    <DialogDescription className="text-gray-300">
                          Recibido de {payment.userName} el {payment.receivedAt ? format(new Date(payment.receivedAt), "PPPp", { locale: es }) : 'fecha desconocida'}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex-grow overflow-auto p-4 flex items-center justify-center">
-                    {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="rounded-md border max-w-full h-auto" />}
-                    {isVideo && <video src={payment.receiptUrl} controls className="rounded-md border max-w-full h-auto" />}
+                <div className="h-[80vh] flex items-center justify-center">
+                    {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="max-w-full max-h-full object-contain" />}
+                    {isVideo && <video src={payment.receiptUrl} controls className="max-w-full max-h-full" />}
                     {isAudio && <audio src={payment.receiptUrl} controls className="w-full" />}
                     {(isPDF || (!isImage && !isVideo && !isAudio)) && (
                         <div className="text-center p-8 bg-muted rounded-lg">
@@ -144,7 +144,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                     )}
                 </div>
                 {onAction && (
-                    <DialogFooter className="p-4 bg-background border-t flex justify-end gap-2">
+                    <DialogFooter className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent z-10 flex justify-end gap-2">
                         <Button variant="destructive" onClick={() => onAction(payment.id, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
                         <Button variant="default" onClick={() => onAction(payment.id, 'authorize')} className="bg-green-600 hover:bg-green-700"><Check className="mr-2"/> Autorizar</Button>
                     </DialogFooter>
@@ -446,6 +446,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         if (step === 1 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
         if (step === 2 && !interest) return toast({ title: "Campo requerido", description: "Por favor, ingresa una tasa de interés.", variant: "destructive" });
         if (step === 3 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
+        if (step === 4 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
         setStep(s => s + 1);
     };
     const handleBack = () => setStep(s => s - 1);
@@ -528,20 +529,20 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:rounded-lg">
-                <DialogHeader className="p-4 border-b">
+                 <DialogHeader className="p-4 sm:p-6 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
                     <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
                 </DialogHeader>
-                 <div className="px-4 pt-4">
+                <div className="px-4 sm:px-6 pt-4">
                     <Progress value={(step / totalSteps) * 100} className="w-full h-2" />
                     <p className="text-xs text-muted-foreground text-center mt-1">Paso {step} de {totalSteps}</p>
                 </div>
-                <div className="flex-grow flex items-center justify-center p-4">
+                <div className="flex-grow flex items-center justify-center p-4 sm:p-6">
                     <div className="w-full max-w-sm animate-fadeIn">
                         {stepContent()}
                     </div>
                 </div>
-                <DialogFooter className="p-4 border-t flex justify-between w-full">
+                <DialogFooter className="p-4 sm:p-6 border-t flex justify-between w-full">
                     {step > 1 ? (
                         <Button variant="outline" onClick={handleBack}><ArrowLeft className="mr-2 h-4 w-4"/> Atrás</Button>
                     ) : (
@@ -593,29 +594,29 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer, index) => (
                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-xl shadow-2xl aspect-[1.586] p-3 flex flex-col justify-between relative overflow-hidden">
                             <motion.div
                                 className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl"
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
                             />
                             <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-2"><AppIcon className="h-5 w-5 brightness-0 invert"/> <span className="font-semibold text-xs">Hey Manito!</span></div>
-                                <Banknote className="h-6 w-6 text-yellow-300"/>
+                                <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-[10px]">Hey Manito!</span></div>
+                                <Banknote className="h-4 w-4 text-yellow-300"/>
                             </div>
                             <div className="text-left">
-                                <p className="font-mono text-2xl tracking-wider">${offer.maxAmount.toLocaleString()}</p>
-                                <p className="text-xs opacity-70">Línea de Crédito</p>
+                                <p className="font-mono text-lg tracking-wider">${offer.maxAmount.toLocaleString()}</p>
+                                <p className="text-[9px] opacity-70">Línea de Crédito</p>
                             </div>
-                             <div className="flex justify-between items-end text-sm font-mono">
-                                <div className="flex items-center gap-2"><Radio className="h-5 w-5 text-white/50"/> <div><p className="opacity-70 text-xs leading-tight">TASA</p><p className="font-medium text-sm leading-tight">{offer.interestRate}%</p></div></div>
-                                <div className="text-right"><p className="opacity-70 text-xs leading-tight">PLAZO</p><p className="font-medium text-sm leading-tight">{offer.term} MESES</p></div>
+                             <div className="flex justify-between items-end text-[10px] font-mono">
+                                <div className="flex items-center gap-1"><Radio className="h-3 w-3 text-white/50"/> <div><p className="opacity-70 text-[7px] leading-tight">TASA</p><p className="font-medium text-[9px] leading-tight">{offer.interestRate}%</p></div></div>
+                                <div className="text-right"><p className="opacity-70 text-[7px] leading-tight">PLAZO</p><p className="font-medium text-[9px] leading-tight">{offer.term} MESES</p></div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-             <div className="flex justify-center mt-4 space-x-2">
+             <div className="flex justify-center mt-2 space-x-1.5">
                 {creditOffers.map((_, index) => (
                     <button
                         key={index}
@@ -626,8 +627,8 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             }
                         }}
                         className={cn(
-                            "h-2 w-2 rounded-full transition-all",
-                            activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                            "h-1.5 w-1.5 rounded-full transition-all",
+                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
                         )}
                         aria-label={`Ir a la oferta ${index + 1}`}
                     />
@@ -691,29 +692,27 @@ export const CreditView = () => {
                     <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
                 </div>
 
-                 <div>
-                    <h3 className="font-semibold text-foreground mb-2">Créditos Activos</h3>
-                    <div className="space-y-3">
-                        {activeCredits.map((credit) => (
-                            <div 
-                                key={credit.id} 
-                                onClick={() => handleCreditClick(credit)} 
-                                className="p-3 rounded-xl border bg-card/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 relative overflow-hidden group"
-                            >
-                                <div className={cn("absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                                  credit.status === 'Atrasado' ? 'bg-gradient-to-r from-red-500/20 via-orange-500/20 to-yellow-500/20' : 'bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20'
-                                )}/>
-                                <div className="relative z-10 space-y-1.5">
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-bold text-sm">{credit.client}</p>
-                                        <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
-                                    </div>
-                                    <p className="font-mono text-xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
-                                    <p className="text-[10px] text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
+                 <div className="space-y-3">
+                    <h3 className="font-semibold text-foreground">Créditos Activos</h3>
+                    {activeCredits.map((credit) => (
+                        <div 
+                            key={credit.id} 
+                            onClick={() => handleCreditClick(credit)} 
+                            className="p-3 rounded-xl border bg-card/50 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/50 relative overflow-hidden group"
+                        >
+                            <div className={cn("absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                              credit.status === 'Atrasado' ? 'bg-gradient-to-r from-red-500/20 via-orange-500/20 to-yellow-500/20' : 'bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20'
+                            )}/>
+                            <div className="relative z-10 space-y-1.5">
+                                <div className="flex justify-between items-center">
+                                    <p className="font-bold text-sm">{credit.client}</p>
+                                    <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                 </div>
+                                <p className="font-mono text-xl font-medium text-foreground">${credit.amount.toFixed(2)}</p>
+                                <p className="text-[10px] text-muted-foreground mt-1">Próximo pago: {format(new Date(credit.nextPayment), 'dd MMM, yyyy', { locale: es })}</p>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </ScrollArea>

@@ -41,17 +41,16 @@ const DefineShowDialog = ({ isOpen, onOpenChange, onSelectShow }: DefineShowDial
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center p-4">
-        <div className='w-full max-w-md'>
-          <DialogHeader className="text-center">
-            <DialogTitle className="flex items-center justify-center gap-2 text-2xl">
+      <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
               <Settings /> Definir Muestra Rápida
             </DialogTitle>
             <DialogDescription>
               Elige qué información quieres ver en la cabecera de tu lista de chats.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 space-y-3">
+          <div className="py-4 space-y-3">
             {options.map((option) => {
               const Icon = option.icon;
               const isSelected = selectedOption === option.id;
@@ -60,14 +59,14 @@ const DefineShowDialog = ({ isOpen, onOpenChange, onSelectShow }: DefineShowDial
                       key={option.id}
                       onClick={() => setSelectedOption(option.id)}
                       className={cn(
-                          "cursor-pointer transition-all border-2",
-                          isSelected ? "border-primary shadow-lg ring-2 ring-primary/50" : "hover:border-primary/50 hover:bg-muted/50"
+                          "cursor-pointer transition-all border",
+                          isSelected ? "border-primary ring-1 ring-primary" : "hover:border-muted-foreground/50"
                       )}
                   >
-                      <CardContent className="p-4 flex items-center gap-4">
-                          <Icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      <CardContent className="p-3 flex items-center gap-3">
+                          <Icon className={cn("h-5 w-5", isSelected ? "text-primary" : "text-muted-foreground")} />
                           <div className="flex-grow">
-                              <p className="font-semibold">{option.title}</p>
+                              <p className="font-semibold text-sm">{option.title}</p>
                               <p className="text-xs text-muted-foreground">{option.description}</p>
                           </div>
                           {isSelected && <FaCheckCircle className="h-5 w-5 text-primary"/>}
@@ -76,11 +75,10 @@ const DefineShowDialog = ({ isOpen, onOpenChange, onSelectShow }: DefineShowDial
               )
             })}
           </div>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">Cancelar</Button>
-            <Button onClick={handleSave} className="w-full">Guardar Preferencia</Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">Cancelar</Button>
+            <Button onClick={handleSave} className="w-full sm:w-auto">Guardar Preferencia</Button>
           </DialogFooter>
-        </div>
       </DialogContent>
     </Dialog>
   );
