@@ -165,11 +165,7 @@ export default function ChatListPage() {
             </div>
         </main>
         
-        <footer className="p-4 sticky bottom-0">
-            <button className="absolute right-6 bottom-20 bg-primary text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg">
-                <span className="material-symbols-outlined text-3xl">chat</span>
-            </button>
-        </footer>
+        
     </div>
     <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
     </>
