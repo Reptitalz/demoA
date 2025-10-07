@@ -7,12 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaCrown, FaStar, FaInfoCircle } from 'react-icons/fa';
+import { FaSpinner, FaStar, FaInfoCircle } from 'react-icons/fa';
 import { MONTHLY_PLAN_CREDIT_COST, PRICE_PER_CREDIT } from '@/config/appConfig';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
-import { Loader2, MessageCircle, Landmark, ShoppingCart, CreditCard, XCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, MessageCircle, Landmark, ShoppingCart, CreditCard, XCircle, ShieldCheck, Crown } from 'lucide-react';
 import PersonalInfoDialog from './PersonalInfoDialog';
 import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
