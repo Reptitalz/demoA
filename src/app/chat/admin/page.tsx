@@ -117,7 +117,6 @@ export default function AdminHomePage() {
 ];
 
   const handleBackToDashboard = () => {
-    setActiveView('home');
     router.push('/chat/dashboard');
   }
 
