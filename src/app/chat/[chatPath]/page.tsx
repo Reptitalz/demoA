@@ -111,8 +111,8 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                     className={cn(
                         "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed",
                         isUserMessage 
-                            ? "bg-[#dcf8c6] dark:bg-[#054740] rounded-br-none" 
-                            : "bg-card dark:bg-slate-700 rounded-bl-none",
+                            ? "bg-[#dcf8c6] rounded-br-none" 
+                            : "bg-card rounded-bl-none",
                         isGoogleMapsImage ? "p-1" : "px-3 py-2"
                     )}
                 >
@@ -122,7 +122,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                                 <Image src={message.content} alt="Ubicación en mapa" width={250} height={200} className="rounded-lg cursor-pointer" />
                             </a>
                         ) : (
-                            <p className="text-black dark:text-white">{message.content}</p>
+                            <p className="text-black">{message.content}</p>
                         )
                     ) : message.content.type === 'image' ? (
                         <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
@@ -594,7 +594,7 @@ const DesktopChatPage = () => {
   
   return (
     <>
-      <div className="h-full w-screen flex flex-col bg-slate-200 dark:bg-slate-800">
+      <div className="h-full w-screen flex flex-col bg-slate-200">
         <header
           className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b"
         >
@@ -645,7 +645,7 @@ const DesktopChatPage = () => {
                             <AvatarImage src={assistant.imageUrl} />
                             <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <div className="rounded-2xl px-4 py-2 max-w-xs shadow-md bg-card dark:bg-slate-700 rounded-bl-none">
+                        <div className="rounded-2xl px-4 py-2 max-w-xs shadow-md bg-card rounded-bl-none">
                             <div className="flex items-center gap-2">
                                 <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                                 <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>

@@ -28,22 +28,22 @@ interface ChatItemProps {
 
 const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
   return (
-    <div onClick={onClick} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+    <div onClick={onClick} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100 cursor-pointer">
         <div className="relative">
             <Avatar className="h-14 w-14">
                 <AvatarImage src={chat.imageUrl} alt={`${chat.name}'s profile picture`} />
                 <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
             </Avatar>
             {chat.isOnline && (
-                <span className="absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background-light dark:border-background-dark"></span>
+                <span className="absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background-light"></span>
             )}
         </div>
         <div className="flex-1">
             <div className="flex justify-between">
-                <p className="text-base font-semibold text-gray-900 dark:text-white">{chat.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{chat.timestamp}</p>
+                <p className="text-base font-semibold text-gray-900">{chat.name}</p>
+                <p className="text-xs text-gray-500">{chat.timestamp}</p>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{chat.lastMessage}</p>
+            <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
         </div>
     </div>
   );
@@ -52,9 +52,9 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 
 const MemberSectionButton = ({ icon: Icon, label, onClick }: { icon: React.ElementType, label: string, onClick: () => void }) => (
     <div>
-        <button onClick={onClick} className="w-full bg-background-light dark:bg-background-dark rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow">
+        <button onClick={onClick} className="w-full bg-background-light rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow">
             <Icon className="text-primary text-3xl" />
-            <span className="text-xs mt-1 text-gray-900 dark:text-white">{label}</span>
+            <span className="text-xs mt-1 text-gray-900">{label}</span>
         </button>
     </div>
 );
@@ -73,29 +73,29 @@ export default function ChatListPage() {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-background-light dark:bg-background-dark font-display">
-        <header className="bg-background-light dark:bg-background-dark sticky top-0 z-10 px-4 pt-4 pb-2">
+    <div className="flex flex-col h-screen bg-background-light font-display">
+        <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-2">
             <div className="flex items-center justify-between pb-4">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Chats</h1>
-                <button className="text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-bold text-gray-900">Chats</h1>
+                <button className="text-gray-900">
                     <FaSearch className="text-3xl" />
                 </button>
             </div>
-            <div className="border-b border-gray-200 dark:border-gray-700">
+            <div className="border-b border-gray-200">
                 <nav className="flex space-x-6">
                     <a className="pb-2 text-primary border-b-2 border-primary text-sm font-bold" href="#">Todos</a>
-                    <a className="pb-2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary border-b-2 border-transparent hover:border-primary text-sm font-bold" href="#">No leídos</a>
-                    <a className="pb-2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary border-b-2 border-transparent hover:border-primary text-sm font-bold" href="#">Grupos</a>
+                    <a className="pb-2 text-gray-500 hover:text-primary border-b-2 border-transparent hover:border-primary text-sm font-bold" href="#">No leídos</a>
+                    <a className="pb-2 text-gray-500 hover:text-primary border-b-2 border-transparent hover:border-primary text-sm font-bold" href="#">Grupos</a>
                 </nav>
             </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">
-            <div className="p-4 bg-primary/10 dark:bg-primary/20">
+            <div className="p-4 bg-primary/10">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                          <span className="material-symbols-outlined text-primary text-xl" style={{fontVariationSettings: "'FILL' 1"}}>workspace_premium</span>
-                        <h2 className="font-bold text-gray-900 dark:text-white">Miembro</h2>
+                        <h2 className="font-bold text-gray-900">Miembro</h2>
                     </div>
                 </div>
                 <div className="grid grid-cols-4 gap-4 text-center">
@@ -104,12 +104,12 @@ export default function ChatListPage() {
                     <MemberSectionButton icon={Package} label="Productos" onClick={() => router.push('/chat/admin')} />
                     <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => router.push('/chat/admin')} />
                 </div>
-                <div className="mt-4 bg-background-light dark:bg-background-dark rounded-lg p-3 text-center">
-                    <p className="text-sm text-gray-900 dark:text-white">Plan actual: <span className="font-bold">Gratuito</span></p>
+                <div className="mt-4 bg-background-light rounded-lg p-3 text-center">
+                    <p className="text-sm text-gray-900">Plan actual: <span className="font-bold">Gratuito</span></p>
                 </div>
             </div>
 
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            <div className="divide-y divide-gray-200">
                 {demoChats.map((chat, index) => (
                     <ChatItem key={index} chat={chat} onClick={() => {}} />
                 ))}
