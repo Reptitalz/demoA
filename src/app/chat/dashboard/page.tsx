@@ -84,7 +84,6 @@ export default function ChatListPage() {
   const [activeSwipe, setActiveSwipe] = useState<{ chatPath: string; direction: 'left' | 'right' } | null>(null);
   const dragOccurred = useRef(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
-  const [isMemberSectionVisible, setIsMemberSectionVisible] = useState(true);
 
   const filteredChats = useMemo(() => {
     return contacts.filter(chat =>
@@ -169,36 +168,24 @@ export default function ChatListPage() {
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
             <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
-                <div className="relative">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2" onClick={() => setIsMemberSectionVisible(v => !v)}>
-                            {isMemberSectionVisible ? <FaChevronUp/> : <FaChevronDown/>}
-                        </Button>
-                    </div>
-                    <motion.div
-                        animate={{ height: isMemberSectionVisible ? 'auto' : 0 }}
-                        initial={{ height: 'auto' }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                    >
-                         <div className="grid grid-cols-4 gap-4 text-center">
-                           {memberButtons.map(btn => (
-                                <MemberSectionButton
-                                    key={btn.view}
-                                    icon={btn.icon}
-                                    label={btn.label}
-                                    notificationCount={btn.notificationCount}
-                                    onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
-                                />
-                            ))}
-                        </div>
-                        <div className="relative text-center mt-3">
-                             <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
-                                Plan actual: Gratuito
-                            </Button>
-                        </div>
-                    </motion.div>
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
+                </div>
+                <div className="grid grid-cols-4 gap-1 text-center">
+                    {memberButtons.map(btn => (
+                        <MemberSectionButton
+                            key={btn.view}
+                            icon={btn.icon}
+                            label={btn.label}
+                            notificationCount={btn.notificationCount}
+                            onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
+                        />
+                    ))}
+                </div>
+                <div className="text-center mt-3">
+                        <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
+                        Plan actual: Gratuito
+                    </Button>
                 </div>
             </div>
 
