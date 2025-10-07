@@ -300,7 +300,7 @@ body {
       background-image: url('/whatsapp_bg.png');
       background-repeat: repeat;
       background-position: center;
-      opacity: 0.05;
+      opacity: 1;
   }
 
   .dark .chat-background {

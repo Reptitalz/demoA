@@ -1,4 +1,3 @@
-
 // src/app/chat/[chatPath]/page.tsx
 "use client";
 
@@ -95,41 +94,56 @@ const saveMessageToDB = async (message: ChatMessage, sessionId: string) => {
 
 // --- Component ---
 
-const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageClick: (url: string) => void; }) => {
+const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage; assistant: AssistantConfig; onImageClick: (url: string) => void; }) => {
     const isUserMessage = message.role === 'user';
     const isGoogleMapsImage = typeof message.content === 'string' && message.content.includes('maps.googleapis.com/maps/api/staticmap');
 
     return (
-        <div className={cn("flex mb-2.5 animate-fadeIn", isUserMessage ? "justify-end" : "justify-start")}>
-            <div
-                className={cn(
-                    "rounded-xl max-w-[85%] shadow-md text-sm leading-relaxed",
-                    isUserMessage ? "bg-primary text-primary-foreground" : "bg-card/80 text-card-foreground",
-                    isGoogleMapsImage ? "p-1" : "px-4 py-2.5" // No padding for map image
+        <div className={cn("flex w-full max-w-lg mx-auto", isUserMessage ? "justify-end" : "justify-start")}>
+            <div className={cn("flex items-end gap-2", isUserMessage && "flex-row-reverse")}>
+                {!isUserMessage && (
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={assistant.imageUrl} />
+                        <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
                 )}
-            >
-                {typeof message.content === 'string' ? (
-                    isGoogleMapsImage ? (
-                        <a href={`https://www.google.com/maps/search/?api=1&query=${message.content.split('center=')[1]?.split('&')[0]}`} target="_blank" rel="noopener noreferrer">
-                            <Image src={message.content} alt="Ubicación en mapa" width={250} height={200} className="rounded-lg cursor-pointer" />
-                        </a>
-                    ) : (
-                        <p>{message.content}</p>
-                    )
-                ) : message.content.type === 'image' ? (
-                    <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
-                        <Image
-                            src={message.content.url}
-                            alt="Imagen enviada"
-                            width={200}
-                            height={200}
-                            className="rounded-md"
-                        />
-                    </div>
-                ) : message.content.type === 'audio' ? (
-                    <audio controls src={message.content.url} className="w-full max-w-xs" />
-                ) : null}
-                <p className="text-xs text-right mt-1.5 px-2 text-muted-foreground">{message.time}</p>
+                <div
+                    className={cn(
+                        "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed",
+                        isUserMessage 
+                            ? "bg-[#dcf8c6] dark:bg-[#054740] rounded-br-none" 
+                            : "bg-card dark:bg-slate-700 rounded-bl-none",
+                        isGoogleMapsImage ? "p-1" : "px-3 py-2"
+                    )}
+                >
+                    {typeof message.content === 'string' ? (
+                        isGoogleMapsImage ? (
+                            <a href={`https://www.google.com/maps/search/?api=1&query=${message.content.split('center=')[1]?.split('&')[0]}`} target="_blank" rel="noopener noreferrer">
+                                <Image src={message.content} alt="Ubicación en mapa" width={250} height={200} className="rounded-lg cursor-pointer" />
+                            </a>
+                        ) : (
+                            <p className="text-black dark:text-white">{message.content}</p>
+                        )
+                    ) : message.content.type === 'image' ? (
+                        <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
+                            <Image
+                                src={message.content.url}
+                                alt="Imagen enviada"
+                                width={200}
+                                height={200}
+                                className="rounded-md"
+                            />
+                        </div>
+                    ) : message.content.type === 'audio' ? (
+                        <audio controls src={message.content.url} className="w-full max-w-xs" />
+                    ) : null}
+                    <p className="text-[10px] text-right mt-1 px-1 text-muted-foreground/80">{message.time}</p>
+                </div>
+                 {isUserMessage && (
+                    <Avatar className="h-6 w-6">
+                        <AvatarFallback><FaUser /></AvatarFallback>
+                    </Avatar>
+                )}
             </div>
         </div>
     );
@@ -571,7 +585,7 @@ const DesktopChatPage = () => {
     };
 
 
-  if (isLoading) {
+  if (isLoading || !assistant) {
     return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
   
@@ -580,7 +594,7 @@ const DesktopChatPage = () => {
   
   return (
     <>
-      <div className="h-full w-screen flex flex-col bg-transparent">
+      <div className="h-full w-screen flex flex-col bg-slate-200 dark:bg-slate-800">
         <header
           className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b"
         >
@@ -618,22 +632,31 @@ const DesktopChatPage = () => {
             </div>
         )}
 
-        <main className="flex-1 p-4 overflow-y-auto pb-28">
-          {messages.map((msg, index) => (
-            <ChatBubble key={index} message={msg} onImageClick={setSelectedImage} />
-          ))}
-          {isSending && (
-              <div className="flex justify-start animate-fadeIn">
-                  <div className="rounded-lg px-4 py-2 max-w-[80%] shadow-md bg-card">
-                    <div className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                        <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
+        <main className="flex-1 overflow-y-auto relative">
+           <div className="absolute inset-0 chat-background" />
+           <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
+              {messages.map((msg, index) => (
+                <ChatBubble key={index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
+              ))}
+              {isSending && (
+                  <div className="flex justify-start animate-fadeIn max-w-lg mx-auto">
+                    <div className="flex items-end gap-2">
+                        <Avatar className="h-6 w-6">
+                            <AvatarImage src={assistant.imageUrl} />
+                            <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="rounded-2xl px-4 py-2 max-w-xs shadow-md bg-card dark:bg-slate-700 rounded-bl-none">
+                            <div className="flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
+                            </div>
+                        </div>
                     </div>
                   </div>
-              </div>
-          )}
-          <div ref={chatEndRef} />
+              )}
+              <div ref={chatEndRef} />
+            </div>
         </main>
       </div>
       
