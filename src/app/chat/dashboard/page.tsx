@@ -231,7 +231,7 @@ export default function ChatListPage() {
               rect.x + rect.width / 2, currentY + rect.height / 2, 100
             );
             const opacity = 1 - (dist / 150);
-            gradient.addColorStop(0, `hsla(${getCssVar('--primary')}, ${opacity * 0.15})`);
+            gradient.addColorStop(0, `hsl(${getCssVar('--primary')} / ${opacity * 0.15})`);
             gradient.addColorStop(1, "transparent");
             ctx.fillStyle = gradient;
             ctx.fillRect(rect.x - 10, currentY - 10, rect.width + 20, rect.height + 20);
