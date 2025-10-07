@@ -9,9 +9,9 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme Only */
-    --background: 220 20% 98%;
-    --foreground: 224 71% 4%;
+    /* Light Theme */
+    --background: 260 14% 97%; /* #f7f6f8 */
+    --foreground: 275 33% 10%; /* #191022 */
 
     --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
@@ -19,8 +19,8 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    --primary: 262 80% 58%; /* Vibrant Purple */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 262 80% 50%; /* #7f13ec */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 90%;
     --secondary-foreground: 224 71% 4%;
@@ -28,7 +28,7 @@ body {
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 40%;
 
-    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
+    --accent: 300 85% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -36,40 +36,42 @@ body {
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 262 80% 58%;
+    --ring: 262 80% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   .dark {
-    /* Styles are the same as light theme to enforce light mode */
-    --background: 220 20% 98%;
-    --foreground: 224 71% 4%;
+    /* Dark Theme */
+    --background: 275 33% 10%; /* #191022 */
+    --foreground: 260 14% 97%; /* #f7f6f8 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card: 276 27% 13%; /* Slightly lighter than background */
+    --card-foreground: 260 14% 97%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover: 276 27% 13%;
+    --popover-foreground: 260 14% 97%;
 
-    --primary: 262 80% 58%; /* Vibrant Purple */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 262 80% 58%; /* Keep primary vibrant */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 90%;
-    --secondary-foreground: 224 71% 4%;
+    --secondary: 275 33% 20%;
+    --secondary-foreground: 260 14% 97%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 40%;
+    --muted: 275 33% 15%;
+    --muted-foreground: 260 10% 60%;
 
-    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
+    --accent: 300 85% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 275 33% 20%;
+    --input: 275 33% 20%;
     --ring: 262 80% 58%;
+    
+    --radius: 0.5rem;
   }
 }
 
@@ -314,4 +316,12 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
 }

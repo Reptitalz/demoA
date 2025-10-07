@@ -120,6 +120,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="hsl(var(--primary))" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
         
         {/* Google Analytics Script */}
         <Script
@@ -143,7 +144,7 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased overflow-x-hidden`}>
+      <body className={`${inter.variable} font-display antialiased overflow-x-hidden`}>
         <NextAuthSessionProvider>
             <ThemeProvider
             attribute="class"

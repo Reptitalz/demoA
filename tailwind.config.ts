@@ -13,6 +13,9 @@ export default {
   theme: {
   	extend: {
   		colors: {
+        'primary': "#7f13ec",
+        'background-light': "#f7f6f8",
+        'background-dark': "#191022",
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -22,10 +25,6 @@ export default {
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
@@ -64,10 +63,14 @@ export default {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
+      fontFamily: {
+        "display": ["Inter", "sans-serif"],
+      },
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        full: "9999px",
   		},
   		keyframes: {
   			'accordion-down': {
@@ -100,3 +103,4 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+
