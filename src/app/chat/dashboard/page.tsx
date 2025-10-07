@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -12,7 +12,7 @@ import type { AssistantConfig, Contact } from '@/types';
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
-import { Bot, CheckSquare, Package, DollarSign, Trash2, XCircle, HardDrive } from 'lucide-react';
+import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import PlansDialog from '@/components/dashboard/PlansDialog';
@@ -118,14 +118,8 @@ export default function ChatListPage() {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let mouseX = -1000,
-      mouseY = -1000;
-    const buttonRects = memberButtons.map(() => ({
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-    }));
+    let mouseX = -1000, mouseY = -1000;
+    const buttonRects = memberButtons.map(() => ({ x: 0, y: 0, width: 0, height: 0, isHovered: false }));
 
     const computedStyle = getComputedStyle(document.documentElement);
     const getCssVar = (v: string) => computedStyle.getPropertyValue(v).trim();
@@ -147,15 +141,16 @@ export default function ChatListPage() {
       const w = rect.width;
       const h = rect.height;
       const padding = 16;
-      const buttonSize =
-        (w - padding * (memberButtons.length + 1)) / memberButtons.length;
+      const buttonWidth = (w - padding * (memberButtons.length + 1)) / memberButtons.length;
+      const buttonHeight = h * 0.5;
 
       memberButtons.forEach((_, i) => {
         buttonRects[i] = {
-          x: padding + i * (buttonSize + padding),
-          y: h / 2 - buttonSize / 2,
-          width: buttonSize,
-          height: buttonSize,
+          x: padding + i * (buttonWidth + padding),
+          y: h * 0.25,
+          width: buttonWidth,
+          height: buttonHeight,
+          isHovered: false,
         };
       });
     };
@@ -167,6 +162,9 @@ export default function ChatListPage() {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
+      buttonRects.forEach(r => {
+          r.isHovered = mouseX > r.x && mouseX < r.x + r.width && mouseY > r.y && mouseY < r.y + r.height;
+      });
     };
     canvas.addEventListener("mousemove", handleMouseMove);
 
@@ -186,98 +184,57 @@ export default function ChatListPage() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
-
-      // Fondo degradado sutil con brillo
+      
       const bgGradient = ctx.createLinearGradient(0, 0, w, h);
-      bgGradient.addColorStop(0, `hsla(${getCssVar("--primary")}, 0.06)`);
-      bgGradient.addColorStop(1, `hsla(${getCssVar("--card")}, 0.9)`);
+      bgGradient.addColorStop(0, `hsl(${getCssVar("--primary")} / 0.06)`);
+      bgGradient.addColorStop(1, `hsl(${getCssVar("--card")} / 0.9)`);
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, w, h);
 
-      // Título
       ctx.fillStyle = colors.foreground;
       ctx.font = "600 18px 'Inter', sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText("Miembro", 20, 25);
+      ctx.fillText("Miembro", 20, 30);
+      
+      buttonRects.forEach((rect, i) => {
+          const icon = memberButtons[i];
+          const currentY = rect.y + Math.sin(t/300 + i) * 2;
+          
+          const gradient = ctx.createLinearGradient(rect.x, currentY, rect.x, currentY + rect.height);
+          gradient.addColorStop(0, rect.isHovered ? `hsl(${getCssVar('--primary')} / 0.3)` : `hsl(${getCssVar('--primary')} / 0.15)`);
+          gradient.addColorStop(1, `hsl(${getCssVar('--card')} / 0.95)`);
 
-      buttonRects.forEach((r, i) => {
-        const icon = memberButtons[i];
-        const dx = mouseX - (r.x + r.width / 2);
-        const dy = mouseY - (r.y + r.height / 2);
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const hover = dist < 60;
-
-        const float = Math.sin(t / 600 + i) * 3;
-        const y = r.y + float;
-
-        // Fondo del botón
-        const gradient = ctx.createLinearGradient(r.x, y, r.x, y + r.height);
-        gradient.addColorStop(
-          0,
-          hover ? `hsla(${getCssVar("--primary")}, 0.3)` : `hsla(${getCssVar("--primary")}, 0.15)`
-        );
-        gradient.addColorStop(1, `hsla(${getCssVar("--card")}, 0.95)`);
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(r.x, y, r.width, r.height, 16);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        ctx.strokeStyle = hover ? colors.primary : colors.border;
-        ctx.lineWidth = hover ? 2 : 1;
-        ctx.stroke();
-
-        // Luz reflejada
-        const glossGradient = ctx.createLinearGradient(
-          r.x,
-          y,
-          r.x,
-          y + r.height / 2
-        );
-        glossGradient.addColorStop(0, "rgba(255,255,255,0.2)");
-        glossGradient.addColorStop(1, "transparent");
-        ctx.fillStyle = glossGradient;
-        ctx.fill();
-
-        // Icono
-        ctx.fillStyle = hover ? colors.primary : colors.foreground;
-        ctx.font = `900 ${r.height * 0.35}px "Font Awesome 6 Free"`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(icon.icon, r.x + r.width / 2, y + r.height * 0.45);
-
-        // Etiqueta
-        ctx.font = `500 ${r.height * 0.14}px 'Inter', sans-serif`;
-        ctx.fillText(icon.label, r.x + r.width / 2, y + r.height * 0.8);
-
-        // Notificación
-        if (icon.notificationCount) {
-          ctx.fillStyle = colors.primary;
+          ctx.fillStyle = gradient;
+          ctx.strokeStyle = rect.isHovered ? colors.primary : colors.border;
+          ctx.lineWidth = rect.isHovered ? 1.5 : 1;
+          
           ctx.beginPath();
-          ctx.arc(r.x + r.width - 10, y + 10, 8, 0, Math.PI * 2);
+          ctx.roundRect(rect.x, currentY, rect.width, rect.height, 12);
           ctx.fill();
+          ctx.stroke();
 
-          ctx.fillStyle = "#fff";
-          ctx.font = "bold 10px 'Inter'";
+          ctx.fillStyle = rect.isHovered ? colors.primary : colors.foreground;
+          ctx.font = `900 ${rect.height * 0.3}px "Font Awesome 6 Free"`;
           ctx.textAlign = "center";
-          ctx.fillText(
-            icon.notificationCount > 9 ? "9+" : String(icon.notificationCount),
-            r.x + r.width - 10,
-            y + 10
-          );
-        }
+          ctx.textBaseline = "middle";
+          ctx.fillText(icon.icon, rect.x + rect.width / 2, currentY + rect.height * 0.4);
 
-        ctx.restore();
+          ctx.font = `500 ${rect.height * 0.12}px 'Inter', sans-serif`;
+          ctx.fillText(icon.label, rect.x + rect.width / 2, currentY + rect.height * 0.75);
+
+          if (icon.notificationCount > 0) {
+              const notificationX = rect.x + rect.width - 8;
+              const notificationY = currentY + 8;
+              ctx.fillStyle = 'red';
+              ctx.beginPath();
+              ctx.arc(notificationX, notificationY, 6, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = 'white';
+              ctx.font = 'bold 8px Inter';
+              ctx.fillText(icon.notificationCount > 9 ? "9+" : String(icon.notificationCount), notificationX, notificationY + 0.5);
+          }
       });
-
-      // Línea decorativa inferior
-      ctx.strokeStyle = `hsla(${getCssVar("--primary")}, 0.2)`;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, h - 2);
-      ctx.lineTo(w, h - 2);
-      ctx.stroke();
-
+      
       animationFrameId = requestAnimationFrame(draw);
     };
     draw(0);
@@ -335,14 +292,16 @@ export default function ChatListPage() {
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
              <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
-                 <motion.div
-                    animate={{ height: isMemberSectionVisible ? 180 : 0 }}
-                    initial={{ height: 180 }}
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                >
-                    <canvas ref={canvasRef} style={{ width: '100%', height: '100%', cursor: 'pointer' }}/>
-                </motion.div>
+                <div className="relative">
+                    <motion.div
+                        animate={{ height: isMemberSectionVisible ? 140 : 0 }}
+                        initial={{ height: 140 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                    >
+                        <canvas ref={canvasRef} style={{ width: '100%', height: '100%', cursor: 'pointer' }}/>
+                    </motion.div>
+                </div>
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
