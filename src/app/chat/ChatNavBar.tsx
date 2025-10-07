@@ -5,11 +5,12 @@ import React, { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { FaComment, FaCamera, FaUser, FaPlus } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser, FaPlus, FaPhoneAlt } from 'react-icons/fa';
 
 const navItems = [
     { href: '/chat/dashboard', label: 'Chats', icon: FaComment },
     { href: '/chat/updates', label: 'Novedades', icon: FaCamera },
+    { href: '/chat/calls', label: 'Llamadas', icon: FaPhoneAlt },
     { href: '/chat/profile', label: 'Perfil', icon: FaUser },
 ];
 
@@ -95,7 +96,7 @@ const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
         }
     };
     
-    // Split items for layout
+    // Split items for layout: 2 on the left, 2 on the right
     const leftItems = navItems.slice(0, 2);
     const rightItems = navItems.slice(2);
 
@@ -123,10 +124,6 @@ const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
                     {/* Right Items */}
                     <div className="flex justify-around flex-1">
                         {rightItems.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
-                        {/* Add a placeholder div to balance the layout if rightItems has fewer items than leftItems */}
-                         {leftItems.length > rightItems.length && (
-                            <div className="w-20" />
-                        )}
                     </div>
                 </div>
             </nav>
