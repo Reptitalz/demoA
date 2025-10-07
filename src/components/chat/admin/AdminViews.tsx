@@ -21,7 +21,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { AssistantConfig, ChatMessage, Product, Catalog } from '@/types';
+import { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -122,7 +122,7 @@ const demoAdminChats: AssistantConfig[] = [
     },
 ];
 
-const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (id: string, action: 'authorize' | 'reject', amount?: number) => void }) => {
+const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (id: number, action: 'authorize' | 'reject', amount?: number) => void }) => {
     const { toast } = useToast();
     const [isReadingAmount, setIsReadingAmount] = useState(false);
     const [extractedAmount, setExtractedAmount] = useState<number | null>(null);
@@ -395,8 +395,8 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | n
     const paymentHistory = useMemo(() => {
         if (!credit) return [];
         return [
-            { id: 1, receivedAt: new Date('2024-07-28'), amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
-            { id: 2, receivedAt: new Date('2024-07-21'), amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.client },
+            { id: 1, receivedAt: new Date('2024-07-28'), amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.applicantIdentifier },
+            { id: 2, receivedAt: new Date('2024-07-21'), amount: 500, receiptUrl: 'https://placehold.co/600x800.png', userName: credit.applicantIdentifier },
         ];
     }, [credit]);
     
@@ -407,7 +407,7 @@ const CreditHistoryDialog = ({ credit, isOpen, onOpenChange }: { credit: any | n
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent className="w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh]">
                     <DialogHeader className="p-4 border-b">
-                        <DialogTitle>Historial de Crédito: {credit.client}</DialogTitle>
+                        <DialogTitle>Historial de Crédito: {credit.applicantIdentifier}</DialogTitle>
                         <DialogDescription>Revisa los detalles y pagos de esta línea de crédito.</DialogDescription>
                     </DialogHeader>
                     <ScrollArea className="flex-grow">
@@ -510,12 +510,9 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
 const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
+    const { state } = useApp();
 
-    const demoOffers = [
-        { amount: 5000, interest: 10, term: 12 },
-        { amount: 10000, interest: 8, term: 24 },
-        { amount: 2000, interest: 12, term: 6 },
-    ];
+    const offers = state.userProfile.creditOffers || [];
 
     useEffect(() => {
         const handleScroll = () => {
@@ -538,25 +535,40 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
     return (
         <div className="w-full">
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
-                {demoOffers.map((offer, index) => (
-                     <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden">
-                            <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert" /> <span className="font-semibold text-xs opacity-80">Hey Manito!</span></div>
-                                <Banknote className="h-5 w-5 text-yellow-300" />
-                            </div>
-                            <div className="text-left"><p className="font-mono text-xl tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
-                            <div className="flex justify-between items-end text-xs font-mono">
-                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
-                                <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} MESES</p></div>
+                {offers.map((offer, index) => {
+                     const selectedStyle = cardStyles.find(s => s.id === offer.cardStyle);
+                     const cardBgStyle = offer.cardStyle === 'custom-image' && offer.cardImageUrl
+                         ? { backgroundImage: `url(${offer.cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                         : {};
+                     const cardGradientClass = offer.cardStyle === 'custom-color' 
+                         ? '' 
+                         : selectedStyle?.gradient;
+                     const customGradientStyle = offer.cardStyle === 'custom-color' 
+                         ? { background: `linear-gradient(to bottom right, ${offer.customColor}, #000)` }
+                         : {};
+                    return (
+                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
+                            <div 
+                                style={{...cardBgStyle, ...customGradientStyle}}
+                                className={cn("bg-gradient-to-br text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden", cardGradientClass)}
+                            >
+                                <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert" /> <span className="font-semibold text-xs opacity-80">Hey Manito!</span></div>
+                                    <Banknote className="h-5 w-5 text-yellow-300" />
+                                </div>
+                                <div className="text-left"><p className="font-mono text-xl tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
+                                <div className="flex justify-between items-end text-xs font-mono">
+                                    <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA MENSUAL</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
+                                    <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[offer.termUnit]}</p></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
             <div className="flex justify-center mt-2 space-x-2">
-                {demoOffers.map((_, index) => (
+                {offers.map((_, index) => (
                     <button
                         key={index}
                         onClick={() => { if (scrollRef.current) { const cardWidth = scrollRef.current.offsetWidth; scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' }); } }}
@@ -577,7 +589,7 @@ const cardStyles = [
 ];
 
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
-    const { state } = useApp();
+    const { state, dispatch } = useApp();
     const { toast } = useToast();
     const [step, setStep] = useState(1);
     const [amount, setAmount] = useState('');
@@ -586,7 +598,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [termUnit, setTermUnit] = useState<'weeks' | 'fortnights' | 'months'>('months');
     const [cardStyle, setCardStyle] = useState('slate');
     const [customColor, setCustomColor] = useState("#000000");
-    const [cardImage, setCardImage] = useState<string | null>(null);
+    const [cardImageUrl, setCardImageUrl] = useState<string | null>(null);
     const [assistantId, setAssistantId] = useState<string | undefined>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -602,11 +614,29 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         setStep(s => s + 1);
     };
     const handleBack = () => setStep(s => s - 1);
+    
     const handleCreate = () => {
         if (!amount || !interest || !term || !assistantId) {
             toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos para crear la oferta.", variant: "destructive" });
             return;
         }
+
+        const newOffer: CreditOffer = {
+            id: `co_${Date.now()}`,
+            amount: parseFloat(amount),
+            interest: parseFloat(interest),
+            term: parseInt(term),
+            termUnit: termUnit,
+            cardStyle: cardStyle,
+            customColor: cardStyle === 'custom-color' ? customColor : undefined,
+            cardImageUrl: cardStyle === 'custom-image' ? cardImageUrl : undefined,
+            assistantId: assistantId,
+        };
+
+        dispatch({ type: 'UPDATE_USER_PROFILE', payload: {
+            creditOffers: [...(state.userProfile.creditOffers || []), newOffer]
+        }});
+
         toast({ title: "Oferta Creada", description: "La nueva oferta de crédito ha sido creada y asignada." });
         onOpenChange(false);
     }
@@ -616,7 +646,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         if(file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setCardImage(reader.result as string);
+                setCardImageUrl(reader.result as string);
                 setCardStyle('custom-image'); // A special id to know an image is used
             }
             reader.readAsDataURL(file);
@@ -696,8 +726,8 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             );
             case 4:
                 const selectedStyle = cardStyles.find(s => s.id === cardStyle);
-                const cardBgStyle = cardStyle === 'custom-image' && cardImage
-                    ? { backgroundImage: `url(${cardImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                const cardBgStyle = cardStyle === 'custom-image' && cardImageUrl
+                    ? { backgroundImage: `url(${cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                     : {};
                 const cardGradientClass = cardStyle === 'custom-color' 
                     ? '' 
@@ -720,12 +750,12 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                             </div>
                             <div className="text-left"><p className="font-mono text-xl tracking-wider">${parseInt(amount || '0').toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
                              <div className="flex justify-between items-end text-xs font-mono">
-                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA</p><p className="font-medium text-[10px] leading-tight">{interest || '0'}%</p></div></div>
+                                <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA MENSUAL</p><p className="font-medium text-[10px] leading-tight">{interest || '0'}%</p></div></div>
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{term || '0'} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[termUnit]}</p></div>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                             <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImage(null); }} className="flex gap-2">
+                             <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImageUrl(null); }} className="flex gap-2">
                                {cardStyles.map(style => (
                                    <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
                                        <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
@@ -737,7 +767,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                                 <div className="w-full h-full rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
                                     <Palette className="h-4 w-4 text-white"/>
                                 </div>
-                                <input id="custom-color-picker" type="color" value={customColor} onChange={(e) => { setCustomColor(e.target.value); setCardStyle('custom-color'); setCardImage(null); }} className="sr-only"/>
+                                <input id="custom-color-picker" type="color" value={customColor} onChange={(e) => { setCustomColor(e.target.value); setCardStyle('custom-color'); setCardImageUrl(null); }} className="sr-only"/>
                              </Label>
                              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fileInputRef.current?.click()}>
                                 <ImageIcon className="h-4 w-4"/>
@@ -803,16 +833,13 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 
 export const CreditView = () => {
     const { toast } = useToast();
+    const { state } = useApp();
     const [selectedCredit, setSelectedCredit] = useState<any | null>(null);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isCompletedHistoryOpen, setIsCompletedHistoryOpen] = useState(false);
     const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
 
-    const activeCredits = [
-        { id: 1, client: 'Cliente A', amount: 2500, status: 'Al Corriente', nextPayment: '2024-08-15', termType: 'monthly' },
-        { id: 2, client: 'Cliente B', amount: 1000, status: 'Al Corriente', nextPayment: '2024-08-10', termType: 'weekly' },
-        { id: 3, client: 'Cliente C', amount: 3000, status: 'Atrasado', nextPayment: '2024-07-30', termType: 'biweekly' },
-    ];
+    const activeCredits = state.userProfile.creditLines?.filter(cl => cl.status === 'approved' || cl.status === 'pending') || [];
     
     const handleCreditClick = (credit: any) => {
         setSelectedCredit(credit);
@@ -885,7 +912,7 @@ export const CreditView = () => {
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-2">
                                         <div className="p-2 bg-muted rounded-full"><User className="h-4 w-4 text-muted-foreground"/></div>
-                                        <p className="font-bold text-sm">{credit.client}</p>
+                                        <p className="font-bold text-sm">{credit.applicantIdentifier}</p>
                                     </div>
                                     <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full", credit.status === 'Atrasado' ? 'bg-destructive/10 text-destructive' : 'bg-green-600/10 text-green-600')}>{credit.status}</span>
                                 </div>
@@ -896,7 +923,7 @@ export const CreditView = () => {
                                     </div>
                                      <div className="text-right">
                                         <p className="text-xs text-muted-foreground">Próximo pago</p>
-                                        <p className="text-xs font-semibold">{format(getNextPaymentDate(credit.nextPayment, credit.termType as any), 'dd MMM, yyyy', { locale: es })}</p>
+                                        <p className="text-xs font-semibold">{format(getNextPaymentDate(credit.createdAt, credit.paymentFrequency), 'dd MMM, yyyy', { locale: es })}</p>
                                     </div>
                                 </div>
                             </CardContent>

@@ -9,7 +9,7 @@ const PROFILES_COLLECTION = 'userProfiles';
 // POST a new credit line application
 export async function POST(request: NextRequest) {
   try {
-    const { ownerId, assistantId, applicantIdentifier, documents, paymentFrequency, amount } = await request.json();
+    const { ownerId, assistantId, applicantIdentifier, documents, paymentFrequency } = await request.json();
 
     if (!ownerId || !assistantId || !applicantIdentifier || !documents || !paymentFrequency) {
       return NextResponse.json({ message: 'Faltan campos requeridos.' }, { status: 400 });
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     const newCreditLine: CreditLine = {
       id: `cl_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      amount: amount || 0, // Amount will be set on approval
+      amount: 0, // Amount will be set on approval
       status: 'pending',
       applicantIdentifier,
       assistantId,

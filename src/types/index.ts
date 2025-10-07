@@ -54,6 +54,18 @@ export interface CreditLine {
   updatedAt: string;
 }
 
+export interface CreditOffer {
+  id: string;
+  amount: number;
+  interest: number; // Percentage
+  term: number;
+  termUnit: 'weeks' | 'fortnights' | 'months';
+  cardStyle: string; // 'slate', 'blue', 'purple', 'green', 'custom-color', 'custom-image'
+  customColor?: string;
+  cardImageUrl?: string;
+  assistantId: string; // The assistant managing this offer
+}
+
 
 export interface DatabaseConfig {
   id: string;
@@ -166,6 +178,7 @@ export interface UserProfile {
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   catalogs?: Catalog[];
+  creditOffers?: CreditOffer[]; // Add credit offers to user profile
   contacts?: Contact[]; // User's saved contacts
   credits: number;
   creditLines?: CreditLine[];
