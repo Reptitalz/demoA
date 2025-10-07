@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -59,8 +59,8 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 const MemberSectionButton = ({ icon: Icon, label, onClick, notificationCount }: { icon: React.ElementType, label: string, onClick: () => void, notificationCount?: number }) => (
     <div className="relative">
         <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-            <Icon className="h-6 w-6 text-primary mb-1"/>
-            <span className="text-[11px] mt-1 text-gray-900 dark:text-gray-200">{label}</span>
+            <Icon className="h-5 w-5 text-primary mb-1"/>
+            <span className="text-[10px] mt-1 text-gray-900 dark:text-gray-200">{label}</span>
         </button>
          {notificationCount && notificationCount > 0 && (
             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
@@ -84,6 +84,7 @@ export default function ChatListPage() {
   const [activeSwipe, setActiveSwipe] = useState<{ chatPath: string; direction: 'left' | 'right' } | null>(null);
   const dragOccurred = useRef(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
+  const [isMemberSectionVisible, setIsMemberSectionVisible] = useState(true);
 
   const filteredChats = useMemo(() => {
     return contacts.filter(chat =>
@@ -160,22 +161,32 @@ export default function ChatListPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
-            <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
+             <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                         <span className="material-symbols-outlined text-primary text-xl" style={{fontVariationSettings: "'FILL' 1"}}>workspace_premium</span>
+                        <span className="material-symbols-outlined text-primary text-xl" style={{fontVariationSettings: "'FILL' 1"}}>workspace_premium</span>
                         <h2 className="font-bold text-gray-900 dark:text-white">Miembro</h2>
                     </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsMemberSectionVisible(!isMemberSectionVisible)}>
+                        {isMemberSectionVisible ? <FaChevronUp /> : <FaChevronDown />}
+                    </Button>
                 </div>
-                <div className="grid grid-cols-4 gap-4 text-center">
-                    <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => handleAdminNav('/chat/admin?view=bank')} notificationCount={10} />
-                    <MemberSectionButton icon={Bot} label="Bots" onClick={() => handleAdminNav('/chat/admin?view=bots')} notificationCount={10} />
-                    <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} notificationCount={10} />
-                    <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} notificationCount={10} />
-                </div>
-                <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                    <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
-                </div>
+                 <motion.div
+                    animate={{ height: isMemberSectionVisible ? 'auto' : 0 }}
+                    initial={{ height: 'auto' }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                >
+                    <div className="grid grid-cols-4 gap-4 text-center">
+                        <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => handleAdminNav('/chat/admin?view=bank')} notificationCount={10} />
+                        <MemberSectionButton icon={Bot} label="Bots" onClick={() => handleAdminNav('/chat/admin?view=bots')} notificationCount={10} />
+                        <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} notificationCount={10} />
+                        <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} notificationCount={10} />
+                    </div>
+                    <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                        <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
+                    </div>
+                </motion.div>
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
