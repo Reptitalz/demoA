@@ -1,3 +1,4 @@
+
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase } from 'lucide-react';
-import { APP_NAME } from '@/config/appConfig';
+import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatBytes } from '@/lib/utils';
@@ -21,7 +22,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer } from '@/types';
+import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -515,6 +516,104 @@ const cardStyles = [
     { id: 'green', name: 'Verde Esmeralda', gradient: 'from-green-900 to-teal-800' },
 ];
 
+const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
+    const { state } = useApp();
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    const creditOffers = state.userProfile.creditOffers || [];
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                const scrollLeft = scrollRef.current.scrollLeft;
+                const cardWidth = scrollRef.current.offsetWidth;
+                if (cardWidth > 0) {
+                    const newIndex = Math.round(scrollLeft / cardWidth);
+                    setActiveIndex(newIndex);
+                }
+            }
+        };
+
+        const scroller = scrollRef.current;
+        if (scroller) {
+            scroller.addEventListener('scroll', handleScroll, { passive: true });
+            return () => scroller.removeEventListener('scroll', handleScroll);
+        }
+    }, []);
+
+    return (
+        <div className="w-full">
+            <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
+                {creditOffers.map((offer) => {
+                    const assistant = state.userProfile.assistants.find(a => a.id === offer.assistantId);
+                    const selectedStyle = cardStyles.find(s => s.id === offer.cardStyle);
+                    const cardBgStyle = offer.cardStyle === 'custom-image' && offer.cardImageUrl
+                        ? { backgroundImage: `url(${offer.cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                        : {};
+                    const cardGradientClass = offer.cardStyle === 'custom-color' 
+                        ? '' 
+                        : selectedStyle?.gradient;
+                    const customGradientStyle = offer.cardStyle === 'custom-color' 
+                        ? { background: `linear-gradient(to bottom right, ${offer.customColor}, #000)` }
+                        : {};
+
+                    return (
+                        <div key={offer.id} className="w-full flex-shrink-0 snap-center p-2">
+                             <div 
+                                style={{...cardBgStyle, ...customGradientStyle}}
+                                className={cn("bg-gradient-to-br text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden transition-all", cardGradientClass)}
+                            >
+                                <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-xs">{assistant?.name || 'Hey Manito!'}</span></div>
+                                    <Banknote className="h-5 w-5 text-yellow-300"/>
+                                </div>
+                                <div className="text-left"><p className="font-mono text-xl tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
+                                 <div className="flex justify-between items-end text-xs font-mono">
+                                    <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA MENSUAL</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
+                                    <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[offer.termUnit]}</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })}
+                <div className="w-full flex-shrink-0 snap-center p-2">
+                     <div 
+                        onClick={onAdd}
+                        className="border-2 border-dashed border-muted-foreground/50 rounded-lg aspect-[1.586] flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer bg-muted/30"
+                    >
+                        <Plus className="h-8 w-8 mb-2"/>
+                        <p className="font-semibold text-sm">Crear Nueva Oferta</p>
+                    </div>
+                </div>
+            </div>
+            {creditOffers.length > 0 && (
+                <div className="flex justify-center mt-2 space-x-2">
+                    {[...creditOffers, {}].map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => {
+                                if (scrollRef.current) {
+                                    const cardWidth = scrollRef.current.offsetWidth;
+                                    scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                                }
+                            }}
+                            className={cn(
+                                "h-2 w-2 rounded-full transition-all",
+                                activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                            )}
+                            aria-label={`Ir a la oferta ${index + 1}`}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state, dispatch } = useApp();
     const { toast } = useToast();
@@ -681,25 +780,30 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{term || '0'} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[termUnit]}</p></div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                             <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImageUrl(null); }} className="flex gap-2">
-                               {cardStyles.map(style => (
-                                   <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
-                                       <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
-                                       <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
-                                   </Label>
-                               ))}
-                            </RadioGroup>
-                             <Label htmlFor="custom-color-picker" className="h-8 w-8 rounded-full border-2 p-0.5 cursor-pointer flex items-center justify-center" style={{ borderColor: cardStyle === 'custom-color' ? 'hsl(var(--primary))' : 'transparent' }}>
-                                <div className="w-full h-full rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
-                                    <Palette className="h-4 w-4 text-white"/>
-                                </div>
-                                <input id="custom-color-picker" type="color" value={customColor} onChange={(e) => { setCustomColor(e.target.value); setCardStyle('custom-color'); setCardImageUrl(null); }} className="sr-only"/>
-                             </Label>
-                             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fileInputRef.current?.click()}>
-                                <ImageIcon className="h-4 w-4"/>
-                             </Button>
-                             <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                         <div className="grid grid-cols-4 gap-2">
+                            {cardStyles.map(style => (
+                                <RadioGroupItem key={style.id} value={style.id} id={`style-${style.id}`} className="sr-only" />
+                            ))}
+                            <div className="flex items-center gap-2">
+                                 <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImageUrl(null); }} className="flex gap-2">
+                                   {cardStyles.map(style => (
+                                       <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
+                                           <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
+                                           <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
+                                       </Label>
+                                   ))}
+                                </RadioGroup>
+                                 <Label htmlFor="custom-color-picker" className="h-8 w-8 rounded-full border-2 p-0.5 cursor-pointer flex items-center justify-center" style={{ borderColor: cardStyle === 'custom-color' ? 'hsl(var(--primary))' : 'transparent' }}>
+                                    <div className="w-full h-full rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
+                                        <Palette className="h-4 w-4 text-white"/>
+                                    </div>
+                                    <input id="custom-color-picker" type="color" value={customColor} onChange={(e) => { setCustomColor(e.target.value); setCardStyle('custom-color'); setCardImageUrl(null); }} className="sr-only"/>
+                                 </Label>
+                                 <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => fileInputRef.current?.click()}>
+                                    <ImageIcon className="h-4 w-4"/>
+                                 </Button>
+                                 <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                            </div>
                         </div>
                     </div>
                 );
@@ -766,7 +870,7 @@ export const CreditView = () => {
     const [isCompletedHistoryOpen, setIsCompletedHistoryOpen] = useState(false);
     const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
 
-    const activeCredits = state.userProfile.creditLines?.filter(cl => cl.status === 'approved' || cl.status === 'pending') || [];
+    const activeCredits = state.userProfile.creditLines?.filter(cl => cl.status === 'approved' || cl.status === 'pending' || cl.status === 'Al Corriente' || cl.status === 'Atrasado') || [];
     
     const handleCreditClick = (credit: any) => {
         setSelectedCredit(credit);
