@@ -55,22 +55,6 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
   );
 };
 
-
-const MemberSectionButton = ({ icon: Icon, label, onClick, notificationCount }: { icon: React.ElementType, label: string, onClick: () => void, notificationCount?: number }) => (
-    <div className="relative">
-        <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-1 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-            <Icon className="h-5 w-5 text-primary mb-1"/>
-            <span className="text-[10px] text-center text-gray-900 dark:text-gray-200">{label}</span>
-        </button>
-         {notificationCount && notificationCount > 0 && (
-            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
-                {notificationCount > 9 ? '9+' : notificationCount}
-            </div>
-        )}
-    </div>
-);
-
-
 export default function ChatListPage() {
   const { data: session } = useSession();
   const { state } = useApp();
@@ -117,12 +101,14 @@ export default function ChatListPage() {
       const estimatedSize = contact.lastMessage?.length || 0 * 50; 
       toast({ title: `Info de: ${contact.name}`, description: `El chat ocupa aproximadamente ${formatBytes(estimatedSize)}.` });
   }
+
   const memberButtons = [
     { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: 10 },
     { icon: Bot, label: "Bots", view: 'bots', notificationCount: 10 },
     { icon: Package, label: "Productos", view: 'products', notificationCount: 10 },
     { icon: DollarSign, label: "Créditos", view: 'credit', notificationCount: 10 },
   ];
+  
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -136,9 +122,9 @@ export default function ChatListPage() {
     let mouseX = -1000;
     let mouseY = -1000;
 
-    const buttonRects = memberButtons.map((_, i) => ({
-        x: 0, y: 0, width: 0, height: 0,
-    }));
+    const buttonRects = memberButtons.map(() => ({ x: 0, y: 0, width: 0, height: 0 }));
+    let planButtonRect = { x: 0, y: 0, width: 0, height: 0 };
+    let toggleButtonRect = { x: 0, y: 0, width: 0, height: 0 };
 
     const resizeCanvas = () => {
         const dpr = window.devicePixelRatio || 1;
@@ -151,16 +137,24 @@ export default function ChatListPage() {
         const h = rect.height;
         const gap = 16;
         const numButtons = memberButtons.length;
+        
+        // Main buttons
         const buttonSize = (w - gap * (numButtons + 1)) / numButtons;
-
         memberButtons.forEach((_, i) => {
             buttonRects[i] = {
                 x: gap + i * (buttonSize + gap),
-                y: (h - buttonSize) / 2,
+                y: 30, // Position buttons lower to make space for title
                 width: buttonSize,
                 height: buttonSize,
             };
         });
+
+        // Plan button
+        planButtonRect = { x: 16, y: h - 50, width: w - 32, height: 30 };
+        
+        // Toggle button
+        toggleButtonRect = { x: (w / 2) - 20, y: h - 15, width: 40, height: 15 };
+
     };
 
     resizeCanvas();
@@ -183,6 +177,14 @@ export default function ChatListPage() {
                 handleAdminNav(`/chat/admin?view=${memberButtons[i].view}`);
             }
         });
+
+        if (clickX >= planButtonRect.x && clickX <= planButtonRect.x + planButtonRect.width && clickY >= planButtonRect.y && clickY <= planButtonRect.y + planButtonRect.height) {
+            setIsPlansOpen(true);
+        }
+
+        if (clickX >= toggleButtonRect.x && clickX <= toggleButtonRect.x + toggleButtonRect.width && clickY >= toggleButtonRect.y && clickY <= toggleButtonRect.y + toggleButtonRect.height) {
+            setIsMemberSectionVisible(prev => !prev);
+        }
     };
     canvas.addEventListener('click', handleClick);
 
@@ -191,15 +193,31 @@ export default function ChatListPage() {
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       
+       // Draw Title
+      ctx.fillStyle = "hsl(var(--foreground))";
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('Miembro', 20, 10);
+      
+      // Draw main action buttons
       buttonRects.forEach((rect, i) => {
           const button = memberButtons[i];
-          const floatY = Math.sin(time / 500 + i) * 3;
+          const floatY = Math.sin(time / 500 + i) * 2;
           const currentY = rect.y + floatY;
           
           const dx = mouseX - (rect.x + rect.width / 2);
           const dy = mouseY - (currentY + rect.height / 2);
           const dist = Math.sqrt(dx * dx + dy * dy);
           
+          ctx.save();
+          if (dist < 100) {
+            const scale = 1 + (1 - dist / 100) * 0.05;
+            ctx.translate(rect.x + rect.width / 2, currentY + rect.height / 2);
+            ctx.scale(scale, scale);
+            ctx.translate(-(rect.x + rect.width / 2), -(currentY + rect.height / 2));
+          }
+
           // Glow effect
           if (dist < 150) {
             const gradient = ctx.createRadialGradient(
@@ -207,10 +225,10 @@ export default function ChatListPage() {
               rect.x + rect.width / 2, currentY + rect.height / 2, 100
             );
             const opacity = 1 - (dist / 150);
-            gradient.addColorStop(0, `hsla(262, 80%, 58%, ${opacity * 0.2})`);
+            gradient.addColorStop(0, `hsla(262, 80%, 58%, ${opacity * 0.15})`);
             gradient.addColorStop(1, "transparent");
             ctx.fillStyle = gradient;
-            ctx.fillRect(rect.x, currentY, rect.width, rect.height);
+            ctx.fillRect(rect.x - 10, currentY - 10, rect.width + 20, rect.height + 20);
           }
           
           // Draw card
@@ -223,39 +241,62 @@ export default function ChatListPage() {
           ctx.stroke();
 
           // Draw icon
-          const iconSize = rect.height * 0.3;
+          const iconSize = rect.height * 0.25;
+          ctx.font = `900 ${iconSize}px "Font Awesome 6 Free"`;
           ctx.fillStyle = "hsl(var(--primary))";
-          ctx.font = `bold ${iconSize}px "Font Awesome 5 Free"`; // Using Font Awesome
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          let iconChar = '?';
-          if (button.icon === CheckSquare) iconChar = '\uf14a';
-          if (button.icon === Bot) iconChar = '\uf544';
-          if (button.icon === Package) iconChar = '\uf466';
-          if (button.icon === DollarSign) iconChar = '\uf155';
-          ctx.fillText(iconChar, rect.x + rect.width / 2, currentY + rect.height * 0.4);
+          const iconMap = { CheckSquare: '\uf14a', Bot: '\uf544', Package: '\uf466', DollarSign: '\uf155' };
+          ctx.fillText(iconMap[button.icon.displayName as keyof typeof iconMap] || '?', rect.x + rect.width / 2, currentY + rect.height * 0.4);
 
           // Draw text
           ctx.fillStyle = "hsl(var(--foreground))";
-          ctx.font = `bold ${rect.height * 0.1}px sans-serif`;
-          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.75);
+          ctx.font = `600 ${rect.height * 0.12}px sans-serif`;
+          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.7);
 
           // Draw notification badge
           if (button.notificationCount) {
-              const badgeRadius = rect.width * 0.12;
-              const badgeX = rect.x + rect.width - badgeRadius / 2;
-              const badgeY = currentY + badgeRadius / 2;
+              const badgeRadius = rect.width * 0.1;
+              const badgeX = rect.x + rect.width - badgeRadius;
+              const badgeY = currentY + badgeRadius;
               ctx.fillStyle = 'hsl(var(--destructive))';
               ctx.beginPath();
               ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
               ctx.fill();
               
               ctx.fillStyle = 'white';
-              ctx.font = `bold ${badgeRadius * 1.1}px sans-serif`;
+              ctx.font = `bold ${badgeRadius}px sans-serif`;
               const text = button.notificationCount > 9 ? '9+' : button.notificationCount.toString();
-              ctx.fillText(text, badgeX, badgeY + 1); // Adjust for better vertical alignment
+              ctx.fillText(text, badgeX, badgeY);
           }
+          ctx.restore();
       });
+
+      // Draw Plan Button
+      ctx.fillStyle = 'hsl(var(--card))';
+      ctx.strokeStyle = "hsl(var(--border))";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(planButtonRect.x, planButtonRect.y, planButtonRect.width, planButtonRect.height, 8);
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.fillStyle = 'hsl(var(--foreground))';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Plan actual: Gratuito', w / 2, planButtonRect.y + planButtonRect.height / 2);
+
+       // Draw Toggle Button
+      ctx.fillStyle = 'hsl(var(--primary) / 0.1)';
+      ctx.beginPath();
+      ctx.roundRect(toggleButtonRect.x, toggleButtonRect.y, toggleButtonRect.width, toggleButtonRect.height, 8);
+      ctx.fill();
+      
+      ctx.fillStyle = 'hsl(var(--foreground))';
+      ctx.font = '900 12px "Font Awesome 6 Free"';
+      ctx.fillText(isMemberSectionVisible ? '\uf077' : '\uf078', w / 2, toggleButtonRect.y + toggleButtonRect.height / 2 + 1);
+
       animationFrameId = requestAnimationFrame(draw);
     }
     draw(0);
@@ -266,7 +307,7 @@ export default function ChatListPage() {
         canvas.removeEventListener('click', handleClick);
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
     }
-  }, [memberButtons]); // Re-run effect if memberButtons change
+  }, [memberButtons, isMemberSectionVisible]); // Re-run effect if memberButtons or visibility change
 
   return (
     <>
@@ -312,28 +353,14 @@ export default function ChatListPage() {
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
              <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-xl" style={{fontVariationSettings: "'FILL' 1"}}>workspace_premium</span>
-                        <h2 className="font-bold text-gray-900 dark:text-white">Miembro</h2>
-                    </div>
-                </div>
                  <motion.div
-                    animate={{ height: isMemberSectionVisible ? 'auto' : 0 }}
-                    initial={{ height: 'auto' }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    animate={{ height: isMemberSectionVisible ? 180 : 40 }}
+                    initial={{ height: 180 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
                     className="overflow-hidden"
                 >
-                    <canvas ref={canvasRef} style={{ width: '100%', height: '100px', cursor: 'pointer' }}/>
-                     <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                        <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
-                    </div>
+                    <canvas ref={canvasRef} style={{ width: '100%', height: '100%', cursor: 'pointer' }}/>
                 </motion.div>
-                <div className="flex justify-center -mb-4">
-                  <Button variant="ghost" size="icon" className="h-6 w-10 bg-primary/10 dark:bg-slate-800/50 rounded-b-lg hover:bg-primary/20" onClick={() => setIsMemberSectionVisible(!isMemberSectionVisible)}>
-                        {isMemberSectionVisible ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
-                  </Button>
-                </div>
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
