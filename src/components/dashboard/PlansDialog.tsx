@@ -53,7 +53,7 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-6">
             {plans.map((plan, index) => (
                 <div key={index} className={cn(
                     "rounded-xl p-6 flex flex-col border",
@@ -146,8 +146,8 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-        <DialogHeader>
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-none sm:h-auto sm:rounded-none" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+        <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <FaStar /> Planes y Beneficios
           </DialogTitle>
@@ -156,7 +156,7 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="flex-grow">
-          <div className="py-4 pr-6 space-y-6">
+          <div className="py-4 px-4 space-y-6">
               <PlanComparison onUpgrade={handlePurchasePlan} />
               
               {isProcessing && !preferenceId && (
@@ -183,7 +183,7 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
             </div>
           </div>
         </ScrollArea>
-        <DialogFooter>
+        <DialogFooter className="p-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
