@@ -322,7 +322,6 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto px-6 space-y-4">
-            <SetupProgressBar />
             <div className="min-h-[400px] relative">
             {isFinalizingSetup && currentStep !== effectiveMaxSteps && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 rounded-md">
@@ -337,14 +336,17 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         </div>
         
         {currentStep < effectiveMaxSteps && (
-          <div className="flex justify-between items-center p-6 border-t mt-auto bg-background/80 backdrop-blur-sm">
-            <Button variant="outline" onClick={handlePrevious} disabled={isFinalizingSetup} className="transition-transform transform hover:scale-105">
-                <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
-            </Button>
+          <div className="p-6 border-t mt-auto bg-background/80 backdrop-blur-sm space-y-4">
+            <SetupProgressBar />
+            <div className="flex justify-between items-center">
+                <Button variant="outline" onClick={handlePrevious} disabled={isFinalizingSetup} className="transition-transform transform hover:scale-105">
+                    <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
+                </Button>
 
-            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
-              Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+                <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
+                Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
           </div>
         )}
       </DialogContent>

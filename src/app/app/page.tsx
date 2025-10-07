@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
@@ -258,7 +259,6 @@ const AppSetupPageContent = () => {
   return (
     <PageContainer>
       <div className="space-y-5">
-        <SetupProgressBar />
         <div className="min-h-[350px] relative">
           {isFinalizingSetup && (
             <div className="absolute inset-0 bg-background/70 flex flex-col items-center justify-center z-10 rounded-md">
@@ -268,26 +268,30 @@ const AppSetupPageContent = () => {
           )}
           {renderStepContent()}
         </div>
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="flex gap-1.5">
-            <Button variant="outline" onClick={() => router.push('/dashboard')} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
-              <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
-            </Button>
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-              <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
-            </Button>
-          </div>
-          {currentStep < effectiveMaxSteps ? (
-            <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
-              Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
-            </Button>
-          ) : (
-            <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
-              {isFinalizingSetup ? <FaSpinner className="animate-spin mr-1 h-3 w-3" /> : null}
-              Guardar Asistente
-              <FaArrowRight className="ml-1 h-3 w-3" />
-            </Button>
-          )}
+
+        <div className="space-y-4 pt-4 border-t">
+            <SetupProgressBar />
+            <div className="flex justify-between items-center">
+                <div className="flex gap-1.5">
+                    <Button variant="outline" onClick={() => router.push('/dashboard')} className="transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={isFinalizingSetup}>
+                    <FaHome className="mr-1 h-3 w-3" /> Volver al Panel
+                    </Button>
+                    <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isFinalizingSetup} className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
+                    <FaArrowLeft className="mr-1 h-3 w-3" /> Anterior
+                    </Button>
+                </div>
+                {currentStep < effectiveMaxSteps ? (
+                    <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
+                    Siguiente <FaArrowRight className="ml-1 h-3 w-3" />
+                    </Button>
+                ) : (
+                    <Button onClick={handleCompleteSetup} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105 text-xs px-2 py-1" disabled={!isStepValid() || isFinalizingSetup}>
+                    {isFinalizingSetup ? <FaSpinner className="animate-spin mr-1 h-3 w-3" /> : null}
+                    Guardar Asistente
+                    <FaArrowRight className="ml-1 h-3 w-3" />
+                    </Button>
+                )}
+            </div>
         </div>
       </div>
     </PageContainer>
