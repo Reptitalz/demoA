@@ -59,7 +59,7 @@ const MemberSectionButton = ({ icon: Icon, label, onClick }: { icon: React.Eleme
             <span className="material-symbols-outlined text-primary text-3xl">
                 {label === 'Autorizaciones' ? 'verified_user' : label === 'Bots' ? 'smart_toy' : label === 'Productos' ? 'inventory_2' : 'credit_card'}
             </span>
-            <span className="text-xs mt-1 text-gray-900">{label}</span>
+            <span className="text-[11px] mt-1 text-gray-900">{label}</span>
         </button>
     </div>
 );
