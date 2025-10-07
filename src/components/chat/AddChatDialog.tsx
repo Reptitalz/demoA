@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { useContacts } from '@/hooks/useContacts';
 import { useRouter } from 'next/navigation';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { useApp } from '@/providers/AppProvider';
 
 interface AddChatDialogProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface AddChatDialogProps {
 const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDialogProps) => {
   const [chatPath, setChatPath] = useState(initialChatPath);
   const [isVerifying, setIsVerifying] = useState(false);
+  const { state } = useApp();
   const { addContact, removeContact } = useContacts();
   const { toast } = useToast();
   const router = useRouter();
@@ -46,23 +48,20 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
       return;
     }
     
+    // Avoid adding self
+    if (state.userProfile.chatPath === trimmedChatPath) {
+      toast({
+        title: "No puedes agregarte a ti mismo",
+        description: "Estás intentando agregar tu propio ID de chat.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsVerifying(true);
     onOpenChange(false); // Close dialog immediately
 
-    // 1. Optimistically add the contact with placeholder data
-    const tempContact = {
-        chatPath: trimmedChatPath,
-        name: trimmedChatPath, // Use chatPath as temporary name
-        imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-    };
-    addContact(tempContact);
-    toast({
-        title: "Agregando Contacto...",
-        description: `Buscando a "${trimmedChatPath}".`,
-    });
-
     try {
-      // 2. Verify the contact in the background
       const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(trimmedChatPath)}`);
       
       if (!res.ok) {
@@ -72,7 +71,6 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
       const data = await res.json();
       const verifiedContact = data.assistant;
 
-      // 3. Update the contact with real data
       await addContact({
         chatPath: verifiedContact.chatPath,
         name: verifiedContact.name,
@@ -80,23 +78,22 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
       });
 
       toast({
-        title: "Contacto Verificado",
-        description: `Has añadido a "${verifiedContact.name}".`,
+        title: "Contacto Agregado",
+        description: `Has añadido a "${verifiedContact.name}". Abriendo chat...`,
       });
 
+      // Redirect to the new chat
+      router.push(`/chat/${verifiedContact.chatPath}`);
+
     } catch (error: any) {
-      // 4. If verification fails, remove the optimistic contact
       toast({
         title: 'Error al verificar contacto',
         description: error.message,
         variant: 'destructive',
       });
-      await removeContact(trimmedChatPath); // Remove by chatPath
     } finally {
-      // 5. Reset state
       setIsVerifying(false);
       setChatPath('');
-      router.replace('/chat/dashboard'); // Clean URL just in case
     }
   };
   
@@ -136,7 +133,7 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying} className="w-full sm:w-auto">Cancelar</Button>
           <Button onClick={handleAddContact} disabled={isVerifying || !chatPath.trim()} className="w-full sm:w-auto">
             {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Agregar Contacto
+            Agregar y Chatear
           </Button>
         </DialogFooter>
       </DialogContent>
