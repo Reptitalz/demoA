@@ -4,7 +4,7 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaSearch } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -92,7 +92,7 @@ export default function ChatListPage() {
 
   return (
     <>
-    <div className="flex flex-col h-screen bg-background-light font-display">
+    <div className="flex flex-col h-full bg-background-light font-display pb-16">
         <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-2">
             <div className="flex items-center justify-between pb-4">
                 <AnimatePresence initial={false}>
@@ -127,7 +127,7 @@ export default function ChatListPage() {
                     )}
                 </AnimatePresence>
                 <button className="text-gray-900 p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                    <span className="material-symbols-outlined text-3xl">search</span>
+                    <FaSearch className="text-2xl" />
                 </button>
             </div>
             <div className="border-b border-gray-200">
