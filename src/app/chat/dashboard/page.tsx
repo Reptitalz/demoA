@@ -56,12 +56,17 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 };
 
 
-const MemberSectionButton = ({ icon: Icon, label, onClick }: { icon: React.ElementType, label: string, onClick: () => void }) => (
-    <div>
+const MemberSectionButton = ({ icon: Icon, label, onClick, notificationCount }: { icon: React.ElementType, label: string, onClick: () => void, notificationCount?: number }) => (
+    <div className="relative">
         <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
             <Icon className="h-6 w-6 text-primary mb-1"/>
             <span className="text-[11px] mt-1 text-gray-900 dark:text-gray-200">{label}</span>
         </button>
+         {notificationCount && notificationCount > 0 && (
+            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
+                {notificationCount > 9 ? '9+' : notificationCount}
+            </div>
+        )}
     </div>
 );
 
@@ -163,10 +168,10 @@ export default function ChatListPage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-4 gap-4 text-center">
-                    <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => handleAdminNav('/chat/admin?view=bank')} />
-                    <MemberSectionButton icon={Bot} label="Bots" onClick={() => handleAdminNav('/chat/admin?view=bots')} />
-                    <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} />
-                    <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} />
+                    <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => handleAdminNav('/chat/admin?view=bank')} notificationCount={10} />
+                    <MemberSectionButton icon={Bot} label="Bots" onClick={() => handleAdminNav('/chat/admin?view=bots')} notificationCount={10} />
+                    <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} notificationCount={10} />
+                    <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} notificationCount={10} />
                 </div>
                 <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                     <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
