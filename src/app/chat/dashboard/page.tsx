@@ -58,9 +58,9 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 
 const MemberSectionButton = ({ icon: Icon, label, onClick, notificationCount }: { icon: React.ElementType, label: string, onClick: () => void, notificationCount?: number }) => (
     <div className="relative">
-        <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-1 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+        <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
             <Icon className="h-5 w-5 text-primary mb-1"/>
-            <span className="text-[9px] text-center text-gray-900 dark:text-gray-200">{label}</span>
+            <span className="text-[10px] text-center text-gray-900 dark:text-gray-200">{label}</span>
         </button>
          {notificationCount && notificationCount > 0 && (
             <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
