@@ -7,17 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
-import { FaSpinner, FaStar, FaInfoCircle } from 'react-icons/fa';
-import { MONTHLY_PLAN_CREDIT_COST, PRICE_PER_CREDIT } from '@/config/appConfig';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { FaSpinner, FaStar, FaInfoCircle, FaCheck } from 'react-icons/fa';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { Loader2, MessageCircle, Landmark, ShoppingCart, CreditCard, XCircle, ShieldCheck, Crown } from 'lucide-react';
 import PersonalInfoDialog from './PersonalInfoDialog';
-import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Badge } from '../ui/badge';
-import { List, ListItem } from '../ui/list';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface PlansDialogProps {
   isOpen: boolean;
@@ -28,11 +23,9 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
     const plans = [
         {
             name: "Gratuito",
-            icon: XCircle,
-            iconClass: "text-muted-foreground",
             description: "Para empezar a explorar",
             price: "$0",
-            priceDetails: "siempre",
+            priceDetails: "/siempre",
             features: [
                 'Máximo 100 mensajes por día para todos los bots.',
                 'Autorización en banco limitada a 100 transacciones diarias.',
@@ -43,11 +36,9 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
         },
         {
             name: "Ilimitado",
-            icon: ShieldCheck,
-            iconClass: "text-primary",
             description: "Desbloquea todo el potencial",
             price: "$179",
-            priceDetails: "al mes",
+            priceDetails: "/al mes",
             features: [
                 'Mensajes ilimitados para todos tus asistentes.',
                 'Transacciones bancarias sin restricciones.',
@@ -63,39 +54,35 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {plans.map((plan, index) => {
-                const Icon = plan.icon;
-                return (
-                    <div key={index} className={cn(
-                        "rounded-xl p-6 flex flex-col border",
-                        plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
-                    )}>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Icon className={cn("h-6 w-6", plan.iconClass)} />
-                            <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
-                        
-                        <div className="mb-6">
-                            <span className="text-4xl font-extrabold">{plan.price}</span>
-                            <span className="text-muted-foreground">/{plan.priceDetails}</span>
-                        </div>
-
-                        <ul className="space-y-3 text-sm flex-grow">
-                            {plan.features.map((feature, i) => (
-                                <li key={i} className="flex items-start gap-2">
-                                    <ShieldCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
-                                    <span>{feature}</span>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <div className="mt-auto pt-6">
-                            {plan.button}
-                        </div>
+            {plans.map((plan, index) => (
+                <div key={index} className={cn(
+                    "rounded-xl p-6 flex flex-col border",
+                    plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
+                )}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
                     </div>
-                );
-            })}
+                    <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                    
+                    <div className="mb-6">
+                        <span className="text-4xl font-extrabold">{plan.price}</span>
+                        <span className="text-muted-foreground">{plan.priceDetails}</span>
+                    </div>
+
+                    <ul className="space-y-3 text-sm flex-grow">
+                        {plan.features.map((feature, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                                <FaCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
+                                <span>{feature}</span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div className="mt-auto pt-6">
+                        {plan.button}
+                    </div>
+                </div>
+            ))}
         </div>
     );
 };
@@ -159,7 +146,7 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <FaStar /> Planes y Beneficios
@@ -168,32 +155,34 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
             Compara los planes y elige el que mejor se adapte a tus necesidades.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-6">
-            <PlanComparison onUpgrade={handlePurchasePlan} />
-            
-            {isProcessing && !preferenceId && (
-              <div className="flex items-center justify-center p-4 rounded-lg bg-muted/50">
-                  <FaSpinner className="animate-spin h-6 w-6 text-primary" />
-              </div>
-            )}
-            
-            {preferenceId && (
-                <div className="animate-fadeIn flex flex-col items-center justify-center p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground mb-4">Completa tu compra de forma segura.</p>
-                    <Wallet 
-                        initialization={{ preferenceId: preferenceId }}
-                        customization={{ texts: { valueProp: 'smart_option'}}}
-                        onReady={() => setIsProcessing(false)}
-                    />
+        <ScrollArea className="flex-grow">
+          <div className="py-4 pr-6 space-y-6">
+              <PlanComparison onUpgrade={handlePurchasePlan} />
+              
+              {isProcessing && !preferenceId && (
+                <div className="flex items-center justify-center p-4 rounded-lg bg-muted/50">
+                    <FaSpinner className="animate-spin h-6 w-6 text-primary" />
                 </div>
-            )}
-             <div className="text-xs p-3 rounded-md flex items-start gap-2 bg-blue-500/10 text-blue-700">
-                <FaInfoCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                <p>
-                    El Plan Mensual Ilimitado se aplica a un solo asistente. Puedes comprar múltiples planes y asignarlos a diferentes asistentes según lo necesites.
-                </p>
-           </div>
-        </div>
+              )}
+              
+              {preferenceId && (
+                  <div className="animate-fadeIn flex flex-col items-center justify-center p-4 rounded-lg bg-muted/50">
+                      <p className="text-sm text-muted-foreground mb-4">Completa tu compra de forma segura.</p>
+                      <Wallet 
+                          initialization={{ preferenceId: preferenceId }}
+                          customization={{ texts: { valueProp: 'smart_option'}}}
+                          onReady={() => setIsProcessing(false)}
+                      />
+                  </div>
+              )}
+              <div className="text-xs p-3 rounded-md flex items-start gap-2 bg-blue-500/10 text-blue-700">
+                  <FaInfoCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <p>
+                      El Plan Mensual Ilimitado se aplica a un solo asistente. Puedes comprar múltiples planes y asignarlos a diferentes asistentes según lo necesites.
+                  </p>
+            </div>
+          </div>
+        </ScrollArea>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cerrar</Button>
         </DialogFooter>
