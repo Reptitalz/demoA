@@ -96,8 +96,8 @@ const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
     };
     
     // Split items for layout
-    const leftItems = navItems.slice(0, 1);
-    const rightItems = navItems.slice(1);
+    const leftItems = navItems.slice(0, 2);
+    const rightItems = navItems.slice(2);
 
     return (
         <TooltipProvider>
@@ -123,6 +123,10 @@ const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
                     {/* Right Items */}
                     <div className="flex justify-around flex-1">
                         {rightItems.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
+                        {/* Add a placeholder div to balance the layout if rightItems has fewer items than leftItems */}
+                         {leftItems.length > rightItems.length && (
+                            <div className="w-20" />
+                        )}
                     </div>
                 </div>
             </nav>
