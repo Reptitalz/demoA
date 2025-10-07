@@ -7,20 +7,19 @@ import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { FaComment, FaCamera, FaUser, FaCrown } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser } from 'react-icons/fa';
 
 const menuItems = [
     { path: '/chat/dashboard', icon: FaComment, label: 'Chats' },
     { path: '/chat/updates', icon: FaCamera, label: 'Novedades' },
     { path: '/chat/profile', icon: FaUser, label: 'Perfil' },
-    { path: '/chat/admin', icon: FaCrown, label: 'Miembro' },
 ];
 
 export default function ChatLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isBaseChatView = menuItems.some(item => pathname.startsWith(item.path));
+  const isBaseChatView = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
   const handleRouteChange = React.useCallback((newPath: string) => {
     if (pathname === newPath) return;

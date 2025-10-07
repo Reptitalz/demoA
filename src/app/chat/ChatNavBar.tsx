@@ -5,13 +5,12 @@ import React, { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { FaComment, FaCamera, FaUser, FaCrown } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser } from 'react-icons/fa';
 
 const navItems = [
     { href: '/chat/dashboard', label: 'Chats', icon: FaComment },
     { href: '/chat/updates', label: 'Novedades', icon: FaCamera },
     { href: '/chat/profile', label: 'Perfil', icon: FaUser },
-    { href: '/chat/admin', label: 'Miembro', icon: FaCrown },
 ];
 
 interface NavItemProps {

@@ -4,7 +4,7 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -55,7 +55,9 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 const MemberSectionButton = ({ icon: Icon, label, onClick }: { icon: React.ElementType, label: string, onClick: () => void }) => (
     <div>
         <button onClick={onClick} className="w-full bg-background-light rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow">
-            <Icon className="text-primary text-3xl" />
+            <span className="material-symbols-outlined text-primary text-3xl">
+                {label === 'Autorizaciones' ? 'verified_user' : label === 'Bots' ? 'smart_toy' : label === 'Productos' ? 'inventory_2' : 'credit_card'}
+            </span>
             <span className="text-xs mt-1 text-gray-900">{label}</span>
         </button>
     </div>
@@ -81,6 +83,10 @@ export default function ChatListPage() {
         chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm]);
+
+  const handleAdminNav = (path: string) => {
+    router.push(path);
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background-light font-display">
@@ -118,7 +124,7 @@ export default function ChatListPage() {
                     )}
                 </AnimatePresence>
                 <button className="text-gray-900 p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                    <FaSearch className="text-2xl" />
+                    <span className="material-symbols-outlined text-3xl">search</span>
                 </button>
             </div>
             <div className="border-b border-gray-200">
@@ -139,10 +145,10 @@ export default function ChatListPage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-4 gap-4 text-center">
-                    <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => router.push('/chat/admin')} />
-                    <MemberSectionButton icon={Bot} label="Bots" onClick={() => router.push('/chat/admin')} />
-                    <MemberSectionButton icon={Package} label="Productos" onClick={() => router.push('/chat/admin')} />
-                    <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => router.push('/chat/admin')} />
+                    <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => handleAdminNav('/chat/admin?view=bank')} />
+                    <MemberSectionButton icon={Bot} label="Bots" onClick={() => handleAdminNav('/chat/admin?view=bots')} />
+                    <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} />
+                    <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} />
                 </div>
                 <div className="mt-4 bg-background-light rounded-lg p-3 text-center">
                     <p className="text-sm text-gray-900">Plan actual: <span className="font-bold">Gratuito</span></p>

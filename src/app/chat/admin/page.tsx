@@ -10,7 +10,7 @@ import { BankView, AssistantsList, ProductsView, CreditView } from '@/components
 import { Button } from '@/components/ui/button';
 import PlansDialog from '@/components/dashboard/PlansDialog';
 import { useApp } from '@/providers/AppProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { List, ListItem } from '@/components/ui/list';
 
@@ -139,9 +139,19 @@ const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
 export default function AdminHomePage() {
   const { state } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = state.userProfile;
   const [activeView, setActiveView] = useState<AdminView>('home');
   const [isPlansOpen, setIsPlansOpen] = useState(false);
+
+  useEffect(() => {
+    const view = searchParams.get('view') as AdminView;
+    if (view && ['bank', 'bots', 'products', 'credit'].includes(view)) {
+      setActiveView(view);
+    } else {
+      setActiveView('home');
+    }
+  }, [searchParams]);
   
   const handleUpgradeClick = () => {
     if (!isAuthenticated) {
@@ -211,13 +221,18 @@ export default function AdminHomePage() {
     }
   };
 
+  const handleBackToDashboard = () => {
+    setActiveView('home');
+    router.push('/chat/dashboard');
+  }
+
   return (
     <>
     <div className="flex flex-col h-full bg-transparent">
       {activeView !== 'home' && (
          <div className="p-2 border-b bg-card/80 backdrop-blur-sm">
-            <button onClick={() => setActiveView('home')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft size={16} /> Volver al panel
+            <button onClick={handleBackToDashboard} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <ArrowLeft size={16} /> Volver al panel de chats
             </button>
         </div>
       )}
