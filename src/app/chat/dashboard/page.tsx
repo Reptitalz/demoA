@@ -1,7 +1,7 @@
 // src/app/chat/dashboard/page.tsx
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FaPlus, FaSearch } from 'react-icons/fa';
@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
 import { Bot, CheckSquare, Package, DollarSign } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
 
 // --- CHAT ITEM COMPONENT ---
 interface ChatItemProps {
@@ -64,6 +66,8 @@ export default function ChatListPage() {
   const { data: session } = useSession();
   const { state } = useApp();
   const router = useRouter();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const demoChats = [
       { name: 'Sofía', imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDperzlDVvIdARSn86A7rhqvZcnXMI9NYHNeoFzQ8t9q1fem3-NFskRse1o1nj9QzxqLDwfafUBJSoPw6fdq7TeFlAw2q3hh4gpm2SLDcEKiYsHV5ujG1z6sIoMLFOsikcX9nAzWk9dX0HaKoN0obJZKSuVXdPDryU1b1T4S3jwjYlTSg7UIxX4ai71lO1084rp1UhK0tALnSiRZYvywErIQ2GjKIgPagBY7OZhi90E8fBofUs_xGhUe7Lw8dZwunzzMqYlS86jmtM', lastMessage: 'Hola, ¿cómo estás?', timestamp: '10:42 AM', isOnline: true },
@@ -71,14 +75,50 @@ export default function ChatListPage() {
       { name: 'Familia', imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtET4jhiYU4twI4tn6QLVggF-wYwh-vQRS7Q2iI9Y8EPb7Kq46lK5tyWb_jM3EAVYXu9G83kq3JLP65DZ6fIMmEu2w5ELy8gxLu7kp3Vq3b8LR4WRImuvJwn-_Gz9dBZWL-gAhXEu-p3Ez-CnheiMsgGIhurfyGClk95zTrj3NGkP0s2nRSt-1QNSa-OMjtdwYVsW_absfO7bvN73sK8JuZUmnAnsKBdNiVBPYE4bIFPLUXL96phSJsU7PLFoQVvTmX4YKN8dmMEA', lastMessage: 'Nos vemos mañana', timestamp: 'Domingo', isOnline: false },
       { name: 'Amigos', imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNdoYM___fJpeyLR6D0hhoUP2Sj8EkLYRDjOtHpGxt1u81Cn2eNLA4Ma1y7M7-EUSjVoAomebLAw9gYkhnTdBC0HtYaauLO3Eku_N0ozFrLV9gKe-G1Al6Fk6Ex6IUOPakJjeqfNO1tw_SwOGJUOB0auZ8w5MMHCf5frcbfNZnpOV1N4ZK5O9nv_am8CqACSc7aFcGRNBtFcHE2mZXUoJXT-JSY0fALk4XD1xa8IpkDOxJhP6CCbLL_uwX3aN4nw_zGR3u6CZaJsM', lastMessage: 'Ok, te llamo luego', timestamp: '23/04/2024', isOnline: false },
   ];
+  
+  const filteredChats = useMemo(() => {
+    return demoChats.filter(chat =>
+        chat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
 
   return (
     <div className="flex flex-col h-screen bg-background-light font-display">
         <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-2">
             <div className="flex items-center justify-between pb-4">
-                <h1 className="text-3xl font-bold text-gray-900">Chats</h1>
-                <button className="text-gray-900">
-                    <FaSearch className="text-3xl" />
+                <AnimatePresence initial={false}>
+                    {isSearchOpen ? (
+                         <motion.div
+                            key="search-input"
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: '100%' }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="flex-grow"
+                        >
+                            <Input 
+                                placeholder="Buscar chats..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full" 
+                                autoFocus
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.h1 
+                            key="title"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-3xl font-bold text-gray-900"
+                        >
+                            Chats
+                        </motion.h1>
+                    )}
+                </AnimatePresence>
+                <button className="text-gray-900 p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+                    <FaSearch className="text-2xl" />
                 </button>
             </div>
             <div className="border-b border-gray-200">
@@ -110,7 +150,7 @@ export default function ChatListPage() {
             </div>
 
             <div className="divide-y divide-gray-200">
-                {demoChats.map((chat, index) => (
+                {filteredChats.map((chat, index) => (
                     <ChatItem key={index} chat={chat} onClick={() => {}} />
                 ))}
             </div>
