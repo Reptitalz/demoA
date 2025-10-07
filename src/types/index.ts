@@ -38,35 +38,6 @@ export interface Catalog {
   products: Product[];
 }
 
-export interface CreditLine {
-  id: string;
-  amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'paid' | 'Al Corriente' | 'Atrasado';
-  applicantIdentifier: string; // e.g., a phone number or session ID
-  assistantId: string; // The assistant who processed the application
-  documents: {
-    ineFront: string; // Data URL
-    ineBack: string; // Data URL
-    proofOfAddress: string; // Data URL
-  };
-  paymentFrequency: 'weekly' | 'biweekly' | 'monthly';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreditOffer {
-  id: string;
-  amount: number;
-  interest: number; // Percentage
-  term: number;
-  termUnit: 'weeks' | 'fortnights' | 'months';
-  cardStyle: string; // 'slate', 'blue', 'purple', 'green', 'custom-color', 'custom-image'
-  customColor?: string;
-  cardImageUrl?: string;
-  assistantId: string; // The assistant managing this offer
-}
-
-
 export interface DatabaseConfig {
   id: string;
   name: string;
@@ -178,10 +149,8 @@ export interface UserProfile {
   assistants: AssistantConfig[];
   databases: DatabaseConfig[];
   catalogs?: Catalog[];
-  creditOffers?: CreditOffer[]; // Add credit offers to user profile
   contacts?: Contact[]; // User's saved contacts
   credits: number;
-  creditLines?: CreditLine[];
   pushSubscriptions?: any[];
   referredBy?: string; // Link to CollaboratorProfile referral code
   ownerPhoneNumberForNotifications?: string;
@@ -293,7 +262,7 @@ export interface AssistantWithMemory extends AssistantConfig {
 
 export interface ChatMessage {
   role: 'user' | 'model';
-  content: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string; name?: string; };
+  content: string | { type: 'image' | 'audio'; url: string };
   time: string;
 }
 
