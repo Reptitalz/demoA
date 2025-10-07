@@ -147,10 +147,11 @@ export default function RootLayout({
       <body className={`${inter.variable} font-display antialiased overflow-x-hidden`}>
         <NextAuthSessionProvider>
             <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+              forcedTheme="light"
             >
             <AppProvider>
                 <AppLayout>

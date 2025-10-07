@@ -4,14 +4,14 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More modern font stack */
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 @layer base {
-  :root {
-    /* Light Theme */
-    --background: 260 14% 97%; /* #f7f6f8 */
-    --foreground: 275 33% 10%; /* #191022 */
+  :root, .dark {
+    /* Light Theme Only */
+    --background: 220 20% 98%;
+    --foreground: 224 71% 4%;
 
     --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
@@ -19,8 +19,8 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    --primary: 262 80% 50%; /* #7f13ec */
-    --primary-foreground: 0 0% 100%;
+    --primary: 262 80% 58%; /* Vibrant Purple */
+    --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 14% 90%;
     --secondary-foreground: 224 71% 4%;
@@ -28,7 +28,7 @@ body {
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 40%;
 
-    --accent: 300 85% 60%;
+    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -36,42 +36,9 @@ body {
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 262 80% 50%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    /* Dark Theme */
-    --background: 275 33% 10%; /* #191022 */
-    --foreground: 260 14% 97%; /* #f7f6f8 */
-
-    --card: 276 27% 13%; /* Slightly lighter than background */
-    --card-foreground: 260 14% 97%;
-
-    --popover: 276 27% 13%;
-    --popover-foreground: 260 14% 97%;
-
-    --primary: 262 80% 58%; /* Keep primary vibrant */
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 275 33% 20%;
-    --secondary-foreground: 260 14% 97%;
-
-    --muted: 275 33% 15%;
-    --muted-foreground: 260 10% 60%;
-
-    --accent: 300 85% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 275 33% 20%;
-    --input: 275 33% 20%;
     --ring: 262 80% 58%;
-    
-    --radius: 0.5rem;
+
+    --radius: 0.75rem;
   }
 }
 
@@ -90,16 +57,6 @@ body {
 }
 
 @layer utilities {
-  .animate-scroll {
-    animation: scroll 40s linear infinite;
-  }
-
-  @keyframes scroll {
-    to {
-      transform: translate(calc(-50%));
-    }
-  }
-
   .grid-areas-admin-hub {
     grid-template-areas:
       "a b"
