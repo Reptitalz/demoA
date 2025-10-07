@@ -780,19 +780,16 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                                 <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{term || '0'} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[termUnit]}</p></div>
                             </div>
                         </div>
-                         <div className="grid grid-cols-4 gap-2">
-                            {cardStyles.map(style => (
-                                <RadioGroupItem key={style.id} value={style.id} id={`style-${style.id}`} className="sr-only" />
-                            ))}
-                            <div className="flex items-center gap-2">
-                                 <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImageUrl(null); }} className="flex gap-2">
-                                   {cardStyles.map(style => (
-                                       <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
-                                           <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
-                                           <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
-                                       </Label>
-                                   ))}
-                                </RadioGroup>
+                         <div className="grid grid-cols-1 gap-2">
+                            <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImageUrl(null); }} className="flex gap-2">
+                               {cardStyles.map(style => (
+                                   <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
+                                       <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
+                                       <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
+                                   </Label>
+                               ))}
+                             </RadioGroup>
+                             <div className="flex items-center gap-2">
                                  <Label htmlFor="custom-color-picker" className="h-8 w-8 rounded-full border-2 p-0.5 cursor-pointer flex items-center justify-center" style={{ borderColor: cardStyle === 'custom-color' ? 'hsl(var(--primary))' : 'transparent' }}>
                                     <div className="w-full h-full rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
                                         <Palette className="h-4 w-4 text-white"/>
