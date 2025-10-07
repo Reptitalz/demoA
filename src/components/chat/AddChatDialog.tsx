@@ -108,8 +108,8 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-none sm:h-auto sm:rounded-none">
+        <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <UserPlus /> Agregar Nuevo Contacto
           </DialogTitle>
@@ -117,8 +117,8 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
             Ingresa el ID de chat (chat path) del contacto que quieres agregar a tu lista.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
-          <div>
+        <div className="py-4 space-y-4 flex-grow flex items-center justify-center p-4">
+          <div className="w-full max-w-sm">
             <Label htmlFor="chatPath">ID de Chat del Contacto</Label>
             <Input
               id="chatPath"
@@ -126,10 +126,11 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
               value={chatPath}
               onChange={(e) => setChatPath(e.target.value)}
               disabled={isVerifying}
+              className="py-6 text-base text-center"
             />
           </div>
         </div>
-        <DialogFooter className="flex-col sm:flex-row gap-2 sm:justify-end w-full">
+        <DialogFooter className="p-4 border-t flex-col sm:flex-row gap-2 sm:justify-end w-full">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying} className="w-full sm:w-auto">Cancelar</Button>
           <Button onClick={handleAddContact} disabled={isVerifying || !chatPath.trim()} className="w-full sm:w-auto">
             {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
