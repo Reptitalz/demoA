@@ -38,7 +38,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
                 <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
             </Avatar>
             {chat.isOnline && (
-                <span className="absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background-light"></span>
+                <span className="absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background"></span>
             )}
         </div>
         <div className="flex-1">
@@ -55,7 +55,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 
 const MemberSectionButton = ({ icon: Icon, label, onClick }: { icon: React.ElementType, label: string, onClick: () => void }) => (
     <div>
-        <button onClick={onClick} className="w-full bg-background-light rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow">
+        <button onClick={onClick} className="w-full bg-background rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow">
             <span className="material-symbols-outlined text-primary text-3xl">
                 {label === 'Autorizaciones' ? 'verified_user' : label === 'Bots' ? 'smart_toy' : label === 'Productos' ? 'inventory_2' : 'credit_card'}
             </span>
@@ -92,16 +92,16 @@ export default function ChatListPage() {
 
   return (
     <>
-    <div className="flex flex-col h-full bg-background-light font-display pb-16">
-        <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-3">
+    <div className="flex flex-col h-full bg-background font-display pb-16">
+        <header className="bg-background sticky top-0 z-10 px-4 pt-4 pb-3">
              <div className="flex items-center justify-between h-10">
                 <AnimatePresence initial={false}>
                     {isSearchOpen ? (
                          <motion.div
                             key="search-input"
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
+                            exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2, ease: 'easeInOut' }}
                             className="flex-grow"
                         >
@@ -116,9 +116,9 @@ export default function ChatListPage() {
                     ) : (
                         <motion.h1 
                             key="title"
-                            initial={{ opacity: 0, y: -10 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
+                            exit={{ opacity: 0, y: 10 }}
                             transition={{ duration: 0.2 }}
                             className="text-3xl font-bold text-gray-900"
                         >
@@ -127,7 +127,7 @@ export default function ChatListPage() {
                     )}
                 </AnimatePresence>
                 <button className="text-gray-900 p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                    <FaSearch className="text-2xl" />
+                    <FaSearch className="text-xl" />
                 </button>
             </div>
         </header>
@@ -146,7 +146,7 @@ export default function ChatListPage() {
                     <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} />
                     <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} />
                 </div>
-                <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background-light rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100">
+                <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100">
                     <p className="text-sm text-gray-900">Plan actual: <span className="font-bold">Gratuito</span></p>
                 </div>
             </div>

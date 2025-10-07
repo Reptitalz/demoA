@@ -49,9 +49,10 @@ const NavItem = ({ href, label, icon: Icon, onNavigate }: NavItemProps) => {
 
 interface ChatNavBarProps {
     onNavigate: (path: string) => void;
+    onAddChat: () => void;
 }
 
-const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
+const ChatNavBar = ({ onNavigate, onAddChat }: ChatNavBarProps) => {
     const pathname = usePathname();
 
     const touchStartX = useRef(0);
@@ -116,7 +117,7 @@ const ChatNavBar = ({ onNavigate }: ChatNavBarProps) => {
 
                     {/* Center Button */}
                     <div className="absolute left-1/2 -translate-x-1/2 top-[-20px]">
-                         <button className="bg-brand-gradient text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg border-4 border-card">
+                         <button onClick={onAddChat} className="bg-brand-gradient text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg border-4 border-card">
                             <FaPlus className="text-xl" />
                         </button>
                     </div>

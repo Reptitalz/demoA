@@ -1,13 +1,14 @@
 // src/app/chat/ChatLayout.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { FaComment, FaCamera, FaUser, FaPhoneAlt } from 'react-icons/fa';
+import AddChatDialog from '@/components/chat/AddChatDialog'; // Import the dialog
 
 const menuItems = [
     { path: '/chat/dashboard', icon: FaComment, label: 'Chats' },
@@ -19,6 +20,7 @@ const menuItems = [
 export default function ChatLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
 
   const isBaseChatView = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
@@ -28,25 +30,28 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   }, [pathname, router]);
 
   return (
-    <div className="h-[100svh] w-screen flex flex-col md:flex-row bg-transparent overflow-hidden">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        {isBaseChatView && <ChatSidebar onNavigate={handleRouteChange} />}
-      </div>
+    <>
+      <div className="h-[100svh] w-screen flex flex-col md:flex-row bg-transparent overflow-hidden">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          {isBaseChatView && <ChatSidebar onNavigate={handleRouteChange} />}
+        </div>
 
-      <main 
-          className={cn(
-            "flex-grow relative",
-            "pb-16 md:pb-0" // Padding for main nav bar on mobile, none on desktop
-          )}
-      >
-        {children}
-      </main>
-      
-      {/* Mobile Bottom NavBar */}
-      <div className="md:hidden">
-        {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} />}
+        <main 
+            className={cn(
+              "flex-grow relative",
+              "pb-16 md:pb-0" // Padding for main nav bar on mobile, none on desktop
+            )}
+        >
+          {children}
+        </main>
+        
+        {/* Mobile Bottom NavBar */}
+        <div className="md:hidden">
+          {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} onAddChat={() => setIsAddChatDialogOpen(true)} />}
+        </div>
       </div>
-    </div>
+      <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+    </>
   );
 }
