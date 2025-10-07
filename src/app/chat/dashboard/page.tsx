@@ -150,7 +150,8 @@ export default function ChatListPage() {
         const w = rect.width;
         const h = rect.height;
         const gap = 16;
-        const buttonSize = (w - gap * (memberButtons.length + 1)) / memberButtons.length;
+        const numButtons = memberButtons.length;
+        const buttonSize = (w - gap * (numButtons + 1)) / numButtons;
 
         memberButtons.forEach((_, i) => {
             buttonRects[i] = {
@@ -209,7 +210,7 @@ export default function ChatListPage() {
             gradient.addColorStop(0, `hsla(262, 80%, 58%, ${opacity * 0.2})`);
             gradient.addColorStop(1, "transparent");
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, w, h);
+            ctx.fillRect(rect.x, currentY, rect.width, rect.height);
           }
           
           // Draw card
@@ -221,18 +222,23 @@ export default function ChatListPage() {
           ctx.fill();
           ctx.stroke();
 
-          // Draw icon (This is tricky. We'll simulate with shapes)
+          // Draw icon
+          const iconSize = rect.height * 0.3;
           ctx.fillStyle = "hsl(var(--primary))";
-          ctx.font = `${rect.height * 0.3}px sans-serif`;
+          ctx.font = `bold ${iconSize}px "Font Awesome 5 Free"`; // Using Font Awesome
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          // Placeholder for icon
-          ctx.fillText("★", rect.x + rect.width / 2, currentY + rect.height * 0.4);
+          let iconChar = '?';
+          if (button.icon === CheckSquare) iconChar = '\uf14a';
+          if (button.icon === Bot) iconChar = '\uf544';
+          if (button.icon === Package) iconChar = '\uf466';
+          if (button.icon === DollarSign) iconChar = '\uf155';
+          ctx.fillText(iconChar, rect.x + rect.width / 2, currentY + rect.height * 0.4);
 
           // Draw text
           ctx.fillStyle = "hsl(var(--foreground))";
-          ctx.font = `bold ${rect.height * 0.12}px sans-serif`;
-          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.7);
+          ctx.font = `bold ${rect.height * 0.1}px sans-serif`;
+          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.75);
 
           // Draw notification badge
           if (button.notificationCount) {
@@ -245,8 +251,9 @@ export default function ChatListPage() {
               ctx.fill();
               
               ctx.fillStyle = 'white';
-              ctx.font = `bold ${badgeRadius * 1.2}px sans-serif`;
-              ctx.fillText(`${button.notificationCount > 9 ? '9+' : button.notificationCount}`, badgeX, badgeY);
+              ctx.font = `bold ${badgeRadius * 1.1}px sans-serif`;
+              const text = button.notificationCount > 9 ? '9+' : button.notificationCount.toString();
+              ctx.fillText(text, badgeX, badgeY + 1); // Adjust for better vertical alignment
           }
       });
       animationFrameId = requestAnimationFrame(draw);
@@ -259,7 +266,7 @@ export default function ChatListPage() {
         canvas.removeEventListener('click', handleClick);
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
     }
-  }, []);
+  }, [memberButtons]); // Re-run effect if memberButtons change
 
   return (
     <>
@@ -312,13 +319,13 @@ export default function ChatListPage() {
                     </div>
                 </div>
                  <motion.div
-                    animate={{ height: isMemberSectionVisible ? '120px' : 0 }}
-                    initial={{ height: '120px' }}
+                    animate={{ height: isMemberSectionVisible ? 'auto' : 0 }}
+                    initial={{ height: 'auto' }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                 >
-                    <canvas ref={canvasRef} style={{ width: '100%', height: '100px' }}/>
-                    <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                    <canvas ref={canvasRef} style={{ width: '100%', height: '100px', cursor: 'pointer' }}/>
+                     <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                         <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
                     </div>
                 </motion.div>
