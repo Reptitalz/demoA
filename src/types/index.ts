@@ -41,7 +41,7 @@ export interface Catalog {
 export interface CreditLine {
   id: string;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  status: 'pending' | 'approved' | 'rejected' | 'paid' | 'Al Corriente' | 'Atrasado';
   applicantIdentifier: string; // e.g., a phone number or session ID
   assistantId: string; // The assistant who processed the application
   documents: {

@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase } from 'lucide-react';
 import { APP_NAME } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
@@ -40,6 +40,7 @@ import AppIcon from '@/components/shared/AppIcon';
 import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
 import { openDB } from '@/lib/db';
+import { Textarea } from '@/components/ui/textarea';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
@@ -507,80 +508,6 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
     );
 };
 
-const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
-    const { state } = useApp();
-
-    const offers = state.userProfile.creditOffers || [];
-
-    useEffect(() => {
-        const handleScroll = () => {
-            if (scrollRef.current) {
-                const scrollLeft = scrollRef.current.scrollLeft;
-                const cardWidth = scrollRef.current.offsetWidth;
-                if (cardWidth > 0) {
-                    const newIndex = Math.round(scrollLeft / cardWidth);
-                    setActiveIndex(newIndex);
-                }
-            }
-        };
-        const scroller = scrollRef.current;
-        if (scroller) {
-            scroller.addEventListener('scroll', handleScroll, { passive: true });
-            return () => scroller.removeEventListener('scroll', handleScroll);
-        }
-    }, []);
-
-    return (
-        <div className="w-full">
-            <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
-                {offers.map((offer, index) => {
-                     const selectedStyle = cardStyles.find(s => s.id === offer.cardStyle);
-                     const cardBgStyle = offer.cardStyle === 'custom-image' && offer.cardImageUrl
-                         ? { backgroundImage: `url(${offer.cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                         : {};
-                     const cardGradientClass = offer.cardStyle === 'custom-color' 
-                         ? '' 
-                         : selectedStyle?.gradient;
-                     const customGradientStyle = offer.cardStyle === 'custom-color' 
-                         ? { background: `linear-gradient(to bottom right, ${offer.customColor}, #000)` }
-                         : {};
-                    return (
-                        <div key={index} className="w-full flex-shrink-0 snap-center p-2">
-                            <div 
-                                style={{...cardBgStyle, ...customGradientStyle}}
-                                className={cn("bg-gradient-to-br text-white rounded-lg shadow-2xl aspect-[1.586] p-4 flex flex-col justify-between relative overflow-hidden", cardGradientClass)}
-                            >
-                                <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
-                                <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert" /> <span className="font-semibold text-xs opacity-80">Hey Manito!</span></div>
-                                    <Banknote className="h-5 w-5 text-yellow-300" />
-                                </div>
-                                <div className="text-left"><p className="font-mono text-xl tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
-                                <div className="flex justify-between items-end text-xs font-mono">
-                                    <div className="flex items-center gap-2"><Radio className="h-4 w-4 text-white/50"/> <div><p className="opacity-70 text-[8px] leading-tight">TASA MENSUAL</p><p className="font-medium text-[10px] leading-tight">{offer.interest}%</p></div></div>
-                                    <div className="text-right"><p className="opacity-70 text-[8px] leading-tight">PLAZO</p><p className="font-medium text-[10px] leading-tight">{offer.term} {{'weeks': 'SEM', 'fortnights': 'QUINC', 'months': 'MESES'}[offer.termUnit]}</p></div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="flex justify-center mt-2 space-x-2">
-                {offers.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => { if (scrollRef.current) { const cardWidth = scrollRef.current.offsetWidth; scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' }); } }}
-                        className={cn("h-1.5 w-1.5 rounded-full transition-all", activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50")}
-                        aria-label={`Ir a la oferta ${index + 1}`}
-                    />
-                ))}
-            </div>
-        </div>
-    );
-};
-
 const cardStyles = [
     { id: 'slate', name: 'Gris Pizarra', gradient: 'from-slate-900 to-slate-800' },
     { id: 'blue', name: 'Azul Cósmico', gradient: 'from-blue-900 to-cyan-800' },
@@ -893,7 +820,7 @@ export const CreditView = () => {
                             <Plus className="mr-1 h-3 w-3"/> Nueva Oferta
                         </Button>
                      </div>
-                    <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+                     <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
                 </div>
 
                  <div className="space-y-3">
@@ -954,23 +881,29 @@ export const CreditView = () => {
 };
 
 export const ProductsView = () => {
-    const { state } = useApp();
+    const { state, dispatch } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
-    const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-    const [isCreateCatalogDialogOpen, setIsCreateCatalogDialogOpen] = useState(false);
     const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
+    const [isCreateCatalogOpen, setIsCreateCatalogOpen] = useState(false);
+    const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const { toast } = useToast();
 
-    const isMember = state.userProfile.accountType === 'business';
     const catalogs = state.userProfile.catalogs || [];
-
-    const handleSelectCatalog = (catalogId: string) => {
-        setSelectedCatalogId(catalogId);
-    };
 
     const handleBackToList = () => {
         setSelectedCatalogId(null);
         setSearchTerm('');
+    };
+    
+    const handleEditProduct = (product: Product) => {
+        setEditingProduct(product);
+        setIsAddProductOpen(true);
+    };
+    
+    const handleAddProduct = () => {
+        setEditingProduct(null);
+        setIsAddProductOpen(true);
     };
 
     const selectedCatalog = catalogs.find(c => c.id === selectedCatalogId);
@@ -987,9 +920,7 @@ export const ProductsView = () => {
                             <div className="p-2 bg-primary/10 rounded-lg">
                                 <Package className="h-6 w-6 text-primary" />
                             </div>
-                            <div>
-                                <h1 className="text-xl font-bold">Mis Catálogos</h1>
-                            </div>
+                            <h1 className="text-xl font-bold">Mis Catálogos</h1>
                         </div>
                     </div>
                 </header>
@@ -1002,7 +933,7 @@ export const ProductsView = () => {
                             const promoterName = catalog.promoterType === 'user' ? 'Tú Mismo' : promoter?.name || 'Asistente Desconocido';
                              
                              return (
-                             <Card key={catalog.id} className="glow-card cursor-pointer" onClick={() => handleSelectCatalog(catalog.id)}>
+                             <Card key={catalog.id} className="glow-card cursor-pointer" onClick={() => setSelectedCatalogId(catalog.id)}>
                                 <CardContent className="p-3 flex items-center gap-3">
                                     <div className="p-2 bg-muted rounded-full">
                                         {catalog.promoterType === 'bot' ? <Bot className="h-5 w-5 text-muted-foreground" /> : <User className="h-5 w-5 text-muted-foreground" />}
@@ -1011,6 +942,7 @@ export const ProductsView = () => {
                                         <p className="font-semibold text-sm">{catalog.name}</p>
                                         <p className="text-xs text-muted-foreground">Promocionado por: {promoterName}</p>
                                     </div>
+                                    <p className="text-xs text-muted-foreground">{catalog.products.length} producto(s)</p>
                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                 </CardContent>
                             </Card>
@@ -1021,15 +953,15 @@ export const ProductsView = () => {
                          )}
                     </div>
                 </ScrollArea>
-                 <Button
-                    onClick={() => setIsCreateCatalogDialogOpen(true)}
+                <Button
+                    onClick={() => setIsCreateCatalogOpen(true)}
                     className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
                     size="icon"
                     title="Crear Nuevo Catálogo"
                 >
                     <Plus className="h-6 w-6" />
                 </Button>
-                
+                <CreateCatalogDialog isOpen={isCreateCatalogOpen} onOpenChange={setIsCreateCatalogOpen} />
             </>
         );
     }
@@ -1056,23 +988,21 @@ export const ProductsView = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <Button variant="outline" size="sm" className="h-9">Definir Catálogo</Button>
-                    {isMember && (
-                        <Button size="sm" className="h-9 bg-brand-gradient text-primary-foreground hover:opacity-90" onClick={() => {toast({ title: 'Próximamente', description: 'Creación de múltiples catálogos estará disponible pronto.'})}}>
-                            <Plus className="mr-1 h-4 w-4"/>
-                            Crear Catálogo
-                        </Button>
-                    )}
                 </div>
             </header>
              <ScrollArea className="flex-grow">
-                <div className="p-4 grid grid-cols-2 gap-4">
+                <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {filteredProducts.map(product => (
-                        <Card key={product.id} className="overflow-hidden glow-card">
+                        <Card key={product.id} className="overflow-hidden glow-card group relative">
                             <div className="aspect-video relative">
                                 <Image src={product.imageUrl || 'https://placehold.co/600x400'} alt={product.name} layout="fill" objectFit="cover" />
+                                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => handleEditProduct(product)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
-                            <CardContent className="p-3">
+                            <CardContent className="p-2">
                                 <p className="font-semibold truncate text-sm">{product.name}</p>
                                 <p className="font-bold text-primary">${product.price.toFixed(2)}</p>
                             </CardContent>
@@ -1081,17 +1011,202 @@ export const ProductsView = () => {
                 </div>
             </ScrollArea>
              <Button
-                
+                onClick={handleAddProduct}
                 className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground"
                 size="icon"
                 title="Añadir Producto"
             >
                 <Plus className="h-6 w-6" />
             </Button>
-            
+            {selectedCatalog && (
+                <AddProductDialog
+                    isOpen={isAddProductOpen}
+                    onOpenChange={setIsAddProductOpen}
+                    catalogId={selectedCatalog.id}
+                    productToEdit={editingProduct}
+                />
+            )}
         </>
     );
 };
+
+const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) => {
+    const { state, dispatch } = useApp();
+    const { toast } = useToast();
+    const [name, setName] = useState('');
+    const [promoterType, setPromoterType] = useState<'user' | 'bot'>('user');
+    const [promoterId, setPromoterId] = useState<string>('user');
+
+    const handleSubmit = () => {
+        if (!name.trim()) {
+            toast({ title: 'Nombre requerido', description: 'Por favor, dale un nombre a tu catálogo.', variant: 'destructive'});
+            return;
+        }
+
+        const newCatalog: Catalog = {
+            id: `cat_${Date.now()}`,
+            name,
+            promoterType,
+            promoterId: promoterType === 'user' ? state.userProfile._id!.toString() : promoterId,
+            products: []
+        };
+        
+        dispatch({ type: 'UPDATE_USER_PROFILE', payload: {
+            catalogs: [...(state.userProfile.catalogs || []), newCatalog]
+        }});
+
+        toast({ title: 'Catálogo Creado', description: `Se ha creado el catálogo "${name}".`});
+        onOpenChange(false);
+    }
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
+                    <DialogDescription>Crea una nueva colección para organizar tus productos.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
+                        <Input id="catalog-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Productos de Verano" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>¿Quién promocionará este catálogo?</Label>
+                         <RadioGroup value={promoterType} onValueChange={(val: any) => { setPromoterType(val); setPromoterId(val === 'user' ? 'user' : ''); }} className="grid grid-cols-2 gap-2">
+                            <Label htmlFor="promoter-user" className={cn("p-4 border rounded-md text-center cursor-pointer", promoterType === 'user' && "bg-primary/10 border-primary")}>
+                                <RadioGroupItem value="user" id="promoter-user" className="sr-only"/>
+                                Yo mismo
+                            </Label>
+                             <Label htmlFor="promoter-bot" className={cn("p-4 border rounded-md text-center cursor-pointer", promoterType === 'bot' && "bg-primary/10 border-primary")}>
+                                <RadioGroupItem value="bot" id="promoter-bot" className="sr-only"/>
+                                Un Asistente
+                            </Label>
+                        </RadioGroup>
+                    </div>
+                    {promoterType === 'bot' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="assistant-select">Selecciona el Asistente</Label>
+                            <Select onValueChange={setPromoterId} value={promoterId}>
+                                <SelectTrigger><SelectValue placeholder="Elige un asistente..." /></SelectTrigger>
+                                <SelectContent>
+                                    {state.userProfile.assistants.map(asst => (
+                                        <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </div>
+                 <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={handleSubmit}>Crear Catálogo</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+const AddProductDialog = ({ isOpen, onOpenChange, catalogId, productToEdit }: { isOpen: boolean, onOpenChange: (open: boolean) => void, catalogId: string, productToEdit: Product | null }) => {
+    const { dispatch } = useApp();
+    const { toast } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState('');
+    const [description, setDescription] = useState('');
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            if (productToEdit) {
+                setName(productToEdit.name);
+                setPrice(productToEdit.price.toString());
+                setDescription(productToEdit.description || '');
+                setImageUrl(productToEdit.imageUrl || null);
+            } else {
+                // Reset form for new product
+                setName('');
+                setPrice('');
+                setDescription('');
+                setImageUrl(null);
+            }
+        }
+    }, [isOpen, productToEdit]);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => setImageUrl(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const handleSubmit = () => {
+        if (!name.trim() || !price) {
+            toast({ title: "Campos requeridos", description: 'El nombre y el precio son obligatorios.', variant: 'destructive'});
+            return;
+        }
+
+        const productData: Product = {
+            id: productToEdit ? productToEdit.id : `prod_${Date.now()}`,
+            name,
+            price: parseFloat(price),
+            description,
+            imageUrl: imageUrl || undefined,
+        };
+        
+        const actionType = productToEdit ? 'UPDATE_PRODUCT_IN_CATALOG' : 'ADD_PRODUCT_TO_CATALOG';
+        dispatch({ type: actionType, payload: { catalogId, product: productData }});
+        
+        toast({ title: productToEdit ? 'Producto Actualizado' : 'Producto Añadido', description: `Se ha guardado "${name}".` });
+        onOpenChange(false);
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                 <DialogHeader>
+                    <DialogTitle>{productToEdit ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-video w-full border-2 border-dashed rounded-md flex items-center justify-center relative cursor-pointer bg-muted/50"
+                    >
+                        {imageUrl ? (
+                             <Image src={imageUrl} alt="Vista previa" layout="fill" objectFit="contain" className="rounded-md" />
+                        ) : (
+                            <div className="text-muted-foreground text-center">
+                                <ImageIcon className="mx-auto h-10 w-10"/>
+                                <p className="text-sm">Subir imagen</p>
+                            </div>
+                        )}
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="prod-name">Nombre del Producto</Label>
+                        <Input id="prod-name" value={name} onChange={e => setName(e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="prod-price">Precio</Label>
+                        <Input id="prod-price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="prod-desc">Descripción (Opcional)</Label>
+                        <Textarea id="prod-desc" value={description} onChange={e => setDescription(e.target.value)} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                    <Button onClick={handleSubmit}>{productToEdit ? 'Guardar Cambios' : 'Añadir Producto'}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 
 export const AssistantsList = () => {

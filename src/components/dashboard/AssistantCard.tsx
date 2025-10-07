@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
 import MessageLimitDialog from "./MessageLimitDialog";
+import { Package } from "lucide-react";
 
 interface AssistantCardProps {
   assistant: AssistantConfig;
@@ -39,7 +40,7 @@ const AssistantCard = ({
   onReconfigure, 
   animationDelay = "0s",
 }: AssistantCardProps) => {
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
   const { toast } = useToast();
   
   const [showAllPurposes, setShowAllPurposes] = useState(false);
@@ -50,40 +51,46 @@ const AssistantCard = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false);
 
-  const shareUrl = `https://wa.me/${assistant.phoneLinked}`;
+  const shareUrl = assistant.type === 'whatsapp' ? `https://wa.me/${assistant.phoneLinked}` : assistant.chatPath ? `${window.location.origin}/chat/${assistant.chatPath}` : '#';
 
   const handleReconfigureClick = () => {
     onReconfigure(assistant.id);
   };
 
   const handleShare = async () => {
-    if (!assistant.isActive || !assistant.phoneLinked) {
-        toast({ title: "Error", description: "El asistente debe estar activo y tener un número vinculado para compartirlo.", variant: "destructive"});
+    if (!assistant.isActive || (assistant.type === 'whatsapp' && !assistant.phoneLinked)) {
+        toast({ title: "Error", description: "El asistente debe estar activo y tener un número vinculado (si es de WhatsApp) para compartirlo.", variant: "destructive"});
         return;
     }
     
     const shareData = {
       title: `Chatea con ${assistant.name}`,
-      text: `Inicia una conversación con ${assistant.name} en WhatsApp.`,
+      text: `Inicia una conversación con ${assistant.name} en ${APP_NAME}.`,
       url: shareUrl,
     };
 
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        toast({ title: "Compartido Exitosamente", description: "El enlace de chat ha sido compartido." });
-      } else {
-        throw new Error("navigator.share no está disponible");
-      }
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(shareUrl);
+            toast({ title: "Enlace Copiado", description: "Enlace de chat copiado al portapapeles." });
+        }
     } catch (err) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "Enlace Copiado", description: "Enlace de chat de WhatsApp copiado al portapapeles." });
-      } catch (copyError) {
-        toast({ title: "Error al Copiar", description: "No se pudo copiar el enlace.", variant: "destructive" });
-      }
+        toast({ title: "Error al Compartir/Copiar", description: "No se pudo compartir o copiar el enlace.", variant: "destructive" });
     }
   };
+  
+   const handleAssignCatalog = (catalogId: string) => {
+        dispatch({
+            type: 'UPDATE_ASSISTANT',
+            payload: { ...assistant, catalogId: catalogId }
+        });
+        toast({
+            title: "Catálogo Asignado",
+            description: `El catálogo ha sido asignado a "${assistant.name}".`
+        });
+    };
 
   const allPurposes = assistant.purposes.map(pid =>
     assistantPurposesConfig.find(p => p.id === pid.split(' ')[0])
@@ -94,23 +101,39 @@ const AssistantCard = ({
   const currentImageUrl = imageError ? DEFAULT_ASSISTANT_IMAGE_URL : (assistant.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL);
   const currentImageHint = imageError ? DEFAULT_ASSISTANT_IMAGE_HINT : (assistant.imageUrl ? assistant.name : DEFAULT_ASSISTANT_IMAGE_HINT);
 
-  // Status logic for WhatsApp assistants
-  let badgeText = "Inactivo";
+  // Status logic
+  let badgeText: string;
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-
-  if (assistant.isActive && assistant.numberReady) {
-      badgeText = "Activo";
+  
+  if (assistant.type === 'desktop') {
+    const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
+    if (assistant.isPlanActive) {
+      badgeText = "Plan Activo";
       badgeVariant = "default";
-  } else if (assistant.phoneLinked && !assistant.numberReady) {
-      badgeText = "Activando";
+    } else if (assistant.isFirstDesktopAssistant && trialDaysRemaining > 0) {
+      badgeText = `Prueba (${trialDaysRemaining}d)`;
       badgeVariant = "outline";
+    } else {
+      badgeText = "Inactivo";
+    }
+  } else { // WhatsApp
+      if (assistant.isActive && assistant.numberReady) {
+          badgeText = "Activo";
+          badgeVariant = "default";
+      } else if (assistant.phoneLinked && !assistant.numberReady) {
+          badgeText = "Activando";
+          badgeVariant = "outline";
+      } else {
+        badgeText = "Inactivo";
+      }
   }
     
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      badgeText === "Activo" && "bg-brand-gradient text-primary-foreground",
-      badgeText === "Activando" && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400"
+      (badgeText === "Activo" || badgeText === "Plan Activo") && "bg-brand-gradient text-primary-foreground",
+      badgeText.startsWith("Activando") && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400",
+      badgeText.startsWith("Prueba") && "border-blue-400 text-blue-500 dark:border-blue-500 dark:text-blue-400"
     )}>
       {isProcessing ? <FaSpinner className="mr-1 h-3 w-3 animate-spin" /> : null}
       {badgeText}
@@ -126,11 +149,13 @@ const AssistantCard = ({
       variant="outline" 
       className={cn(
         "flex items-center gap-1 text-xs",
-        'border-green-500 text-green-600 dark:text-green-400'
+        assistant.type === 'whatsapp' 
+          ? 'border-green-500 text-green-600 dark:text-green-400' 
+          : 'border-blue-500 text-blue-600 dark:text-blue-400'
       )}
     >
-      <FaWhatsapp size={12} />
-      WhatsApp
+      {assistant.type === 'whatsapp' ? <FaWhatsapp size={12} /> : <FaDesktop size={12} />}
+      {assistant.type === 'whatsapp' ? 'WhatsApp' : 'Escritorio'}
     </Badge>
   );
 
@@ -216,7 +241,7 @@ const AssistantCard = ({
              {assistant.isActive && assistant.numberReady ? (
                 <>
                     <div className="flex items-center gap-2">
-                        <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={!assistant.phoneLinked}>
+                         <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={assistant.type === 'desktop'}>
                             <Link href={shareUrl} target="_blank">
                                 <FaWhatsapp size={14} /> Chatear
                             </Link>
@@ -231,9 +256,25 @@ const AssistantCard = ({
                                 <DropdownMenuItem onClick={handleShare}>
                                     <FaShareAlt className="mr-2"/> Compartir
                                 </DropdownMenuItem>
+                                {assistant.type === 'desktop' && (
+                                    <DropdownMenuItem onClick={() => setIsApiInfoDialogOpen(true)}>
+                                        <FaBolt className="mr-2"/> Info de API
+                                    </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem onClick={() => setIsLimitDialogOpen(true)}>
                                   <FaRegCommentDots className="mr-2"/> Asignar Límite
                                 </DropdownMenuItem>
+                                {state.userProfile.catalogs && state.userProfile.catalogs.length > 0 && (
+                                     <>
+                                        <DropdownMenuSeparator />
+                                        {state.userProfile.catalogs.map(catalog => (
+                                             <DropdownMenuItem key={catalog.id} onSelect={() => handleAssignCatalog(catalog.id)}>
+                                                <Package className="mr-2 h-4 w-4" />
+                                                <span>Asignar: {catalog.name}</span>
+                                            </DropdownMenuItem>
+                                        ))}
+                                     </>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -252,14 +293,17 @@ const AssistantCard = ({
              ) : (
                 <Button
                     size="sm"
-                    onClick={() => setIsPhoneSetupOpen(true)}
+                    onClick={() => assistant.type === 'whatsapp' ? setIsPhoneSetupOpen(true) : onReconfigure(assistant.id)}
                     className={cn(
                       "w-full text-xs transition-transform transform hover:scale-105",
                       "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
                     )}
                 >
                     <FaBolt size={14} />
-                    {assistant.phoneLinked ? 'Verificar Número' : 'Activar Asistente'}
+                    {assistant.type === 'whatsapp'
+                        ? (assistant.phoneLinked ? 'Verificar Número' : 'Activar Asistente')
+                        : 'Configurar y Activar Prueba'
+                    }
                 </Button>
              )}
         </CardFooter>
