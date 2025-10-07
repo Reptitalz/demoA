@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import { FaSpinner } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 import { motion } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
 
 const LoadPage = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const { status } = useSession();
     const router = useRouter();
     const [isMinTimePassed, setIsMinTimePassed] = useState(false);
+    const [progress, setProgress] = useState(10);
 
     useEffect(() => {
         // Set a minimum display time of 3 seconds
@@ -20,20 +22,34 @@ const LoadPage = () => {
             setIsMinTimePassed(true);
         }, 3000);
 
-        return () => clearTimeout(timer);
+        // Animate progress bar
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 90) {
+                    clearInterval(progressInterval);
+                    return 90;
+                }
+                return prev + Math.random() * 10;
+            });
+        }, 400);
+
+        return () => {
+            clearTimeout(timer);
+            clearInterval(progressInterval);
+        };
     }, []);
 
 
     useEffect(() => {
-        // Only redirect when both conditions are met:
-        // 1. The minimum time has passed.
-        // 2. The session status has been determined.
         if (isMinTimePassed && status !== 'loading') {
-            if (status === 'authenticated') {
-                router.replace('/chat/dashboard');
-            } else if (status === 'unauthenticated') {
-                router.replace('/chat');
-            }
+            setProgress(100); // Complete progress before redirecting
+            setTimeout(() => {
+                if (status === 'authenticated') {
+                    router.replace('/chat/dashboard');
+                } else if (status === 'unauthenticated') {
+                    router.replace('/chat');
+                }
+            }, 300); // Short delay for animation to complete
         }
     }, [status, router, isMinTimePassed]);
 
@@ -126,20 +142,22 @@ const LoadPage = () => {
     return (
         <div className="fixed inset-0 bg-background flex flex-col items-center justify-center">
             <canvas ref={canvasRef} className="absolute inset-0 z-0" />
-            <div className="relative z-10 text-center flex flex-col items-center">
+            <div className="relative z-10 text-center flex flex-col items-center w-full max-w-xs px-4">
                  <motion.div
                     animate={{ y: [-10, 10, -10] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                  >
                     <AppIcon className="h-24 w-24 drop-shadow-2xl" />
                  </motion.div>
-                <p className="text-xl font-semibold text-foreground mt-4 animate-pulse flex items-center gap-2">
-                   Cargando...
-                </p>
+                <div className="w-full mt-6">
+                    <Progress value={progress} className="h-2" />
+                    <p className="text-sm text-muted-foreground mt-2">
+                        {status === 'loading' ? 'Verificando sesión...' : 'Cargando aplicación...'}
+                    </p>
+                </div>
             </div>
              {status === 'loading' && (
                 <div className="absolute bottom-10 z-10 flex flex-col items-center gap-2 text-center">
-                    <FaSpinner className="animate-spin h-6 w-6 text-primary" />
                     <p className="text-xs text-muted-foreground">Hey Manito App</p>
                 </div>
             )}
