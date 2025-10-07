@@ -167,9 +167,6 @@ export default function ChatListPage() {
                         <span className="material-symbols-outlined text-primary text-xl" style={{fontVariationSettings: "'FILL' 1"}}>workspace_premium</span>
                         <h2 className="font-bold text-gray-900 dark:text-white">Miembro</h2>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsMemberSectionVisible(!isMemberSectionVisible)}>
-                        {isMemberSectionVisible ? <FaChevronUp /> : <FaChevronDown />}
-                    </Button>
                 </div>
                  <motion.div
                     animate={{ height: isMemberSectionVisible ? 'auto' : 0 }}
@@ -187,6 +184,11 @@ export default function ChatListPage() {
                         <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
                     </div>
                 </motion.div>
+                <div className="flex justify-center -mb-4">
+                  <Button variant="ghost" size="icon" className="h-6 w-10 bg-primary/10 dark:bg-slate-800/50 rounded-b-lg hover:bg-primary/20" onClick={() => setIsMemberSectionVisible(!isMemberSectionVisible)}>
+                        {isMemberSectionVisible ? <FaChevronUp className="h-3 w-3" /> : <FaChevronDown className="h-3 w-3" />}
+                  </Button>
+                </div>
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
