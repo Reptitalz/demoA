@@ -11,7 +11,7 @@ import { UserPlus, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { FaUser } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useContacts } from '@/hooks/useContacts';
 import { useRouter } from 'next/navigation';
 import { AssistantConfig } from '@/types';
