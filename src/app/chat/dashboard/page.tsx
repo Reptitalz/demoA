@@ -93,32 +93,32 @@ export default function ChatListPage() {
   return (
     <>
     <div className="flex flex-col h-full bg-background-light font-display pb-16">
-        <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-2">
-            <div className="flex items-center justify-between pb-4">
+        <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-3">
+             <div className="flex items-center justify-between h-10">
                 <AnimatePresence initial={false}>
                     {isSearchOpen ? (
                          <motion.div
                             key="search-input"
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: '100%' }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
                             className="flex-grow"
                         >
                             <Input 
                                 placeholder="Buscar chats..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full" 
+                                className="w-full h-10" 
                                 autoFocus
                             />
                         </motion.div>
                     ) : (
                         <motion.h1 
                             key="title"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.2 }}
                             className="text-3xl font-bold text-gray-900"
                         >
@@ -129,13 +129,6 @@ export default function ChatListPage() {
                 <button className="text-gray-900 p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
                     <FaSearch className="text-2xl" />
                 </button>
-            </div>
-            <div className="border-b border-gray-200">
-                <nav className="flex space-x-6">
-                    <a className="pb-2 text-primary border-b-2 border-primary text-sm font-bold" href="#">Todos</a>
-                    <a className="pb-2 text-gray-500 hover:text-primary border-b-2 border-transparent hover:border-primary text-sm font-bold" href="#">No leídos</a>
-                    <a className="pb-2 text-gray-500 hover:text-primary border-b-2 border-transparent hover:border-primary text-sm font-bold" href="#">Grupos</a>
-                </nav>
             </div>
         </header>
 
