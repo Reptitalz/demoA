@@ -103,10 +103,10 @@ export default function ChatListPage() {
   }
 
   const memberButtons = [
-    { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: 10 },
-    { icon: Bot, label: "Bots", view: 'bots', notificationCount: 10 },
-    { icon: Package, label: "Productos", view: 'products', notificationCount: 10 },
-    { icon: DollarSign, label: "Créditos", view: 'credit', notificationCount: 10 },
+    { icon: '\uf14a', label: "Autorizaciones", view: 'bank', notificationCount: 10 },
+    { icon: '\uf544', label: "Bots", view: 'bots', notificationCount: 10 },
+    { icon: '\uf466', label: "Productos", view: 'products', notificationCount: 10 },
+    { icon: '\uf155', label: "Créditos", view: 'credit', notificationCount: 10 },
   ];
   
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -125,6 +125,20 @@ export default function ChatListPage() {
     const buttonRects = memberButtons.map(() => ({ x: 0, y: 0, width: 0, height: 0 }));
     let planButtonRect = { x: 0, y: 0, width: 0, height: 0 };
     let toggleButtonRect = { x: 0, y: 0, width: 0, height: 0 };
+    
+    // Get computed styles for colors
+    const computedStyle = getComputedStyle(document.documentElement);
+    const getCssVar = (name: string) => computedStyle.getPropertyValue(name).trim();
+
+    const colors = {
+        primary: `hsl(${getCssVar('--primary')})`,
+        foreground: `hsl(${getCssVar('--foreground')})`,
+        card: `hsl(${getCssVar('--card')})`,
+        border: `hsl(${getCssVar('--border')})`,
+        destructive: `hsl(${getCssVar('--destructive')})`,
+        primaryForeground: `hsl(${getCssVar('--primary-foreground')})`,
+        mutedForeground: `hsl(${getCssVar('--muted-foreground')})`,
+    };
 
     const resizeCanvas = () => {
         const dpr = window.devicePixelRatio || 1;
@@ -138,23 +152,18 @@ export default function ChatListPage() {
         const gap = 16;
         const numButtons = memberButtons.length;
         
-        // Main buttons
         const buttonSize = (w - gap * (numButtons + 1)) / numButtons;
         memberButtons.forEach((_, i) => {
             buttonRects[i] = {
                 x: gap + i * (buttonSize + gap),
-                y: 30, // Position buttons lower to make space for title
+                y: 30,
                 width: buttonSize,
                 height: buttonSize,
             };
         });
-
-        // Plan button
-        planButtonRect = { x: 16, y: h - 50, width: w - 32, height: 30 };
         
-        // Toggle button
+        planButtonRect = { x: 16, y: h - 50, width: w - 32, height: 30 };
         toggleButtonRect = { x: (w / 2) - 20, y: h - 15, width: 40, height: 15 };
-
     };
 
     resizeCanvas();
@@ -193,14 +202,12 @@ export default function ChatListPage() {
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       
-       // Draw Title
-      ctx.fillStyle = "hsl(var(--foreground))";
+      ctx.fillStyle = colors.foreground;
       ctx.font = 'bold 16px sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText('Miembro', 20, 10);
       
-      // Draw main action buttons
       buttonRects.forEach((rect, i) => {
           const button = memberButtons[i];
           const floatY = Math.sin(time / 500 + i) * 2;
@@ -218,53 +225,47 @@ export default function ChatListPage() {
             ctx.translate(-(rect.x + rect.width / 2), -(currentY + rect.height / 2));
           }
 
-          // Glow effect
           if (dist < 150) {
             const gradient = ctx.createRadialGradient(
               rect.x + rect.width / 2, currentY + rect.height / 2, 0,
               rect.x + rect.width / 2, currentY + rect.height / 2, 100
             );
             const opacity = 1 - (dist / 150);
-            gradient.addColorStop(0, `hsla(262, 80%, 58%, ${opacity * 0.15})`);
+            gradient.addColorStop(0, `hsla(${getCssVar('--primary')}, ${opacity * 0.15})`);
             gradient.addColorStop(1, "transparent");
             ctx.fillStyle = gradient;
             ctx.fillRect(rect.x - 10, currentY - 10, rect.width + 20, rect.height + 20);
           }
           
-          // Draw card
-          ctx.fillStyle = "hsl(var(--card))";
-          ctx.strokeStyle = "hsl(var(--border))";
+          ctx.fillStyle = colors.card;
+          ctx.strokeStyle = colors.border;
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.roundRect(rect.x, currentY, rect.width, rect.height, 12);
           ctx.fill();
           ctx.stroke();
 
-          // Draw icon
           const iconSize = rect.height * 0.25;
           ctx.font = `900 ${iconSize}px "Font Awesome 6 Free"`;
-          ctx.fillStyle = "hsl(var(--primary))";
+          ctx.fillStyle = colors.primary;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          const iconMap = { CheckSquare: '\uf14a', Bot: '\uf544', Package: '\uf466', DollarSign: '\uf155' };
-          ctx.fillText(iconMap[button.icon.displayName as keyof typeof iconMap] || '?', rect.x + rect.width / 2, currentY + rect.height * 0.4);
+          ctx.fillText(button.icon, rect.x + rect.width / 2, currentY + rect.height * 0.4);
 
-          // Draw text
-          ctx.fillStyle = "hsl(var(--foreground))";
+          ctx.fillStyle = colors.foreground;
           ctx.font = `600 ${rect.height * 0.12}px sans-serif`;
-          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.7);
+          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.75);
 
-          // Draw notification badge
           if (button.notificationCount) {
               const badgeRadius = rect.width * 0.1;
               const badgeX = rect.x + rect.width - badgeRadius;
               const badgeY = currentY + badgeRadius;
-              ctx.fillStyle = 'hsl(var(--destructive))';
+              ctx.fillStyle = colors.destructive;
               ctx.beginPath();
               ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
               ctx.fill();
               
-              ctx.fillStyle = 'white';
+              ctx.fillStyle = colors.primaryForeground;
               ctx.font = `bold ${badgeRadius}px sans-serif`;
               const text = button.notificationCount > 9 ? '9+' : button.notificationCount.toString();
               ctx.fillText(text, badgeX, badgeY);
@@ -272,28 +273,26 @@ export default function ChatListPage() {
           ctx.restore();
       });
 
-      // Draw Plan Button
-      ctx.fillStyle = 'hsl(var(--card))';
-      ctx.strokeStyle = "hsl(var(--border))";
+      ctx.fillStyle = colors.card;
+      ctx.strokeStyle = colors.border;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.roundRect(planButtonRect.x, planButtonRect.y, planButtonRect.width, planButtonRect.height, 8);
       ctx.fill();
       ctx.stroke();
       
-      ctx.fillStyle = 'hsl(var(--foreground))';
+      ctx.fillStyle = colors.foreground;
       ctx.font = '12px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('Plan actual: Gratuito', w / 2, planButtonRect.y + planButtonRect.height / 2);
 
-       // Draw Toggle Button
-      ctx.fillStyle = 'hsl(var(--primary) / 0.1)';
+      ctx.fillStyle = `hsla(${getCssVar('--primary-hsl')}, 0.1)`;
       ctx.beginPath();
       ctx.roundRect(toggleButtonRect.x, toggleButtonRect.y, toggleButtonRect.width, toggleButtonRect.height, 8);
       ctx.fill();
       
-      ctx.fillStyle = 'hsl(var(--foreground))';
+      ctx.fillStyle = colors.foreground;
       ctx.font = '900 12px "Font Awesome 6 Free"';
       ctx.fillText(isMemberSectionVisible ? '\uf077' : '\uf078', w / 2, toggleButtonRect.y + toggleButtonRect.height / 2 + 1);
 
@@ -307,7 +306,7 @@ export default function ChatListPage() {
         canvas.removeEventListener('click', handleClick);
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
     }
-  }, [memberButtons, isMemberSectionVisible]); // Re-run effect if memberButtons or visibility change
+  }, [memberButtons, isMemberSectionVisible]);
 
   return (
     <>
