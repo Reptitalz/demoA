@@ -24,114 +24,78 @@ interface PlansDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const PlanCarousel = ({ onUpgrade }: { onUpgrade: () => void }) => {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
-
+const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
     const plans = [
         {
-            name: "Plan Gratuito",
+            name: "Gratuito",
             icon: XCircle,
-            iconClass: "text-destructive",
-            badge: <Badge variant="destructive">Limitaciones Activas</Badge>,
+            iconClass: "text-muted-foreground",
+            description: "Para empezar a explorar",
+            price: "$0",
+            priceDetails: "siempre",
             features: [
-                { icon: MessageCircle, text: 'Máximo 100 mensajes por día para todos los bots.' },
-                { icon: Landmark, text: 'Autorización en banco limitada a 100 transacciones diarias.' },
-                { icon: ShoppingCart, text: 'Catálogo de solo 5 artículos para la venta.' },
-                { icon: CreditCard, text: 'Solo se puede ofrecer una línea de crédito.' },
+                'Máximo 100 mensajes por día para todos los bots.',
+                'Autorización en banco limitada a 100 transacciones diarias.',
+                'Catálogo de solo 5 artículos para la venta.',
+                'Solo se puede ofrecer una línea de crédito.',
             ],
             button: <Button size="sm" className="w-full text-xs mt-2" disabled>Actualmente Activo</Button>
         },
         {
-            name: "Plan Mensual: Ilimitado",
+            name: "Ilimitado",
             icon: ShieldCheck,
-            iconClass: "text-green-500",
-            badge: <Badge variant="default" className="bg-green-500 hover:bg-green-600">Recomendado</Badge>,
+            iconClass: "text-primary",
+            description: "Desbloquea todo el potencial",
+            price: "$179",
+            priceDetails: "al mes",
             features: [
-                { icon: MessageCircle, text: 'Mensajes ilimitados para todos tus asistentes.' },
-                { icon: Landmark, text: 'Transacciones bancarias sin restricciones.' },
-                { icon: ShoppingCart, text: 'Catálogo de productos ilimitado.' },
-                { icon: CreditCard, text: 'Múltiples líneas de crédito para tus clientes.' },
+                'Mensajes ilimitados para todos tus asistentes.',
+                'Transacciones bancarias sin restricciones.',
+                'Catálogo de productos ilimitado.',
+                'Múltiples líneas de crédito para tus clientes.',
             ],
             button: <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
                         <Crown className="mr-2 h-3 w-3"/>
-                        Obtener Plan por $179/mes
+                        Obtener Plan
                     </Button>
         }
     ];
 
-    useEffect(() => {
-        const handleScroll = () => {
-            if (scrollRef.current) {
-                const scrollLeft = scrollRef.current.scrollLeft;
-                const cardWidth = scrollRef.current.offsetWidth;
-                if (cardWidth > 0) {
-                    const newIndex = Math.round(scrollLeft / cardWidth);
-                    setActiveIndex(newIndex);
-                }
-            }
-        };
-
-        const scroller = scrollRef.current;
-        if (scroller) {
-            scroller.addEventListener('scroll', handleScroll, { passive: true });
-            return () => scroller.removeEventListener('scroll', handleScroll);
-        }
-    }, []);
-
     return (
-        <div className="w-full">
-            <div
-                ref={scrollRef}
-                className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide md:grid md:grid-cols-2 md:gap-4"
-            >
-                {plans.map((plan, index) => (
-                     <div key={index} className="w-full flex-shrink-0 snap-center p-2 md:p-0">
-                        <Card className="w-full text-left glow-card bg-card border shadow-lg overflow-hidden h-full flex flex-col">
-                             <CardHeader className="p-4 bg-muted/50 border-b">
-                                <div className="flex items-center justify-between">
-                                   <CardTitle className="text-base flex items-center gap-2">
-                                      <plan.icon className={cn("h-5 w-5", plan.iconClass)} />
-                                      {plan.name}
-                                   </CardTitle>
-                                   {plan.badge}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-4 space-y-3 flex-grow">
-                                <List>
-                                    {plan.features.map((item, itemIndex) => (
-                                        <ListItem key={itemIndex} className="text-xs">
-                                            <item.icon className="h-3 w-3 mr-2 shrink-0" />
-                                            {item.text}
-                                        </ListItem>
-                                    ))}
-                                </List>
-                            </CardContent>
-                             <div className="p-4 pt-0 mt-auto">
-                                {plan.button}
-                            </div>
-                        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {plans.map((plan, index) => {
+                const Icon = plan.icon;
+                return (
+                    <div key={index} className={cn(
+                        "rounded-xl p-6 flex flex-col border",
+                        plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
+                    )}>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Icon className={cn("h-6 w-6", plan.iconClass)} />
+                            <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                        
+                        <div className="mb-6">
+                            <span className="text-4xl font-extrabold">{plan.price}</span>
+                            <span className="text-muted-foreground">/{plan.priceDetails}</span>
+                        </div>
+
+                        <ul className="space-y-3 text-sm flex-grow">
+                            {plan.features.map((feature, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
+                                    <span>{feature}</span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <div className="mt-auto pt-6">
+                            {plan.button}
+                        </div>
                     </div>
-                ))}
-            </div>
-             <div className="flex justify-center mt-2 space-x-2 md:hidden">
-                {plans.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => {
-                            if (scrollRef.current) {
-                                const cardWidth = scrollRef.current.offsetWidth;
-                                scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                            }
-                        }}
-                        className={cn(
-                            "h-2 w-2 rounded-full transition-all",
-                            activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
-                        )}
-                        aria-label={`Ir al plan ${index + 1}`}
-                    />
-                ))}
-            </div>
+                );
+            })}
         </div>
     );
 };
@@ -205,7 +169,13 @@ const PlansDialog = ({ isOpen, onOpenChange }: PlansDialogProps) => {
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-6">
-            <PlanCarousel onUpgrade={handlePurchasePlan} />
+            <PlanComparison onUpgrade={handlePurchasePlan} />
+            
+            {isProcessing && !preferenceId && (
+              <div className="flex items-center justify-center p-4 rounded-lg bg-muted/50">
+                  <FaSpinner className="animate-spin h-6 w-6 text-primary" />
+              </div>
+            )}
             
             {preferenceId && (
                 <div className="animate-fadeIn flex flex-col items-center justify-center p-4 rounded-lg bg-muted/50">
