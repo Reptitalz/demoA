@@ -114,199 +114,182 @@ export default function ChatListPage() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     let animationFrameId: number;
-    let mouseX = -1000;
-    let mouseY = -1000;
+    let mouseX = -1000,
+      mouseY = -1000;
+    const buttonRects = memberButtons.map(() => ({
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    }));
 
-    const buttonRects = memberButtons.map(() => ({ x: 0, y: 0, width: 0, height: 0 }));
-    let planButtonRect = { x: 0, y: 0, width: 0, height: 0 };
-    let toggleButtonRect = { x: 0, y: 0, width: 0, height: 0 };
-    
-    // Get computed styles for colors
     const computedStyle = getComputedStyle(document.documentElement);
-    const getCssVar = (name: string) => computedStyle.getPropertyValue(name).trim();
-
+    const getCssVar = (v: string) => computedStyle.getPropertyValue(v).trim();
     const colors = {
-        primary: `hsl(${getCssVar('--primary')})`,
-        foreground: `hsl(${getCssVar('--foreground')})`,
-        card: `hsl(${getCssVar('--card')})`,
-        border: `hsl(${getCssVar('--border')})`,
-        destructive: `hsl(${getCssVar('--destructive')})`,
-        primaryForeground: `hsl(${getCssVar('--primary-foreground')})`,
-        mutedForeground: `hsl(${getCssVar('--muted-foreground')})`,
+      primary: `hsl(${getCssVar("--primary")})`,
+      card: `hsl(${getCssVar("--card")})`,
+      border: `hsl(${getCssVar("--border")})`,
+      foreground: `hsl(${getCssVar("--foreground")})`,
+      accent: `hsl(${getCssVar("--accent")})`,
     };
 
     const resizeCanvas = () => {
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
-        
-        const w = rect.width;
-        const h = rect.height;
-        const gap = 16;
-        const numButtons = memberButtons.length;
-        
-        const buttonSize = (w - gap * (numButtons + 1)) / numButtons;
-        memberButtons.forEach((_, i) => {
-            buttonRects[i] = {
-                x: gap + i * (buttonSize + gap),
-                y: 30,
-                width: buttonSize,
-                height: buttonSize,
-            };
-        });
-        
-        planButtonRect = { x: 16, y: h - 50, width: w - 32, height: 30 };
-        toggleButtonRect = { x: (w / 2) - 20, y: h - 15, width: 40, height: 15 };
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const padding = 16;
+      const buttonSize =
+        (w - padding * (memberButtons.length + 1)) / memberButtons.length;
+
+      memberButtons.forEach((_, i) => {
+        buttonRects[i] = {
+          x: padding + i * (buttonSize + padding),
+          y: h / 2 - buttonSize / 2,
+          width: buttonSize,
+          height: buttonSize,
+        };
+      });
     };
 
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
-    }
-    canvas.addEventListener('mousemove', handleMouseMove);
+    };
+    canvas.addEventListener("mousemove", handleMouseMove);
 
     const handleClick = (e: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-        
-        buttonRects.forEach((rect, i) => {
-            if (clickX >= rect.x && clickX <= rect.x + rect.width && clickY >= rect.y && clickY <= rect.y + rect.height) {
-                handleAdminNav(`/chat/admin?view=${memberButtons[i].view}`);
-            }
-        });
-
-        if (clickX >= planButtonRect.x && clickX <= planButtonRect.x + planButtonRect.width && clickY >= planButtonRect.y && clickY <= planButtonRect.y + planButtonRect.height) {
-            setIsPlansOpen(true);
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      buttonRects.forEach((r, i) => {
+        if (x > r.x && x < r.x + r.width && y > r.y && y < r.y + r.height) {
+          handleAdminNav(`/chat/admin?view=${memberButtons[i].view}`);
         }
-
-        if (clickX >= toggleButtonRect.x && clickX <= toggleButtonRect.x + toggleButtonRect.width && clickY >= toggleButtonRect.y && clickY <= toggleButtonRect.y + toggleButtonRect.height) {
-            setIsMemberSectionVisible(prev => !prev);
-        }
+      });
     };
-    canvas.addEventListener('click', handleClick);
+    canvas.addEventListener("click", handleClick);
 
-    const draw = (time: number) => {
+    const draw = (t: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
-      
+
+      // Fondo degradado sutil con brillo
+      const bgGradient = ctx.createLinearGradient(0, 0, w, h);
+      bgGradient.addColorStop(0, `hsla(${getCssVar("--primary")}, 0.06)`);
+      bgGradient.addColorStop(1, `hsla(${getCssVar("--card")}, 0.9)`);
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, w, h);
+
+      // Título
       ctx.fillStyle = colors.foreground;
-      ctx.font = 'bold 16px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('Miembro', 20, 10);
-      
-      buttonRects.forEach((rect, i) => {
-          const button = memberButtons[i];
-          const floatY = Math.sin(time / 500 + i) * 2;
-          const currentY = rect.y + floatY;
-          
-          const dx = mouseX - (rect.x + rect.width / 2);
-          const dy = mouseY - (currentY + rect.height / 2);
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          
-          ctx.save();
-          if (dist < 100) {
-            const scale = 1 + (1 - dist / 100) * 0.05;
-            ctx.translate(rect.x + rect.width / 2, currentY + rect.height / 2);
-            ctx.scale(scale, scale);
-            ctx.translate(-(rect.x + rect.width / 2), -(currentY + rect.height / 2));
-          }
+      ctx.font = "600 18px 'Inter', sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Miembro", 20, 25);
 
-          if (dist < 150) {
-            const gradient = ctx.createRadialGradient(
-              rect.x + rect.width / 2, currentY + rect.height / 2, 0,
-              rect.x + rect.width / 2, currentY + rect.height / 2, 100
-            );
-            const opacity = 1 - (dist / 150);
-            gradient.addColorStop(0, `hsl(${getCssVar('--primary')} / ${opacity * 0.15})`);
-            gradient.addColorStop(1, "transparent");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(rect.x - 10, currentY - 10, rect.width + 20, rect.height + 20);
-          }
-          
-          ctx.fillStyle = colors.card;
-          ctx.strokeStyle = colors.border;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.roundRect(rect.x, currentY, rect.width, rect.height, 12);
-          ctx.fill();
-          ctx.stroke();
+      buttonRects.forEach((r, i) => {
+        const icon = memberButtons[i];
+        const dx = mouseX - (r.x + r.width / 2);
+        const dy = mouseY - (r.y + r.height / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const hover = dist < 60;
 
-          const iconSize = rect.height * 0.25;
-          ctx.font = `900 ${iconSize}px "Font Awesome 6 Free"`;
+        const float = Math.sin(t / 600 + i) * 3;
+        const y = r.y + float;
+
+        // Fondo del botón
+        const gradient = ctx.createLinearGradient(r.x, y, r.x, y + r.height);
+        gradient.addColorStop(
+          0,
+          hover ? `hsla(${getCssVar("--primary")}, 0.3)` : `hsla(${getCssVar("--primary")}, 0.15)`
+        );
+        gradient.addColorStop(1, `hsla(${getCssVar("--card")}, 0.95)`);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(r.x, y, r.width, r.height, 16);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.strokeStyle = hover ? colors.primary : colors.border;
+        ctx.lineWidth = hover ? 2 : 1;
+        ctx.stroke();
+
+        // Luz reflejada
+        const glossGradient = ctx.createLinearGradient(
+          r.x,
+          y,
+          r.x,
+          y + r.height / 2
+        );
+        glossGradient.addColorStop(0, "rgba(255,255,255,0.2)");
+        glossGradient.addColorStop(1, "transparent");
+        ctx.fillStyle = glossGradient;
+        ctx.fill();
+
+        // Icono
+        ctx.fillStyle = hover ? colors.primary : colors.foreground;
+        ctx.font = `900 ${r.height * 0.35}px "Font Awesome 6 Free"`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(icon.icon, r.x + r.width / 2, y + r.height * 0.45);
+
+        // Etiqueta
+        ctx.font = `500 ${r.height * 0.14}px 'Inter', sans-serif`;
+        ctx.fillText(icon.label, r.x + r.width / 2, y + r.height * 0.8);
+
+        // Notificación
+        if (icon.notificationCount) {
           ctx.fillStyle = colors.primary;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(button.icon, rect.x + rect.width / 2, currentY + rect.height * 0.4);
+          ctx.beginPath();
+          ctx.arc(r.x + r.width - 10, y + 10, 8, 0, Math.PI * 2);
+          ctx.fill();
 
-          ctx.fillStyle = colors.foreground;
-          ctx.font = `600 ${rect.height * 0.12}px sans-serif`;
-          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.75);
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 10px 'Inter'";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            icon.notificationCount > 9 ? "9+" : String(icon.notificationCount),
+            r.x + r.width - 10,
+            y + 10
+          );
+        }
 
-          if (button.notificationCount) {
-              const badgeRadius = rect.width * 0.1;
-              const badgeX = rect.x + rect.width - badgeRadius;
-              const badgeY = currentY + badgeRadius;
-              ctx.fillStyle = colors.destructive;
-              ctx.beginPath();
-              ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
-              ctx.fill();
-              
-              ctx.fillStyle = colors.primaryForeground;
-              ctx.font = `bold ${badgeRadius}px sans-serif`;
-              const text = button.notificationCount > 9 ? '9+' : button.notificationCount.toString();
-              ctx.fillText(text, badgeX, badgeY);
-          }
-          ctx.restore();
+        ctx.restore();
       });
 
-      ctx.fillStyle = colors.card;
-      ctx.strokeStyle = colors.border;
+      // Línea decorativa inferior
+      ctx.strokeStyle = `hsla(${getCssVar("--primary")}, 0.2)`;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.roundRect(planButtonRect.x, planButtonRect.y, planButtonRect.width, planButtonRect.height, 8);
-      ctx.fill();
+      ctx.moveTo(0, h - 2);
+      ctx.lineTo(w, h - 2);
       ctx.stroke();
-      
-      ctx.fillStyle = colors.foreground;
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Plan actual: Gratuito', w / 2, planButtonRect.y + planButtonRect.height / 2);
-
-      ctx.fillStyle = `hsla(${getCssVar('--primary-hsl')}, 0.1)`;
-      ctx.beginPath();
-      ctx.roundRect(toggleButtonRect.x, toggleButtonRect.y, toggleButtonRect.width, toggleButtonRect.height, 8);
-      ctx.fill();
-      
-      ctx.fillStyle = colors.foreground;
-      ctx.font = '900 12px "Font Awesome 6 Free"';
-      ctx.fillText(isMemberSectionVisible ? '\uf077' : '\uf078', w / 2, toggleButtonRect.y + toggleButtonRect.height / 2 + 1);
 
       animationFrameId = requestAnimationFrame(draw);
-    }
+    };
     draw(0);
 
     return () => {
-        window.removeEventListener('resize', resizeCanvas);
-        canvas.removeEventListener('mousemove', handleMouseMove);
-        canvas.removeEventListener('click', handleClick);
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    }
-  }, [memberButtons, isMemberSectionVisible]);
+      window.removeEventListener("resize", resizeCanvas);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("click", handleClick);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [memberButtons]);
+
 
   return (
     <>
@@ -353,7 +336,7 @@ export default function ChatListPage() {
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
              <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
                  <motion.div
-                    animate={{ height: isMemberSectionVisible ? 180 : 40 }}
+                    animate={{ height: isMemberSectionVisible ? 180 : 0 }}
                     initial={{ height: 180 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                     className="overflow-hidden"
