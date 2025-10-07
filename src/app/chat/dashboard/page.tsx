@@ -1,7 +1,7 @@
 // src/app/chat/dashboard/page.tsx
 "use client";
 
-import React, { useMemo, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FaPlus, FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
@@ -58,7 +58,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
 
 const MemberSectionButton = ({ icon: Icon, label, onClick, notificationCount }: { icon: React.ElementType, label: string, onClick: () => void, notificationCount?: number }) => (
     <div className="relative">
-        <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-2 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+        <button onClick={onClick} className="w-full bg-background dark:bg-slate-800 rounded-xl aspect-square flex flex-col items-center justify-center p-1 shadow hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
             <Icon className="h-5 w-5 text-primary mb-1"/>
             <span className="text-[10px] text-center text-gray-900 dark:text-gray-200">{label}</span>
         </button>
@@ -117,6 +117,149 @@ export default function ChatListPage() {
       const estimatedSize = contact.lastMessage?.length || 0 * 50; 
       toast({ title: `Info de: ${contact.name}`, description: `El chat ocupa aproximadamente ${formatBytes(estimatedSize)}.` });
   }
+  const memberButtons = [
+    { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: 10 },
+    { icon: Bot, label: "Bots", view: 'bots', notificationCount: 10 },
+    { icon: Package, label: "Productos", view: 'products', notificationCount: 10 },
+    { icon: DollarSign, label: "Créditos", view: 'credit', notificationCount: 10 },
+  ];
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let mouseX = -1000;
+    let mouseY = -1000;
+
+    const buttonRects = memberButtons.map((_, i) => ({
+        x: 0, y: 0, width: 0, height: 0,
+    }));
+
+    const resizeCanvas = () => {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const w = rect.width;
+        const h = rect.height;
+        const gap = 16;
+        const buttonSize = (w - gap * (memberButtons.length + 1)) / memberButtons.length;
+
+        memberButtons.forEach((_, i) => {
+            buttonRects[i] = {
+                x: gap + i * (buttonSize + gap),
+                y: (h - buttonSize) / 2,
+                width: buttonSize,
+                height: buttonSize,
+            };
+        });
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+    }
+    canvas.addEventListener('mousemove', handleMouseMove);
+
+    const handleClick = (e: MouseEvent) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        buttonRects.forEach((rect, i) => {
+            if (clickX >= rect.x && clickX <= rect.x + rect.width && clickY >= rect.y && clickY <= rect.y + rect.height) {
+                handleAdminNav(`/chat/admin?view=${memberButtons[i].view}`);
+            }
+        });
+    };
+    canvas.addEventListener('click', handleClick);
+
+    const draw = (time: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      
+      buttonRects.forEach((rect, i) => {
+          const button = memberButtons[i];
+          const floatY = Math.sin(time / 500 + i) * 3;
+          const currentY = rect.y + floatY;
+          
+          const dx = mouseX - (rect.x + rect.width / 2);
+          const dy = mouseY - (currentY + rect.height / 2);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          // Glow effect
+          if (dist < 150) {
+            const gradient = ctx.createRadialGradient(
+              rect.x + rect.width / 2, currentY + rect.height / 2, 0,
+              rect.x + rect.width / 2, currentY + rect.height / 2, 100
+            );
+            const opacity = 1 - (dist / 150);
+            gradient.addColorStop(0, `hsla(262, 80%, 58%, ${opacity * 0.2})`);
+            gradient.addColorStop(1, "transparent");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+          }
+          
+          // Draw card
+          ctx.fillStyle = "hsl(var(--card))";
+          ctx.strokeStyle = "hsl(var(--border))";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(rect.x, currentY, rect.width, rect.height, 12);
+          ctx.fill();
+          ctx.stroke();
+
+          // Draw icon (This is tricky. We'll simulate with shapes)
+          ctx.fillStyle = "hsl(var(--primary))";
+          ctx.font = `${rect.height * 0.3}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          // Placeholder for icon
+          ctx.fillText("★", rect.x + rect.width / 2, currentY + rect.height * 0.4);
+
+          // Draw text
+          ctx.fillStyle = "hsl(var(--foreground))";
+          ctx.font = `bold ${rect.height * 0.12}px sans-serif`;
+          ctx.fillText(button.label, rect.x + rect.width / 2, currentY + rect.height * 0.7);
+
+          // Draw notification badge
+          if (button.notificationCount) {
+              const badgeRadius = rect.width * 0.12;
+              const badgeX = rect.x + rect.width - badgeRadius / 2;
+              const badgeY = currentY + badgeRadius / 2;
+              ctx.fillStyle = 'hsl(var(--destructive))';
+              ctx.beginPath();
+              ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
+              ctx.fill();
+              
+              ctx.fillStyle = 'white';
+              ctx.font = `bold ${badgeRadius * 1.2}px sans-serif`;
+              ctx.fillText(`${button.notificationCount > 9 ? '9+' : button.notificationCount}`, badgeX, badgeY);
+          }
+      });
+      animationFrameId = requestAnimationFrame(draw);
+    }
+    draw(0);
+
+    return () => {
+        window.removeEventListener('resize', resizeCanvas);
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        canvas.removeEventListener('click', handleClick);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    }
+  }, []);
 
   return (
     <>
@@ -169,17 +312,12 @@ export default function ChatListPage() {
                     </div>
                 </div>
                  <motion.div
-                    animate={{ height: isMemberSectionVisible ? 'auto' : 0 }}
-                    initial={{ height: 'auto' }}
+                    animate={{ height: isMemberSectionVisible ? '120px' : 0 }}
+                    initial={{ height: '120px' }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                 >
-                    <div className="grid grid-cols-4 gap-4 text-center">
-                        <MemberSectionButton icon={CheckSquare} label="Autorizaciones" onClick={() => handleAdminNav('/chat/admin?view=bank')} notificationCount={10} />
-                        <MemberSectionButton icon={Bot} label="Bots" onClick={() => handleAdminNav('/chat/admin?view=bots')} notificationCount={10} />
-                        <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} notificationCount={10} />
-                        <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} notificationCount={10} />
-                    </div>
+                    <canvas ref={canvasRef} style={{ width: '100%', height: '100px' }}/>
                     <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background dark:bg-slate-800 rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                         <p className="text-sm text-gray-900 dark:text-gray-200">Plan actual: <span className="font-bold">Gratuito</span></p>
                     </div>
