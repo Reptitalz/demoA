@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { Bot, CheckSquare, Package, DollarSign } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import PlansDialog from '@/components/dashboard/PlansDialog';
 
 // --- CHAT ITEM COMPONENT ---
 interface ChatItemProps {
@@ -70,6 +71,7 @@ export default function ChatListPage() {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isPlansOpen, setIsPlansOpen] = useState(false);
 
   const demoChats = [
       { name: 'Sofía', imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDperzlDVvIdARSn86A7rhqvZcnXMI9NYHNeoFzQ8t9q1fem3-NFskRse1o1nj9QzxqLDwfafUBJSoPw6fdq7TeFlAw2q3hh4gpm2SLDcEKiYsHV5ujG1z6sIoMLFOsikcX9nAzWk9dX0HaKoN0obJZKSuVXdPDryU1b1T4S3jwjYlTSg7UIxX4ai71lO1084rp1UhK0tALnSiRZYvywErIQ2GjKIgPagBY7OZhi90E8fBofUs_xGhUe7Lw8dZwunzzMqYlS86jmtM', lastMessage: 'Hola, ¿cómo estás?', timestamp: '10:42 AM', isOnline: true },
@@ -89,6 +91,7 @@ export default function ChatListPage() {
   }
 
   return (
+    <>
     <div className="flex flex-col h-screen bg-background-light font-display">
         <header className="bg-background-light sticky top-0 z-10 px-4 pt-4 pb-2">
             <div className="flex items-center justify-between pb-4">
@@ -150,7 +153,7 @@ export default function ChatListPage() {
                     <MemberSectionButton icon={Package} label="Productos" onClick={() => handleAdminNav('/chat/admin?view=products')} />
                     <MemberSectionButton icon={DollarSign} label="Créditos" onClick={() => handleAdminNav('/chat/admin?view=credit')} />
                 </div>
-                <div className="mt-4 bg-background-light rounded-lg p-3 text-center">
+                <div onClick={() => setIsPlansOpen(true)} className="mt-4 bg-background-light rounded-lg p-3 text-center cursor-pointer hover:bg-gray-100">
                     <p className="text-sm text-gray-900">Plan actual: <span className="font-bold">Gratuito</span></p>
                 </div>
             </div>
@@ -168,5 +171,7 @@ export default function ChatListPage() {
             </button>
         </footer>
     </div>
+    <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
+    </>
   );
 };
