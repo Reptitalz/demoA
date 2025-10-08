@@ -26,7 +26,7 @@ import { Loader2 } from 'lucide-react';
 
 
 const DB_NAME = 'HeyManitoChatDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const MESSAGES_STORE_NAME = 'messages';
 const SESSION_STORE_NAME = 'session';
 
@@ -386,14 +386,14 @@ const DesktopChatPage = () => {
             chatPath: assistant.chatPath,
         })
     }).then(response => {
-        // Only start polling for text messages
-        if(assistant.isActive && typeof messageContent === 'string') {
+        // Only start polling for text messages if assistant is active or is a desktop assistant
+        if((assistant.isActive || assistant.type === 'desktop') && typeof messageContent === 'string') {
             pollForResponse();
         }
     }).catch(err => {
         console.error("Error sending message to proxy:", err);
     });
-  }, [assistant?.id, assistant?.chatPath, assistant?.isActive, sessionId, pollForResponse, toast]);
+  }, [assistant?.id, assistant?.chatPath, assistant?.isActive, assistant?.type, sessionId, pollForResponse, toast]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
@@ -415,7 +415,7 @@ const DesktopChatPage = () => {
       setCurrentMessage('');
     }
 
-    if (assistant?.isActive) {
+    if (assistant?.isActive || assistant?.type === 'desktop') {
         setIsSending(true);
         setAssistantStatusMessage('Escribiendo...');
     }
@@ -658,7 +658,7 @@ const DesktopChatPage = () => {
                         <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                     )}
                 </div>
-                <p className="text-xs opacity-80">{assistant?.isActive ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
+                <p className="text-xs opacity-80">{assistant?.isActive || assistant?.type === 'desktop' ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
             </div>
              <div className="flex items-center gap-1">
                 {assistant?.type !== 'desktop' && assistant?.type !== 'whatsapp' && (
@@ -765,7 +765,7 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={assistant?.isActive ? "Escribe un mensaje..." : "El asistente está desactivado"}
+                placeholder={(assistant?.isActive || assistant?.type === 'desktop') ? "Escribe un mensaje..." : "El asistente está desactivado"}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"

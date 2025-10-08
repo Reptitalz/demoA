@@ -13,7 +13,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AssistantConfig, DatabaseConfig } from '@/types';
-import { DEFAULT_ASSISTANT_IMAGE_URL, UNLIMITED_MESSAGES_LIMIT } from '@/config/appConfig';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { ShoppingCart, HandCoins, Handshake, LifeBuoy, ClipboardList, CheckCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardDescription } from '@/components/ui/card';
 
