@@ -168,7 +168,7 @@ export default function ChatListPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
-            <div className="p-4 bg-primary/10 dark:bg-slate-800/50">
+            <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
                 <div className="flex justify-between items-center mb-2">
                     <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
                 </div>
