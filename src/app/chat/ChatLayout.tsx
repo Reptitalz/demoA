@@ -1,7 +1,7 @@
 // src/app/chat/ChatLayout.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
@@ -24,14 +24,57 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 
   const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
-  const handleRouteChange = React.useCallback((newPath: string) => {
+  const handleRouteChange = useCallback((newPath: string) => {
     if (pathname === newPath) return;
-    router.push(newPath, { scroll: false });
+    router.push(newPath); // Use the standard router push
   }, [pathname, router]);
+
+  // Swipe navigation logic
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const swipeHandled = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    swipeHandled.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeHandled.current) return;
+    
+    const deltaX = touchEndX.current - touchStartX.current;
+    
+    if (Math.abs(deltaX) > 75) { // Swipe threshold
+        const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
+        if (currentIndex === -1) return;
+
+        swipeHandled.current = true;
+        if (deltaX < 0) { // Swiped left
+            const nextIndex = Math.min(currentIndex + 1, menuItems.length - 1);
+            if (nextIndex !== currentIndex) {
+                handleRouteChange(menuItems[nextIndex].path);
+            }
+        } else { // Swiped right
+            const prevIndex = Math.max(currentIndex - 1, 0);
+             if (prevIndex !== currentIndex) {
+                handleRouteChange(menuItems[prevIndex].path);
+            }
+        }
+    }
+  };
 
   return (
     <>
-      <div className="h-[100svh] w-screen flex flex-col md:flex-row bg-transparent overflow-hidden">
+      <div 
+        className="h-[100svh] w-screen flex flex-col md:flex-row bg-transparent overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
           {showNavBar && <ChatSidebar onNavigate={handleRouteChange} />}

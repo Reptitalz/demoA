@@ -1,52 +1,75 @@
 // src/app/chat/ChatViewManager.tsx
 "use client";
 
-import React, { Children } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import ChatListPage from './dashboard/page';
-import UpdatesPage from './updates/page';
-import ChatProfilePage from './profile/page';
-import AdminHomePage from './admin/page';
-
-const routes = [
-  { path: '/chat/dashboard', Component: ChatListPage },
-  { path: '/chat/updates', Component: UpdatesPage },
-  { path: '/chat/profile', Component: ChatProfilePage },
-  { path: '/chat/admin', Component: AdminHomePage },
-];
 
 const pageVariants = {
-  initial: { opacity: 0, x: 20 },
-  in: { opacity: 1, x: 0 },
-  out: { opacity: 0, x: -20 },
+  initial: (direction: number) => ({
+    opacity: 0,
+    x: direction > 0 ? "100%" : "-100%",
+  }),
+  animate: {
+    opacity: 1,
+    x: "0%",
+    transition: {
+      type: "tween",
+      ease: "anticipate",
+      duration: 0.4
+    }
+  },
+  exit: (direction: number) => ({
+    opacity: 0,
+    x: direction < 0 ? "100%" : "-100%",
+    transition: {
+      type: "tween",
+      ease: "anticipate",
+      duration: 0.4
+    }
+  }),
 };
 
-const pageTransition = {
-  type: 'tween',
-  ease: 'anticipate',
-  duration: 0.3,
-};
 
 const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
-  const isBaseChatView = routes.some(route => pathname.startsWith(route.path));
+  // Find the index of the current route to determine animation direction
+  const routeOrder = ['/chat/dashboard', '/chat/updates', '/chat/profile', '/chat/admin'];
+  const currentIndex = routeOrder.findIndex(route => pathname.startsWith(route));
   
-  // If we are on a specific chat view (e.g., /chat/conversation/my-assistant),
-  // we just render the children directly without the view manager logic.
-  if (!isBaseChatView) {
+  // A simple way to manage direction. In a more complex app, you might use a state management library.
+  const [prevIndex, setPrevIndex] = React.useState(currentIndex);
+  const direction = currentIndex > prevIndex ? 1 : -1;
+  
+  React.useEffect(() => {
+    setPrevIndex(currentIndex);
+  }, [currentIndex]);
+  
+
+  const isManagedRoute = routeOrder.some(route => pathname.startsWith(route));
+
+  if (!isManagedRoute) {
+    // If it's a specific conversation or another page, just render it without animations
     return <>{children}</>;
   }
 
   return (
-    <AnimatePresence mode="wait">
-        <div key={pathname} className="h-full w-full">
-            {routes.map(({ path, Component }) =>
-                pathname.startsWith(path) ? <Component key={path} /> : null
-            )}
-        </div>
-    </AnimatePresence>
+    <div className="h-full w-full overflow-hidden relative">
+      <AnimatePresence initial={false} custom={direction}>
+        <motion.div
+            key={pathname}
+            custom={direction}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="absolute inset-0"
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 
