@@ -1,3 +1,4 @@
+
 // src/app/chat/profile/page.tsx
 "use client";
 
@@ -15,6 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
+import PrivacyDialog from '@/components/dashboard/PrivacyDialog';
+import SecurityDialog from '@/components/dashboard/SecurityDialog';
+import HelpDialog from '@/components/dashboard/HelpDialog';
 
 const ProfileLink = ({ icon: Icon, text, onClick, disabled }: { icon: React.ElementType, text: string, onClick?: () => void, disabled?: boolean }) => (
     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-card/80 cursor-pointer" onClick={!disabled ? onClick : undefined}>
@@ -29,7 +33,9 @@ export default function ChatProfilePage() {
   const { state } = useApp();
   const router = useRouter();
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
-
+  const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
+  const [isSecurityDialogOpen, setIsSecurityDialogOpen] = useState(false);
+  const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
 
   const handleLogout = () => {
       signOut({ callbackUrl: '/' });
@@ -118,9 +124,9 @@ export default function ChatProfilePage() {
             <div className="space-y-1">
                 <ProfileLink icon={FaUser} text="Cuenta" onClick={() => setIsInfoDialogOpen(true)} disabled={status !== 'authenticated'} />
                 <ProfileLink icon={FaBell} text="Activar Notificaciones" onClick={handleEnableNotifications} disabled={status !== 'authenticated'}/>
-                <Link href="/privacy"><ProfileLink icon={FaKey} text="Privacidad" /></Link>
-                <ProfileLink icon={FaShieldAlt} text="Seguridad" onClick={() => toast({ title: 'Seguridad de la Cuenta', description: 'Tu cuenta está protegida mediante la autenticación segura de tu proveedor de inicio de sesión (Ej. Google). No almacenamos tus contraseñas.' })} />
-                <ProfileLink icon={FaQuestionCircle} text="Ayuda" onClick={() => toast({ title: 'Centro de Ayuda', description: 'Para obtener ayuda o reportar un problema, por favor contáctanos en contacto@heymanito.com.' })} />
+                <ProfileLink icon={FaKey} text="Privacidad" onClick={() => setIsPrivacyDialogOpen(true)} />
+                <ProfileLink icon={FaShieldAlt} text="Seguridad" onClick={() => setIsSecurityDialogOpen(true)} />
+                <ProfileLink icon={FaQuestionCircle} text="Ayuda" onClick={() => setIsHelpDialogOpen(true)} />
             </div>
 
              {status === 'authenticated' && (
@@ -136,6 +142,18 @@ export default function ChatProfilePage() {
     <PersonalInfoDialog 
         isOpen={isInfoDialogOpen} 
         onOpenChange={setIsInfoDialogOpen} 
+    />
+    <PrivacyDialog
+        isOpen={isPrivacyDialogOpen}
+        onOpenChange={setIsPrivacyDialogOpen}
+    />
+    <SecurityDialog
+        isOpen={isSecurityDialogOpen}
+        onOpenChange={setIsSecurityDialogOpen}
+    />
+    <HelpDialog
+        isOpen={isHelpDialogOpen}
+        onOpenChange={setIsHelpDialogOpen}
     />
     </>
   );
