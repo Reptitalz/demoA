@@ -1595,7 +1595,7 @@ export const AssistantsList = () => {
             size="icon"
             title="Crear nuevo asistente"
           >
-            <MessageSquarePlus className="h-6 w-6" />
+            <Bot className="h-6 w-6" />
           </Button>
        <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
        {selectedAssistant && (
