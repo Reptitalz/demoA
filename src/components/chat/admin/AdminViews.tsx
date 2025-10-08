@@ -1524,10 +1524,12 @@ export const AssistantsList = () => {
                         }
                     }}
                     onClick={(e) => {
-                        e.stopPropagation();
-                        if (dragOccurred.current) {
+                        if (activeSwipe) {
+                            e.stopPropagation();
+                            setActiveSwipe(null);
                             return;
                         }
+                        if (dragOccurred.current) { e.stopPropagation(); return; }
                         if (chat.chatPath) {
                             router.push(`/chat/conversation/${chat.chatPath}`);
                         } else {
