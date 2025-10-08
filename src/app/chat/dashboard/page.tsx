@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import AddChatDialog from '@/components/chat/AddChatDialog';
 
 // --- CHAT ITEM COMPONENT ---
 interface ChatItemProps {
@@ -81,6 +82,7 @@ export default function ChatListPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPlansOpen, setIsPlansOpen] = useState(false);
+  const [isAddChatOpen, setIsAddChatOpen] = useState(false);
   const [activeSwipe, setActiveSwipe] = useState<{ chatPath: string; direction: 'left' | 'right' } | null>(null);
   const dragOccurred = useRef(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
@@ -246,8 +248,10 @@ export default function ChatListPage() {
                  ))}
             </div>
         </main>
+        <Button onClick={() => setIsAddChatOpen(true)} className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground md:hidden"><FaPlus className="h-6 w-6"/></Button>
     </div>
     <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
+    <AddChatDialog isOpen={isAddChatOpen} onOpenChange={setIsAddChatOpen} />
     <AlertDialog open={!!alertInfo} onOpenChange={() => setAlertInfo(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
