@@ -116,9 +116,9 @@ const ChatNavBar = ({ onNavigate, onAddChat }: ChatNavBarProps) => {
                     </div>
 
                     {/* Center Button */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-[-20px]">
-                         <button onClick={onAddChat} className="bg-brand-gradient text-white rounded-full h-14 w-14 flex items-center justify-center shadow-lg border-4 border-card">
-                            <FaPlus className="text-xl" />
+                    <div className="absolute left-1/2 -translate-x-1/2 top-[-16px]">
+                         <button onClick={onAddChat} className="bg-brand-gradient text-white rounded-full h-12 w-12 flex items-center justify-center shadow-lg border-4 border-card">
+                            <FaPlus className="text-lg" />
                         </button>
                     </div>
 
