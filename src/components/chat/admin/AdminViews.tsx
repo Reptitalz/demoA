@@ -138,10 +138,11 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
 
     if (!payment) return null;
 
-    const isVideo = payment.receiptUrl.startsWith('data:video');
-    const isAudio = payment.receiptUrl.startsWith('data:audio');
-    const isImage = payment.receiptUrl.startsWith('data:image');
-    const isPDF = payment.receiptUrl.includes('application/pdf');
+    const receiptUrl = payment.receiptUrl || '';
+    const isVideo = receiptUrl.startsWith('data:video');
+    const isAudio = receiptUrl.startsWith('data:audio');
+    const isImage = receiptUrl.startsWith('data:image');
+    const isPDF = receiptUrl.includes('application/pdf');
 
     const handleReadAmount = async () => {
         if (!isImage) {
@@ -150,7 +151,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
         }
         setIsReadingAmount(true);
         try {
-            const result = await extractAmountFromImage({ image: payment.receiptUrl });
+            const result = await extractAmountFromImage({ image: receiptUrl });
             if (result > 0) {
                 setExtractedAmount(result);
                 toast({ title: 'Monto Encontrado', description: `Se detectó un monto de $${result.toLocaleString()}` });
@@ -174,15 +175,15 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                     </DialogDescription>
                 </DialogHeader>
                 <div className="h-full flex-grow flex items-center justify-center bg-muted/30 overflow-hidden p-2">
-                    {isImage && <Image src={payment.receiptUrl} alt="Comprobante" width={800} height={1200} className="max-w-full max-h-full object-contain rounded-md" />}
-                    {isVideo && <video src={payment.receiptUrl} controls className="max-w-full max-h-full rounded-md" />}
-                    {isAudio && <audio src={payment.receiptUrl} controls className="w-full" />}
+                    {isImage && <Image src={receiptUrl} alt="Comprobante" width={800} height={1200} className="max-w-full max-h-full object-contain rounded-md" />}
+                    {isVideo && <video src={receiptUrl} controls className="max-w-full max-h-full rounded-md" />}
+                    {isAudio && <audio src={receiptUrl} controls className="w-full" />}
                     {(isPDF || (!isImage && !isVideo && !isAudio)) && (
                         <div className="text-center p-8">
                             <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4"/>
                             <p className="font-semibold">Documento: {payment.fileName || 'archivo'}</p>
                             <p className="text-sm text-muted-foreground mb-4">La previsualización no está disponible.</p>
-                            <a href={payment.receiptUrl} download={payment.fileName || 'documento'}>
+                            <a href={receiptUrl} download={payment.fileName || 'documento'}>
                                 <Button>Descargar Archivo</Button>
                             </a>
                         </div>
