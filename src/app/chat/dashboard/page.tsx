@@ -188,29 +188,27 @@ export default function ChatListPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
-            {state.userProfile.isAuthenticated && (
-                <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
-                    </div>
-                    <div className="grid grid-cols-4 gap-1 text-center">
-                        {memberButtons.map(btn => (
-                            <MemberSectionButton
-                                key={btn.view}
-                                icon={btn.icon}
-                                label={btn.label}
-                                notificationCount={btn.notificationCount}
-                                onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
-                            />
-                        ))}
-                    </div>
-                    <div className="text-center mt-3">
-                            <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
-                            Plan actual: Gratuito
-                        </Button>
-                    </div>
+            <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
                 </div>
-            )}
+                <div className="grid grid-cols-4 gap-1 text-center">
+                    {memberButtons.map(btn => (
+                        <MemberSectionButton
+                            key={btn.view}
+                            icon={btn.icon}
+                            label={btn.label}
+                            notificationCount={btn.notificationCount}
+                            onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
+                        />
+                    ))}
+                </div>
+                <div className="text-center mt-3">
+                        <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
+                        Plan actual: Gratuito
+                    </Button>
+                </div>
+            </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
                  {chatsToDisplay.map((chat) => (
