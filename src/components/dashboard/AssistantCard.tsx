@@ -183,11 +183,11 @@ const AssistantCard = ({
                  <div className="flex items-center gap-2 pt-1">
                   {typeBadge}
                 </div>
-                <CardDescription className="flex items-center justify-between text-xs sm:text-sm pt-1">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                      {assistant.phoneLinked || 'Sin número vinculado'}
-                  </div>
-                </CardDescription>
+                <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pt-1">
+                    <div className="flex items-center gap-1">
+                        {assistant.phoneLinked || 'Sin número vinculado'}
+                    </div>
+                </div>
               </div>
             </div>
 
