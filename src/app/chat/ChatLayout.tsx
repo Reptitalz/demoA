@@ -29,22 +29,26 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
     router.push(newPath); // Use the standard router push
   }, [pathname, router]);
 
-  // Swipe navigation logic
+  // Swipe navigation logic mejorada
   const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
   const touchStartY = useRef(0);
+  const touchEndX = useRef(0);
   const touchEndY = useRef(0);
+  const touchStartTime = useRef(0);
   const swipeHandled = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.targetTouches[0].clientX;
-    touchStartY.current = e.targetTouches[0].clientY;
+    const touch = e.targetTouches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+    touchStartTime.current = Date.now();
     swipeHandled.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-    touchEndY.current = e.targetTouches[0].clientY;
+    const touch = e.targetTouches[0];
+    touchEndX.current = touch.clientX;
+    touchEndY.current = touch.clientY;
   };
 
   const handleTouchEnd = () => {
@@ -52,23 +56,37 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 
     const deltaX = touchEndX.current - touchStartX.current;
     const deltaY = touchEndY.current - touchStartY.current;
+    const deltaTime = Date.now() - touchStartTime.current;
 
-    // Only trigger swipe if it's mostly horizontal and exceeds the threshold
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
+    // 🔹 Umbrales de sensibilidad
+    const minSwipeDistance = 80; // mínimo desplazamiento en X
+    const maxSwipeOffAngle = 60; // máximo desplazamiento vertical permitido
+    const maxTapDistance = 15; // si es menos que esto, se considera toque normal
+    const minSwipeSpeed = 100; // velocidad mínima (px/s)
+
+    // 🔹 Ignorar taps
+    if (Math.abs(deltaX) < maxTapDistance && Math.abs(deltaY) < maxTapDistance) {
+      return; // Toque normal → deja pasar eventos de click
+    }
+
+    // 🔹 Evitar falsos positivos verticales
+    if (Math.abs(deltaY) > maxSwipeOffAngle) return;
+
+    // 🔹 Calcular velocidad del swipe
+    const speed = Math.abs(deltaX) / deltaTime * 1000; // px/s
+
+    // 🔹 Validar swipe real
+    if (Math.abs(deltaX) > minSwipeDistance && speed > minSwipeSpeed) {
       const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
       if (currentIndex === -1) return;
-
       swipeHandled.current = true;
-      if (deltaX < -100) { // Swiped left
+
+      if (deltaX < 0) {
         const nextIndex = Math.min(currentIndex + 1, menuItems.length - 1);
-        if (nextIndex !== currentIndex) {
-          handleRouteChange(menuItems[nextIndex].path);
-        }
-      } else if (deltaX > 100) { // Swiped right
+        if (nextIndex !== currentIndex) handleRouteChange(menuItems[nextIndex].path);
+      } else {
         const prevIndex = Math.max(currentIndex - 1, 0);
-        if (prevIndex !== currentIndex) {
-          handleRouteChange(menuItems[prevIndex].path);
-        }
+        if (prevIndex !== currentIndex) handleRouteChange(menuItems[prevIndex].path);
       }
     }
   };
