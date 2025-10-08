@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import { openDB } from '@/lib/db';
+import { Loader2 } from 'lucide-react';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -75,7 +76,7 @@ const saveMessageToDB = async (message: ChatMessage, sessionId: string) => {
 
 // --- Component ---
 
-const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage; assistant: AssistantConfig; onImageClick: (url: string) => void; }) => {
+const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage; assistant: AssistantConfig | null; onImageClick: (url: string) => void; }) => {
     const isUserMessage = message.role === 'user';
     const isGoogleMapsImage = typeof message.content === 'string' && message.content.includes('maps.googleapis.com/maps/api/staticmap');
 
@@ -84,8 +85,8 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
             <div className={cn("flex items-end gap-2", isUserMessage && "flex-row-reverse")}>
                 {!isUserMessage && (
                     <Avatar className="h-6 w-6">
-                        <AvatarImage src={assistant.imageUrl} />
-                        <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={assistant?.imageUrl} />
+                        <AvatarFallback>{assistant?.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                 )}
                 <div
@@ -160,7 +161,7 @@ const DesktopChatPage = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingStartTimeRef = useRef<number | null>(null);
-
+  const [isLoadingAssistant, setIsLoadingAssistant] = useState(true);
 
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return null;
@@ -178,6 +179,7 @@ const DesktopChatPage = () => {
     } catch(err) {
         console.error("Error setting up session:", err);
         setError("Error al iniciar la base de datos del chat. Por favor, intenta recargar la página.");
+        setIsLoadingAssistant(false);
         return null;
     }
   }, [chatPath]);
@@ -186,12 +188,13 @@ const DesktopChatPage = () => {
   useEffect(() => {
     if (chatPath) {
       let isMounted = true;
+      setIsLoadingAssistant(true);
 
       const loadChat = async () => {
           const sessionData = await setupSessionAndMessages();
-          if (!isMounted || !sessionData?.sid) return;
+          if (!isMounted) return;
           
-          const { sid, storedMessages } = sessionData;
+          const sid = sessionData?.sid;
 
           try {
               const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`);
@@ -211,7 +214,7 @@ const DesktopChatPage = () => {
                   };
                   setAssistant(ghostAssistant);
                   setError('Modo de prueba: El asistente no existe.');
-                   if (storedMessages.length === 0) {
+                   if (sid && sessionData?.storedMessages.length === 0) {
                       const initialMessage: ChatMessage = {
                           role: 'model',
                           content: 'Este es un chat de prueba. El asistente no existe, pero puedes probar la interfaz.',
@@ -230,7 +233,7 @@ const DesktopChatPage = () => {
               setAssistant(data.assistant);
               setError(null); // Clear previous errors
               
-              if (storedMessages.length === 0) { 
+              if (sid && sessionData?.storedMessages.length === 0) { 
                   const initialMessage = {
                       role: 'model' as const,
                       content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
@@ -243,11 +246,17 @@ const DesktopChatPage = () => {
               if (!isMounted) return;
               setError(err.message);
               setAssistant({ name: "Asistente no encontrado", chatPath: chatPath } as AssistantConfig);
-              setMessages([{
-                  role: 'model',
-                  content: `Error: ${err.message}. No se pudo cargar el asistente.`,
-                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              }]);
+              if (sid) {
+                setMessages([{
+                    role: 'model',
+                    content: `Error: ${err.message}. No se pudo cargar el asistente.`,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }]);
+              }
+          } finally {
+            if (isMounted) {
+                setIsLoadingAssistant(false);
+            }
           }
       };
       
@@ -604,11 +613,6 @@ const DesktopChatPage = () => {
         if (event.target) event.target.value = '';
     };
 
-
-  if (!assistant) {
-    return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
-  }
-  
   const showProductsButton = assistant?.catalogId && state.userProfile.catalogs?.some(c => c.id === assistant.catalogId);
   
   return (
@@ -620,28 +624,40 @@ const DesktopChatPage = () => {
           <Button variant="ghost" size="icon" className="h-8 w-8 mr-2 hover:bg-white/10" asChild>
             <Link href="/chat/dashboard"><FaArrowLeft /></Link>
           </Button>
-          <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50" onClick={() => setIsInfoSheetOpen(true)}>
-              <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-              <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
-          </Avatar>
-          <div className="overflow-hidden flex-grow" onClick={() => setIsInfoSheetOpen(true)}>
-            <div className="flex items-center gap-1.5">
-                <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
-                {state.userProfile.accountType === 'business' && (
-                    <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                            <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                            <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                        </svg>
-                    </Badge>
-                )}
-                {assistant?.isActive && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
-                )}
+          {isLoadingAssistant ? (
+             <div className="flex items-center gap-3 flex-grow">
+                <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                <div className="space-y-1">
+                    <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+                    <div className="h-3 w-20 rounded bg-muted animate-pulse" />
+                </div>
             </div>
-            <p className="text-xs opacity-80">{assistant.isActive ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
-          </div>
+          ) : (
+          <>
+            <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
+                <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
+            </Avatar>
+            <div className="overflow-hidden flex-grow" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                <div className="flex items-center gap-1.5">
+                    <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
+                    {state.userProfile.accountType === 'business' && (
+                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                            </svg>
+                        </Badge>
+                    )}
+                    {assistant?.isActive && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+                    )}
+                </div>
+                <p className="text-xs opacity-80">{assistant?.isActive ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
+            </div>
+            </>
+           )}
         </header>
 
         {showProductsButton && (
@@ -660,8 +676,8 @@ const DesktopChatPage = () => {
                   <div className="flex justify-start animate-fadeIn max-w-lg mx-auto">
                     <div className="flex items-end gap-2">
                         <Avatar className="h-6 w-6">
-                            <AvatarImage src={assistant.imageUrl} />
-                            <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={assistant?.imageUrl} />
+                            <AvatarFallback>{assistant?.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="rounded-2xl px-4 py-2 max-w-xs shadow-md bg-card rounded-bl-none">
                             <div className="flex items-center gap-2">
@@ -733,7 +749,7 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={assistant.isActive ? "Escribe un mensaje..." : "El asistente está desactivado"}
+                placeholder={assistant?.isActive ? "Escribe un mensaje..." : "El asistente está desactivado"}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
