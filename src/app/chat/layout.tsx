@@ -11,16 +11,16 @@ import ChatViewManager from './ChatViewManager';
 // Este layout envuelve todas las páginas dentro de /chat
 export default function ChatDashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <ChatLayout>
-      <Suspense fallback={
-            <PageContainer className="flex items-center justify-center min-h-screen">
-                <LoadingSpinner size={36} />
-            </PageContainer>
-      }>
+    <Suspense fallback={
+      <div className="h-full w-screen flex items-center justify-center bg-transparent">
+        <LoadingSpinner size={36} />
+      </div>
+    }>
+      <ChatLayout>
         <ChatViewManager>
           {children}
         </ChatViewManager>
-      </Suspense>
-    </ChatLayout>
+      </ChatLayout>
+    </Suspense>
   );
 }

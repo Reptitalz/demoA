@@ -234,7 +234,7 @@ export default function ChatListPage() {
                             onClick={(e) => {
                                 if (dragOccurred.current) { e.stopPropagation(); return; }
                                 setActiveSwipe(null);
-                                router.push(`/chat/${chat.chatPath}`);
+                                router.push(`/chat/conversation/${chat.chatPath}`);
                             }}
                             animate={{ x: activeSwipe?.chatPath === chat.chatPath ? -240 : 0 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}

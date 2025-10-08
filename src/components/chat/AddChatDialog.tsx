@@ -61,7 +61,7 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
     });
     
     onOpenChange(false);
-    router.push(`/chat/${verifiedContact.chatPath}`);
+    router.push(`/chat/conversation/${verifiedContact.chatPath}`);
   };
 
   const handleVerifyChatPath = useCallback(async (path: string) => {
