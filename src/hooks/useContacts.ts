@@ -1,4 +1,3 @@
-
 // src/hooks/useContacts.ts
 "use client";
 
@@ -22,10 +21,41 @@ export const useContacts = () => {
     const loadContacts = async () => {
       try {
         const db = await openDB();
-        const tx = db.transaction(CONTACTS_STORE_NAME, 'readonly');
-        const store = tx.objectStore(CONTACTS_STORE_NAME);
-        const storedContacts = await store.getAll();
-        dispatch({ type: 'SET_CONTACTS', payload: storedContacts });
+        const contactTx = db.transaction(CONTACTS_STORE_NAME, 'readonly');
+        const storedContacts: Contact[] = await contactTx.objectStore(CONTACTS_STORE_NAME).getAll();
+
+        // Now, for each contact, fetch the last message
+        const contactsWithLastMessage = await Promise.all(
+          storedContacts.map(async (contact) => {
+            if (contact.isDemo) return contact;
+            try {
+              const session = await db.get(SESSIONS_STORE_NAME, contact.chatPath);
+              if (session?.sessionId) {
+                const msgTx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
+                const msgStore = msgTx.objectStore(MESSAGES_STORE_NAME);
+                const msgIndex = msgStore.index('by_sessionId');
+                const cursor = await msgIndex.openCursor(session.sessionId, 'prev');
+                if (cursor) {
+                  const lastMsg: StoredMessage = cursor.value;
+                  const content = typeof lastMsg.content === 'string' ? lastMsg.content : (lastMsg.content as any).type ? `[${(lastMsg.content as any).type}]` : '[Archivo]';
+                  return {
+                    ...contact,
+                    lastMessage: content,
+                    lastMessageTimestamp: new Date(lastMsg.time).getTime(),
+                  };
+                }
+              }
+            } catch (e) {
+                console.error(`Failed to get last message for ${contact.chatPath}`, e);
+            }
+            return contact;
+          })
+        );
+        
+        // Sort contacts by last message timestamp
+        contactsWithLastMessage.sort((a, b) => (b.lastMessageTimestamp || 0) - (a.lastMessageTimestamp || 0));
+
+        dispatch({ type: 'SET_CONTACTS', payload: contactsWithLastMessage });
       } catch (error) {
         console.error("Failed to load contacts from IndexedDB:", error);
       }
