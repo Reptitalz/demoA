@@ -1544,9 +1544,9 @@ export const AssistantsList = () => {
                         x: isLeftSwiped ? -80 : isRightSwiped ? 288 : 0 
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    className="relative z-10 cursor-grab active:cursor-grabbing"
+                    className="relative z-10 cursor-grab active:cursor-grabbing bg-card rounded-lg"
                 >
-                    <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg">
+                     <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg bg-transparent">
                         <CardContent className="p-3 flex items-center gap-3">
                             <motion.div
                                 animate={{ y: [-1, 1, -1] }}
@@ -1595,7 +1595,7 @@ export const AssistantsList = () => {
             size="icon"
             title="Crear nuevo asistente"
           >
-            <Bot className="h-6 w-6" />
+            <MessageSquarePlus className="h-6 w-6" />
           </Button>
        <CreateAssistantDialog isOpen={isCreateAssistantDialogOpen} onOpenChange={setIsCreateAssistantDialogOpen} />
        {selectedAssistant && (
