@@ -17,6 +17,15 @@ const LoadPage = () => {
     const [progress, setProgress] = useState(10);
 
     useEffect(() => {
+        // Pre-fetch dashboard pages
+        router.prefetch('/chat/dashboard');
+        router.prefetch('/chat/updates');
+        router.prefetch('/chat/profile');
+        router.prefetch('/chat/admin');
+    }, [router]);
+
+
+    useEffect(() => {
         // Set a minimum display time of 3 seconds
         const timer = setTimeout(() => {
             setIsMinTimePassed(true);
