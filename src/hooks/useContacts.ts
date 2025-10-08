@@ -50,11 +50,10 @@ export const useContacts = () => {
       // Get session to delete messages
       const session = await sessionsStore.get(chatPath);
       if (session) {
-          const messagesCursor = await messagesStore.index('by_sessionId').openCursor(IDBKeyRange.only(session.sessionId));
-          let cursor = messagesCursor;
-          while(cursor) {
-              cursor.delete();
-              cursor = await cursor.continue();
+          const allMessages = await messagesStore.getAll();
+          const messagesToDelete = allMessages.filter(msg => msg.sessionId === session.sessionId);
+          for (const msg of messagesToDelete) {
+            await messagesStore.delete(msg.id); // Assuming 'id' is the primary key
           }
           await sessionsStore.delete(chatPath);
       }
@@ -80,13 +79,14 @@ export const useContacts = () => {
             const sessionId = sessionReq.sessionId;
             const messagesTx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
             const messagesStore = messagesTx.objectStore(MESSAGES_STORE_NAME);
-            const index = messagesStore.index('by_sessionId');
-            let cursor = await index.openCursor(IDBKeyRange.only(sessionId));
             
-            while (cursor) {
-                cursor.delete();
-                cursor = await cursor.continue();
+            const allMessages = await messagesStore.getAll();
+            const messagesToDelete = allMessages.filter(msg => msg.sessionId === sessionId);
+
+            for (const msg of messagesToDelete) {
+              await messagesStore.delete(msg.id); // Assuming 'id' is the primary key
             }
+
             await messagesTx.done;
         }
 

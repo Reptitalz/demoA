@@ -46,29 +46,29 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
   dbPromise = openIDB<HeyManitoDB>(DB_NAME, DB_VERSION, {
     upgrade(db, oldVersion, newVersion, transaction) {
       if (oldVersion < 1) {
-        if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
-          db.createObjectStore(MESSAGES_STORE_NAME, { autoIncrement: true });
-        }
         if (!db.objectStoreNames.contains(SESSIONS_STORE_NAME)) {
           db.createObjectStore(SESSIONS_STORE_NAME, { keyPath: 'chatPath' });
         }
       }
-       if (oldVersion < 2) {
-        if (!db.objectStoreNames.contains(CONTACTS_STORE_NAME)) {
-          db.createObjectStore(CONTACTS_STORE_NAME, { keyPath: 'chatPath' });
-        }
-        if (!db.objectStoreNames.contains(ASSISTANTS_STORE_NAME)) {
-          db.createObjectStore(ASSISTANTS_STORE_NAME, { keyPath: 'id' });
-        }
-        
-        const messagesStore = transaction.objectStore(MESSAGES_STORE_NAME);
-        if (!messagesStore.indexNames.contains('by_sessionId')) {
-            messagesStore.createIndex('by_sessionId', 'sessionId');
-        }
+      if (oldVersion < 2) {
+          if (!db.objectStoreNames.contains(MESSAGES_STORE_NAME)) {
+            const store = db.createObjectStore(MESSAGES_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            store.createIndex('by_sessionId', 'sessionId');
+          } else {
+            const store = transaction.objectStore(MESSAGES_STORE_NAME);
+             if (!store.indexNames.contains('by_sessionId')) {
+                store.createIndex('by_sessionId', 'sessionId');
+             }
+          }
+          if (!db.objectStoreNames.contains(CONTACTS_STORE_NAME)) {
+            db.createObjectStore(CONTACTS_STORE_NAME, { keyPath: 'chatPath' });
+          }
+          if (!db.objectStoreNames.contains(ASSISTANTS_STORE_NAME)) {
+            db.createObjectStore(ASSISTANTS_STORE_NAME, { keyPath: 'id' });
+          }
       }
       if (oldVersion < 3) {
         if (!db.objectStoreNames.contains(AUTHORIZED_PAYMENTS_STORE_NAME)) {
-          // Assuming payment.id is a unique identifier for authorized payments
           db.createObjectStore(AUTHORIZED_PAYMENTS_STORE_NAME, { keyPath: 'id' });
         }
       }

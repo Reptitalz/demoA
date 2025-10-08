@@ -86,6 +86,7 @@ export default function ChatListPage() {
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
 
   const filteredChats = useMemo(() => {
+    if (!contacts) return [];
     return contacts.filter(chat =>
         chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -118,10 +119,10 @@ export default function ChatListPage() {
   }
 
   const memberButtons = [
-    { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: 10 },
-    { icon: Bot, label: "Bots", view: 'bots', notificationCount: 10 },
-    { icon: Package, label: "Productos", view: 'products', notificationCount: 10 },
-    { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: 10 },
+    { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: 0 },
+    { icon: Bot, label: "Bots", view: 'bots', notificationCount: 0 },
+    { icon: Package, label: "Productos", view: 'products', notificationCount: 0 },
+    { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: 0 },
   ];
 
   return (
