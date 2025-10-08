@@ -194,8 +194,31 @@ export default function ChatListPage() {
     setAlertInfo(null);
   }
   
+  const showPushNotification = async (title: string, options: NotificationOptions) => {
+    if (!('Notification' in window)) {
+      toast({ title: "Navegador no compatible", description: "Tu navegador no soporta notificaciones push.", variant: "destructive" });
+      return;
+    }
+    
+    if (Notification.permission === 'granted') {
+      new Notification(title, options);
+    } else if (Notification.permission !== 'denied') {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        new Notification(title, options);
+      } else {
+        toast({ title: "Permiso denegado", description: "No se pueden mostrar notificaciones. Habilítalas en la configuración de tu navegador." });
+      }
+    } else {
+         toast({ title: "Notificaciones bloqueadas", description: "Habilita las notificaciones en la configuración de tu navegador para usar esta función.", variant: "destructive" });
+    }
+  };
+
   const showMemoryInfo = (contact: Contact) => {
-      toast({ title: `Info de: ${contact.name}`, description: `El chat ocupa aproximadamente ${formatBytes(contact.conversationSize)}.` });
+    showPushNotification(`Info de: ${contact.name}`, {
+        body: `El chat ocupa aproximadamente ${formatBytes(contact.conversationSize)}.`,
+        icon: '/heymanito.svg' // You can use your app icon
+    });
   }
 
   const botsCount = state.userProfile.assistants?.length || 0;
