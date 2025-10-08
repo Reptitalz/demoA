@@ -5,12 +5,11 @@ import React, { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { FaComment, FaCamera, FaUser, FaPlus, FaPhoneAlt } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser, FaPlus } from 'react-icons/fa';
 
 const navItems = [
     { href: '/chat/dashboard', label: 'Chats', icon: FaComment },
     { href: '/chat/updates', label: 'Novedades', icon: FaCamera },
-    { href: '/chat/calls', label: 'Llamadas', icon: FaPhoneAlt },
     { href: '/chat/profile', label: 'Perfil', icon: FaUser },
 ];
 
@@ -97,9 +96,7 @@ const ChatNavBar = ({ onNavigate, onAddChat }: ChatNavBarProps) => {
         }
     };
     
-    // Split items for layout: 2 on the left, 2 on the right
-    const leftItems = navItems.slice(0, 2);
-    const rightItems = navItems.slice(2);
+    const items = navItems;
 
     return (
         <TooltipProvider>
@@ -110,22 +107,7 @@ const ChatNavBar = ({ onNavigate, onAddChat }: ChatNavBarProps) => {
                 onTouchEnd={handleTouchEnd}
             >
                 <div className="relative flex justify-around items-center h-full max-w-md mx-auto">
-                    {/* Left Items */}
-                    <div className="flex justify-around flex-1">
-                        {leftItems.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
-                    </div>
-
-                    {/* Center Button */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-[-16px]">
-                         <button onClick={onAddChat} className="bg-brand-gradient text-white rounded-full h-12 w-12 flex items-center justify-center shadow-lg border-4 border-card">
-                            <FaPlus className="text-lg" />
-                        </button>
-                    </div>
-
-                    {/* Right Items */}
-                    <div className="flex justify-around flex-1">
-                        {rightItems.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
-                    </div>
+                    {items.map(item => <NavItem key={item.href} {...item} onNavigate={onNavigate} />)}
                 </div>
             </nav>
         </TooltipProvider>

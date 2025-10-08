@@ -8,16 +8,12 @@ import ChatListPage from './dashboard/page';
 import UpdatesPage from './updates/page';
 import ChatProfilePage from './profile/page';
 import AdminHomePage from './admin/page';
-import CallsPage from './calls/page';
-import CallPage from './call/[id]/page'; // Import the new CallPage
 
 const routes = [
   { path: '/chat/dashboard', Component: ChatListPage },
   { path: '/chat/updates', Component: UpdatesPage },
-  { path: '/chat/calls', Component: CallsPage },
   { path: '/chat/profile', Component: ChatProfilePage },
   { path: '/chat/admin', Component: AdminHomePage },
-  { path: '/chat/call', Component: CallPage }, // Add the new call route
 ];
 
 const pageVariants = {

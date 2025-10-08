@@ -29,42 +29,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (userProfile.isAuthenticated && userProfile._id) {
-      const newSocket = io(SOCKET_SERVER_URL);
-
-      newSocket.on('connect', () => {
-        console.log('Socket connected:', newSocket.id);
-        // Join a personal room to receive direct notifications
-        newSocket.emit('joinRoom', userProfile._id?.toString());
-      });
-
-      newSocket.on('incoming-call', ({ roomName, callerId, callerInfo }) => {
-        console.log(`Incoming call from ${callerId} in room ${roomName}`);
-        setIncomingCall({ roomName, callerId, callerInfo });
-      });
-
-      newSocket.on('callRejected', ({ by }) => {
-        console.log(`Call rejected by ${by}`);
-        toast({
-            title: "Llamada Rechazada",
-            description: "La otra persona ha rechazado la llamada."
-        });
-        // Here you would add logic to close any "calling..." UI
-      });
-
-      newSocket.on('disconnect', () => {
-        console.log('Socket disconnected');
-      });
-
-      setSocket(newSocket);
-
-      return () => {
-        console.log('Disconnecting socket');
-        newSocket.disconnect();
-      };
-    } else if (socket) {
-      // If user logs out, disconnect socket
-      socket.disconnect();
-      setSocket(null);
+      // Logic for websockets removed as calls are no longer supported.
+      // Keeping provider structure for potential future real-time features.
     }
   }, [userProfile.isAuthenticated, userProfile._id, toast]);
   

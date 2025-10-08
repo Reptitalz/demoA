@@ -7,13 +7,12 @@ import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { FaComment, FaCamera, FaUser, FaPhoneAlt } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser } from 'react-icons/fa';
 import AddChatDialog from '@/components/chat/AddChatDialog'; // Import the dialog
 
 const menuItems = [
     { path: '/chat/dashboard', icon: FaComment, label: 'Chats' },
     { path: '/chat/updates', icon: FaCamera, label: 'Novedades' },
-    { path: '/chat/calls', icon: FaPhoneAlt, label: 'Llamadas' }, // Aseguramos que esta ruta esté aquí
     { path: '/chat/profile', icon: FaUser, label: 'Perfil' },
 ];
 
@@ -22,8 +21,6 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
 
-  // La barra de navegación se muestra si la ruta actual es una de las vistas principales.
-  // Esto ahora funcionará porque el layout de nivel superior excluye `/chat/call/[id]`.
   const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
   const handleRouteChange = React.useCallback((newPath: string) => {
