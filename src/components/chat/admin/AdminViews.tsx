@@ -1,4 +1,3 @@
-
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -6,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase, Landmark } from 'lucide-react';
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -325,13 +324,25 @@ export const BankView = () => {
                     </div>
                 </div>
             </header>
-            <div className="p-4">
-                 <Card className="text-center shadow-lg bg-gradient-to-br from-primary/10 to-transparent glow-card">
-                    <CardContent className="p-6">
-                        <p className="text-muted-foreground font-normal text-sm">Ingreso Total (Autorizado)</p>
-                        <p className="text-4xl font-extrabold text-foreground mt-1">
-                            ${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                        </p>
+             <div className="p-4">
+                 <Card className="shadow-lg relative overflow-hidden bg-gradient-to-br from-green-800 to-emerald-900 text-white">
+                    <div 
+                        className="absolute inset-0 opacity-10"
+                        style={{
+                            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+                        }}
+                    />
+                    <div className="absolute top-2 right-2 h-0 w-0 border-t-[60px] border-t-white/5 border-l-[60px] border-l-transparent" />
+                    <CardContent className="p-6 relative z-10">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="font-semibold text-sm opacity-80">Ingreso Total (Autorizado)</p>
+                                <p className="text-4xl font-extrabold mt-1">
+                                    ${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                </p>
+                            </div>
+                             <Landmark className="h-8 w-8 text-white/50" />
+                        </div>
                     </CardContent>
                 </Card>
             </div>
