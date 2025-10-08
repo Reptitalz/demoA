@@ -22,7 +22,8 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
 
-  const isBaseChatView = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
+  const isCallView = pathname.startsWith('/chat/call/');
+  const isBaseChatView = !isCallView && (menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin');
 
   const handleRouteChange = React.useCallback((newPath: string) => {
     if (pathname === newPath) return;
@@ -40,7 +41,8 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
         <main 
             className={cn(
               "flex-grow relative",
-              "pb-16 md:pb-0" // Padding for main nav bar on mobile, none on desktop
+              "pb-16 md:pb-0", // Padding for main nav bar on mobile, none on desktop
+              isCallView && "pb-0" // No padding on call view for mobile
             )}
         >
           {children}
