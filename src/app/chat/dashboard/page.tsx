@@ -248,7 +248,6 @@ export default function ChatListPage() {
                  ))}
             </div>
         </main>
-        <Button onClick={() => setIsAddChatOpen(true)} className="absolute bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground md:hidden"><FaPlus className="h-6 w-6"/></Button>
     </div>
     <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
     <AddChatDialog isOpen={isAddChatOpen} onOpenChange={setIsAddChatOpen} />
