@@ -34,14 +34,17 @@ const SESSION_STORE_NAME = 'session';
 
 const getSessionIdFromDB = async (chatPath: string): Promise<string | null> => {
   const db = await openDB();
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const tx = db.transaction(SESSION_STORE_NAME, 'readonly');
     const store = tx.objectStore(SESSION_STORE_NAME);
     const request = store.get(chatPath);
     request.onsuccess = () => {
       resolve(request.result?.sessionId || null);
     };
-    request.onerror = () => resolve(null);
+    request.onerror = (event) => {
+      console.error("Error getting session from DB:", request.error);
+      reject(request.error);
+    };
   });
 };
 
