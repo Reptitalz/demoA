@@ -155,7 +155,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                             transition={{ type: 'spring', stiffness: 100, damping: 10, delay: 0.2 }}
                             className="mt-4"
                         >
-                            <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg">
+                            <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg bg-transparent">
                                 <CardContent className="p-3 flex items-center gap-3">
                                     <motion.div
                                         animate={{ y: [-1, 1, -1] }}
@@ -169,10 +169,13 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                                         </Avatar>
                                     </motion.div>
                                     <div className="flex-grow overflow-hidden">
-                                    <div className="flex items-center justify-between">
-                                            <p className="font-semibold truncate text-sm">{assistantName || 'Nombre del Asistente'}</p>
-                                    </div>
-                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="font-semibold truncate text-sm">{assistantName || 'Nombre del Asistente'}</p>
+                                            </div>
+                                            <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">Reciente</p>
+                                        </div>
+                                        <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
                                                 <span className={cn("relative flex h-2 w-2")}>
                                                     <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
@@ -180,8 +183,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
                                                 </span>
                                                 <p className="text-xs text-muted-foreground">en línea</p>
                                             </div>
-                                            <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">Reciente</p>
-                                    </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
