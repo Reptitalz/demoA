@@ -1,4 +1,5 @@
 
+
 const securityHeaders = [
   // Prevents browsers from incorrectly guessing content types.
   {
@@ -17,7 +18,7 @@ const securityHeaders = [
   },
   {
     key: 'Content-Security-Policy',
-    value: "frame-src 'self' https://*.mercadopago.com;",
+    value: "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';",
   },
   // CORS Headers
   {
