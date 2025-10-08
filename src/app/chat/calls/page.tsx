@@ -22,13 +22,11 @@ export default function CallsPage() {
         );
     }, [contacts, searchTerm]);
 
-    const handleCall = (contactId: string, type: 'voice' | 'video') => {
-        // Placeholder for call initiation logic
-        console.log(`Starting ${type} call with contact ${contactId}`);
-        // router.push(`/chat/call/${contactId}?type=${type}`);
+    const handleCall = (contactId: string, type: 'audio' | 'video') => {
+        // This will now navigate to the call page
+        router.push(`/chat/call/${contactId}?type=${type}`);
     };
     
-    // Example call history
     const callHistory = [
         { id: 1, name: 'Juan Pérez', type: 'outgoing', time: 'Ayer, 10:30 PM', missed: false },
         { id: 2, name: 'Maria López', type: 'incoming', time: 'Hace 2 días', missed: true },
@@ -79,7 +77,7 @@ export default function CallsPage() {
                                         <p className="font-semibold">{contact.name}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="outline" size="icon" onClick={() => handleCall(contact.chatPath, 'voice')}>
+                                        <Button variant="outline" size="icon" onClick={() => handleCall(contact.chatPath, 'audio')}>
                                             <FaPhoneAlt />
                                         </Button>
                                         <Button variant="outline" size="icon" onClick={() => handleCall(contact.chatPath, 'video')}>

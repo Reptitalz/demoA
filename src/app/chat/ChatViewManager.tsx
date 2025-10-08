@@ -8,14 +8,16 @@ import ChatListPage from './dashboard/page';
 import UpdatesPage from './updates/page';
 import ChatProfilePage from './profile/page';
 import AdminHomePage from './admin/page';
-import CallsPage from './calls/page'; // Import the new CallsPage
+import CallsPage from './calls/page';
+import CallPage from './call/[id]/page'; // Import the new CallPage
 
 const routes = [
   { path: '/chat/dashboard', Component: ChatListPage },
   { path: '/chat/updates', Component: UpdatesPage },
-  { path: '/chat/calls', Component: CallsPage }, // Add the new route
+  { path: '/chat/calls', Component: CallsPage },
   { path: '/chat/profile', Component: ChatProfilePage },
   { path: '/chat/admin', Component: AdminHomePage },
+  { path: '/chat/call', Component: CallPage }, // Add the new call route
 ];
 
 const pageVariants = {
@@ -35,7 +37,7 @@ const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
 
   const isBaseChatView = routes.some(route => pathname.startsWith(route.path));
   
-  // If we are on a specific chat view (e.g., /chat/my-assistant-xyz),
+  // If we are on a specific chat view (e.g., /chat/conversation/my-assistant),
   // we just render the children directly without the view manager logic.
   if (!isBaseChatView) {
     return <>{children}</>;
