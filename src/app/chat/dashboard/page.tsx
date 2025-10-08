@@ -47,6 +47,8 @@ interface ChatItemProps {
 }
 
 const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
+    const isOnline = !chat.lastMessage;
+
     return (
         <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg bg-transparent">
             <CardContent className="p-3 flex items-center gap-3">
@@ -68,10 +70,12 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
                 </div>
                 <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                            <span className={cn("relative flex h-2 w-2")}>
-                                <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
-                                <span className={cn("relative inline-flex rounded-full h-2 w-2 bg-green-500")}></span>
-                            </span>
+                            {isOnline && (
+                                <span className={cn("relative flex h-2 w-2")}>
+                                    <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
+                                    <span className={cn("relative inline-flex rounded-full h-2 w-2 bg-green-500")}></span>
+                                </span>
+                            )}
                             <p className="text-xs text-muted-foreground truncate">{chat.lastMessage || 'en línea'}</p>
                         </div>
                 </div>
