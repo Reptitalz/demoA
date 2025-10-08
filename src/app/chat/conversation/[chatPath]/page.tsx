@@ -195,12 +195,40 @@ const DesktopChatPage = () => {
 
           try {
               const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`);
-              if (!res.ok) throw new Error('Asistente no encontrado o no disponible.');
+              
+              if (!res.ok) {
+                 // If assistant not found, create a "ghost" one for testing.
+                  const ghostAssistant: AssistantConfig = {
+                    id: 'ghost-id',
+                    name: `Prueba: ${chatPath}`,
+                    type: 'desktop',
+                    isActive: false, // Not active, won't call backend
+                    numberReady: false,
+                    messageCount: 0,
+                    monthlyMessageLimit: 0,
+                    purposes: [],
+                    chatPath: chatPath
+                  };
+                  setAssistant(ghostAssistant);
+                  setError('Modo de prueba: El asistente no existe.');
+                   if (storedMessages.length === 0) {
+                      const initialMessage: ChatMessage = {
+                          role: 'model',
+                          content: 'Este es un chat de prueba. El asistente no existe, pero puedes probar la interfaz.',
+                          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      };
+                      setMessages([initialMessage]);
+                      saveMessageToDB(initialMessage, sid);
+                  }
+                  return;
+              }
+
               const data = await res.json();
               if (!isMounted) return;
 
               if(!data.assistant) throw new Error('Asistente no encontrado.');
               setAssistant(data.assistant);
+              setError(null); // Clear previous errors
               
               if (storedMessages.length === 0) { 
                   const initialMessage = {
@@ -214,7 +242,7 @@ const DesktopChatPage = () => {
           } catch(err: any) {
               if (!isMounted) return;
               setError(err.message);
-              setAssistant({ name: "Asistente no encontrado" } as AssistantConfig);
+              setAssistant({ name: "Asistente no encontrado", chatPath: chatPath } as AssistantConfig);
               setMessages([{
                   role: 'model',
                   content: `Error: ${err.message}. No se pudo cargar el asistente.`,
@@ -313,7 +341,12 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }) => {
-    if (!assistant?.id || !assistant?.chatPath || !sessionId) return;
+    if (!assistant?.id || !assistant?.chatPath || !sessionId || assistant.id === 'ghost-id') {
+        if (assistant?.id === 'ghost-id') {
+            toast({ title: 'Modo de Prueba', description: 'El envío de mensajes está deshabilitado para asistentes que no existen.' });
+        }
+        return;
+    }
     
     // Add image/audio responses here
     if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'audio')) {
@@ -347,14 +380,14 @@ const DesktopChatPage = () => {
     }).catch(err => {
         console.error("Error sending message to proxy:", err);
     });
-  }, [assistant?.id, assistant?.chatPath, assistant?.isActive, sessionId, pollForResponse]);
+  }, [assistant?.id, assistant?.chatPath, assistant?.isActive, sessionId, pollForResponse, toast]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
     if (e) e.preventDefault();
     const messageToSend = messageOverride || currentMessage;
     
-    if (!messageToSend.trim() || isSending || error) return;
+    if (!messageToSend.trim() || isSending) return;
     
     const userMessage: ChatMessage = {
       role: 'user',
@@ -379,7 +412,7 @@ const DesktopChatPage = () => {
   
  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || isSending || error) return;
+    if (!file || isSending) return;
 
     const MAX_SIZE = 800; // Max width/height 800px
     const QUALITY = 0.7; // 70% JPEG quality
@@ -607,7 +640,7 @@ const DesktopChatPage = () => {
                     <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                 )}
             </div>
-            <p className="text-xs opacity-80">{error ? 'No disponible' : isSending ? assistantStatusMessage : 'en línea'}</p>
+            <p className="text-xs opacity-80">{assistant.isActive ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
           </div>
         </header>
 
@@ -672,7 +705,7 @@ const DesktopChatPage = () => {
                     size="icon"
                     variant="ghost"
                     className="rounded-full h-11 w-11 text-muted-foreground hover:text-primary"
-                    disabled={isSending || !!error}
+                    disabled={isSending}
                 >
                     <FaPaperclip className="h-5 w-5" />
                 </Button>
@@ -700,12 +733,12 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={error ? "Chat no disponible" : "Escribe un mensaje..."}
+                placeholder={assistant.isActive ? "Escribe un mensaje..." : "El asistente está desactivado"}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={!!error || isSending}
+                disabled={isSending}
             />
             <input
                 type="file"
@@ -729,7 +762,7 @@ const DesktopChatPage = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             />
             {currentMessage.trim() ? (
-                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || !!error}>
+                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim()}>
                     <FaPaperPlane className="h-5 w-5" />
                 </Button>
             ) : (
@@ -737,7 +770,7 @@ const DesktopChatPage = () => {
                     type="button" 
                     size="icon" 
                     className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" 
-                    disabled={isSending || !!error}
+                    disabled={isSending}
                     onMouseDown={startRecording}
                     onMouseUp={stopRecordingAndSend}
                     onTouchStart={startRecording}
