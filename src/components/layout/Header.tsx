@@ -1,3 +1,4 @@
+
 "use client";
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
@@ -7,6 +8,18 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSignInAlt } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal
+} from "@/components/ui/dropdown-menu";
+import { FaChevronDown } from 'react-icons/fa';
+import { FaWhatsapp, FaUserFriends, FaRocket, FaEnvelope } from 'react-icons/fa';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -24,9 +37,38 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         </Link>
         
         <div className="flex items-center gap-2">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                        Productos <FaChevronDown className="h-3 w-3" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => router.push('/whatsapp')}>
+                        <FaWhatsapp className="mr-2" /> Hey Manito! WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/colaboradores')}>
+                        <FaUserFriends className="mr-2" /> Colaboradores
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+             <Button variant="ghost" size="sm" asChild>
+              <Link href="#contact">Contacto</Link>
+            </Button>
+            
             <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
                 <FaSignInAlt className="mr-2 h-4 w-4" />
                 Iniciar sesión
+            </Button>
+
+             <Button 
+                size="sm" 
+                onClick={() => router.push('/make')}
+                className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+              >
+                <FaRocket className="mr-2 h-4 w-4"/>
+                Crear Asistente
             </Button>
         </div>
       </div>
