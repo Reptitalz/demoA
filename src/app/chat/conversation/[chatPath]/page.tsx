@@ -132,11 +132,11 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
 };
 
 const DesktopChatPage = () => {
-  const { chatPath } = useParams() as { chatPath: string };
+  const params = useParams();
+  const chatPath = params.chatPath as string;
   const { state } = useApp();
   const { toast } = useToast();
   const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
@@ -183,56 +183,53 @@ const DesktopChatPage = () => {
 
   useEffect(() => {
     if (chatPath) {
-      setIsLoading(true);
-      
-      setupSessionAndMessages().then(sessionData => {
-        if (!sessionData?.sid) {
-            setIsLoading(false);
-            setError("No se pudo iniciar una sesión de chat.");
-            return;
-        }
+      let isMounted = true;
 
-        const { sid, storedMessages } = sessionData;
+      const loadChat = async () => {
+          const sessionData = await setupSessionAndMessages();
+          if (!isMounted || !sessionData?.sid) return;
+          
+          const { sid, storedMessages } = sessionData;
 
-        fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`)
-          .then(res => {
-            if (!res.ok) {
-              throw new Error('Asistente no encontrado o no disponible.');
-            }
-            return res.json();
-          })
-          .then(data => {
-            if(!data.assistant) throw new Error('Asistente no encontrado.');
-            setAssistant(data.assistant);
-            
-            if (storedMessages.length === 0) { 
-                const initialMessage = {
-                    role: 'model' as const,
-                    content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-                setMessages([initialMessage]);
-                saveMessageToDB(initialMessage, sid);
-            }
-          })
-          .catch(err => {
+          try {
+              const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`);
+              if (!res.ok) throw new Error('Asistente no encontrado o no disponible.');
+              const data = await res.json();
+              if (!isMounted) return;
+
+              if(!data.assistant) throw new Error('Asistente no encontrado.');
+              setAssistant(data.assistant);
+              
+              if (storedMessages.length === 0) { 
+                  const initialMessage = {
+                      role: 'model' as const,
+                      content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
+                      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  };
+                  setMessages([initialMessage]);
+                  saveMessageToDB(initialMessage, sid);
+              }
+          } catch(err: any) {
+              if (!isMounted) return;
               setError(err.message);
               setAssistant({ name: "Asistente no encontrado" } as AssistantConfig);
-               setMessages([{
+              setMessages([{
                   role: 'model',
                   content: `Error: ${err.message}. No se pudo cargar el asistente.`,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-               }]);
-          })
-          .finally(() => setIsLoading(false));
-      });
-    }
+              }]);
+          }
+      };
+      
+      loadChat();
 
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
+      return () => {
+        isMounted = false;
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
+      };
+    }
   }, [chatPath, setupSessionAndMessages]);
 
   useEffect(() => {
@@ -573,7 +570,7 @@ const DesktopChatPage = () => {
     };
 
 
-  if (isLoading || !assistant) {
+  if (!assistant) {
     return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
   
