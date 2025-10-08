@@ -95,8 +95,8 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                 <div
                     className={cn(
                         "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed",
-                        isUserMessage 
-                            ? "bg-[#dcf8c6] rounded-br-none" 
+                        isUserMessage
+                            ? "bg-primary text-primary-foreground rounded-br-none"
                             : "bg-card rounded-bl-none",
                         isGoogleMapsImage ? "p-1" : "px-3 py-2"
                     )}
@@ -107,7 +107,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                                 <Image src={message.content} alt="Ubicación en mapa" width={250} height={200} className="rounded-lg cursor-pointer" />
                             </a>
                         ) : (
-                            <p className="text-black">{message.content}</p>
+                            <p>{message.content}</p>
                         )
                     ) : message.content.type === 'image' ? (
                         <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
@@ -122,7 +122,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                     ) : message.content.type === 'audio' ? (
                         <audio controls src={message.content.url} className="w-full max-w-xs" />
                     ) : null}
-                    <p className="text-[10px] text-right mt-1 px-1 text-muted-foreground/80">{message.time}</p>
+                    <p className={cn("text-[10px] text-right mt-1 px-1", isUserMessage ? "text-primary-foreground/70" : "text-muted-foreground/80")}>{message.time}</p>
                 </div>
                  {isUserMessage && (
                     <Avatar className="h-6 w-6">
