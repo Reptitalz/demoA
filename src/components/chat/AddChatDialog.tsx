@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Webcam from "react-webcam";
 import jsQR from "jsqr";
+import QRCode from 'qrcode';
 
 interface AddChatDialogProps {
   isOpen: boolean;
@@ -110,7 +111,7 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
   const [error, setError] = useState<string | null>(null);
   
   const [userShareLink, setUserShareLink] = useState('');
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -126,7 +127,18 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
     if (mode === 'share' && userProfile.chatPath) {
       const link = `${window.location.origin}/chat/conversation/${userProfile.chatPath}`;
       setUserShareLink(link);
-      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(link)}&size=200x200&bgcolor=f0f5ff`);
+      if (qrCanvasRef.current) {
+        QRCode.toCanvas(qrCanvasRef.current, link, {
+            width: 200,
+            margin: 1,
+            color: {
+                dark: '#020817', // Corresponds to foreground
+                light: '#f0f5ff' // A light blueish background
+            }
+        }, (error) => {
+            if (error) console.error("QR Code generation error:", error);
+        });
+      }
     }
   }, [mode, userProfile.chatPath]);
 
@@ -273,7 +285,7 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
           <div className="w-full flex-shrink-0 p-4 flex flex-col items-center justify-center">
             <h3 className="font-semibold text-center mb-4">Mi Código QR</h3>
             <Card className="p-4 bg-muted/30">
-                {qrCodeUrl ? <Image src={qrCodeUrl} alt="Tu código QR" width={200} height={200} /> : <div className="h-[200px] w-[200px] flex items-center justify-center"><Loader2 className="animate-spin"/></div>}
+                <canvas ref={qrCanvasRef} />
             </Card>
             <p className="text-xs text-center text-muted-foreground mt-4 max-w-xs">Pide a tus contactos que escaneen este código para agregarte.</p>
             <div className="flex gap-2 mt-4">
