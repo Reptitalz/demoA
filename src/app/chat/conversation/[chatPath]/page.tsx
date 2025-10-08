@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt, FaPhone } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -137,6 +137,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
 const DesktopChatPage = () => {
   const params = useParams();
   const chatPath = params.chatPath as string;
+  const router = useRouter();
   const { state } = useApp();
   const { toast } = useToast();
   const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
@@ -658,6 +659,18 @@ const DesktopChatPage = () => {
                     )}
                 </div>
                 <p className="text-xs opacity-80">{assistant?.isActive ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
+            </div>
+             <div className="flex items-center gap-1">
+                {assistant?.type !== 'desktop' && assistant?.type !== 'whatsapp' && (
+                    <>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => router.push(`/chat/call/${chatPath}?type=video`)}>
+                            <FaVideo />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
+                            <FaPhone />
+                        </Button>
+                    </>
+                )}
             </div>
             </>
            )}
