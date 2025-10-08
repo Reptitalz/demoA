@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaCreditCard, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,7 +19,6 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
-import CreditApplicationDialog from '@/components/chat/CreditApplicationDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import { openDB } from '@/lib/db';
@@ -149,7 +148,6 @@ const DesktopChatPage = () => {
   
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
-  const [isCreditAppOpen, setIsCreditAppOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
   const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
@@ -578,7 +576,6 @@ const DesktopChatPage = () => {
     return <div className="h-full w-screen flex items-center justify-center bg-transparent"><LoadingSpinner size={40} /></div>;
   }
   
-  const showCreditButton = true;
   const showProductsButton = assistant?.catalogId && state.userProfile.catalogs?.some(c => c.id === assistant.catalogId);
   
   return (
@@ -614,9 +611,8 @@ const DesktopChatPage = () => {
           </div>
         </header>
 
-        {(showCreditButton || showProductsButton) && (
+        {showProductsButton && (
             <div className="bg-card/60 backdrop-blur-sm p-2 flex items-center justify-center gap-2 border-b">
-                {showCreditButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => setIsCreditAppOpen(true)}><FaCreditCard className="mr-1.5"/> Adquirir Crédito</Button>}
                 {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Ver Productos</Button>}
             </div>
         )}
@@ -780,14 +776,6 @@ const DesktopChatPage = () => {
              handleSendMessage(undefined, `Hola, me interesa el producto: ${product.name} ($${product.price}).`);
              setIsCatalogOpen(false);
           }}
-        />
-      )}
-
-      {assistant && (
-        <CreditApplicationDialog
-          isOpen={isCreditAppOpen}
-          onOpenChange={setIsCreditAppOpen}
-          assistant={assistant}
         />
       )}
       
