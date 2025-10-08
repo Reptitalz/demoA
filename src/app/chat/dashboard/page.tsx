@@ -325,11 +325,11 @@ export default function ChatListPage() {
                             {activeSwipe?.chatPath === chat.chatPath && (
                                 <motion.div
                                     key="actions"
-                                    initial={{ opacity: 0, x: activeSwipe.direction === 'left' ? 50 : -50 }}
+                                    initial={{ opacity: 0, x: -50 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: activeSwipe.direction === 'left' ? 50 : -50 }}
+                                    exit={{ opacity: 0, x: -50 }}
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
-                                    className="absolute inset-y-0 right-0 flex items-center bg-gray-100 dark:bg-slate-800"
+                                    className="absolute inset-y-0 left-0 flex items-center bg-gray-100 dark:bg-slate-800"
                                 >
                                      <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={() => showMemoryInfo(chat)}>
                                         <HardDrive size={20}/>
@@ -348,13 +348,13 @@ export default function ChatListPage() {
                         </AnimatePresence>
                          <motion.div
                             drag="x"
-                            dragConstraints={{ left: -240, right: 0 }}
+                            dragConstraints={{ left: 0, right: 240 }}
                             onDragStart={(e) => { e.stopPropagation(); dragOccurred.current = false; }}
                             onDrag={(e) => { e.stopPropagation(); dragOccurred.current = true; }}
                             onDragEnd={(event, info) => {
-                                const isSwipeLeft = info.offset.x < -80;
-                                if (isSwipeLeft) {
-                                    setActiveSwipe({ chatPath: chat.chatPath, direction: 'left' });
+                                const isSwipeRight = info.offset.x > 80;
+                                if (isSwipeRight) {
+                                    setActiveSwipe({ chatPath: chat.chatPath, direction: 'right' });
                                 } else {
                                     setActiveSwipe(null);
                                 }
@@ -363,7 +363,7 @@ export default function ChatListPage() {
                                 if (dragOccurred.current || activeSwipe) { e.stopPropagation(); return; }
                                 router.push(`/chat/conversation/${chat.chatPath}`);
                             }}
-                            animate={{ x: activeSwipe?.chatPath === chat.chatPath ? -240 : 0 }}
+                            animate={{ x: activeSwipe?.chatPath === chat.chatPath ? 240 : 0 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
                         >
