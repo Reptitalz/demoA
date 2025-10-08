@@ -8,7 +8,7 @@ import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign,
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
-import type { AssistantConfig, Contact, CreditLine } from '@/types';
+import type { AssistantConfig, Contact, CreditLine, UserProfile } from '@/types';
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
@@ -32,6 +32,8 @@ import AddChatDialog from '@/components/chat/AddChatDialog';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/lib/db';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
 
 interface StoredMessage {
     id?: number; 
@@ -44,13 +46,19 @@ interface StoredMessage {
 interface ChatItemProps {
   chat: Contact;
   onClick: () => void;
+  userProfile: UserProfile; // Pass the userProfile to determine badges
 }
 
-const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
+const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick, userProfile }) => {
     const isOnline = !chat.lastMessage;
+    
+    // Determine if the contact is an AI assistant or a business user
+    const isAssistant = userProfile.assistants.some(a => a.chatPath === chat.chatPath);
+    const contactProfile = userProfile.contacts?.find(c => c.chatPath === chat.chatPath);
+    const isBusiness = contactProfile?.accountType === 'business';
 
     return (
-        <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg bg-transparent">
+        <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg bg-transparent" onClick={onClick}>
             <CardContent className="p-3 flex items-center gap-3">
                 <motion.div
                     animate={{ y: [-1, 1, -1] }}
@@ -65,7 +73,21 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
                 </motion.div>
                 <div className="flex-grow overflow-hidden">
                 <div className="flex items-center justify-between">
-                        <p className="font-semibold truncate text-sm">{chat.name}</p>
+                        <div className="flex items-center gap-1.5">
+                            <p className="font-semibold truncate text-sm">{chat.name}</p>
+                            {isBusiness && (
+                                <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                        <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                        <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                    </svg>
+                                </Badge>
+                            )}
+                            {isAssistant && (
+                                <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+                            )}
+                        </div>
                         <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{chat.lastMessageTimestamp ? new Date(chat.lastMessageTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : 'Reciente'}</p>
                 </div>
                 <div className="flex items-center justify-between">
@@ -346,7 +368,7 @@ export default function ChatListPage() {
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
                         >
-                            <ChatItem chat={chat} onClick={() => {}} />
+                            <ChatItem chat={chat} onClick={() => {}} userProfile={state.userProfile} />
                         </motion.div>
                     </div>
                  ))}

@@ -171,7 +171,7 @@ const DesktopChatPage = () => {
   const [isLoadingAssistant, setIsLoadingAssistant] = useState(true);
 
   // Determine if this is a personal chat
-  const isPersonalChat = assistant?.type !== 'desktop' && assistant?.type !== 'whatsapp';
+  const isPersonalChat = assistant?.type === 'personal';
 
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return null;
@@ -687,7 +687,7 @@ const DesktopChatPage = () => {
             <div className="overflow-hidden flex-grow" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                 <div className="flex items-center gap-1.5">
                     <h3 className="font-semibold text-base truncate">{assistant?.name || 'Asistente'}</h3>
-                    {state.userProfile.accountType === 'business' && (
+                    {assistant?.accountType === 'business' && (
                         <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
@@ -696,7 +696,7 @@ const DesktopChatPage = () => {
                             </svg>
                         </Badge>
                     )}
-                    {assistant?.isActive && assistant.type !== 'personal' && (
+                    {assistant?.type !== 'personal' && assistant?.isActive && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                     )}
                 </div>
@@ -811,12 +811,12 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={assistant?.type === 'desktop' ? "El asistente está desactivado" : "Escribe un mensaje..."}
+                placeholder={isPersonalChat ? "Escribe un mensaje..." : (assistant?.isActive ? "Escribe un mensaje..." : "El asistente IA está desactivado")}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={isSending || assistant?.type === 'desktop'}
+                disabled={isSending || (!isPersonalChat && !assistant?.isActive)}
             />
             <input
                 type="file"
