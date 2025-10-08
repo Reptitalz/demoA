@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { motion } from 'framer-motion';
 import { openDB } from '@/lib/db';
 import { Loader2 } from 'lucide-react';
+import { useSocket } from '@/providers/SocketProvider';
 
 
 const DB_NAME = 'HeyManitoChatDB';
@@ -139,6 +140,8 @@ const DesktopChatPage = () => {
   const chatPath = params.chatPath as string;
   const router = useRouter();
   const { state } = useApp();
+  const { userProfile } = state;
+  const { socket } = useSocket();
   const { toast } = useToast();
   const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -167,6 +170,9 @@ const DesktopChatPage = () => {
   const recordingStartTimeRef = useRef<number | null>(null);
   const [isLoadingAssistant, setIsLoadingAssistant] = useState(true);
 
+  // Determine if this is a personal chat
+  const isPersonalChat = assistant?.type === 'personal';
+
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return null;
     try {
@@ -187,6 +193,30 @@ const DesktopChatPage = () => {
         return null;
     }
   }, [chatPath]);
+
+    // WebSocket listener for incoming messages
+  useEffect(() => {
+    if (!socket || !isPersonalChat) return;
+
+    const handleNewMessage = (message: any) => {
+        // Only process if the message is for the current chat
+        if (message.senderChatPath === chatPath) {
+             const receivedMessage: ChatMessage = {
+                role: 'model', // It's from the other person, so we show it as 'model'
+                content: message.content,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, receivedMessage]);
+            saveMessageToDB(receivedMessage, sessionId);
+        }
+    };
+
+    socket.on('receiveMessage', handleNewMessage);
+
+    return () => {
+      socket.off('receiveMessage', handleNewMessage);
+    };
+  }, [socket, isPersonalChat, chatPath, sessionId]);
 
 
   useEffect(() => {
@@ -354,14 +384,26 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }) => {
-    if (!assistant?.id || !assistant?.chatPath || !sessionId || assistant.id === 'ghost-id') {
+    if (!assistant?.chatPath || assistant.id === 'ghost-id') {
         if (assistant?.id === 'ghost-id') {
             toast({ title: 'Modo de Prueba', description: 'El envío de mensajes está deshabilitado para asistentes que no existen.' });
         }
         return;
     }
     
-    // Add image/audio responses here
+    if (isPersonalChat) {
+        if (socket && typeof messageContent === 'string') {
+            socket.emit('sendMessage', {
+                senderId: userProfile._id,
+                senderChatPath: userProfile.chatPath,
+                recipientChatPath: assistant.chatPath,
+                content: messageContent,
+            });
+        }
+        return; // Don't proceed to the rest of the function for personal chats
+    }
+
+    // Add image/audio responses here for non-personal chats
     if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'audio')) {
         const responseText = messageContent.type === 'image' 
             ? "Recibí tu imagen. Será verificada por el propietario y pronto te daré una respuesta."
@@ -386,14 +428,13 @@ const DesktopChatPage = () => {
             chatPath: assistant.chatPath,
         })
     }).then(response => {
-        // Only start polling for text messages if assistant is active or is a desktop assistant
-        if((assistant.isActive || assistant.type === 'desktop') && typeof messageContent === 'string') {
+        if (assistant.type === 'desktop' && typeof messageContent === 'string') {
             pollForResponse();
         }
     }).catch(err => {
         console.error("Error sending message to proxy:", err);
     });
-  }, [assistant?.id, assistant?.chatPath, assistant?.isActive, assistant?.type, sessionId, pollForResponse, toast]);
+  }, [assistant?.id, assistant?.chatPath, assistant?.type, sessionId, pollForResponse, toast, isPersonalChat, socket, userProfile]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
@@ -415,9 +456,10 @@ const DesktopChatPage = () => {
       setCurrentMessage('');
     }
 
-    if (assistant?.isActive || assistant?.type === 'desktop') {
-        setIsSending(true);
-        setAssistantStatusMessage('Escribiendo...');
+    // Don't show "Escribiendo..." for personal chats, as it's real-time
+    if (!isPersonalChat) {
+      setIsSending(true);
+      setAssistantStatusMessage('Escribiendo...');
     }
 
     sendMessageToServer(messageToSend);
@@ -654,11 +696,15 @@ const DesktopChatPage = () => {
                             </svg>
                         </Badge>
                     )}
-                    {assistant?.isActive && (
+                    {assistant?.isActive && assistant.type !== 'personal' && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                     )}
                 </div>
-                <p className="text-xs opacity-80">{assistant?.isActive || assistant?.type === 'desktop' ? (isSending ? assistantStatusMessage : 'en línea') : 'IA desactivada'}</p>
+                 <p className="text-xs opacity-80">{
+                    (assistant?.type === 'desktop' && assistant.isActive && isSending)
+                    ? assistantStatusMessage
+                    : 'en línea'
+                 }</p>
             </div>
              <div className="flex items-center gap-1">
                 {assistant?.type !== 'desktop' && assistant?.type !== 'whatsapp' && (
@@ -765,12 +811,12 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={(assistant?.isActive || assistant?.type === 'desktop') ? "Escribe un mensaje..." : "El asistente está desactivado"}
+                placeholder={assistant?.type === 'desktop' && !assistant.isActive ? "El asistente está desactivado" : "Escribe un mensaje..."}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={isSending}
+                disabled={isSending || (assistant?.type === 'desktop' && !assistant.isActive)}
             />
             <input
                 type="file"

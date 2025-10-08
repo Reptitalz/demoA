@@ -15,7 +15,7 @@ const SocketContext = createContext<ISocketContext>({ socket: null });
 
 export const useSocket = () => useContext(SocketContext);
 
-const SOCKET_SERVER_URL = "http://localhost:8080";
+const SOCKET_SERVER_URL = "https://heymanito-servidor.urzoqm.easypanel.host/";
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { state } = useApp();
@@ -29,8 +29,25 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (userProfile.isAuthenticated && userProfile._id) {
-      // Logic for websockets removed as calls are no longer supported.
-      // Keeping provider structure for potential future real-time features.
+        const newSocket = io(SOCKET_SERVER_URL, {
+            query: { userId: userProfile._id.toString() }
+        });
+        
+        setSocket(newSocket);
+
+        newSocket.on('connect', () => {
+            console.log('Connected to WebSocket server');
+            // Join a room based on user ID to receive direct messages
+            newSocket.emit('joinRoom', userProfile._id?.toString());
+        });
+
+        newSocket.on('disconnect', () => {
+            console.log('Disconnected from WebSocket server');
+        });
+
+        return () => {
+            newSocket.disconnect();
+        };
     }
   }, [userProfile.isAuthenticated, userProfile._id, toast]);
   

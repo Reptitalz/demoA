@@ -1,4 +1,3 @@
-
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -72,7 +71,7 @@ export interface AssistantTools {
 export interface AssistantConfig {
   id: string;
   name: string;
-  type: 'desktop' | 'whatsapp';
+  type: 'desktop' | 'whatsapp' | 'personal';
   prompt?: string;
   isActive: boolean;
   messageCount: number;
@@ -193,7 +192,7 @@ export interface UserProfile {
 export interface WizardState {
   currentStep: number;
   assistantName: string;
-  assistantType: 'desktop' | 'whatsapp' | null;
+  assistantType: 'desktop' | 'whatsapp' | 'personal' | null;
   assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {

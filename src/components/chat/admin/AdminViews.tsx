@@ -21,7 +21,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer } from '@/types';
+import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -1145,185 +1145,6 @@ export const ProductsView = () => {
     );
 };
 
-const CreateCatalogDialog = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChange: (open: boolean) => void }) => {
-    const { state, dispatch } = useApp();
-    const { toast } = useToast();
-    const [name, setName] = useState('');
-    const [promoterType, setPromoterType] = useState<'user' | 'bot'>('user');
-    const [promoterId, setPromoterId] = useState<string>('user');
-
-    const handleSubmit = () => {
-        if (!name.trim()) {
-            toast({ title: 'Nombre requerido', description: 'Por favor, dale un nombre a tu catálogo.', variant: 'destructive'});
-            return;
-        }
-
-        const newCatalog: Catalog = {
-            id: `cat_${Date.now()}`,
-            name,
-            promoterType,
-            promoterId: promoterType === 'user' ? state.userProfile._id!.toString() : promoterId,
-            products: []
-        };
-        
-        dispatch({ type: 'UPDATE_USER_PROFILE', payload: {
-            catalogs: [...(state.userProfile.catalogs || []), newCatalog]
-        }});
-
-        toast({ title: 'Catálogo Creado', description: `Se ha creado el catálogo "${name}".`});
-        onOpenChange(false);
-    }
-    
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Crear Nuevo Catálogo</DialogTitle>
-                    <DialogDescription>Crea una nueva colección para organizar tus productos.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="catalog-name">Nombre del Catálogo</Label>
-                        <Input id="catalog-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Productos de Verano" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>¿Quién promocionará este catálogo?</Label>
-                         <RadioGroup value={promoterType} onValueChange={(val: any) => { setPromoterType(val); setPromoterId(val === 'user' ? 'user' : ''); }} className="grid grid-cols-2 gap-2">
-                            <Label htmlFor="promoter-user" className={cn("p-4 border rounded-md text-center cursor-pointer", promoterType === 'user' && "bg-primary/10 border-primary")}>
-                                <RadioGroupItem value="user" id="promoter-user" className="sr-only"/>
-                                Yo mismo
-                            </Label>
-                             <Label htmlFor="promoter-bot" className={cn("p-4 border rounded-md text-center cursor-pointer", promoterType === 'bot' && "bg-primary/10 border-primary")}>
-                                <RadioGroupItem value="bot" id="promoter-bot" className="sr-only"/>
-                                Un Asistente
-                            </Label>
-                        </RadioGroup>
-                    </div>
-                    {promoterType === 'bot' && (
-                        <div className="space-y-2">
-                            <Label htmlFor="assistant-select">Selecciona el Asistente</Label>
-                            <Select onValueChange={setPromoterId} value={promoterId}>
-                                <SelectTrigger><SelectValue placeholder="Elige un asistente..." /></SelectTrigger>
-                                <SelectContent>
-                                    {state.userProfile.assistants.map(asst => (
-                                        <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-                </div>
-                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={handleSubmit}>Crear Catálogo</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-const AddProductDialog = ({ isOpen, onOpenChange, catalogId, productToEdit }: { isOpen: boolean, onOpenChange: (open: boolean) => void, catalogId: string, productToEdit: Product | null }) => {
-    const { dispatch } = useApp();
-    const { toast } = useToast();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const [name, setName] = useState('');
-    const [price, setPrice] = useState('');
-    const [description, setDescription] = useState('');
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            if (productToEdit) {
-                setName(productToEdit.name);
-                setPrice(productToEdit.price.toString());
-                setDescription(productToEdit.description || '');
-                setImageUrl(productToEdit.imageUrl || null);
-            } else {
-                // Reset form for new product
-                setName('');
-                setPrice('');
-                setDescription('');
-                setImageUrl(null);
-            }
-        }
-    }, [isOpen, productToEdit]);
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setImageUrl(reader.result as string);
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    const handleSubmit = () => {
-        if (!name.trim() || !price) {
-            toast({ title: "Campos requeridos", description: 'El nombre y el precio son obligatorios.', variant: 'destructive'});
-            return;
-        }
-
-        const productData: Product = {
-            id: productToEdit ? productToEdit.id : `prod_${Date.now()}`,
-            name,
-            price: parseFloat(price),
-            description,
-            imageUrl: imageUrl || undefined,
-        };
-        
-        const actionType = productToEdit ? 'UPDATE_PRODUCT_IN_CATALOG' : 'ADD_PRODUCT_TO_CATALOG';
-        dispatch({ type: actionType, payload: { catalogId, product: productData }});
-        
-        toast({ title: productToEdit ? 'Producto Actualizado' : 'Producto Añadido', description: `Se ha guardado "${name}".` });
-        onOpenChange(false);
-    }
-
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
-                 <DialogHeader>
-                    <DialogTitle>{productToEdit ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="aspect-video w-full border-2 border-dashed rounded-md flex items-center justify-center relative cursor-pointer bg-muted/50"
-                    >
-                        {imageUrl ? (
-                             <Image src={imageUrl} alt="Vista previa" layout="fill" objectFit="contain" className="rounded-md" />
-                        ) : (
-                            <div className="text-muted-foreground text-center">
-                                <ImageIcon className="mx-auto h-10 w-10"/>
-                                <p className="text-sm">Subir imagen</p>
-                            </div>
-                        )}
-                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="prod-name">Nombre del Producto</Label>
-                        <Input id="prod-name" value={name} onChange={e => setName(e.target.value)} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="prod-price">Precio</Label>
-                        <Input id="prod-price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="prod-desc">Descripción (Opcional)</Label>
-                        <Textarea id="prod-desc" value={description} onChange={e => setDescription(e.target.value)} />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button onClick={handleSubmit}>{productToEdit ? 'Guardar Cambios' : 'Añadir Producto'}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-
 export const AssistantsList = () => {
   const { state, dispatch } = useApp();
   const { userProfile } = state;
@@ -1341,16 +1162,15 @@ export const AssistantsList = () => {
   const [assistantToDelete, setAssistantToDelete] = useState<AssistantConfig | null>(null);
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
   
-  const assistantsToShow = useMemo(() => {
-    if (userProfile.isAuthenticated) {
-        return userProfile.assistants;
-    }
-    // In demo mode, show both created (in-memory) assistants and demo chats
-    return [...userProfile.assistants, ...demoAdminChats];
-  }, [userProfile.isAuthenticated, userProfile.assistants]);
+  const assistantsToShow: (AssistantConfig | UserProfile)[] = useMemo(() => {
+    // Show assistants and other user profiles as "chats"
+    const assistantChats = userProfile.assistants;
+    // In a real app, you'd fetch other users, for now we can just show assistants.
+    return assistantChats;
+  }, [userProfile.assistants]);
 
   const filteredChats = assistantsToShow.filter(chat =>
-    chat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    chat.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   const handleCreateAssistant = () => {
@@ -1449,11 +1269,12 @@ export const AssistantsList = () => {
           {filteredChats.length > 0 ? filteredChats.map((chat) => {
             const isLeftSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'left';
             const isRightSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'right';
+            const isAssistant = 'prompt' in chat;
 
             return (
               <div key={chat.id} className="relative rounded-lg overflow-hidden bg-muted/30">
                 <AnimatePresence>
-                    {isLeftSwiped && (
+                    {isLeftSwiped && isAssistant && (
                         <motion.div
                             key="actions-left"
                             initial={{ opacity: 0, x: 50 }}
@@ -1462,13 +1283,13 @@ export const AssistantsList = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
-                            <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none cursor-pointer" onClick={() => handleDeleteAssistant(chat)}>
+                            <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none cursor-pointer" onClick={() => handleDeleteAssistant(chat as AssistantConfig)}>
                                 <Trash2 size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
                             </div>
                         </motion.div>
                     )}
-                    {isRightSwiped && (
+                    {isRightSwiped && isAssistant && (
                          <motion.div
                             key="actions-right"
                             initial={{ opacity: 0, x: -50 }}
@@ -1502,7 +1323,7 @@ export const AssistantsList = () => {
                 </AnimatePresence>
                 <motion.div
                     drag="x"
-                    dragConstraints={{ left: -80, right: 288 }}
+                    dragConstraints={{ left: isAssistant ? -80 : 0, right: isAssistant ? 288 : 0 }}
                     onDragStart={(e) => {
                         e.stopPropagation();
                         dragOccurred.current = false;
@@ -1512,12 +1333,13 @@ export const AssistantsList = () => {
                         dragOccurred.current = true;
                     }}
                     onDragEnd={(event, info) => {
+                        if (!isAssistant) return;
                         const isSwipeLeft = info.offset.x < -60;
                         const isSwipeRight = info.offset.x > 60;
                         if (isSwipeLeft) {
-                            setActiveSwipe({ id: chat.id, direction: 'left' });
+                            setActiveSwipe({ id: chat.id!, direction: 'left' });
                         } else if (isSwipeRight) {
-                             setActiveSwipe({ id: chat.id, direction: 'right' });
+                             setActiveSwipe({ id: chat.id!, direction: 'right' });
                         } else {
                             setActiveSwipe(null);
                         }
@@ -1560,7 +1382,12 @@ export const AssistantsList = () => {
                             </motion.div>
                             <div className="flex-grow overflow-hidden">
                             <div className="flex items-center justify-between">
-                                    <p className="font-semibold truncate text-sm">{chat.name}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-semibold truncate text-sm">{chat.name}</p>
+                                        <div className="p-1 bg-muted rounded-full">
+                                            {isAssistant ? <Bot className="h-3 w-3 text-muted-foreground"/> : <User className="h-3 w-3 text-muted-foreground"/>}
+                                        </div>
+                                    </div>
                             </div>
                             <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5">
