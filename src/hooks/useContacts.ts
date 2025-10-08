@@ -23,10 +23,13 @@ export const useContacts = () => {
         console.error("Failed to load contacts from IndexedDB:", error);
       }
     };
-    loadContacts();
-  }, [dispatch]);
+    if (state.userProfile.isAuthenticated) {
+        loadContacts();
+    }
+  }, [dispatch, state.userProfile.isAuthenticated]);
 
   const addContact = useCallback(async (contact: Omit<Contact, 'id'>) => {
+    if (contact.isDemo) return;
     try {
       const db = await openDB();
       const tx = db.transaction(CONTACTS_STORE_NAME, 'readwrite');

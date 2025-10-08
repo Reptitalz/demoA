@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import AddChatDialog from '@/components/chat/AddChatDialog';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 // --- CHAT ITEM COMPONENT ---
 interface ChatItemProps {
@@ -86,13 +87,22 @@ export default function ChatListPage() {
   const [activeSwipe, setActiveSwipe] = useState<{ chatPath: string; direction: 'left' | 'right' } | null>(null);
   const dragOccurred = useRef(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
+  
+  const demoContact: Contact = {
+    chatPath: 'demo-chat',
+    name: 'Hey Manito! (Demo)',
+    imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
+    lastMessage: '¡Bienvenido! Haz clic para ver un ejemplo.',
+    isDemo: true,
+  };
 
-  const filteredChats = useMemo(() => {
-    if (!contacts) return [];
-    return contacts.filter(chat =>
+  const chatsToDisplay = useMemo(() => {
+    const allContacts = state.userProfile.isAuthenticated ? contacts : [demoContact];
+    if (!allContacts) return [];
+    return allContacts.filter(chat =>
         chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, contacts]);
+  }, [searchTerm, contacts, state.userProfile.isAuthenticated]);
 
   const handleAdminNav = (path: string) => {
     router.push(path);
@@ -100,16 +110,24 @@ export default function ChatListPage() {
 
   const handleConfirmDelete = () => {
     if (alertInfo?.type === 'delete') {
-      removeContact(alertInfo.contact.chatPath);
-      toast({ title: "Contacto Eliminado", description: `Se ha eliminado a ${alertInfo.contact.name}.` });
+      if (alertInfo.contact.isDemo) {
+        toast({ title: "Acción no permitida", description: "No se puede eliminar el chat de demostración." });
+      } else {
+        removeContact(alertInfo.contact.chatPath);
+        toast({ title: "Contacto Eliminado", description: `Se ha eliminado a ${alertInfo.contact.name}.` });
+      }
     }
     setAlertInfo(null);
   }
   
   const handleConfirmClear = () => {
      if (alertInfo?.type === 'clear') {
-      clearContactChat(alertInfo.contact.chatPath);
-      toast({ title: "Chat Limpiado", description: `La conversación con ${alertInfo.contact.name} ha sido limpiada.` });
+       if (alertInfo.contact.isDemo) {
+        toast({ title: "Acción no permitida", description: "No se puede limpiar el chat de demostración." });
+      } else {
+        clearContactChat(alertInfo.contact.chatPath);
+        toast({ title: "Chat Limpiado", description: `La conversación con ${alertInfo.contact.name} ha sido limpiada.` });
+      }
     }
     setAlertInfo(null);
   }
@@ -129,7 +147,7 @@ export default function ChatListPage() {
 
   return (
     <>
-    <div className="flex flex-col h-full bg-background dark:bg-gray-900 font-display pb-16">
+    <div className="flex flex-col h-full bg-background dark:bg-gray-900 font-display pb-16 md:pb-0">
         <header className="bg-background dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 px-4 pt-4 pb-3">
              <div className="flex items-center justify-between h-10">
                 <AnimatePresence initial={false}>
@@ -170,30 +188,32 @@ export default function ChatListPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
-            <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
+            {state.userProfile.isAuthenticated && (
+                <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1 text-center">
+                        {memberButtons.map(btn => (
+                            <MemberSectionButton
+                                key={btn.view}
+                                icon={btn.icon}
+                                label={btn.label}
+                                notificationCount={btn.notificationCount}
+                                onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
+                            />
+                        ))}
+                    </div>
+                    <div className="text-center mt-3">
+                            <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
+                            Plan actual: Gratuito
+                        </Button>
+                    </div>
                 </div>
-                <div className="grid grid-cols-4 gap-1 text-center">
-                    {memberButtons.map(btn => (
-                        <MemberSectionButton
-                            key={btn.view}
-                            icon={btn.icon}
-                            label={btn.label}
-                            notificationCount={btn.notificationCount}
-                            onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
-                        />
-                    ))}
-                </div>
-                <div className="text-center mt-3">
-                        <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
-                        Plan actual: Gratuito
-                    </Button>
-                </div>
-            </div>
+            )}
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
-                 {filteredChats.map((chat) => (
+                 {chatsToDisplay.map((chat) => (
                     <div key={chat.chatPath} className="relative bg-background dark:bg-gray-900 rounded-lg overflow-hidden">
                         <AnimatePresence>
                             {activeSwipe?.chatPath === chat.chatPath && (

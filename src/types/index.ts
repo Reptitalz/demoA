@@ -109,6 +109,18 @@ export interface CollaboratorBankInfo {
     clabe?: string;
 }
 
+export interface CreditOffer {
+  id: string;
+  amount: number;
+  interest: number; // e.g., 10 for 10%
+  term: number; // e.g. 12
+  termUnit: 'weeks' | 'fortnights' | 'months';
+  cardStyle: 'slate' | 'blue' | 'purple' | 'green' | 'custom-color' | 'custom-image';
+  customColor?: string;
+  cardImageUrl?: string;
+  assistantId: string; // The assistant that will offer this credit
+}
+
 export interface CollaboratorProfile {
   _id?: ObjectId;
   firebaseUid: string;
@@ -125,6 +137,22 @@ export interface CollaboratorProfile {
   bankInfo?: CollaboratorBankInfo;
 }
 
+export interface CreditLine {
+  id: string;
+  amount: number;
+  status: 'pending' | 'approved' | 'rejected' | 'active' | 'completed';
+  applicantIdentifier: string;
+  assistantId: string;
+  documents: {
+    ineFront: string; // Data URL
+    ineBack: string; // Data URL
+    proofOfAddress: string; // Data URL
+  };
+  paymentFrequency: 'weekly' | 'biweekly' | 'monthly';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Contact {
   chatPath: string;
   name: string;
@@ -132,6 +160,7 @@ export interface Contact {
   imageUrl?: string;
   lastMessage?: string;
   lastMessageTimestamp?: number;
+  isDemo?: boolean;
 }
 
 export interface UserProfile {
@@ -156,6 +185,8 @@ export interface UserProfile {
   ownerPhoneNumberForNotifications?: string;
   purchasedUnlimitedPlans?: number;
   accountType?: 'personal' | 'business';
+  creditLines?: CreditLine[];
+  creditOffers?: CreditOffer[];
 }
 
 export interface WizardState {
@@ -262,9 +293,11 @@ export interface AssistantWithMemory extends AssistantConfig {
 
 export interface ChatMessage {
   role: 'user' | 'model';
-  content: string | { type: 'image' | 'audio'; url: string };
+  content: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string };
   time: string;
+  id?: number;
 }
+
 
 export interface Conversation {
     _id: string;
