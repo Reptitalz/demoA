@@ -217,15 +217,20 @@ const DesktopChatPage = () => {
           .then(data => {
             if(!data.assistant) throw new Error('Asistente no encontrado.');
             setAssistant(data.assistant);
-            if (messages.length === 0) { // Only set initial message if chat is empty
-              const initialMessage = {
-                role: 'model' as const,
-                content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              };
-              setMessages([initialMessage]);
-              if (sid) saveMessageToDB(initialMessage, sid);
-            }
+            
+            // This logic needs to run after messages have been potentially loaded from DB
+            // Check if messages is still empty after the async DB load
+            getMessagesFromDB(sid!).then(currentMessages => {
+                if (currentMessages.length === 0) { 
+                    const initialMessage = {
+                        role: 'model' as const,
+                        content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setMessages([initialMessage]);
+                    if (sid) saveMessageToDB(initialMessage, sid);
+                }
+            });
           })
           .catch(err => {
               setError(err.message);
@@ -245,7 +250,7 @@ const DesktopChatPage = () => {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, [chatPath, setupSessionAndMessages, messages.length]); // Depend on messages.length to avoid re-running on every message state change
+  }, [chatPath, setupSessionAndMessages]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
