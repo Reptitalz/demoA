@@ -1,3 +1,4 @@
+
 // src/hooks/useContacts.ts
 "use client";
 
@@ -54,9 +55,10 @@ export const useContacts = () => {
       const session = await sessionsStore.get(chatPath);
       if (session) {
           const allMessages = await messagesStore.getAll();
-          const messagesToDelete = allMessages.filter(msg => msg.sessionId === session.sessionId);
-          for (const msg of messagesToDelete) {
-            await messagesStore.delete(msg.id); // Assuming 'id' is the primary key
+          for (const msg of allMessages) {
+              if (msg.sessionId === session.sessionId) {
+                  messagesStore.delete(msg.id);
+              }
           }
           await sessionsStore.delete(chatPath);
       }
@@ -87,7 +89,9 @@ export const useContacts = () => {
             const messagesToDelete = allMessages.filter(msg => msg.sessionId === sessionId);
 
             for (const msg of messagesToDelete) {
-              await messagesStore.delete(msg.id); // Assuming 'id' is the primary key
+              if (msg.id) {
+                await messagesStore.delete(msg.id);
+              }
             }
 
             await messagesTx.done;
