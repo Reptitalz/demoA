@@ -198,10 +198,13 @@ export default function ChatListPage() {
       toast({ title: `Info de: ${contact.name}`, description: `El chat ocupa aproximadamente ${formatBytes(contact.conversationSize)}.` });
   }
 
+  const botsCount = state.userProfile.assistants?.length || 0;
+  const productsCount = state.userProfile.catalogs?.reduce((sum, cat) => sum + cat.products.length, 0) || 0;
+
   const memberButtons = [
     { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: authorizationsCount },
-    { icon: Bot, label: "Bots", view: 'bots', notificationCount: 0 },
-    { icon: Package, label: "Productos", view: 'products', notificationCount: 0 },
+    { icon: Bot, label: "Bots", view: 'bots', notificationCount: botsCount },
+    { icon: Package, label: "Productos", view: 'products', notificationCount: productsCount },
     { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: creditsCount },
   ];
 
