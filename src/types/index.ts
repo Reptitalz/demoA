@@ -1,3 +1,4 @@
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -156,11 +157,12 @@ export interface CreditLine {
 export interface Contact {
   chatPath: string;
   name: string;
-  id?: string;
   imageUrl?: string;
   lastMessage?: string;
   lastMessageTimestamp?: number;
   isDemo?: boolean;
+  conversationSize: number;
+  images?: ContactImage[];
 }
 
 export interface UserProfile {
@@ -179,7 +181,6 @@ export interface UserProfile {
   databases: DatabaseConfig[];
   catalogs?: Catalog[];
   contacts?: Contact[]; // User's saved contacts
-  credits: number;
   pushSubscriptions?: any[];
   referredBy?: string; // Link to CollaboratorProfile referral code
   ownerPhoneNumberForNotifications?: string;

@@ -4,8 +4,14 @@
 
 import { useEffect, useCallback } from 'react';
 import { useApp } from '@/providers/AppProvider';
-import { Contact } from '@/types';
+import { Contact, ChatMessage } from '@/types';
 import { openDB, CONTACTS_STORE_NAME, SESSIONS_STORE_NAME, MESSAGES_STORE_NAME } from '@/lib/db';
+
+interface StoredMessage extends ChatMessage {
+    id?: number; // keyPath is 'id', so it will be present
+    sessionId: string;
+}
+
 
 export const useContacts = () => {
   const { state, dispatch } = useApp();
@@ -46,55 +52,54 @@ export const useContacts = () => {
   const removeContact = useCallback(async (chatPath: string) => {
     try {
       const db = await openDB();
-      const tx = db.transaction([CONTACTS_STORE_NAME, SESSIONS_STORE_NAME, MESSAGES_STORE_NAME], 'readwrite');
-      const contactsStore = tx.objectStore(CONTACTS_STORE_NAME);
-      const sessionsStore = tx.objectStore(SESSIONS_STORE_NAME);
-      const messagesStore = tx.objectStore(MESSAGES_STORE_NAME);
+      const session = await db.get(SESSIONS_STORE_NAME, chatPath);
+      const sessionId = session?.sessionId;
       
-      // Get session to delete messages
-      const session = await sessionsStore.get(chatPath);
-      if (session) {
-          const allMessages = await messagesStore.getAll();
-          for (const msg of allMessages) {
-              if (msg.sessionId === session.sessionId) {
-                  messagesStore.delete(msg.id);
-              }
+      const tx = db.transaction([CONTACTS_STORE_NAME, SESSIONS_STORE_NAME, MESSAGES_STORE_NAME], 'readwrite');
+      
+      // 1. Delete messages if session existed
+      if (sessionId) {
+          const msgStore = tx.objectStore(MESSAGES_STORE_NAME);
+          const msgIndex = msgStore.index('by_sessionId');
+          let cursor = await msgIndex.openCursor(sessionId);
+          while(cursor) {
+              await cursor.delete();
+              cursor = await cursor.continue();
           }
-          await sessionsStore.delete(chatPath);
       }
+      
+      // 2. Delete session
+      await tx.objectStore(SESSIONS_STORE_NAME).delete(chatPath);
+      
+      // 3. Delete contact
+      await tx.objectStore(CONTACTS_STORE_NAME).delete(chatPath);
 
-      await contactsStore.delete(chatPath);
       await tx.done;
 
       dispatch({ type: 'SET_CONTACTS', payload: contacts.filter(c => c.chatPath !== chatPath) });
 
     } catch (error) {
-      console.error("Failed to remove contact from IndexedDB:", error);
+      console.error("Failed to remove contact and related data from IndexedDB:", error);
     }
   }, [dispatch, contacts]);
 
   const clearContactChat = useCallback(async (chatPath: string) => {
      try {
         const db = await openDB();
-        const sessionTx = db.transaction(SESSIONS_STORE_NAME, 'readonly');
-        const sessionStore = sessionTx.objectStore(SESSIONS_STORE_NAME);
-        const sessionReq = await sessionStore.get(chatPath);
-        
-        if (sessionReq && sessionReq.sessionId) {
-            const sessionId = sessionReq.sessionId;
-            const messagesTx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
-            const messagesStore = messagesTx.objectStore(MESSAGES_STORE_NAME);
+        const session = await db.get(SESSIONS_STORE_NAME, chatPath);
+
+        if (session?.sessionId) {
+            const sessionId = session.sessionId;
+            const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(MESSAGES_STORE_NAME);
+            const index = store.index('by_sessionId');
+            let cursor = await index.openCursor(sessionId);
             
-            const allMessages = await messagesStore.getAll();
-            const messagesToDelete = allMessages.filter(msg => msg.sessionId === sessionId);
-
-            for (const msg of messagesToDelete) {
-              if (msg.id) {
-                await messagesStore.delete(msg.id);
-              }
+            while(cursor) {
+                await cursor.delete();
+                cursor = await cursor.continue();
             }
-
-            await messagesTx.done;
+            await tx.done;
         }
 
     } catch (error: any) {

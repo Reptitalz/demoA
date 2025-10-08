@@ -1,3 +1,4 @@
+
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -98,18 +99,18 @@ export default function ChatListPage() {
 
   const chatsToDisplay = useMemo(() => {
     const allContacts = state.userProfile.isAuthenticated ? contacts : [demoContact];
-    if (!allContacts) return [];
+    if (!allContacts) return [demoContact];
     return allContacts.filter(chat =>
         chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, contacts, state.userProfile.isAuthenticated]);
+  }, [searchTerm, contacts, state.userProfile.isAuthenticated, demoContact]);
 
   const handleAdminNav = (path: string) => {
     router.push(path);
   }
 
   const handleConfirmDelete = () => {
-    if (alertInfo?.type === 'delete') {
+    if (alertInfo?.type === 'delete' && alertInfo.contact) {
       if (alertInfo.contact.isDemo) {
         toast({ title: "Acción no permitida", description: "No se puede eliminar el chat de demostración." });
       } else {
@@ -121,7 +122,7 @@ export default function ChatListPage() {
   }
   
   const handleConfirmClear = () => {
-     if (alertInfo?.type === 'clear') {
+     if (alertInfo?.type === 'clear' && alertInfo.contact) {
        if (alertInfo.contact.isDemo) {
         toast({ title: "Acción no permitida", description: "No se puede limpiar el chat de demostración." });
       } else {
