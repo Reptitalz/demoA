@@ -236,14 +236,14 @@ export const BankView = () => {
                 getAllMessagesFromDB(),
                 getAllAuthorizedPayments()
             ]);
-
+            
             const pending = pendingMessages
                 .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type))
-                .map((msg) => {
-                    const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath))
+                .map((msg, index) => {
+                    const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath));
                     const content = msg.content as { type: string, url: string, name?: string };
                     return {
-                        id: `pending-${msg.id}`,
+                        id: `pending-${msg.id || index}`,
                         messageId: msg.id,
                         product: `Comprobante (${content.type})`,
                         fileName: content.name,
@@ -252,7 +252,7 @@ export const BankView = () => {
                         chatPath: msg.sessionId,
                         amount: 0.00,
                         receiptUrl: content.url,
-                        receivedAt: msg.time,
+                        receivedAt: msg.time, // Assuming ChatMessage has a 'time' property
                         status: 'pending',
                     };
                 });
@@ -298,16 +298,18 @@ export const BankView = () => {
             const authorizedPayment = { ...paymentToProcess, status: 'completed', amount: amount, authorizedAt: new Date() };
             try {
                 await authorizePaymentInDB(authorizedPayment);
-                setAllPayments(prev => prev.map(p => p.id === paymentToProcess.id ? authorizedPayment : p).filter(p => p.id !== paymentToProcess.id || p.status === 'completed'));
-                 toast({ title: "Acción Realizada", description: "El comprobante ha sido autorizado."});
+                toast({ title: "Acción Realizada", description: "El comprobante ha sido autorizado."});
+                // Refetch all data to ensure UI is up to date
+                fetchPayments();
             } catch (error) {
                 toast({ title: "Error", description: "No se pudo guardar la autorización.", variant: "destructive" });
             }
         } else if (action === 'reject') {
             try {
                 await rejectPaymentInDB(messageId);
-                setAllPayments(prev => prev.filter(p => p.messageId !== messageId));
                 toast({ title: "Acción Realizada", description: "El comprobante ha sido rechazado y eliminado."});
+                 // Refetch all data to ensure UI is up to date
+                fetchPayments();
             } catch (error) {
                  toast({ title: "Error", description: "No se pudo eliminar el comprobante.", variant: "destructive" });
             }
@@ -1163,9 +1165,7 @@ export const AssistantsList = () => {
   const [selectedAssistant, setSelectedAssistant] = useState<any | null>(null);
   
   const assistantsToShow: (AssistantConfig | UserProfile)[] = useMemo(() => {
-    // Show assistants and other user profiles as "chats"
     const assistantChats = userProfile.assistants;
-    // In a real app, you'd fetch other users, for now we can just show assistants.
     return assistantChats;
   }, [userProfile.assistants]);
 
