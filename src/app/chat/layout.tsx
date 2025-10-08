@@ -13,11 +13,13 @@ import { usePathname } from 'next/navigation';
 export default function ChatDashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  // If we are on a call page, don't use the ChatLayout, just render the children directly
+  // Si estamos en una página de llamada activa, renderizamos solo el contenido de la llamada
+  // sin el ChatLayout (que incluye la barra de navegación).
   if (pathname.startsWith('/chat/call/')) {
     return <>{children}</>;
   }
 
+  // Para todas las demás rutas dentro de /chat, usamos el layout principal con la barra de navegación.
   return (
     <Suspense fallback={
       <div className="h-full w-screen flex items-center justify-center bg-transparent">
