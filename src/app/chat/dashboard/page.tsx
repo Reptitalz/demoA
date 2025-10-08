@@ -1,4 +1,3 @@
-
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -9,7 +8,7 @@ import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign,
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
-import type { AssistantConfig, Contact } from '@/types';
+import type { AssistantConfig, Contact, CreditLine } from '@/types';
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
@@ -31,6 +30,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
+import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/lib/db';
+
+interface StoredMessage {
+    id?: number; 
+    role: 'user' | 'model';
+    content: any;
+}
+
 
 // --- CHAT ITEM COMPONENT ---
 interface ChatItemProps {
@@ -89,12 +96,46 @@ export default function ChatListPage() {
   const dragOccurred = useRef(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
   
+  const [authorizationsCount, setAuthorizationsCount] = useState(0);
+  const [creditsCount, setCreditsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotificationCounts = async () => {
+        try {
+            const db = await openDB();
+            
+            // Count pending authorizations (image/video/audio messages)
+            const pendingTx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
+            const pendingStore = pendingTx.objectStore(MESSAGES_STORE_NAME);
+            const allMessages: StoredMessage[] = await pendingStore.getAll();
+            const pendingAuthorizations = allMessages.filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type));
+            setAuthorizationsCount(pendingAuthorizations.length);
+
+            // Count pending credit applications
+            if (state.userProfile.creditLines) {
+              const pendingCredits = state.userProfile.creditLines.filter(cl => cl.status === 'pending');
+              setCreditsCount(pendingCredits.length);
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch notification counts from IndexedDB:", error);
+        }
+    };
+
+    // Fetch counts when the component mounts and user is authenticated
+    if (state.userProfile.isAuthenticated) {
+        fetchNotificationCounts();
+    }
+  }, [state.userProfile.isAuthenticated, state.userProfile.creditLines]);
+
+
   const demoContact: Contact = {
     chatPath: 'demo-chat',
     name: 'Hey Manito! (Demo)',
     imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
     lastMessage: '¡Bienvenido! Haz clic para ver un ejemplo.',
     isDemo: true,
+    conversationSize: 0,
   };
 
   const chatsToDisplay = useMemo(() => {
@@ -134,16 +175,14 @@ export default function ChatListPage() {
   }
   
   const showMemoryInfo = (contact: Contact) => {
-      // In a real app, you would calculate this more accurately.
-      const estimatedSize = contact.lastMessage?.length || 0 * 50; 
-      toast({ title: `Info de: ${contact.name}`, description: `El chat ocupa aproximadamente ${formatBytes(estimatedSize)}.` });
+      toast({ title: `Info de: ${contact.name}`, description: `El chat ocupa aproximadamente ${formatBytes(contact.conversationSize)}.` });
   }
 
   const memberButtons = [
-    { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: 0 },
+    { icon: CheckSquare, label: "Autorizaciones", view: 'bank', notificationCount: authorizationsCount },
     { icon: Bot, label: "Bots", view: 'bots', notificationCount: 0 },
     { icon: Package, label: "Productos", view: 'products', notificationCount: 0 },
-    { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: 0 },
+    { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: creditsCount },
   ];
 
   return (
