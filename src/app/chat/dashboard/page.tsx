@@ -114,7 +114,7 @@ const MemberSectionButton = ({ icon: Icon, label, notificationCount, onClick }: 
                 <Icon className="h-5 w-5 text-primary" />
                 <span className="text-[10px] font-medium leading-tight">{label}</span>
             </div>
-            {notificationCount && notificationCount > 0 && (
+            {(notificationCount || 0) > 0 && (
                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-background">
                     {notificationCount > 9 ? '9+' : notificationCount}
                 </div>
