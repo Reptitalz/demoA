@@ -9,6 +9,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
 import NextAuthSessionProvider from '@/providers/SessionProvider';
+import { SocketProvider } from '@/providers/SocketProvider';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -154,9 +155,11 @@ export default function RootLayout({
               forcedTheme="light"
             >
             <AppProvider>
+              <SocketProvider>
                 <AppLayout>
-                {children}
+                  {children}
                 </AppLayout>
+              </SocketProvider>
             </AppProvider>
             </ThemeProvider>
         </NextAuthSessionProvider>
