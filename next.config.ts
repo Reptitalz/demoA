@@ -18,7 +18,7 @@ const securityHeaders = [
   },
   {
     key: 'Content-Security-Policy',
-    value: "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';",
+    value: "frame-src 'self' https://*.mercadopago.com;",
   },
   // CORS Headers
   {
@@ -55,6 +55,9 @@ const nextConfig = {
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    LIVEKIT_URL: process.env.LIVEKIT_URL,
+    LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY,
+    LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -79,12 +82,6 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'i.imgur.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'maps.googleapis.com',
         port: '',
         pathname: '/**',
       }

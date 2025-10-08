@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -6,6 +7,16 @@ import { useApp } from './AppProvider';
 import { useToast } from '@/hooks/use-toast';
 import IncomingCallDialog from '@/components/chat/IncomingCallDialog';
 import { useRouter } from 'next/navigation';
+
+// --- This is a conceptual addition. You need a way to access the io instance on the server.
+// This is non-trivial in a serverless environment like Next.js API routes.
+// A common pattern is to expose it via a global or a custom server setup.
+// For this example, we'll assume getIo() is a placeholder for that logic.
+let ioInstance: any = null;
+export const setIo = (io: any) => { ioInstance = io; }
+export const getIo = () => ioInstance;
+// --- End of conceptual addition ---
+
 
 interface ISocketContext {
   socket: Socket | null;
@@ -24,7 +35,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [socket, setSocket] = useState<Socket | null>(null);
   
-  // State for incoming call
   const [incomingCall, setIncomingCall] = useState<{ roomName: string; callerId: string; callerInfo: any } | null>(null);
 
   useEffect(() => {
@@ -37,8 +47,20 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
         newSocket.on('connect', () => {
             console.log('Connected to WebSocket server');
-            // Join a room based on user ID to receive direct messages
             newSocket.emit('joinRoom', userProfile._id?.toString());
+        });
+
+        // Listen for incoming calls
+        newSocket.on('incomingCall', (data) => {
+            setIncomingCall(data);
+        });
+
+        // Listen for when the call is rejected by the other user
+        newSocket.on('callRejected', ({ callerId }) => {
+            if(userProfile._id?.toString() === callerId) {
+                toast({ title: "Llamada Rechazada", description: "El usuario ha rechazado la llamada." });
+                // Here you would add logic to close the "calling" UI for the caller
+            }
         });
 
         newSocket.on('disconnect', () => {
