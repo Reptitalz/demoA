@@ -132,10 +132,9 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
 };
 
 const DesktopChatPage = () => {
-  const params = useParams();
+  const { chatPath } = useParams() as { chatPath: string };
   const { state } = useApp();
   const { toast } = useToast();
-  const chatPath = params.chatPath as string;
   const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
