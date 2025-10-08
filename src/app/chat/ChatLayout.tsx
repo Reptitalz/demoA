@@ -32,40 +32,47 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   // Swipe navigation logic
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchEndY = useRef(0);
   const swipeHandled = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
+    touchStartY.current = e.targetTouches[0].clientY;
     swipeHandled.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.targetTouches[0].clientX;
+    touchEndY.current = e.targetTouches[0].clientY;
   };
 
   const handleTouchEnd = () => {
     if (swipeHandled.current) return;
-    
-    const deltaX = touchEndX.current - touchStartX.current;
-    
-    if (Math.abs(deltaX) > 75) { // Swipe threshold
-        const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
-        if (currentIndex === -1) return;
 
-        swipeHandled.current = true;
-        if (deltaX < 0) { // Swiped left
-            const nextIndex = Math.min(currentIndex + 1, menuItems.length - 1);
-            if (nextIndex !== currentIndex) {
-                handleRouteChange(menuItems[nextIndex].path);
-            }
-        } else { // Swiped right
-            const prevIndex = Math.max(currentIndex - 1, 0);
-             if (prevIndex !== currentIndex) {
-                handleRouteChange(menuItems[prevIndex].path);
-            }
+    const deltaX = touchEndX.current - touchStartX.current;
+    const deltaY = touchEndY.current - touchStartY.current;
+
+    // Only trigger swipe if it's mostly horizontal and exceeds the threshold
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) {
+      const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
+      if (currentIndex === -1) return;
+
+      swipeHandled.current = true;
+      if (deltaX < -100) { // Swiped left
+        const nextIndex = Math.min(currentIndex + 1, menuItems.length - 1);
+        if (nextIndex !== currentIndex) {
+          handleRouteChange(menuItems[nextIndex].path);
         }
+      } else if (deltaX > 100) { // Swiped right
+        const prevIndex = Math.max(currentIndex - 1, 0);
+        if (prevIndex !== currentIndex) {
+          handleRouteChange(menuItems[prevIndex].path);
+        }
+      }
     }
   };
+
 
   return (
     <>
