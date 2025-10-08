@@ -55,6 +55,7 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
             const store = db.createObjectStore(MESSAGES_STORE_NAME, { keyPath: 'id', autoIncrement: true });
             store.createIndex('by_sessionId', 'sessionId');
           } else {
+            // Ensure index exists if store was already there
             const store = transaction.objectStore(MESSAGES_STORE_NAME);
              if (!store.indexNames.contains('by_sessionId')) {
                 store.createIndex('by_sessionId', 'sessionId');
@@ -70,6 +71,10 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
       if (oldVersion < 3) {
         if (!db.objectStoreNames.contains(AUTHORIZED_PAYMENTS_STORE_NAME)) {
           db.createObjectStore(AUTHORIZED_PAYMENTS_STORE_NAME, { keyPath: 'id' });
+        }
+        // Also check for SESSIONS_STORE_NAME again in case of a complex upgrade path
+        if (!db.objectStoreNames.contains(SESSIONS_STORE_NAME)) {
+          db.createObjectStore(SESSIONS_STORE_NAME, { keyPath: 'chatPath' });
         }
       }
     },
