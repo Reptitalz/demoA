@@ -176,11 +176,9 @@ const DesktopChatPage = () => {
     setSessionId(sid);
     
     const storedMessages = await getMessagesFromDB(sid);
-    if (storedMessages.length > 0) {
-      setMessages(storedMessages);
-    }
+    setMessages(storedMessages);
      // Return session ID for chaining
-    return sid;
+    return { sid, storedMessages };
   }, [chatPath]);
 
 
@@ -188,12 +186,14 @@ const DesktopChatPage = () => {
     if (chatPath) {
       setIsLoading(true);
       
-      setupSessionAndMessages().then(sid => {
-        if (!sid) {
+      setupSessionAndMessages().then(sessionData => {
+        if (!sessionData?.sid) {
             setIsLoading(false);
             setError("No se pudo iniciar una sesión de chat.");
             return;
         }
+
+        const { sid, storedMessages } = sessionData;
 
         fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`)
           .then(res => {
@@ -206,17 +206,15 @@ const DesktopChatPage = () => {
             if(!data.assistant) throw new Error('Asistente no encontrado.');
             setAssistant(data.assistant);
             
-            getMessagesFromDB(sid).then(currentMessages => {
-                if (currentMessages.length === 0) { 
-                    const initialMessage = {
-                        role: 'model' as const,
-                        content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    };
-                    setMessages([initialMessage]);
-                    saveMessageToDB(initialMessage, sid);
-                }
-            });
+            if (storedMessages.length === 0) { 
+                const initialMessage = {
+                    role: 'model' as const,
+                    content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                setMessages([initialMessage]);
+                saveMessageToDB(initialMessage, sid);
+            }
           })
           .catch(err => {
               setError(err.message);
