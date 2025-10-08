@@ -272,7 +272,16 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
                     <UserPlus className="h-8 w-8 text-primary"/>
                     <div>
                         <h4 className="font-semibold">Agregar un Contacto</h4>
-                        <p className="text-sm text-muted-foreground">Añade a alguien usando su ID de chat o escaneando su QR.</p>
+                        <p className="text-sm text-muted-foreground">Añade a alguien usando su ID de chat.</p>
+                    </div>
+                </CardContent>
+             </Card>
+             <Card onClick={() => setMode('scan')} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardContent className="p-4 flex items-center gap-4">
+                    <Camera className="h-8 w-8 text-primary"/>
+                    <div>
+                        <h4 className="font-semibold">Escanear Código QR</h4>
+                        <p className="text-sm text-muted-foreground">Usa tu cámara para agregar un contacto rápidamente.</p>
                     </div>
                 </CardContent>
              </Card>
