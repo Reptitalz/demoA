@@ -118,13 +118,13 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
         const newAssistant: AssistantConfig = {
             id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             name: assistantName,
-            type: 'whatsapp',
+            type: 'desktop', // This will now be a desktop assistant
             prompt: selectedRole.prompt,
             purposes: [],
-            isActive: false, 
-            numberReady: false,
+            isActive: true, // Active by default for desktop type
+            numberReady: true, // Ready by default for desktop type
             messageCount: 0,
-            monthlyMessageLimit: 0,
+            monthlyMessageLimit: 100, // Total message limit of 100
             imageUrl: imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
             chatPath: generateChatPath(assistantName),
         };
@@ -133,7 +133,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 
         toast({
             title: "¡Asistente Creado!",
-            description: `Tu nuevo asistente de WhatsApp "${assistantName}" está listo para configurarse.`,
+            description: `Tu nuevo asistente de escritorio "${assistantName}" está listo para usarse.`,
         });
 
         setIsProcessing(false);
@@ -269,7 +269,7 @@ const CreateAssistantDialog = ({ isOpen, onOpenChange }: CreateAssistantDialogPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                  <DialogHeader className="p-4 border-b">
                     <DialogTitle className="flex items-center gap-2">
                        <FaRobot/> Crear Nuevo Asistente
