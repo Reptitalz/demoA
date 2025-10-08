@@ -109,9 +109,8 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
   const [verifiedContact, setVerifiedContact] = useState<AssistantConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const userShareLink = userProfile.chatPath ? `${window.location.origin}/chat/conversation/${userProfile.chatPath}` : '';
-  const qrCodeUrl = userShareLink ? `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(userShareLink)}&size=200x200&bgcolor=f0f5ff` : '';
-
+  const [userShareLink, setUserShareLink] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -122,6 +121,14 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
       setMode('options');
     }
   }, [isOpen, initialChatPath]);
+
+  useEffect(() => {
+    if (mode === 'share' && userProfile.chatPath) {
+      const link = `${window.location.origin}/chat/conversation/${userProfile.chatPath}`;
+      setUserShareLink(link);
+      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(link)}&size=200x200&bgcolor=f0f5ff`);
+    }
+  }, [mode, userProfile.chatPath]);
 
   const handleAddAndChat = async () => {
     if (!verifiedContact) {
@@ -183,13 +190,23 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
   }, [state.userProfile.chatPath, contacts]);
   
   const handleScanSuccess = (data: string) => {
-    const url = new URL(data);
-    const path = url.pathname.split('/').pop();
-    if (path) {
-        setChatPath(path);
-        setMode('add');
-    } else {
-        toast({ title: "Código QR Inválido", description: "El código no contiene un enlace de perfil válido.", variant: "destructive" });
+    try {
+        const url = new URL(data);
+        const path = url.pathname.split('/').pop();
+        if (path) {
+            setChatPath(path);
+            setMode('add');
+        } else {
+            toast({ title: "Código QR Inválido", description: "El código no contiene un enlace de perfil válido.", variant: "destructive" });
+        }
+    } catch (e) {
+        // If data is not a full URL, maybe it's just the chatPath
+        if (typeof data === 'string' && data.length > 5) {
+            setChatPath(data);
+            setMode('add');
+        } else {
+            toast({ title: "Código QR Inválido", description: "El contenido del código no es reconocible.", variant: "destructive" });
+        }
     }
   }
 
@@ -203,11 +220,13 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
   }, [chatPath, handleVerifyChatPath, mode]);
 
   const handleCopyLink = () => {
+    if (!userShareLink) return;
     navigator.clipboard.writeText(userShareLink);
     toast({ title: 'Enlace Copiado', description: 'Tu enlace de chat ha sido copiado.' });
   }
 
   const handleShare = async () => {
+      if (!userShareLink) return;
       if (navigator.share) {
           try {
               await navigator.share({
