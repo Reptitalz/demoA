@@ -111,6 +111,7 @@ const demoAdminChats: AssistantConfig[] = [
         messageCount: 0,
         monthlyMessageLimit: 0,
         purposes: [],
+        chatPath: 'demo-asistente-1',
     },
     {
         id: 'user-2',
@@ -120,6 +121,7 @@ const demoAdminChats: AssistantConfig[] = [
         messageCount: 0,
         monthlyMessageLimit: 0,
         purposes: [],
+        chatPath: 'demo-asistente-2',
     },
 ];
 
@@ -1526,8 +1528,15 @@ export const AssistantsList = () => {
                         if (dragOccurred.current) {
                             return;
                         }
-                        setActiveSwipe(null);
-                        handleBusinessInfoEdit(chat);
+                        if (chat.chatPath) {
+                            router.push(`/chat/conversation/${chat.chatPath}`);
+                        } else {
+                            toast({
+                                title: "Chat no disponible",
+                                description: "Este asistente aún no tiene una página de chat asignada.",
+                                variant: "default"
+                            });
+                        }
                     }}
                     animate={{ 
                         x: isLeftSwiped ? -80 : isRightSwiped ? 288 : 0 
