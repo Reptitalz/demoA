@@ -22,8 +22,9 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
 
-  const isCallView = pathname.startsWith('/chat/call/');
-  const isBaseChatView = !isCallView && (menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin');
+  // This logic now determines which views get the bottom navbar.
+  // We want it on all base views, including the list of calls.
+  const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
   const handleRouteChange = React.useCallback((newPath: string) => {
     if (pathname === newPath) return;
@@ -35,14 +36,14 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       <div className="h-[100svh] w-screen flex flex-col md:flex-row bg-transparent overflow-hidden">
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
-          {isBaseChatView && <ChatSidebar onNavigate={handleRouteChange} />}
+          {showNavBar && <ChatSidebar onNavigate={handleRouteChange} />}
         </div>
 
         <main 
             className={cn(
               "flex-grow relative",
-              "pb-16 md:pb-0", // Padding for main nav bar on mobile, none on desktop
-              isCallView && "pb-0" // No padding on call view for mobile
+              // Add padding-bottom only if the nav bar is visible on mobile
+              showNavBar && "pb-16 md:pb-0"
             )}
         >
           {children}
@@ -50,7 +51,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
         
         {/* Mobile Bottom NavBar */}
         <div className="md:hidden">
-          {isBaseChatView && <ChatNavBar onNavigate={handleRouteChange} onAddChat={() => setIsAddChatDialogOpen(true)} />}
+          {showNavBar && <ChatNavBar onNavigate={handleRouteChange} onAddChat={() => setIsAddChatDialogOpen(true)} />}
         </div>
       </div>
       <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
