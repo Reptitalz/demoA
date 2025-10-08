@@ -26,7 +26,7 @@ import { openDB } from '@/lib/db';
 
 
 const DB_NAME = 'HeyManitoChatDB';
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 const MESSAGES_STORE_NAME = 'messages';
 const SESSION_STORE_NAME = 'session';
 
@@ -165,19 +165,23 @@ const DesktopChatPage = () => {
 
 
   const setupSessionAndMessages = useCallback(async () => {
-    if (!chatPath) return;
-
-    let sid = await getSessionIdFromDB(chatPath);
-    if (!sid) {
-      sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      await setSessionIdInDB(chatPath, sid);
+    if (!chatPath) return null;
+    try {
+        let sid = await getSessionIdFromDB(chatPath);
+        if (!sid) {
+            sid = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            await setSessionIdInDB(chatPath, sid);
+        }
+        setSessionId(sid);
+        
+        const storedMessages = await getMessagesFromDB(sid);
+        setMessages(storedMessages);
+        return { sid, storedMessages };
+    } catch(err) {
+        console.error("Error setting up session:", err);
+        setError("Error al iniciar la base de datos del chat. Por favor, intenta recargar la página.");
+        return null;
     }
-    setSessionId(sid);
-    
-    const storedMessages = await getMessagesFromDB(sid);
-    setMessages(storedMessages);
-     // Return session ID for chaining
-    return { sid, storedMessages };
   }, [chatPath]);
 
 
