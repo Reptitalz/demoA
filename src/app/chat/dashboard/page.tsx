@@ -45,7 +45,7 @@ interface StoredMessage {
 // --- CHAT ITEM COMPONENT ---
 interface ChatItemProps {
   chat: Contact;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   userProfile: UserProfile; // Pass the userProfile to determine badges
 }
 
@@ -331,18 +331,18 @@ export default function ChatListPage() {
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                     className="absolute inset-y-0 right-0 flex items-center bg-gray-100 dark:bg-slate-800"
                                 >
-                                     <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none cursor-pointer" onClick={() => showMemoryInfo(chat)}>
+                                     <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={() => showMemoryInfo(chat)}>
                                         <HardDrive size={20}/>
                                         <span className="text-xs mt-1">Info</span>
-                                    </div>
-                                    <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-yellow-500/20 hover:bg-yellow-500/30 rounded-none cursor-pointer" onClick={() => setAlertInfo({type: 'clear', contact: chat})}>
+                                    </Button>
+                                    <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-yellow-500/20 hover:bg-yellow-500/30 rounded-none" onClick={() => setAlertInfo({type: 'clear', contact: chat})}>
                                         <XCircle size={20}/>
                                         <span className="text-xs mt-1">Limpiar</span>
-                                    </div>
-                                    <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none cursor-pointer" onClick={() => setAlertInfo({type: 'delete', contact: chat})}>
+                                    </Button>
+                                    <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={() => setAlertInfo({type: 'delete', contact: chat})}>
                                         <Trash2 size={20}/>
                                         <span className="text-xs mt-1">Borrar</span>
-                                    </div>
+                                    </Button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -360,15 +360,14 @@ export default function ChatListPage() {
                                 }
                             }}
                             onClick={(e) => {
-                                if (dragOccurred.current) { e.stopPropagation(); return; }
-                                setActiveSwipe(null);
+                                if (dragOccurred.current || activeSwipe) { e.stopPropagation(); return; }
                                 router.push(`/chat/conversation/${chat.chatPath}`);
                             }}
                             animate={{ x: activeSwipe?.chatPath === chat.chatPath ? -240 : 0 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
                         >
-                            <ChatItem chat={chat} onClick={() => {}} userProfile={state.userProfile} />
+                            <ChatItem chat={chat} onClick={(e) => e.stopPropagation()} userProfile={state.userProfile} />
                         </motion.div>
                     </div>
                  ))}
