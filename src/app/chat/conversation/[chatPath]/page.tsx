@@ -171,7 +171,7 @@ const DesktopChatPage = () => {
   const [isLoadingAssistant, setIsLoadingAssistant] = useState(true);
 
   // Determine if this is a personal chat
-  const isPersonalChat = assistant?.type === 'personal';
+  const isPersonalChat = assistant?.type !== 'desktop' && assistant?.type !== 'whatsapp';
 
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return null;
@@ -701,13 +701,13 @@ const DesktopChatPage = () => {
                     )}
                 </div>
                  <p className="text-xs opacity-80">{
-                    (assistant?.type === 'desktop' && assistant.isActive && isSending)
+                    (assistant?.type === 'desktop' && isSending)
                     ? assistantStatusMessage
                     : 'en línea'
                  }</p>
             </div>
              <div className="flex items-center gap-1">
-                {assistant?.type !== 'desktop' && assistant?.type !== 'whatsapp' && (
+                {isPersonalChat && (
                     <>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => router.push(`/chat/call/${chatPath}?type=video`)}>
                             <FaVideo />
@@ -811,12 +811,12 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={assistant?.type === 'desktop' && !assistant.isActive ? "El asistente está desactivado" : "Escribe un mensaje..."}
+                placeholder={assistant?.type === 'desktop' ? "El asistente está desactivado" : "Escribe un mensaje..."}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={isSending || (assistant?.type === 'desktop' && !assistant.isActive)}
+                disabled={isSending || assistant?.type === 'desktop'}
             />
             <input
                 type="file"
