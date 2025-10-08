@@ -31,6 +31,7 @@ import {
 import AddChatDialog from '@/components/chat/AddChatDialog';
 import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/lib/db';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StoredMessage {
     id?: number; 
@@ -46,23 +47,38 @@ interface ChatItemProps {
 }
 
 const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
-  return (
-    <div onClick={onClick} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer transition-colors duration-200">
-        <div className="relative">
-            <Avatar className="h-14 w-14">
-                <AvatarImage src={chat.imageUrl} alt={`${chat.name}'s profile picture`} />
-                <AvatarFallback>{chat.name?.charAt(0) || '?'}</AvatarFallback>
-            </Avatar>
-        </div>
-        <div className="flex-1 overflow-hidden">
-            <div className="flex justify-between">
-                <p className="text-base font-semibold truncate">{chat.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{chat.lastMessageTimestamp ? new Date(chat.lastMessageTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : ''}</p>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{chat.lastMessage || 'No hay mensajes'}</p>
-        </div>
-    </div>
-  );
+    return (
+        <Card className="cursor-pointer glow-card hover:shadow-primary/10 rounded-lg bg-transparent">
+            <CardContent className="p-3 flex items-center gap-3">
+                <motion.div
+                    animate={{ y: [-1, 1, -1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                    <Avatar className="h-12 w-12 border-2 border-primary/30">
+                        <AvatarImage src={chat.imageUrl} alt={chat.name} />
+                        <AvatarFallback className="text-lg bg-muted">
+                            {chat.name ? chat.name.charAt(0) : <User />}
+                        </AvatarFallback>
+                    </Avatar>
+                </motion.div>
+                <div className="flex-grow overflow-hidden">
+                <div className="flex items-center justify-between">
+                        <p className="font-semibold truncate text-sm">{chat.name}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{chat.lastMessageTimestamp ? new Date(chat.lastMessageTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : 'Reciente'}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                            <span className={cn("relative flex h-2 w-2")}>
+                                <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
+                                <span className={cn("relative inline-flex rounded-full h-2 w-2 bg-green-500")}></span>
+                            </span>
+                            <p className="text-xs text-muted-foreground truncate">{chat.lastMessage || 'en línea'}</p>
+                        </div>
+                </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
 };
 
 const MemberSectionButton = ({ icon: Icon, label, notificationCount, onClick }: { icon: React.ElementType, label: string, notificationCount?: number, onClick: () => void }) => {
