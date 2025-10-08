@@ -252,7 +252,7 @@ export const BankView = () => {
                         chatPath: msg.sessionId,
                         amount: 0.00,
                         receiptUrl: content.url,
-                        receivedAt: new Date(msg.time),
+                        receivedAt: msg.time,
                         status: 'pending',
                     };
                 });
@@ -797,7 +797,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                          <div className="grid grid-cols-1 gap-2">
                             <RadioGroup value={cardStyle} onValueChange={(val) => { setCardStyle(val); setCardImageUrl(null); }} className="flex gap-2">
                                {cardStyles.map(style => (
-                                   <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 cursor-pointer", cardStyle === style.id && "border-primary")}>
+                                   <Label key={style.id} htmlFor={`style-${style.id}`} className={cn("h-8 w-8 rounded-full border-2 p-0.5 cursor-pointer", cardStyle === style.id && "border-primary")}>
                                        <RadioGroupItem value={style.id} id={`style-${style.id}`} className="sr-only" />
                                        <div className={cn("h-full w-full rounded-full bg-gradient-to-br", style.gradient)} />
                                    </Label>
@@ -1462,10 +1462,10 @@ export const AssistantsList = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 right-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={() => handleDeleteAssistant(chat)}>
+                            <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none cursor-pointer" onClick={() => handleDeleteAssistant(chat)}>
                                 <Trash2 size={20}/>
                                 <span className="text-xs mt-1">Borrar</span>
-                            </Button>
+                            </div>
                         </motion.div>
                     )}
                     {isRightSwiped && (
@@ -1477,28 +1477,26 @@ export const AssistantsList = () => {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-y-0 left-0 flex items-center"
                         >
-                            <Button variant="ghost" className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5" onClick={() => handleInstructionsEdit(chat)}>
+                             <div className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none gap-0.5 cursor-pointer" onClick={() => handleInstructionsEdit(chat)}>
                                 <BookText size={20}/>
                                 <span className="text-xs">Instrucciones</span>
-                            </Button>
-                            <Button 
-                                variant="ghost" 
-                                className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5"
+                            </div>
+                            <div 
+                                className="h-full w-24 flex flex-col items-center justify-center text-muted-foreground bg-purple-500/20 hover:bg-purple-500/30 rounded-none gap-0.5 cursor-pointer"
                                 onClick={() => handleDatabaseLink(chat)}
                             >
                                 <Database size={20}/>
                                 <span className="text-xs">Base de datos</span>
-                            </Button>
-                            <Button 
-                                variant="ghost" 
-                                className={cn("h-full w-24 flex flex-col items-center justify-center text-muted-foreground rounded-none gap-0.5",
+                            </div>
+                            <div 
+                                className={cn("h-full w-24 flex flex-col items-center justify-center text-muted-foreground rounded-none gap-0.5 cursor-pointer",
                                     chat.isActive ? "bg-red-500/20 hover:bg-red-500/30" : "bg-green-500/20 hover:bg-green-500/30"
                                 )} 
                                 onClick={() => handleToggleIA(chat as AssistantConfig)}
                             >
                                 <Bot size={20}/>
                                 <span className="text-xs">{chat.isActive ? 'Desactivar IA' : 'Activar IA'}</span>
-                            </Button>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

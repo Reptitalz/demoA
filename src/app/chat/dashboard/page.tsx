@@ -70,12 +70,12 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick }) => {
                 </div>
                 <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                            {isOnline && (
+                            {isOnline ? (
                                 <span className={cn("relative flex h-2 w-2")}>
                                     <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
                                     <span className={cn("relative inline-flex rounded-full h-2 w-2 bg-green-500")}></span>
                                 </span>
-                            )}
+                            ) : null}
                             <p className="text-xs text-muted-foreground truncate">{chat.lastMessage || 'en línea'}</p>
                         </div>
                 </div>
@@ -286,18 +286,18 @@ export default function ChatListPage() {
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                                     className="absolute inset-y-0 right-0 flex items-center bg-gray-100 dark:bg-slate-800"
                                 >
-                                     <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={() => showMemoryInfo(chat)}>
+                                     <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none cursor-pointer" onClick={() => showMemoryInfo(chat)}>
                                         <HardDrive size={20}/>
                                         <span className="text-xs mt-1">Info</span>
-                                    </Button>
-                                    <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-yellow-500/20 hover:bg-yellow-500/30 rounded-none" onClick={() => setAlertInfo({type: 'clear', contact: chat})}>
+                                    </div>
+                                    <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-yellow-500/20 hover:bg-yellow-500/30 rounded-none cursor-pointer" onClick={() => setAlertInfo({type: 'clear', contact: chat})}>
                                         <XCircle size={20}/>
                                         <span className="text-xs mt-1">Limpiar</span>
-                                    </Button>
-                                    <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={() => setAlertInfo({type: 'delete', contact: chat})}>
+                                    </div>
+                                    <div className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none cursor-pointer" onClick={() => setAlertInfo({type: 'delete', contact: chat})}>
                                         <Trash2 size={20}/>
                                         <span className="text-xs mt-1">Borrar</span>
-                                    </Button>
+                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
