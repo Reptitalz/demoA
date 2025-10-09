@@ -50,7 +50,7 @@ const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
   }, [pathname]);
   
   return (
-    <div className="h-full w-full overflow-hidden relative bg-slate-200 dark:bg-slate-900">
+    <div className="h-full w-full overflow-hidden relative bg-background">
        <AnimatePresence mode="wait">
         <motion.div
           key={pathname} // Use pathname as key to trigger animation on route change
