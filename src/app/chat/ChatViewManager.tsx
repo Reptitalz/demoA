@@ -25,7 +25,7 @@ const pageVariants = {
     transition: {
       type: "tween",
       ease: "anticipate",
-      duration: 0.25
+      duration: 0.15
     }
   },
   exit: (direction: number) => ({
@@ -35,7 +35,7 @@ const pageVariants = {
     transition: {
       type: "tween",
       ease: "anticipate",
-      duration: 0.25
+      duration: 0.15
     }
   }),
 };

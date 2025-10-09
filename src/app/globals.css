@@ -223,8 +223,8 @@ body {
   /* Page Transition Animations */
   .animate-page-out-left { animation: page-out-left 0.15s ease-out forwards; }
   .animate-page-out-right { animation: page-out-right 0.15s ease-out forwards; }
-  .animate-page-in-left { animation: page-in-left 0.2s ease-in; }
-  .animate-page-in-right { animation: page-in-right 0.2s ease-in; }
+  .animate-page-in-left { animation: page-in-left 0.15s ease-in; }
+  .animate-page-in-right { animation: page-in-right 0.15s ease-in; }
 
   @keyframes page-out-left {
     from { opacity: 1; transform: translateX(0); }
