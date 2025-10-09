@@ -41,6 +41,8 @@ import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
 import { openDB } from '@/lib/db';
 import { Textarea } from '@/components/ui/textarea';
+import AddProductDialog from './AddProductDialog';
+import CreateCatalogDialog from './CreateCatalogDialog';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
