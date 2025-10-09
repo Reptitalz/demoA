@@ -125,9 +125,9 @@ const CollaboratorsPage = () => {
                         "bg-brand-gradient text-primary-foreground hover:opacity-90",
                         "shiny-border"
                     )}
-                    onClick={() => router.push('/colaboradores/login')}
+                    disabled
                 >
-                    Acceder al portal
+                    Próximamente
                 </Button>
                 <CommissionCalculator />
             </div>
