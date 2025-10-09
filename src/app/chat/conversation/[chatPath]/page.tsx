@@ -627,7 +627,7 @@ const DesktopChatPage = () => {
   
   return (
     <>
-      <header className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b">
+      <header className="fixed top-0 left-0 right-0 bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-20 border-b">
         <Button variant="ghost" size="icon" className="h-8 w-8 mr-2" onClick={() => router.push('/chat/dashboard')}>
             <FaArrowLeft />
         </Button>
@@ -680,8 +680,8 @@ const DesktopChatPage = () => {
             </div>
         )}
     </header>
-    <main className="flex-1 overflow-y-auto relative">
-        <div className="absolute inset-0 chat-background" />
+    <main className="flex-1 overflow-y-auto relative pt-20">
+        <div className="absolute inset-x-0 top-16 bottom-0 chat-background" />
         <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
         {messages.map((msg, index) => (
             <ChatBubble key={index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
@@ -762,12 +762,12 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={isAssistantChat && !assistant.isActive ? "El asistente IA está desactivado" : "Escribe un mensaje..."}
+                placeholder={isAssistantChat && !assistant?.isActive ? "El asistente IA está desactivado" : "Escribe un mensaje..."}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={isSending || (isAssistantChat && !assistant.isActive)}
+                disabled={isSending || (isAssistantChat && !assistant?.isActive)}
             />
             <input
                 type="file"
@@ -791,7 +791,7 @@ const DesktopChatPage = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             />
             {currentMessage.trim() ? (
-                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || (isAssistantChat && !assistant.isActive)}>
+                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || (isAssistantChat && !assistant?.isActive)}>
                     <FaPaperPlane className="h-5 w-5" />
                 </Button>
             ) : (
@@ -799,7 +799,7 @@ const DesktopChatPage = () => {
                     type="button" 
                     size="icon" 
                     className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" 
-                    disabled={isSending || (isAssistantChat && !assistant.isActive)}
+                    disabled={isSending || (isAssistantChat && !assistant?.isActive)}
                     onMouseDown={startRecording}
                     onMouseUp={stopRecordingAndSend}
                     onTouchStart={startRecording}
