@@ -365,7 +365,7 @@ export const BankView = () => {
                 </div>
             </div>
 
-            <ScrollArea className="flex-grow px-2">
+            <ScrollArea className="flex-grow px-2 min-h-0">
                 <div className="p-2 space-y-3">
                     {isLoading ? (
                          <div className="flex justify-center items-center h-32">
@@ -1265,7 +1265,7 @@ export const AssistantsList = () => {
         </div>
       </header>
 
-      <ScrollArea className="flex-grow" onClick={() => setActiveSwipe(null)}>
+      <ScrollArea className="flex-grow min-h-0" onClick={() => setActiveSwipe(null)}>
          <div className="p-2 space-y-2">
           {filteredChats.length > 0 ? filteredChats.map((chat) => {
             const isLeftSwiped = activeSwipe?.id === chat.id && activeSwipe?.direction === 'left';
