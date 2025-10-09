@@ -11,34 +11,53 @@ import AppIcon from '@/components/shared/AppIcon';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FaChevronDown, FaWhatsapp, FaUserFriends, FaRocket, FaEnvelope, FaBars } from 'react-icons/fa';
 import { Separator } from '../ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   fullWidth?: boolean;
 }
 
-const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
+const NavLinks = ({ inSheet = false, onNavigate }: { inSheet?: boolean, onNavigate?: () => void }) => {
     const router = useRouter();
 
-    const handleNavigation = (path: string) => {
+    const handleLinkClick = (path: string) => {
         router.push(path);
-        if (inSheet) {
-            // Logic to close the sheet would go here if needed, managed by the parent.
+        if (onNavigate) {
+            onNavigate();
         }
     };
 
     return (
         <>
-            <Button variant="ghost" size="sm" onClick={() => handleNavigation('/whatsapp')}>
-                <FaWhatsapp className="mr-2" /> Hey Manito! WhatsApp
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                        Productos <FaChevronDown className="h-3 w-3" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => handleLinkClick('/whatsapp')}>
+                        <FaWhatsapp className="mr-2" /> Hey Manito! WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleLinkClick('/')}>
+                        <AppIcon className="mr-2 h-4 w-4" /> Hey Manito! App
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button variant="ghost" size="sm" asChild>
+                <Link href="/#pricing" onClick={onNavigate}><FaDollarSign className="mr-2" />Precios</Link>
             </Button>
-             <Button variant="ghost" size="sm" asChild>
-                <Link href="/#pricing"><FaDollarSign className="mr-2" />Precios</Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleNavigation('/colaboradores')}>
+            <Button variant="ghost" size="sm" onClick={() => handleLinkClick('/colaboradores')}>
                 <FaUserFriends className="mr-2" /> Colaboradores
             </Button>
             <Button variant="ghost" size="sm" asChild>
-                <Link href="#contact">Contacto</Link>
+                <Link href="#contact" onClick={onNavigate}>Contacto</Link>
             </Button>
         </>
     );
@@ -60,6 +79,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
             <NavLinks />
+            <Separator orientation="vertical" className="h-6 mx-2" />
             <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
                 <FaSignInAlt className="mr-2 h-4 w-4" />
                 Iniciar sesión
@@ -90,8 +110,8 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                                 <h1 className="font-bold text-foreground text-lg">{APP_NAME}</h1>
                             </Link>
                         </div>
-                        <div className="flex flex-col items-end gap-2 p-4">
-                            <NavLinks inSheet={true} />
+                        <div className="flex flex-col items-stretch text-left gap-1 p-4">
+                            <NavLinks inSheet={true} onNavigate={() => setIsSheetOpen(false)} />
                         </div>
                         <Separator />
                         <div className="p-4 mt-auto space-y-2">

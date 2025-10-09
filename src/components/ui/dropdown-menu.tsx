@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import { FaCheck, FaChevronRight, FaRegCircle } from "react-icons/fa"
+import { FaCheck, FaChevronRight, FaRegCircle, FaChevronDown } from "react-icons/fa"
 
 import { cn } from "@/lib/utils"
 
