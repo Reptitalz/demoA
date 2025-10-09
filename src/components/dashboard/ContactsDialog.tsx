@@ -54,7 +54,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
 
   const handleViewImages = (contact: Contact) => {
     if (!contact.images || contact.images.length === 0) {
-        toast({ title: 'Sin Imágenes', description: 'Este contacto no ha enviado imágenes.' });
+        toast({ title: 'Sin Archivos', description: 'Este contacto no ha enviado ningún archivo.' });
         return;
     }
     setSelectedContact(contact);
@@ -101,7 +101,7 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
             <FaAddressBook /> Imágenes y Contactos de "{assistant?.name}"
           </DialogTitle>
           <DialogDescription>
-            Visualiza los contactos y las imágenes que han enviado a tu asistente.
+            Visualiza los contactos y los archivos que han enviado a tu asistente.
           </DialogDescription>
         </DialogHeader>
         
@@ -130,13 +130,13 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
                         {filteredContacts.map(contact => {
                            const hasUnreadImages = contact.images?.some(img => !img.read);
                            return (
-                            <div key={contact._id} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
+                            <div key={contact._id} className="flex items-center gap-3 p-2.5 bg-muted/50 rounded-lg">
                                 <div className="flex-grow">
                                     <p className="text-sm font-semibold text-foreground">{contact.name}</p>
                                     <ContactIdentifier contact={contact} assistantType={assistant?.type} />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5">Peso</p>
+                                    <p className="text-xs text-muted-foreground flex items-center justify-end gap-1.5">{contact.images?.length || 0} Archivos</p>
                                     <p className="text-xs font-medium text-foreground">{formatBytes(contact.conversationSize)}</p>
                                 </div>
                                 <Button 
@@ -181,3 +181,4 @@ const ContactsDialog = ({ isOpen, onOpenChange, assistant }: ContactsDialogProps
 };
 
 export default ContactsDialog;
+

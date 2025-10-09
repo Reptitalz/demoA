@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FaImage, FaDownload, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaImage, FaDownload, FaCheck, FaTimes, FaVideo, FaFileAudio, FaFile } from 'react-icons/fa';
 import type { Contact, ContactImage } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Loader2 } from 'lucide-react';
@@ -51,25 +51,31 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        toast({ title: 'Descarga Iniciada', description: `Se está descargando la imagen ${imageName}.` });
+        toast({ title: 'Descarga Iniciada', description: `Se está descargando el archivo ${imageName}.` });
       })
       .catch(() => {
-        toast({ title: 'Error de Descarga', description: 'No se pudo descargar la imagen.', variant: 'destructive' });
+        toast({ title: 'Error de Descarga', description: 'No se pudo descargar el archivo.', variant: 'destructive' });
       });
   };
   
   const handleReject = (imageId: string) => {
     setImages(prev => prev.filter(img => img._id !== imageId));
     setSelectedImage(null);
-    toast({ title: 'Imagen Rechazada', description: 'La imagen ha sido eliminada de la vista.' });
+    toast({ title: 'Archivo Rechazado', description: 'El archivo ha sido eliminado de la vista.' });
     // Here you would typically call an API to delete the image from the server.
   };
 
   const handleAccept = () => {
     setSelectedImage(null);
-    toast({ title: 'Imagen Aceptada', description: 'La imagen se ha mantenido.' });
+    toast({ title: 'Archivo Aceptado', description: 'El archivo se ha mantenido.' });
   };
   
+  const FileIcon = ({ type }: { type?: string }) => {
+    if (type === 'video') return <FaVideo className="h-10 w-10 text-muted-foreground" />;
+    if (type === 'audio') return <FaFileAudio className="h-10 w-10 text-muted-foreground" />;
+    return <FaFile className="h-10 w-10 text-muted-foreground" />;
+  }
+
 
   return (
     <>
@@ -77,10 +83,10 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
       <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaImage /> Imágenes de {contact.name}
+            <FaImage /> Archivos de {contact.name}
           </DialogTitle>
           <DialogDescription>
-            Visualiza y descarga las imágenes recibidas de este contacto.
+            Visualiza y descarga los archivos recibidos de este contacto.
           </DialogDescription>
         </DialogHeader>
         
@@ -93,7 +99,7 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                     </div>
                 ) : images.length === 0 ? (
                     <p className="text-center text-muted-foreground p-4">
-                        Este contacto no ha enviado ninguna imagen.
+                        Este contacto no ha enviado ningún archivo.
                     </p>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -106,24 +112,31 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
                             )}
                             onClick={() => setSelectedImage(image)}
                         >
-                           <Image
-                                src={image.url}
-                                alt={`Imagen recibida el ${format(image.receivedAt, "PPPp", { locale: es })}`}
-                                width={400}
-                                height={300}
-                                className="w-full h-auto object-cover aspect-video transition-transform duration-300 group-hover:scale-105"
-                                data-ai-hint="contact image"
-                           />
+                           {image.type === 'image' ? (
+                             <Image
+                                  src={image.url}
+                                  alt={`Imagen recibida el ${format(new Date(image.receivedAt), "PPPp", { locale: es })}`}
+                                  width={400}
+                                  height={300}
+                                  className="w-full h-auto object-cover aspect-video transition-transform duration-300 group-hover:scale-105"
+                                  data-ai-hint="contact image"
+                             />
+                           ) : (
+                              <div className="aspect-video w-full bg-muted flex flex-col items-center justify-center p-2">
+                                <FileIcon type={image.type} />
+                                <p className="text-xs text-center text-muted-foreground mt-2 truncate w-full">{image.name || `Archivo ${image.type}`}</p>
+                              </div>
+                           )}
                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"/>
                            <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                                <p className="text-xs font-semibold">{format(new Date(image.receivedAt), "PPPp", { locale: es })}</p>
+                                <p className="text-xs font-semibold">{format(new Date(image.receivedAt), "Pp", { locale: es })}</p>
                                 <Button 
                                     variant="secondary" 
                                     size="sm" 
                                     className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent opening the detail view
-                                        handleDownload(image.url, `imagen_${contact.name.replace(/\s+/g, '_')}_${image._id}.jpg`)
+                                        handleDownload(image.url, image.name || `archivo_${contact.name.replace(/\s+/g, '_')}_${image._id}`)
                                     }}
                                 >
                                     <FaDownload/>
@@ -146,13 +159,29 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
     {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
             <DialogContent className="max-w-4xl p-0 border-0">
-                <Image 
-                    src={selectedImage.url}
-                    alt="Vista detallada de la imagen"
-                    width={1200}
-                    height={800}
-                    className="w-full h-auto object-contain rounded-t-lg"
-                />
+                {selectedImage.type === 'image' && (
+                    <Image 
+                        src={selectedImage.url}
+                        alt="Vista detallada de la imagen"
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto object-contain rounded-t-lg"
+                    />
+                )}
+                 {selectedImage.type === 'video' && (
+                    <video src={selectedImage.url} controls className="w-full h-auto object-contain rounded-t-lg" />
+                )}
+                {selectedImage.type === 'audio' && (
+                    <div className="p-8">
+                       <audio src={selectedImage.url} controls className="w-full" />
+                    </div>
+                )}
+                {(selectedImage.type === 'document' || !selectedImage.type) && (
+                     <div className="p-8 text-center">
+                        <FileIcon type={selectedImage.type} />
+                        <p className="font-semibold mt-4">{selectedImage.name || 'Documento'}</p>
+                    </div>
+                )}
                  <DialogFooter className="p-4 bg-background rounded-b-lg flex justify-end gap-2">
                     <Button variant="destructive" onClick={() => handleReject(selectedImage._id)}>
                         <FaTimes className="mr-2" /> Rechazar
@@ -169,3 +198,4 @@ const ContactImagesDialog = ({ isOpen, onOpenChange, contact }: ContactImagesDia
 };
 
 export default ContactImagesDialog;
+

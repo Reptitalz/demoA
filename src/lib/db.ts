@@ -1,8 +1,9 @@
+
 // src/lib/db.ts
 import { openDB as openIDB, DBSchema, IDBPDatabase } from 'idb';
 
 export const DB_NAME = 'HeyManitoChatDB';
-const DB_VERSION = 4; // Incremented version to add new store
+const DB_VERSION = 5; // Incremented version to add new store and indexes
 
 // Object Store Names
 export const SESSIONS_STORE_NAME = 'session';
@@ -32,7 +33,7 @@ interface HeyManitoDB extends DBSchema {
     value: any; // AssistantConfig type
   };
   [AUTHORIZED_PAYMENTS_STORE_NAME]: {
-    key: string; // payment.id
+    key: string; // payment.id or messageId
     value: any; // Payment data
   };
   [CREDIT_LINES_STORE_NAME]: {
@@ -60,7 +61,6 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
             const store = db.createObjectStore(MESSAGES_STORE_NAME, { keyPath: 'id', autoIncrement: true });
             store.createIndex('by_sessionId', 'sessionId');
           } else {
-            // Ensure index exists if store was already there
             const store = transaction.objectStore(MESSAGES_STORE_NAME);
              if (!store.indexNames.contains('by_sessionId')) {
                 store.createIndex('by_sessionId', 'sessionId');
@@ -77,7 +77,6 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
         if (!db.objectStoreNames.contains(AUTHORIZED_PAYMENTS_STORE_NAME)) {
           db.createObjectStore(AUTHORIZED_PAYMENTS_STORE_NAME, { keyPath: 'id' });
         }
-        // Also check for SESSIONS_STORE_NAME again in case of a complex upgrade path
         if (!db.objectStoreNames.contains(SESSIONS_STORE_NAME)) {
           db.createObjectStore(SESSIONS_STORE_NAME, { keyPath: 'chatPath' });
         }
@@ -85,6 +84,15 @@ export const openDB = (): Promise<IDBPDatabase<HeyManitoDB>> => {
        if (oldVersion < 4) {
         if (!db.objectStoreNames.contains(CREDIT_LINES_STORE_NAME)) {
           db.createObjectStore(CREDIT_LINES_STORE_NAME, { keyPath: 'id' });
+        }
+      }
+      if (oldVersion < 5) {
+        const authPaymentsStore = transaction.objectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
+        if (authPaymentsStore.keyPath !== 'messageId') {
+            // This is complex. For simplicity, we'll just delete and recreate if keyPath needs changing.
+            // This will wipe data in this store during upgrade.
+            db.deleteObjectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
+            db.createObjectStore(AUTHORIZED_PAYMENTS_STORE_NAME, { keyPath: 'messageId' });
         }
       }
     },

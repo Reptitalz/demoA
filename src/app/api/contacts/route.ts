@@ -39,8 +39,9 @@ export async function GET(request: NextRequest) {
             }
         },
         {
+            // Calculate the size of the whole document as a measure of conversation "weight"
             $addFields: {
-                conversationSize: { $bsonSize: "$$ROOT" } // Calculate size of the whole document
+                conversationSize: { $bsonSize: "$$ROOT" }
             }
         },
         {
@@ -49,16 +50,16 @@ export async function GET(request: NextRequest) {
                 destination: "$userIdentifier",
                 name: "$userIdentifier", // Initially, name is the same as the identifier
                 conversationSize: 1,
-                // Extract images from history
-                images: {
+                // Extract all multimedia files from history
+                files: {
                     $filter: {
                         input: "$history",
                         as: "msg",
                         cond: { 
                             $and: [
                                 { $eq: ["$$msg.role", "user"] },
-                                { $eq: [{ $type: "$$msg.content" }, "object"] },
-                                { $eq: ["$$msg.content.type", "image"] }
+                                { $ne: [{ $type: "$$msg.content" }, "string"] }, // Content is an object for files
+                                { $in: ["$$msg.content.type", ["image", "video", "audio", "document"]] }
                             ]
                         }
                     }
@@ -66,21 +67,23 @@ export async function GET(request: NextRequest) {
             }
         },
         {
-            // Reshape the images array
+            // Reshape the files array to match the ContactImage type, now more generic
             $project: {
                  _id: 1,
                  destination: 1,
                  name: 1,
                  conversationSize: 1,
-                 images: {
+                 images: { // Keep the name 'images' for compatibility with the frontend type
                      $map: {
-                         input: "$images",
-                         as: "imgMsg",
+                         input: "$files",
+                         as: "fileMsg",
                          in: {
-                             _id: { $toString: { $ifNull: ["$$imgMsg._id", new ObjectId()] } },
-                             url: "$$imgMsg.content.url",
-                             receivedAt: { $ifNull: ["$$imgMsg.time", "$createdAt"] },
-                             read: { $ifNull: ["$$imgMsg.read", false] }
+                             _id: { $toString: { $ifNull: ["$$fileMsg.id", new ObjectId()] } }, // Use message ID or generate one
+                             url: "$$fileMsg.content.url",
+                             type: "$$fileMsg.content.type",
+                             name: "$$fileMsg.content.name",
+                             receivedAt: { $ifNull: ["$$fileMsg.time", "$createdAt"] },
+                             read: { $ifNull: ["$$fileMsg.read", false] }
                          }
                      }
                  }
@@ -93,7 +96,6 @@ export async function GET(request: NextRequest) {
         }
     ]).toArray();
     
-
     return NextResponse.json(contacts);
   } catch (error) {
     console.error('API Error (GET /api/contacts):', error);

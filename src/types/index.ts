@@ -1,3 +1,4 @@
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -153,7 +154,17 @@ export interface CreditLine {
   updatedAt: string;
 }
 
+export interface ContactImage {
+    _id: string;
+    url: string;
+    type?: 'image' | 'video' | 'audio' | 'document';
+    name?: string;
+    receivedAt: Date;
+    read: boolean;
+}
+
 export interface Contact {
+  _id?: string;
   chatPath: string;
   name: string;
   imageUrl?: string;
@@ -161,6 +172,7 @@ export interface Contact {
   lastMessageTimestamp?: number;
   isDemo?: boolean;
   conversationSize: number;
+  destination?: string; // phone number or session ID
   images?: ContactImage[];
 }
 
@@ -187,6 +199,7 @@ export interface UserProfile {
   accountType?: 'personal' | 'business';
   creditLines?: CreditLine[];
   creditOffers?: CreditOffer[];
+  credits: number;
 }
 
 export interface WizardState {
@@ -265,13 +278,6 @@ export interface KnowledgeItem {
     content: string;
     size: number; // in bytes
     createdAt: Date;
-}
-
-export interface ContactImage {
-    _id: string;
-    url: string;
-    receivedAt: Date;
-    read: boolean;
 }
 
 export interface ContactWithImages extends Contact {
