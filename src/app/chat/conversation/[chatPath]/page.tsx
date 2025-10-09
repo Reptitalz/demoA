@@ -1,4 +1,3 @@
-
 // src/app/chat/conversation/[chatPath]/page.tsx
 "use client";
 
@@ -160,7 +159,7 @@ const DesktopChatPage = () => {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [processedEventIds, setProcessedEventIds] = useState<Set<string>>(new Set());
-  const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('Escribiendo...');
+  const [assistantStatusMessage, setAssistantStatusMessage] = useState<string>('en línea');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
   // Audio recording state
@@ -326,7 +325,7 @@ const DesktopChatPage = () => {
 
           if (foundFinalResponse) {
               setIsSending(false);
-              setAssistantStatusMessage('Escribiendo...'); // Reset status
+              setAssistantStatusMessage('en línea'); // Reset status
               if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
                 pollIntervalRef.current = null;
@@ -641,8 +640,8 @@ const DesktopChatPage = () => {
                 </div>
             </div>
         ) : (
-            <>
-                <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+            <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                     <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
                     <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
                 </Avatar>
@@ -663,7 +662,7 @@ const DesktopChatPage = () => {
                         )}
                     </div>
                     <p className="text-xs text-green-500 font-medium">
-                       {isAssistantChat && isSending ? assistantStatusMessage : 'en línea'}
+                       {assistantStatusMessage}
                     </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -678,7 +677,7 @@ const DesktopChatPage = () => {
                         </>
                     )}
                 </div>
-            </>
+            </div>
         )}
     </header>
     <main className="flex-1 overflow-y-auto relative">
