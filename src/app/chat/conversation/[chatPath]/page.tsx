@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AssistantConfig, ChatMessage, Product } from '@/types';
+import { AssistantConfig, ChatMessage, Product, UserProfile, Contact } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -141,10 +141,11 @@ const DesktopChatPage = () => {
   const chatPath = params.chatPath as string;
   const router = useRouter();
   const { state } = useApp();
-  const { userProfile } = state;
+  const { userProfile, contacts } = state;
   const { socket } = useSocket();
   const { toast } = useToast();
-  const [assistant, setAssistant] = useState<AssistantConfig | null>(null);
+  
+  const [chatPartner, setChatPartner] = useState<AssistantConfig | UserProfile | Contact | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
@@ -170,9 +171,11 @@ const DesktopChatPage = () => {
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingStartTimeRef = useRef<number | null>(null);
   const [isLoadingAssistant, setIsLoadingAssistant] = useState(true);
+  
+  const isPersonalChat = chatPartner && 'email' in chatPartner;
+  const isAssistantChat = chatPartner && 'prompt' in chatPartner;
 
-  // Determine if this is a personal chat
-  const isPersonalChat = assistant?.type === 'personal';
+  const assistant = isAssistantChat ? (chatPartner as AssistantConfig) : null;
 
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return null;
@@ -220,91 +223,55 @@ const DesktopChatPage = () => {
   }, [socket, isPersonalChat, chatPath, sessionId]);
 
 
-  useEffect(() => {
-    if (chatPath) {
-      let isMounted = true;
-      setIsLoadingAssistant(true);
-
-      const loadChat = async () => {
-          const sessionData = await setupSessionAndMessages();
-          if (!isMounted) return;
-          
-          const sid = sessionData?.sid;
-
-          try {
-              const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`);
-              
-              if (!res.ok) {
-                 // If assistant not found, create a "ghost" one for testing.
-                  const ghostAssistant: AssistantConfig = {
-                    id: 'ghost-id',
-                    name: `Prueba: ${chatPath}`,
-                    type: 'desktop',
-                    isActive: false, // Not active, won't call backend
-                    numberReady: false,
-                    messageCount: 0,
-                    monthlyMessageLimit: 0,
-                    purposes: [],
-                    chatPath: chatPath
-                  };
-                  setAssistant(ghostAssistant);
-                  setError('Modo de prueba: El asistente no existe.');
-                   if (sid && sessionData?.storedMessages.length === 0) {
-                      const initialMessage: ChatMessage = {
-                          role: 'model',
-                          content: 'Este es un chat de prueba. El asistente no existe, pero puedes probar la interfaz.',
-                          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      };
-                      setMessages([initialMessage]);
-                      saveMessageToDB(initialMessage, sid);
-                  }
-                  return;
-              }
-
-              const data = await res.json();
-              if (!isMounted) return;
-
-              if(!data.assistant) throw new Error('Asistente no encontrado.');
-              setAssistant(data.assistant);
-              setError(null); // Clear previous errors
-              
-              if (sid && sessionData?.storedMessages.length === 0) { 
-                  const initialMessage = {
-                      role: 'model' as const,
-                      content: `¡Hola! Estás chateando con ${data.assistant.name}. ¿Cómo puedo ayudarte hoy?`,
-                      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  };
-                  setMessages([initialMessage]);
-                  saveMessageToDB(initialMessage, sid);
-              }
-          } catch(err: any) {
-              if (!isMounted) return;
-              setError(err.message);
-              setAssistant({ name: "Asistente no encontrado", chatPath: chatPath } as AssistantConfig);
-              if (sid) {
-                setMessages([{
-                    role: 'model',
-                    content: `Error: ${err.message}. No se pudo cargar el asistente.`,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                }]);
-              }
-          } finally {
-            if (isMounted) {
-                setIsLoadingAssistant(false);
-            }
-          }
-      };
-      
-      loadChat();
-
-      return () => {
-        isMounted = false;
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-        }
-      };
+ useEffect(() => {
+    if (!chatPath || !userProfile.isAuthenticated) {
+        setIsLoadingAssistant(false);
+        return;
     }
-  }, [chatPath, setupSessionAndMessages]);
+
+    let isMounted = true;
+    setIsLoadingAssistant(true);
+
+    const loadChat = async () => {
+        const sessionData = await setupSessionAndMessages();
+        if (!isMounted || !sessionData) return;
+
+        const { sid, storedMessages } = sessionData;
+
+        // Determine if the chat partner is an assistant or another user/contact
+        const partner =
+            userProfile.assistants.find(a => a.chatPath === chatPath) ||
+            contacts.find(c => c.chatPath === chatPath);
+        
+        if (partner) {
+            setChatPartner(partner);
+            setError(null);
+            
+             // Set up initial message if it's a new chat
+            if (storedMessages.length === 0) {
+                 const initialMessageContent = partner && 'prompt' in partner
+                    ? `¡Hola! Estás chateando con ${(partner as AssistantConfig).name}. ¿Cómo puedo ayudarte hoy?`
+                    : `Inicia tu conversación con ${partner.name}.`;
+
+                const initialMessage: ChatMessage = {
+                    role: 'model',
+                    content: initialMessageContent,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                setMessages([initialMessage]);
+                saveMessageToDB(initialMessage, sid);
+            }
+        } else {
+             setError("No se encontró el chat. Es posible que el contacto ya no exista o la URL sea incorrecta.");
+        }
+        setIsLoadingAssistant(false);
+    };
+
+    loadChat();
+
+    return () => { isMounted = false; };
+}, [chatPath, userProfile.isAuthenticated, userProfile.assistants, contacts, setupSessionAndMessages]);
+
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -385,10 +352,7 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }) => {
-    if (!assistant?.chatPath || assistant.id === 'ghost-id') {
-        if (assistant?.id === 'ghost-id') {
-            toast({ title: 'Modo de Prueba', description: 'El envío de mensajes está deshabilitado para asistentes que no existen.' });
-        }
+    if (!assistant?.chatPath) {
         return;
     }
     
@@ -397,7 +361,7 @@ const DesktopChatPage = () => {
             socket.emit('sendMessage', {
                 senderId: userProfile._id,
                 senderChatPath: userProfile.chatPath,
-                recipientChatPath: assistant.chatPath,
+                recipientChatPath: chatPartner?.chatPath,
                 content: messageContent,
             });
         }
@@ -435,7 +399,7 @@ const DesktopChatPage = () => {
     }).catch(err => {
         console.error("Error sending message to proxy:", err);
     });
-  }, [assistant?.id, assistant?.chatPath, assistant?.type, sessionId, pollForResponse, toast, isPersonalChat, socket, userProfile]);
+  }, [assistant?.id, assistant?.chatPath, assistant?.type, sessionId, pollForResponse, toast, isPersonalChat, socket, userProfile, chatPartner?.chatPath]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
@@ -664,7 +628,7 @@ const DesktopChatPage = () => {
   
   return (
     <>
-    <header className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b">
+      <header className="bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-10 shrink-0 border-b">
         <Button variant="ghost" size="icon" className="h-8 w-8 mr-2" onClick={() => router.push('/chat/dashboard')}>
             <FaArrowLeft />
         </Button>
@@ -679,13 +643,13 @@ const DesktopChatPage = () => {
         ) : (
             <>
                 <Avatar className="h-10 w-10 mr-3 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                    <AvatarImage src={assistant?.imageUrl} alt={assistant?.name} />
-                    <AvatarFallback>{assistant?.name ? assistant.name.charAt(0) : <FaUser />}</AvatarFallback>
+                    <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
+                    <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
                 </Avatar>
                 <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                     <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-base truncate text-foreground">{assistant?.name || 'Asistente'}</h3>
-                        {assistant?.accountType === 'business' && (
+                        <h3 className="font-semibold text-base truncate text-foreground">{chatPartner?.name || 'Asistente'}</h3>
+                        {isAssistantChat && (assistant as AssistantConfig).accountType === 'business' && (
                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
@@ -694,12 +658,12 @@ const DesktopChatPage = () => {
                                 </svg>
                             </Badge>
                         )}
-                        {assistant?.type !== 'personal' && assistant?.isActive && (
+                        {isAssistantChat && (
                             <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                         )}
                     </div>
                     <p className="text-xs text-green-500 font-medium">
-                        {(assistant?.type === 'desktop' && isSending) ? assistantStatusMessage : 'en línea'}
+                       {isAssistantChat && isSending ? assistantStatusMessage : 'en línea'}
                     </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -717,39 +681,32 @@ const DesktopChatPage = () => {
             </>
         )}
     </header>
-
-      {showProductsButton && (
-          <div className="bg-card/60 backdrop-blur-sm p-2 flex items-center justify-center gap-2 border-b">
-              {showProductsButton && <Button variant="outline" size="sm" className="h-8 text-xs flex-1" onClick={() => setIsCatalogOpen(true)}><FaTags className="mr-1.5"/> Ver Productos</Button>}
-          </div>
-      )}
-
-      <main className="flex-1 overflow-y-auto relative">
-         <div className="absolute inset-0 chat-background" />
-         <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
-            {messages.map((msg, index) => (
-              <ChatBubble key={index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
-            ))}
-            {isSending && (
-                <div className="flex justify-start animate-fadeIn max-w-lg mx-auto">
-                  <div className="flex items-end gap-2">
-                      <Avatar className="h-6 w-6">
-                          <AvatarImage src={assistant?.imageUrl} />
-                          <AvatarFallback>{assistant?.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="rounded-2xl px-4 py-2 max-w-xs shadow-md bg-card rounded-bl-none">
-                          <div className="flex items-center gap-2">
-                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                              <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
-                          </div>
-                      </div>
-                  </div>
+    <main className="flex-1 overflow-y-auto relative">
+        <div className="absolute inset-0 chat-background" />
+        <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
+        {messages.map((msg, index) => (
+            <ChatBubble key={index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
+        ))}
+        {isSending && isAssistantChat && (
+            <div className="flex justify-start animate-fadeIn max-w-lg mx-auto">
+                <div className="flex items-end gap-2">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={assistant?.imageUrl} />
+                        <AvatarFallback>{assistant?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-2xl px-4 py-2 max-w-xs shadow-md bg-card rounded-bl-none">
+                        <div className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                            <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                            <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce"></span>
+                        </div>
+                    </div>
                 </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-      </main>
+            </div>
+        )}
+        <div ref={chatEndRef} />
+        </div>
+    </main>
       
        {isRecording && (
             <motion.div
@@ -806,12 +763,12 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={isPersonalChat ? "Escribe un mensaje..." : (assistant?.isActive ? "Escribe un mensaje..." : "El asistente IA está desactivado")}
+                placeholder={isAssistantChat && !assistant.isActive ? "El asistente IA está desactivado" : "Escribe un mensaje..."}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={isSending || (!isPersonalChat && !assistant?.isActive)}
+                disabled={isSending || (isAssistantChat && !assistant.isActive)}
             />
             <input
                 type="file"
@@ -835,7 +792,7 @@ const DesktopChatPage = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             />
             {currentMessage.trim() ? (
-                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim()}>
+                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || (isAssistantChat && !assistant.isActive)}>
                     <FaPaperPlane className="h-5 w-5" />
                 </Button>
             ) : (
@@ -843,7 +800,7 @@ const DesktopChatPage = () => {
                     type="button" 
                     size="icon" 
                     className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" 
-                    disabled={isSending}
+                    disabled={isSending || (isAssistantChat && !assistant.isActive)}
                     onMouseDown={startRecording}
                     onMouseUp={stopRecordingAndSend}
                     onTouchStart={startRecording}
