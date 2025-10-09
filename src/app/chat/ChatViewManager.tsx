@@ -70,7 +70,7 @@ const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
   
   // Renderiza todas las vistas y controla su visibilidad
   return (
-    <div className="h-full w-full overflow-hidden relative">
+    <div className="h-full w-full overflow-hidden relative bg-slate-200 dark:bg-slate-900">
       {allViews.map(({ path, Component }) => {
         // La conversación es una ruta dinámica, así que comprobamos el prefijo
         const isActive = pathname.startsWith(path);
@@ -96,7 +96,7 @@ const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
                 animate={isActive ? 'animate' : 'exit'}
                 custom={direction}
                 className={cn(
-                    "absolute inset-0",
+                    "absolute inset-0 h-full w-full flex flex-col",
                     !isActive && "pointer-events-none" // Hace que las vistas inactivas no sean interactivas
                 )}
             >
