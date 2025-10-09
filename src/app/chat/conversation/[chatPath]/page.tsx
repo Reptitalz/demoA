@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt, FaPhone } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt, FaPhone, FaCheck } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -95,7 +95,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                 )}
                 <div
                     className={cn(
-                        "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed",
+                        "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed relative",
                         isUserMessage
                             ? "bg-primary text-primary-foreground rounded-br-none"
                             : "bg-card rounded-bl-none",
@@ -108,7 +108,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                                 <Image src={message.content} alt="Ubicación en mapa" width={250} height={200} className="rounded-lg cursor-pointer" />
                             </a>
                         ) : (
-                            <p>{message.content}</p>
+                            <p className="pb-4">{message.content}</p>
                         )
                     ) : message.content.type === 'image' ? (
                         <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
@@ -123,7 +123,17 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                     ) : message.content.type === 'audio' ? (
                         <audio controls src={message.content.url} className="w-full max-w-xs" />
                     ) : null}
-                    <p className={cn("text-[10px] text-right mt-1 px-1", isUserMessage ? "text-primary-foreground/70" : "text-muted-foreground/80")}>{message.time}</p>
+                    <div className="absolute bottom-1 right-2 flex items-center gap-1">
+                        <p className={cn("text-[10px]", isUserMessage ? "text-primary-foreground/70" : "text-muted-foreground/80")}>
+                            {message.time}
+                        </p>
+                        {isUserMessage && (
+                            <div className="relative w-4 h-4">
+                                <FaCheck className="absolute left-0 h-3 w-3 text-sky-400" />
+                                <FaCheck className="absolute left-1 h-3 w-3 text-sky-400" />
+                            </div>
+                        )}
+                    </div>
                 </div>
                  {isUserMessage && (
                     <Avatar className="h-6 w-6">
