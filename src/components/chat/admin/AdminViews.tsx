@@ -39,7 +39,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppIcon from '@/components/shared/AppIcon';
 import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
-import { openDB } from '@/lib/db';
+import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/lib/db';
 import { Textarea } from '@/components/ui/textarea';
 import AddProductDialog from '@/components/chat/admin/AddProductDialog';
 import CreateCatalogDialog from './CreateCatalogDialog';
