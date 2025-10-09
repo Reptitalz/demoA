@@ -46,8 +46,7 @@ import CreateCatalogDialog from './CreateCatalogDialog';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
-const MESSAGES_STORE_NAME = 'messages';
-const AUTHORIZED_PAYMENTS_STORE_NAME = 'authorized_payments';
+
 
 interface StoredMessage extends ChatMessage {
     sessionId: string;
