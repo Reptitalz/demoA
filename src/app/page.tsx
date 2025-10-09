@@ -208,7 +208,7 @@ const NewHomepage = () => {
         </div>
       </section>
       
-       <section className="py-20 bg-muted/50">
+       <section id="pricing" className="py-20 bg-muted/50">
           <div className="container max-w-4xl mx-auto px-4 text-center">
               <h2 className="text-3xl font-bold tracking-tight">Planes Simples y Flexibles</h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Comienza gratis. Crece sin complicaciones.</p>

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSignInAlt } from 'react-icons/fa';
+import { FaSignInAlt, FaDollarSign } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FaChevronDown, FaWhatsapp, FaUserFriends, FaRocket, FaEnvelope, FaBars } from 'react-icons/fa';
@@ -30,6 +30,9 @@ const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
         <>
             <Button variant="ghost" size="sm" onClick={() => handleNavigation('/whatsapp')}>
                 <FaWhatsapp className="mr-2" /> Hey Manito! WhatsApp
+            </Button>
+             <Button variant="ghost" size="sm" asChild>
+                <Link href="/#pricing"><FaDollarSign className="mr-2" />Precios</Link>
             </Button>
             <Button variant="ghost" size="sm" onClick={() => handleNavigation('/colaboradores')}>
                 <FaUserFriends className="mr-2" /> Colaboradores
