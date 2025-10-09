@@ -41,7 +41,7 @@ import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
 import { openDB } from '@/lib/db';
 import { Textarea } from '@/components/ui/textarea';
-import AddProductDialog from './AddProductDialog';
+import AddProductDialog from '@/components/chat/admin/AddProductDialog';
 import CreateCatalogDialog from './CreateCatalogDialog';
 
 
