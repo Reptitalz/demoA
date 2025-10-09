@@ -90,7 +90,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                                 <h1 className="font-bold text-foreground text-lg">{APP_NAME}</h1>
                             </Link>
                         </div>
-                        <div className="flex flex-col gap-2 p-4">
+                        <div className="flex flex-col items-end gap-2 p-4">
                             <NavLinks inSheet={true} />
                         </div>
                         <Separator />
