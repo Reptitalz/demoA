@@ -120,8 +120,8 @@ export default function AdminHomePage() {
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {activeView !== 'home' && (
          <div className="p-2 border-b bg-card/80 backdrop-blur-sm flex justify-between items-center">
-            <button onClick={handleBackToAdminHome} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft size={16} /> Volver al panel de miembro
+            <button onClick={handleBackToDashboard} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <ArrowLeft size={16} /> Volver a los chats
             </button>
         </div>
       )}
