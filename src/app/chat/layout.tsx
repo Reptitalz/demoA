@@ -20,6 +20,7 @@ export default function ChatDashboardLayout({ children }: { children: ReactNode 
   }
 
   // Para todas las demás rutas dentro de /chat, usamos el layout principal con la barra de navegación.
+  // El ChatViewManager se encargará de renderizar la página correcta, incluida la de conversación.
   return (
     <Suspense fallback={
       <div className="h-full w-screen flex items-center justify-center bg-transparent">

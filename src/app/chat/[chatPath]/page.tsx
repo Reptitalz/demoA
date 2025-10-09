@@ -1,4 +1,5 @@
-// src/app/chat/[chatPath]/page.tsx
+// This file is no longer needed as conversations are handled by the ChatViewManager.
+// It can be safely deleted.
 "use client";
 import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -13,6 +14,9 @@ export default function ChatRedirector() {
     useEffect(() => {
         if (chatPath) {
             router.replace(`/chat/conversation/${chatPath}`);
+        } else {
+            // If there's no chatPath for some reason, go to the dashboard.
+            router.replace(`/chat/dashboard`);
         }
     }, [chatPath, router]);
 

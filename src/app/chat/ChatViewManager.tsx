@@ -11,6 +11,7 @@ import ChatListPage from './dashboard/page';
 import UpdatesPage from './updates/page';
 import ChatProfilePage from './profile/page';
 import AdminHomePage from './admin/page';
+import DesktopChatPage from './conversation/[chatPath]/page';
 
 const pageVariants = {
   initial: (direction: number) => ({
@@ -40,6 +41,7 @@ const pageVariants = {
   }),
 };
 
+// Define un orden para las animaciones de las pestañas principales
 const routeOrder = ['/chat/dashboard', '/chat/updates', '/chat/profile', '/chat/admin'];
 
 const allViews = [
@@ -47,12 +49,14 @@ const allViews = [
   { path: '/chat/updates', Component: UpdatesPage },
   { path: '/chat/profile', Component: ChatProfilePage },
   { path: '/chat/admin', Component: AdminHomePage },
+  // La ruta de conversación se maneja de forma especial
+  { path: '/chat/conversation', Component: DesktopChatPage },
 ];
 
 const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
-  // Determine animation direction
+  // Determinar la dirección de la animación para las pestañas principales
   const [prevIndex, setPrevIndex] = React.useState(routeOrder.findIndex(route => pathname.startsWith(route)));
   const currentIndex = routeOrder.findIndex(route => pathname.startsWith(route));
   
@@ -64,27 +68,36 @@ const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
   
   const direction = currentIndex > prevIndex ? 1 : -1;
   
-  const isManagedRoute = routeOrder.some(route => pathname.startsWith(route));
-
-  // If the route is not one of the main tabs (e.g., a conversation), just render it directly.
-  if (!isManagedRoute) {
-    return <>{children}</>;
-  }
-
+  // Renderiza todas las vistas y controla su visibilidad
   return (
     <div className="h-full w-full overflow-hidden relative">
       {allViews.map(({ path, Component }) => {
+        // La conversación es una ruta dinámica, así que comprobamos el prefijo
         const isActive = pathname.startsWith(path);
+        
+        // La animación de conversación puede ser diferente
+        const isConversation = path === '/chat/conversation';
+        const conversationVariants = {
+            initial: { opacity: 0, x: "100%" },
+            animate: { opacity: 1, x: "0%", transition: { duration: 0.2, ease: 'easeInOut' } },
+            exit: { opacity: 0, x: "100%", transition: { duration: 0.2, ease: 'easeInOut' } },
+        };
+        
+        const currentVariants = isConversation ? conversationVariants : pageVariants;
+        
+        // El componente de conversación necesita renderizarse solo si su ruta está activa
+        if(isConversation && !isActive) return null;
+
         return (
             <motion.div
                 key={path}
+                variants={currentVariants}
                 initial="initial"
                 animate={isActive ? 'animate' : 'exit'}
-                variants={pageVariants}
                 custom={direction}
                 className={cn(
                     "absolute inset-0",
-                    !isActive && "pointer-events-none" // Make inactive views non-interactive
+                    !isActive && "pointer-events-none" // Hace que las vistas inactivas no sean interactivas
                 )}
             >
                 <Component />
