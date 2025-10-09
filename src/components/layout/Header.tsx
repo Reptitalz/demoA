@@ -82,7 +82,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                         <FaBars className="h-5 w-5" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent>
+                <SheetContent title="Navegación Principal">
                     <div className="flex flex-col h-full">
                         <div className="p-4 border-b">
                              <Link href="/" className="flex items-center gap-3" onClick={() => setIsSheetOpen(false)}>
