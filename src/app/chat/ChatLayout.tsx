@@ -7,12 +7,13 @@ import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { FaComment, FaCamera, FaUser, FaPlus } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser, FaPlus, FaPhoneAlt } from 'react-icons/fa';
 import AddChatDialog from '@/components/chat/AddChatDialog'; // Import the dialog
 import { Button } from '@/components/ui/button';
 
 const menuItems = [
     { path: '/chat/dashboard', icon: FaComment, label: 'Chats' },
+    { path: '/chat/calls', icon: FaPhoneAlt, label: 'Llamadas' },
     { path: '/chat/updates', icon: FaCamera, label: 'Novedades' },
     { path: '/chat/profile', icon: FaUser, label: 'Perfil' },
 ];
