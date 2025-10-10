@@ -4,156 +4,94 @@
 
 import { useEffect, useCallback } from 'react';
 import { useApp } from '@/providers/AppProvider';
-import { Contact, ChatMessage } from '@/types';
-import { openDB, CONTACTS_STORE_NAME, SESSIONS_STORE_NAME, MESSAGES_STORE_NAME } from '@/lib/db';
-
-interface StoredMessage extends ChatMessage {
-    id?: number; // keyPath is 'id', so it will be present
-    sessionId: string;
-}
-
+import { Contact, ChatMessage, UserProfile } from '@/types';
+import { useToast } from "@/hooks/use-toast";
 
 export const useContacts = () => {
   const { state, dispatch } = useApp();
-  const { contacts } = state;
+  const { contacts, userProfile } = state;
+  const { toast } = useToast();
 
-  // Load contacts from IndexedDB on initial mount
+  const fetchContacts = useCallback(async () => {
+    if (!userProfile.isAuthenticated || !userProfile._id) return;
+    try {
+      const response = await fetch(`/api/contacts?userId=${userProfile._id.toString()}`);
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar los contactos del perfil.');
+      }
+      const serverContacts: Contact[] = await response.json();
+      dispatch({ type: 'SET_CONTACTS', payload: serverContacts });
+    } catch (error: any) {
+      console.error("Failed to fetch contacts from server:", error);
+      toast({ title: 'Error de Sincronización', description: error.message, variant: 'destructive' });
+    }
+  }, [userProfile.isAuthenticated, userProfile._id, dispatch, toast]);
+
+  // Load contacts from server on initial mount
   useEffect(() => {
-    const loadContacts = async () => {
-      try {
-        const db = await openDB();
-        const contactTx = db.transaction(CONTACTS_STORE_NAME, 'readonly');
-        const storedContacts: Contact[] = await contactTx.objectStore(CONTACTS_STORE_NAME).getAll();
+    fetchContacts();
+  }, [fetchContacts]);
 
-        // Now, for each contact, fetch the last message and unread count
-        const contactsWithDetails = await Promise.all(
-          storedContacts.map(async (contact) => {
-            if (contact.isDemo) return contact;
-            try {
-              const session = await db.get(SESSIONS_STORE_NAME, contact.chatPath);
-              if (session?.sessionId) {
-                const msgTx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
-                const msgStore = msgTx.objectStore(MESSAGES_STORE_NAME);
-                const msgIndex = msgStore.index('by_sessionId');
-                
-                let lastMsg: StoredMessage | null = null;
-                let unreadCount = 0;
+  const addContact = useCallback(async (contactData: Omit<Contact, 'conversationSize' | '_id'>) => {
+    if (!userProfile._id) return;
+    
+    // Optimistic update
+    const newContact: Contact = { ...contactData, conversationSize: 0 };
+    dispatch({ type: 'ADD_CONTACT', payload: newContact });
 
-                let cursor = await msgIndex.openCursor(session.sessionId, 'prev');
-                let count = 0;
-                while(cursor) {
-                    if (count === 0) {
-                        lastMsg = cursor.value;
-                    }
-                    if (cursor.value.role === 'model' && cursor.value.status !== 'read') {
-                        unreadCount++;
-                    }
-                    count++;
-                    if (count > 100) break; // Safety break for performance
-                    cursor = await cursor.continue();
-                }
-
-                if (lastMsg) {
-                  const content = typeof lastMsg.content === 'string' ? lastMsg.content : (lastMsg.content as any).type ? `[${(lastMsg.content as any).type}]` : '[Archivo]';
-                  return {
-                    ...contact,
-                    lastMessage: content,
-                    lastMessageTimestamp: new Date(lastMsg.time).getTime(),
-                    unreadCount: unreadCount,
-                  };
-                }
-              }
-            } catch (e) {
-                console.error(`Failed to get last message for ${contact.chatPath}`, e);
-            }
-            return { ...contact, unreadCount: 0 };
-          })
-        );
-        
-        // Sort contacts by last message timestamp
-        contactsWithDetails.sort((a, b) => (b.lastMessageTimestamp || 0) - (a.lastMessageTimestamp || 0));
-
-        dispatch({ type: 'SET_CONTACTS', payload: contactsWithDetails });
-      } catch (error) {
-        console.error("Failed to load contacts from IndexedDB:", error);
-      }
-    };
-    if (state.userProfile.isAuthenticated) {
-        loadContacts();
-    }
-  }, [dispatch, state.userProfile.isAuthenticated]);
-
-  const addContact = useCallback(async (contact: Omit<Contact, 'id'>) => {
-    if (contact.isDemo) return;
     try {
-      const db = await openDB();
-      const tx = db.transaction(CONTACTS_STORE_NAME, 'readwrite');
-      // The key is chatPath, which is already in the contact object
-      await tx.objectStore(CONTACTS_STORE_NAME).put(contact);
-      await tx.done;
-      dispatch({ type: 'ADD_CONTACT', payload: contact as Contact });
-    } catch (error) {
-      console.error("Failed to add contact to IndexedDB:", error);
-    }
-  }, [dispatch]);
-
-  const removeContact = useCallback(async (chatPath: string) => {
-    try {
-      const db = await openDB();
-      const session = await db.get(SESSIONS_STORE_NAME, chatPath);
-      const sessionId = session?.sessionId;
-      
-      const tx = db.transaction([CONTACTS_STORE_NAME, SESSIONS_STORE_NAME, MESSAGES_STORE_NAME], 'readwrite');
-      
-      // 1. Delete messages if session existed
-      if (sessionId) {
-          const msgStore = tx.objectStore(MESSAGES_STORE_NAME);
-          const msgIndex = msgStore.index('by_sessionId');
-          let cursor = await msgIndex.openCursor(sessionId);
-          while(cursor) {
-              await cursor.delete();
-              cursor = await cursor.continue();
-          }
-      }
-      
-      // 2. Delete session
-      await tx.objectStore(SESSIONS_STORE_NAME).delete(chatPath);
-      
-      // 3. Delete contact
-      await tx.objectStore(CONTACTS_STORE_NAME).delete(chatPath);
-
-      await tx.done;
-
-      dispatch({ type: 'SET_CONTACTS', payload: contacts.filter(c => c.chatPath !== chatPath) });
-
-    } catch (error) {
-      console.error("Failed to remove contact and related data from IndexedDB:", error);
-    }
-  }, [dispatch, contacts]);
-
-  const clearContactChat = useCallback(async (chatPath: string) => {
-     try {
-        const db = await openDB();
-        const session = await db.get(SESSIONS_STORE_NAME, chatPath);
-
-        if (session?.sessionId) {
-            const sessionId = session.sessionId;
-            const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
-            const store = tx.objectStore(MESSAGES_STORE_NAME);
-            const index = store.index('by_sessionId');
-            let cursor = await index.openCursor(sessionId);
-            
-            while(cursor) {
-                await cursor.delete();
-                cursor = await cursor.continue();
-            }
-            await tx.done;
+        const response = await fetch('/api/contacts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: userProfile._id.toString(), newContact }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            // Revert optimistic update
+            dispatch({ type: 'SET_CONTACTS', payload: state.contacts.filter(c => c.chatPath !== newContact.chatPath) });
+            throw new Error(result.message || "No se pudo añadir el contacto.");
         }
+        // Refetch to get the source-of-truth
+        fetchContacts();
 
     } catch (error: any) {
-        console.error("Error clearing conversation:", error);
+        console.error("Failed to add contact to DB:", error);
+        toast({ title: 'Error', description: error.message, variant: 'destructive'});
+        // Revert optimistic update
+        dispatch({ type: 'SET_CONTACTS', payload: state.contacts.filter(c => c.chatPath !== newContact.chatPath) });
     }
-  }, []);
+  }, [dispatch, userProfile._id, fetchContacts, state.contacts, toast]);
+
+  const removeContact = useCallback(async (chatPath: string) => {
+    if (!userProfile._id) return;
+    const originalContacts = state.contacts;
+    // Optimistic update
+    dispatch({ type: 'SET_CONTACTS', payload: originalContacts.filter(c => c.chatPath !== chatPath) });
+
+    try {
+      const response = await fetch('/api/contacts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userProfile._id.toString(), chatPath }),
+      });
+      if (!response.ok) {
+        throw new Error("No se pudo eliminar el contacto.");
+      }
+    } catch (error: any) {
+      console.error("Failed to remove contact from DB:", error);
+      toast({ title: 'Error', description: error.message, variant: 'destructive'});
+      // Revert
+      dispatch({ type: 'SET_CONTACTS', payload: originalContacts });
+    }
+  }, [dispatch, userProfile._id, state.contacts, toast]);
+  
+  // This function is now a placeholder as we don't clear chats from MongoDB this way
+  const clearContactChat = useCallback(async (chatPath: string) => {
+     console.log("Clearing chat for", chatPath);
+     // This would require a new API endpoint to delete messages for a chat from the central DB.
+     // For now, it will just clear the local view if we were caching it.
+     toast({ title: 'Función no implementada', description: 'La limpieza de chats se implementará en una futura versión.' });
+  }, [toast]);
 
   return { contacts, addContact, removeContact, clearContactChat };
 };

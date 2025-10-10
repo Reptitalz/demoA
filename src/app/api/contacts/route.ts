@@ -1,105 +1,95 @@
-
 // src/app/api/contacts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { UserProfile, ContactImage } from '@/types';
+import { UserProfile, Contact } from '@/types';
 import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';
-const AGENT_MEMORY_COLLECTION = 'agent_memory';
 
-// GET all contacts for a specific assistant
+// GET all contacts for the logged-in user
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const assistantId = searchParams.get('assistantId');
   const userId = searchParams.get('userId');
 
-  if (!assistantId || !userId) {
-    return NextResponse.json({ message: 'Se requieren el ID del asistente y del usuario' }, { status: 400 });
+  if (!userId || !ObjectId.isValid(userId)) {
+    return NextResponse.json({ message: 'Se requiere un ID de usuario válido' }, { status: 400 });
   }
 
   try {
     const { db } = await connectToDatabase();
     
-    // 1. Validate that the user owns this assistant
-    const userProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne({
-        _id: new ObjectId(userId),
-        'assistants.id': assistantId
-    });
+    const userProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne(
+        { _id: new ObjectId(userId) },
+        { projection: { contacts: 1 } } // Only fetch the contacts array
+    );
     
     if (!userProfile) {
-        return NextResponse.json({ message: 'Acceso no autorizado o el asistente no existe' }, { status: 403 });
+        return NextResponse.json({ message: 'Usuario no encontrado' }, { status: 404 });
     }
 
-    // 2. Fetch contacts from agent_memory collection
-    const contacts = await db.collection(AGENT_MEMORY_COLLECTION).aggregate([
-        {
-            $match: {
-                assistantId: assistantId
-            }
-        },
-        {
-            // Calculate the size of the whole document as a measure of conversation "weight"
-            $addFields: {
-                conversationSize: { $bsonSize: "$$ROOT" }
-            }
-        },
-        {
-            $project: {
-                _id: { $toString: "$_id" },
-                destination: "$userIdentifier",
-                name: "$userIdentifier", // Initially, name is the same as the identifier
-                conversationSize: 1,
-                // Extract all multimedia files from history
-                files: {
-                    $filter: {
-                        input: "$history",
-                        as: "msg",
-                        cond: { 
-                            $and: [
-                                { $eq: ["$$msg.role", "user"] },
-                                { $ne: [{ $type: "$$msg.content" }, "string"] }, // Content is an object for files
-                                { $in: ["$$msg.content.type", ["image", "video", "audio", "document"]] }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        {
-            // Reshape the files array to match the ContactImage type, now more generic
-            $project: {
-                 _id: 1,
-                 destination: 1,
-                 name: 1,
-                 conversationSize: 1,
-                 images: { // Keep the name 'images' for compatibility with the frontend type
-                     $map: {
-                         input: "$files",
-                         as: "fileMsg",
-                         in: {
-                             _id: { $toString: { $ifNull: ["$$fileMsg.id", new ObjectId()] } }, // Use message ID or generate one
-                             url: "$$fileMsg.content.url",
-                             type: "$$fileMsg.content.type",
-                             name: "$$fileMsg.content.name",
-                             receivedAt: { $ifNull: ["$$fileMsg.time", "$createdAt"] },
-                             read: { $ifNull: ["$$fileMsg.read", false] }
-                         }
-                     }
-                 }
-            }
-        },
-        {
-            $sort: {
-                conversationSize: -1 // Sort by largest conversation size first
-            }
-        }
-    ]).toArray();
-    
-    return NextResponse.json(contacts);
+    return NextResponse.json(userProfile.contacts || []);
+
   } catch (error) {
     console.error('API Error (GET /api/contacts):', error);
     return NextResponse.json({ message: 'Error al obtener los contactos' }, { status: 500 });
   }
 }
 
+// POST a new contact to the user's profile
+export async function POST(request: NextRequest) {
+    const { userId, newContact } = await request.json();
+
+    if (!userId || !ObjectId.isValid(userId) || !newContact || !newContact.chatPath) {
+        return NextResponse.json({ message: 'Se requieren el ID de usuario y los datos del nuevo contacto.' }, { status: 400 });
+    }
+
+    try {
+        const { db } = await connectToDatabase();
+        const userProfileCollection = db.collection<UserProfile>(PROFILES_COLLECTION);
+        
+        // Use $addToSet to prevent duplicate contacts based on chatPath
+        const result = await userProfileCollection.updateOne(
+            { _id: new ObjectId(userId) },
+            { $addToSet: { contacts: newContact } }
+        );
+
+        if (result.modifiedCount > 0) {
+             return NextResponse.json({ success: true, message: 'Contacto añadido exitosamente.', contact: newContact });
+        } else {
+             return NextResponse.json({ success: false, message: 'El contacto ya existe o no se pudo añadir.' });
+        }
+
+    } catch (error) {
+        console.error('API Error (POST /api/contacts):', error);
+        return NextResponse.json({ message: 'Error al añadir el contacto.' }, { status: 500 });
+    }
+}
+
+// DELETE a contact from the user's profile
+export async function DELETE(request: NextRequest) {
+    const { userId, chatPath } = await request.json();
+
+    if (!userId || !ObjectId.isValid(userId) || !chatPath) {
+        return NextResponse.json({ message: 'Se requieren el ID de usuario y el chatPath del contacto a eliminar.' }, { status: 400 });
+    }
+
+    try {
+        const { db } = await connectToDatabase();
+        const userProfileCollection = db.collection<UserProfile>(PROFILES_COLLECTION);
+
+        const result = await userProfileCollection.updateOne(
+            { _id: new ObjectId(userId) },
+            { $pull: { contacts: { chatPath: chatPath } } }
+        );
+
+        if (result.modifiedCount > 0) {
+            return NextResponse.json({ success: true, message: 'Contacto eliminado exitosamente.' });
+        } else {
+            return NextResponse.json({ success: false, message: 'No se encontró el contacto para eliminar.' }, { status: 404 });
+        }
+
+    } catch (error) {
+        console.error('API Error (DELETE /api/contacts):', error);
+        return NextResponse.json({ message: 'Error al eliminar el contacto.' }, { status: 500 });
+    }
+}

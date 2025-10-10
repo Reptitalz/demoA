@@ -165,18 +165,19 @@ export interface ContactImage {
 }
 
 export interface Contact {
-  _id?: string;
   chatPath: string;
   name: string;
   imageUrl?: string;
+  isDemo?: boolean;
+  // These fields are now optional and will be hydrated dynamically
   lastMessage?: string;
   lastMessageTimestamp?: number;
   isOnline?: boolean;
   unreadCount?: number;
-  isDemo?: boolean;
-  conversationSize: number;
+  conversationSize?: number;
   destination?: string; // phone number or session ID
   images?: ContactImage[];
+  accountType?: 'personal' | 'business';
 }
 
 export interface UserProfile {

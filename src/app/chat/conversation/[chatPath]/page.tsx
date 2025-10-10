@@ -1,7 +1,7 @@
 // src/app/chat/conversation/[chatPath]/page.tsx
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { FaArrowLeft, FaPaperPlane, FaLock, FaUser, FaPaperclip, FaTags, FaMapMarkerAlt, FaImage, FaMicrophone, FaTrashAlt, FaVideo, FaFileAlt, FaPhone, FaCheck } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
@@ -99,7 +99,13 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
     const checkmarkColor = message.status === 'read' ? 'text-sky-400' : 'text-muted-foreground/80';
 
     return (
-        <div className={cn("flex w-full max-w-lg mx-auto", isUserMessage ? "justify-end" : "justify-start")}>
+        <motion.div 
+            layout
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className={cn("flex w-full max-w-lg", isUserMessage ? "justify-end ml-auto" : "justify-start mr-auto")}
+        >
             <div className={cn("flex items-end gap-2", isUserMessage && "flex-row-reverse")}>
                 {!isUserMessage && (
                     <Avatar className="h-6 w-6">
@@ -154,13 +160,8 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                         )}
                     </div>
                 </div>
-                 {isUserMessage && (
-                    <Avatar className="h-6 w-6">
-                        <AvatarFallback><FaUser /></AvatarFallback>
-                    </Avatar>
-                )}
             </div>
-        </div>
+        </motion.div>
     );
 };
 
@@ -200,10 +201,11 @@ const DesktopChatPage = () => {
   const recordingStartTimeRef = useRef<number | null>(null);
   const [isLoadingAssistant, setIsLoadingAssistant] = useState(true);
   
-  const isPersonalChat = chatPartner && 'email' in chatPartner;
-  const isAssistantChat = chatPartner && 'prompt' in chatPartner;
+  const isPersonalChat = useMemo(() => chatPartner && 'email' in chatPartner, [chatPartner]);
+  const isAssistantChat = useMemo(() => chatPartner && 'prompt' in chatPartner, [chatPartner]);
 
   const assistant = isAssistantChat ? (chatPartner as AssistantConfig) : null;
+  const contactIsOnline = useMemo(() => contacts.find(c => c.chatPath === chatPath)?.isOnline, [contacts, chatPath]);
 
   const setupSessionAndMessages = useCallback(async () => {
     if (!chatPath) return null;
@@ -283,7 +285,7 @@ const DesktopChatPage = () => {
   }, [socket, sessionId, userProfile.chatPath, chatPath, messages]);
 
 
-  useEffect(() => {
+ useEffect(() => {
     if (!chatPath || !userProfile.isAuthenticated) {
         setIsLoadingAssistant(false);
         return;
@@ -299,37 +301,21 @@ const DesktopChatPage = () => {
 
         const { sid, storedMessages } = sessionData;
 
-        // Try to find the partner directly from IndexedDB first for faster load
+        // Simplified logic: find partner from existing state.
         let partner: Contact | AssistantConfig | UserProfile | null = null;
-        try {
-            const db = await openDB();
-            const contact = await db.get(CONTACTS_STORE_NAME, chatPath);
-            if (contact) {
-                partner = contact;
-            }
-        } catch (e) {
-            console.error("Could not fetch contact from DB, will try state.", e);
-        }
         
-        // If not found in DB, fallback to state (assistants list)
+        partner = contacts.find(c => c.chatPath === chatPath) || null;
         if (!partner) {
             partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
-        }
-        
-        if (!partner) {
-            partner = contacts.find(c => c.chatPath === chatPath) || null;
         }
 
         if (partner) {
             setChatPartner(partner);
             setError(null);
             
-            // Set up initial message if it's a new chat
-            if (storedMessages.length === 0) {
-                 const initialMessageContent = partner && 'prompt' in partner
-                    ? `¡Hola! Estás chateando con ${(partner as AssistantConfig).name}. ¿Cómo puedo ayudarte hoy?`
-                    : `Inicia tu conversación con ${partner.name || 'este contacto'}.`;
-
+            // Set up initial message if it's a new chat and it's an assistant
+            if (storedMessages.length === 0 && 'prompt' in partner) {
+                 const initialMessageContent = `¡Hola! Estás chateando con ${(partner as AssistantConfig).name}. ¿Cómo puedo ayudarte hoy?`;
                 const initialMessage: ChatMessage = {
                     id: `initial_${Date.now()}`,
                     role: 'model',
@@ -350,6 +336,7 @@ const DesktopChatPage = () => {
 
     return () => { isMounted = false; };
 }, [chatPath, userProfile.isAuthenticated, userProfile.assistants, contacts, setupSessionAndMessages]);
+
 
 
   useEffect(() => {
@@ -433,13 +420,13 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
-    if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath) {
+    if (chatPartner && 'email' in chatPartner && userProfile.chatPath && chatPartner?.chatPath) { // Check for user-to-user
         if (socket && typeof messageContent === 'string') {
             socket.emit('sendMessage', {
                 id: messageId,
                 senderId: userProfile._id,
                 senderChatPath: userProfile.chatPath,
-                senderProfile: { name: userProfile.name, imageUrl: userProfile.imageUrl },
+                senderProfile: { name: userProfile.firstName, imageUrl: userProfile.imageUrl },
                 recipientChatPath: chatPartner.chatPath,
                 content: messageContent,
             }, (ack: { delivered: boolean }) => { // Acknowledgement callback
@@ -488,7 +475,7 @@ const DesktopChatPage = () => {
             console.error("Error sending message to proxy:", err);
         });
     }
-}, [isPersonalChat, isAssistantChat, assistant, chatPartner, sessionId, pollForResponse, socket, userProfile]);
+}, [isAssistantChat, assistant, chatPartner, sessionId, pollForResponse, socket, userProfile]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
@@ -769,7 +756,7 @@ const DesktopChatPage = () => {
                         )}
                     </div>
                     <p className="text-xs text-green-500 font-medium">
-                       {assistantStatusMessage}
+                       {isAssistantChat ? assistantStatusMessage : (contactIsOnline ? 'en línea' : 'desconectado')}
                     </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -790,9 +777,11 @@ const DesktopChatPage = () => {
     <main className="flex-1 overflow-y-auto relative pt-20">
         <div className="absolute inset-x-0 top-0 bottom-0 chat-background" />
         <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
-        {messages.map((msg, index) => (
-            <ChatBubble key={msg.id || index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
-        ))}
+        <AnimatePresence>
+            {messages.map((msg, index) => (
+                <ChatBubble key={msg.id || index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
+            ))}
+        </AnimatePresence>
         {isSending && isAssistantChat && (
             <div className="flex justify-start animate-fadeIn max-w-lg mx-auto">
                 <div className="flex items-end gap-2">
