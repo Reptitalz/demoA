@@ -47,15 +47,14 @@ interface StoredMessage {
 interface ChatItemProps {
   chat: Contact;
   onClick: (e: React.MouseEvent) => void;
-  userProfile: UserProfile; // Pass the userProfile to determine badges
+  userProfile: UserProfile;
 }
 
 const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick, userProfile }) => {
-    const isOnline = !chat.lastMessage;
+    const isOnline = chat.isOnline;
     
-    // Determine if the contact is an AI assistant or a business user
     const isAssistant = userProfile.assistants.some(a => a.chatPath === chat.chatPath);
-    const contactProfile = userProfile.contacts?.find(c => c.chatPath === chat.chatPath);
+    const contactProfile = contacts.find(c => c.chatPath === chat.chatPath);
     const isBusiness = contactProfile?.accountType === 'business';
 
     return (
@@ -65,11 +64,14 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick, userProfile }) => {
                     animate={{ y: [-1, 1, -1] }}
                     transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                 >
-                    <Avatar className="h-12 w-12 border-2 border-primary/30">
+                    <Avatar className="h-12 w-12 border-2 border-primary/30 relative">
                         <AvatarImage src={chat.imageUrl} alt={chat.name} />
                         <AvatarFallback className="text-lg bg-muted">
                             {chat.name ? chat.name.charAt(0) : <User />}
                         </AvatarFallback>
+                        {isOnline && (
+                           <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
+                        )}
                     </Avatar>
                 </motion.div>
                 <div className="flex-grow overflow-hidden">
@@ -89,18 +91,15 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick, userProfile }) => {
                                 <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
                             )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{chat.lastMessageTimestamp ? new Date(chat.lastMessageTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : 'Reciente'}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 shrink-0">{chat.lastMessageTimestamp ? new Date(chat.lastMessageTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) : ''}</p>
                 </div>
-                <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                            {isOnline ? (
-                                <span className={cn("relative flex h-2 w-2")}>
-                                    <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400 animate-ping")}></span>
-                                    <span className={cn("relative inline-flex rounded-full h-2 w-2 bg-green-500")}></span>
-                                </span>
-                            ) : null}
-                            <p className="text-xs text-muted-foreground truncate">{chat.lastMessage || 'en línea'}</p>
-                        </div>
+                <div className="flex items-center justify-between mt-0.5">
+                        <p className="text-xs text-muted-foreground truncate">{chat.lastMessage || (isOnline ? 'en línea' : 'desconectado')}</p>
+                        {chat.unreadCount && chat.unreadCount > 0 && (
+                            <div className="flex-shrink-0 ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+                                {chat.unreadCount}
+                            </div>
+                        )}
                 </div>
                 </div>
             </CardContent>
@@ -126,7 +125,7 @@ const MemberSectionButton = ({ icon: Icon, label, notificationCount, onClick }: 
 
 export default function ChatListPage() {
   const { data: session } = useSession();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   const { contacts, removeContact, clearContactChat } = useContacts();
@@ -254,6 +253,11 @@ export default function ChatListPage() {
     { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: creditsCount },
   ];
 
+  const handleChatItemClick = (chat: Contact) => {
+    dispatch({ type: 'MARK_CHAT_AS_READ', payload: chat.chatPath });
+    router.push(`/chat/conversation/${chat.chatPath}`);
+  };
+
   return (
     <>
     <div className="flex flex-col h-full bg-background dark:bg-gray-900 font-display pb-16 md:pb-0">
@@ -362,7 +366,7 @@ export default function ChatListPage() {
                             }}
                             onClick={(e) => {
                                 if (dragOccurred.current || activeSwipe) { e.stopPropagation(); return; }
-                                router.push(`/chat/conversation/${chat.chatPath}`);
+                                handleChatItemClick(chat);
                             }}
                             animate={{ x: activeSwipe?.chatPath === chat.chatPath ? 240 : 0 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -370,7 +374,7 @@ export default function ChatListPage() {
                         >
                             <ChatItem chat={chat} onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/chat/conversation/${chat.chatPath}`);
+                              handleChatItemClick(chat);
                             }} userProfile={state.userProfile} />
                         </motion.div>
                     </div>

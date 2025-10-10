@@ -171,6 +171,8 @@ export interface Contact {
   imageUrl?: string;
   lastMessage?: string;
   lastMessageTimestamp?: number;
+  isOnline?: boolean;
+  unreadCount?: number;
   isDemo?: boolean;
   conversationSize: number;
   destination?: string; // phone number or session ID
