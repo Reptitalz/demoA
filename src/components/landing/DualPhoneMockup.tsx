@@ -8,11 +8,12 @@ const DualPhoneMockup = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameId = useRef<number | null>(null);
 
-    const drawPhoneFrame = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, time: number) => {
+    const drawPhoneFrame = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, time: number, rotation: number) => {
         const floatY = Math.sin((time + x) / 500) * 3;
         
         ctx.save();
         ctx.translate(x, y + floatY);
+        ctx.rotate(rotation);
 
         // Frame
         ctx.fillStyle = '#1a1a1a'; // Dark grey for phone body
@@ -38,10 +39,11 @@ const DualPhoneMockup = () => {
         ctx.restore();
     };
     
-    const drawDashboardScreen = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, time: number) => {
+    const drawDashboardScreen = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, time: number, rotation: number) => {
         ctx.save();
         const floatY = Math.sin((time + x) / 500) * 3;
         ctx.translate(x, y + floatY);
+        ctx.rotate(rotation);
         ctx.beginPath();
         ctx.roundRect(-width / 2 + 8, -height / 2 + 8, width - 16, height - 16, 22);
         ctx.clip();
@@ -82,10 +84,11 @@ const DualPhoneMockup = () => {
         ctx.restore();
     }
 
-    const drawWhatsAppScreen = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, time: number) => {
+    const drawWhatsAppScreen = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, time: number, rotation: number) => {
         ctx.save();
         const floatY = Math.sin((time + x) / 500) * 3;
         ctx.translate(x, y + floatY);
+        ctx.rotate(rotation);
         ctx.beginPath();
         ctx.roundRect(-width / 2 + 8, -height / 2 + 8, width - 16, height - 16, 22);
         ctx.clip();
@@ -149,20 +152,23 @@ const DualPhoneMockup = () => {
 
         const phoneWidth = 220;
         const phoneHeight = 450;
-        const gap = 30;
+        const gap = -40; // Reduced gap to bring phones closer
         
         const totalWidth = phoneWidth * 2 + gap;
         const startX = (w - totalWidth) / 2;
 
+        const rotation1 = -0.05 + Math.sin(time / 1000) * 0.01;
+        const rotation2 = 0.05 + Math.cos(time / 1000) * 0.01;
+
         // Phone 1 (Dashboard)
         const x1 = startX + phoneWidth / 2;
-        drawPhoneFrame(ctx, x1, h / 2, phoneWidth, phoneHeight, time);
-        drawDashboardScreen(ctx, x1, h / 2, phoneWidth, phoneHeight, time);
+        drawPhoneFrame(ctx, x1, h / 2, phoneWidth, phoneHeight, time, rotation1);
+        drawDashboardScreen(ctx, x1, h / 2, phoneWidth, phoneHeight, time, rotation1);
         
         // Phone 2 (WhatsApp Chat)
         const x2 = startX + phoneWidth + gap + phoneWidth / 2;
-        drawPhoneFrame(ctx, x2, h / 2, phoneWidth, phoneHeight, time);
-        drawWhatsAppScreen(ctx, x2, h / 2, phoneWidth, phoneHeight, time);
+        drawPhoneFrame(ctx, x2, h / 2, phoneWidth, phoneHeight, time, rotation2);
+        drawWhatsAppScreen(ctx, x2, h / 2, phoneWidth, phoneHeight, time, rotation2);
 
 
         animationFrameId.current = requestAnimationFrame(animate);
@@ -177,7 +183,7 @@ const DualPhoneMockup = () => {
         };
     }, [animate]);
 
-    return <canvas ref={canvasRef} className="w-full h-[500px]" />;
+    return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
 export default DualPhoneMockup;

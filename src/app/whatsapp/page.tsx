@@ -88,7 +88,7 @@ const WhatsAppPage = () => {
               </div>
           </motion.div>
           
-           <div className="mt-20">
+           <div className="mt-12 h-[450px] w-full">
               <DualPhoneMockup />
           </div>
 
