@@ -385,7 +385,7 @@ export const BankView = () => {
                                 {payment.status === 'pending' && (
                                     <div className="flex gap-2 mt-3 pt-3 border-t">
                                         <Button size="sm" className="flex-1" onClick={() => handleViewReceipt(payment)}>
-                                            <Eye className="mr-2"/>Ver Comprobante
+                                            <Eye className="mr-2"/>Revisar Comprobante
                                         </Button>
                                     </div>
                                 )}
