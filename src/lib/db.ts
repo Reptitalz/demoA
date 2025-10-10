@@ -1,4 +1,3 @@
-
 // src/lib/db.ts
 import { openDB as openIDB, DBSchema, IDBPDatabase } from 'idb';
 
@@ -33,7 +32,7 @@ interface HeyManitoDB extends DBSchema {
     value: any; // AssistantConfig type
   };
   [AUTHORIZED_PAYMENTS_STORE_NAME]: {
-    key: string; // payment.id or messageId
+    key: string; // messageId
     value: any; // Payment data
   };
   [CREDIT_LINES_STORE_NAME]: {

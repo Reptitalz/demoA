@@ -86,11 +86,16 @@ const authorizePaymentInDB = async (payment: any) => {
     const tx = db.transaction([AUTHORIZED_PAYMENTS_STORE_NAME, MESSAGES_STORE_NAME], 'readwrite');
     const authStore = tx.objectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
     const msgStore = tx.objectStore(MESSAGES_STORE_NAME);
+    
+    // Ensure the object being put has the keyPath property
+    if (!payment.messageId) {
+        throw new Error("Payment object must have a messageId to be authorized.");
+    }
+    
     await authStore.put(payment);
     // After authorizing, delete the original message to remove it from "pending"
-    if (payment.messageId) {
-        await msgStore.delete(payment.messageId);
-    }
+    await msgStore.delete(payment.messageId);
+    
     await tx.done;
 }
 
@@ -242,7 +247,6 @@ export const BankView = () => {
         setIsLoading(true);
 
         if (!isAuthenticated) {
-            // Show demo data if not authenticated
             setAllPayments([...demoPendingPayments, ...demoCompletedPayments]);
             setIsLoading(false);
             return;
@@ -312,31 +316,36 @@ export const BankView = () => {
             toast({ title: 'Modo Demo', description: 'Las acciones no están disponibles en modo demostración.' });
             return;
         }
-
+    
         const paymentToProcess = allPayments.find(p => p.messageId === messageId);
         if (!paymentToProcess) return;
-
-        if (action === 'authorize' && amount) {
-            const authorizedPayment = { ...paymentToProcess, status: 'completed', amount: amount, authorizedAt: new Date() };
-            try {
+    
+        try {
+            if (action === 'authorize' && amount) {
+                const authorizedPayment = { ...paymentToProcess, status: 'completed', amount: amount, authorizedAt: new Date() };
                 await authorizePaymentInDB(authorizedPayment);
                 toast({ title: "Acción Realizada", description: "El comprobante ha sido autorizado."});
-                // Refetch all data to ensure UI is up to date
-                fetchPayments();
-            } catch (error) {
-                toast({ title: "Error", description: "No se pudo guardar la autorización.", variant: "destructive" });
-            }
-        } else if (action === 'reject') {
-            try {
+                
+                // Optimistic UI update
+                setAllPayments(prev => {
+                    const pending = prev.filter(p => p.messageId !== messageId);
+                    const completed = [...prev.filter(p => p.status === 'completed'), authorizedPayment];
+                    return [...pending.filter(p=>p.status==='pending'), ...completed];
+                });
+    
+            } else if (action === 'reject') {
                 await rejectPaymentInDB(messageId);
                 toast({ title: "Acción Realizada", description: "El comprobante ha sido rechazado y eliminado."});
-                 // Refetch all data to ensure UI is up to date
-                fetchPayments();
-            } catch (error) {
-                 toast({ title: "Error", description: "No se pudo eliminar el comprobante.", variant: "destructive" });
+                
+                // Optimistic UI update
+                setAllPayments(prev => prev.filter(p => p.messageId !== messageId));
             }
+        } catch(error) {
+            console.error("DB action failed:", error);
+            toast({ title: "Error", description: `No se pudo ${action === 'authorize' ? 'autorizar' : 'rechazar'} el comprobante.`, variant: "destructive" });
+        } finally {
+            setIsReceiptOpen(false);
         }
-        setIsReceiptOpen(false);
     };
 
     return (
