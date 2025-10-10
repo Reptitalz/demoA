@@ -1,6 +1,6 @@
 
 "use client";
-import type { AssistantConfig } from "@/types";
+import type { AssistantConfig, Product, Catalog } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import PhoneNumberSetupDialog from './PhoneNumberSetupDialog';
 import MessageLimitDialog from "./MessageLimitDialog";
@@ -265,15 +269,21 @@ const AssistantCard = ({
                                   <FaRegCommentDots className="mr-2"/> Asignar Límite
                                 </DropdownMenuItem>
                                 {state.userProfile.catalogs && state.userProfile.catalogs.length > 0 && (
-                                     <>
-                                        <DropdownMenuSeparator />
-                                        {state.userProfile.catalogs.map(catalog => (
-                                             <DropdownMenuItem key={catalog.id} onSelect={() => handleAssignCatalog(catalog.id)}>
-                                                <Package className="mr-2 h-4 w-4" />
-                                                <span>Asignar: {catalog.name}</span>
-                                            </DropdownMenuItem>
-                                        ))}
-                                     </>
+                                    <DropdownMenuSub>
+                                        <DropdownMenuSubTrigger>
+                                            <Package className="mr-2 h-4 w-4" />
+                                            <span>Asignar Catálogo</span>
+                                        </DropdownMenuSubTrigger>
+                                        <DropdownMenuPortal>
+                                            <DropdownMenuSubContent>
+                                                 {state.userProfile.catalogs.map(catalog => (
+                                                     <DropdownMenuItem key={catalog.id} onSelect={() => handleAssignCatalog(catalog.id)}>
+                                                        <span>{catalog.name}</span>
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </DropdownMenuSubContent>
+                                        </DropdownMenuPortal>
+                                    </DropdownMenuSub>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>

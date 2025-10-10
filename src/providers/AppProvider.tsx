@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus, Contact } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus, Contact, Catalog, Product } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
@@ -40,6 +40,7 @@ const initialUserProfileState: UserProfile = {
   address: undefined,
   assistants: [],
   databases: [],
+  catalogs: [],
   credits: 0,
   purchasedUnlimitedPlans: 0,
 };
@@ -93,6 +94,8 @@ type Action =
   | { type: 'SET_IS_RECONFIGURING'; payload: boolean }
   | { type: 'SET_EDITING_ASSISTANT_ID'; payload: string | null }
   | { type: 'SET_CONTACTS'; payload: Contact[] }
+  | { type: 'ADD_PRODUCT_TO_CATALOG'; payload: { catalogId: string; product: Product } }
+  | { type: 'UPDATE_PRODUCT_IN_CATALOG'; payload: { catalogId: string; product: Product } }
   | { type: 'ADD_CONTACT'; payload: Contact };
 
 
@@ -264,6 +267,31 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, wizard: { ...state.wizard, editingAssistantId: action.payload } };
     case 'SET_CONTACTS':
       return { ...state, contacts: action.payload };
+    case 'ADD_PRODUCT_TO_CATALOG': {
+      const { catalogId, product } = action.payload;
+      const updatedCatalogs = (state.userProfile.catalogs || []).map(cat => {
+        if (cat.id === catalogId) {
+          return { ...cat, products: [...cat.products, product] };
+        }
+        return cat;
+      });
+      return { ...state, userProfile: { ...state.userProfile, catalogs: updatedCatalogs }};
+    }
+    case 'UPDATE_PRODUCT_IN_CATALOG': {
+      const { catalogId, product } = action.payload;
+      const updatedCatalogs = (state.userProfile.catalogs || []).map(cat => {
+        if (cat.id === catalogId) {
+          const productIndex = cat.products.findIndex(p => p.id === product.id);
+          if (productIndex > -1) {
+            const newProducts = [...cat.products];
+            newProducts[productIndex] = product;
+            return { ...cat, products: newProducts };
+          }
+        }
+        return cat;
+      });
+      return { ...state, userProfile: { ...state.userProfile, catalogs: updatedCatalogs }};
+    }
     case 'ADD_CONTACT': {
       const existingContact = state.contacts.find(c => c.chatPath === action.payload.chatPath);
       if (existingContact) {
@@ -324,6 +352,7 @@ async function createNewUserProfile(user: any, wizardState: WizardState): Promis
           chatPath: generateChatPath(assistantName),
           isFirstDesktopAssistant: isDesktopAssistant,
           trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
+          accountType: 'personal',
         });
     }
     
@@ -339,6 +368,7 @@ async function createNewUserProfile(user: any, wizardState: WizardState): Promis
       chatPath: generateChatPath(userName), // Generate personal chat path
       assistants: newAssistants,
       databases: [],
+      catalogs: [],
       credits: 0,
     };
     

@@ -72,7 +72,7 @@ export interface AssistantTools {
 export interface AssistantConfig {
   id: string;
   name: string;
-  type: 'desktop' | 'whatsapp' | 'personal';
+  type: 'desktop' | 'whatsapp';
   prompt?: string;
   isActive: boolean;
   messageCount: number;
@@ -92,6 +92,7 @@ export interface AssistantConfig {
   isFirstDesktopAssistant?: boolean;
   trialStartDate?: string;
   isPlanActive?: boolean;
+  accountType?: 'personal' | 'business'; // Added for business verification badge
 }
 
 export type AuthProviderType = "google" | "phone" | "email";
@@ -205,7 +206,7 @@ export interface UserProfile {
 export interface WizardState {
   currentStep: number;
   assistantName: string;
-  assistantType: 'desktop' | 'whatsapp' | 'personal' | null;
+  assistantType: 'desktop' | 'whatsapp' | null;
   assistantPrompt: string;
   selectedPurposes: Set<AssistantPurposeType>;
   databaseOption: {

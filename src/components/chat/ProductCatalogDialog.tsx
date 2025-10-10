@@ -1,3 +1,4 @@
+
 // src/components/chat/ProductCatalogDialog.tsx
 "use client";
 
@@ -33,7 +34,7 @@ const ProductCatalogDialog = ({ isOpen, onOpenChange, assistant, onProductSelect
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col sm:max-w-2xl sm:h-auto sm:max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FaTags /> {catalog?.name || 'Catálogo de Productos'}
