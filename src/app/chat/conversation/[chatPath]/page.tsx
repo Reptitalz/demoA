@@ -21,15 +21,14 @@ import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
-import { openDB } from '@/lib/db';
+import { openDB, CONTACTS_STORE_NAME, MESSAGES_STORE_NAME, SESSION_STORE_NAME } from '@/lib/db';
 import { Loader2 } from 'lucide-react';
 import { useSocket } from '@/providers/SocketProvider';
 
 
 const DB_NAME = 'HeyManitoChatDB';
 const DB_VERSION = 5; // Updated version
-const MESSAGES_STORE_NAME = 'messages';
-const SESSION_STORE_NAME = 'session';
+
 
 // --- IndexedDB Helper Functions ---
 
@@ -300,11 +299,22 @@ const DesktopChatPage = () => {
 
         const { sid, storedMessages } = sessionData;
 
-        // Find the partner in local state
-        const partner =
-            userProfile.assistants.find(a => a.chatPath === chatPath) ||
-            contacts.find(c => c.chatPath === chatPath) ||
-            null;
+        // Try to find the partner directly from IndexedDB first for faster load
+        let partner: Contact | AssistantConfig | UserProfile | null = null;
+        try {
+            const db = await openDB();
+            const contact = await db.get(CONTACTS_STORE_NAME, chatPath);
+            if (contact) {
+                partner = contact;
+            }
+        } catch (e) {
+            console.error("Could not fetch contact from DB, will try state.", e);
+        }
+        
+        // If not found in DB, fallback to state (assistants list)
+        if (!partner) {
+            partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
+        }
 
         if (partner) {
             setChatPartner(partner);
@@ -324,7 +334,7 @@ const DesktopChatPage = () => {
                     status: 'read'
                 };
                 setMessages([initialMessage]);
-                saveMessageToDB(initialMessage, sid);
+                await saveMessageToDB(initialMessage, sid);
             }
         } else {
             setError("No se encontró el chat. Es posible que el contacto ya no exista o la URL sea incorrecta.");
@@ -955,5 +965,3 @@ const DesktopChatPage = () => {
 };
 
 export default DesktopChatPage;
-
-    
