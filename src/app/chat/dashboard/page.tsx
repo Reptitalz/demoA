@@ -1,3 +1,4 @@
+
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -367,7 +368,10 @@ export default function ChatListPage() {
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
                         >
-                            <ChatItem chat={chat} onClick={(e) => e.stopPropagation()} userProfile={state.userProfile} />
+                            <ChatItem chat={chat} onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/chat/conversation/${chat.chatPath}`);
+                            }} userProfile={state.userProfile} />
                         </motion.div>
                     </div>
                  ))}
