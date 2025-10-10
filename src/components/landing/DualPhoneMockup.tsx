@@ -97,12 +97,22 @@ const DualPhoneMockup = () => {
         ctx.fillStyle = '#e5ddd5';
         ctx.fillRect(-width / 2 + 8, -height / 2 + 8, width - 16, height - 16);
 
+        const headerHeight = 50;
+        const footerHeight = 45;
+        const chatAreaHeight = height - 16 - headerHeight - footerHeight;
+
         // Header
         ctx.fillStyle = '#075E54'; // WhatsApp Green
-        ctx.fillRect(-width / 2 + 8, -height / 2 + 8, width - 16, 50);
+        ctx.fillRect(-width / 2 + 8, -height / 2 + 8, width - 16, headerHeight);
         ctx.fillStyle = '#fff';
+        // Draw avatar circle
+        ctx.beginPath();
+        ctx.arc(-width/2 + 35, -height/2 + 33, 15, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ccc';
+        ctx.fill();
         ctx.font = 'bold 14px sans-serif';
-        ctx.fillText("Cliente", -width / 2 + 20, -height / 2 + 38);
+        ctx.fillStyle = '#fff';
+        ctx.fillText("Cliente", -width / 2 + 60, -height / 2 + 38);
 
         // Chat Bubbles
         const messages = [
@@ -112,8 +122,8 @@ const DualPhoneMockup = () => {
             { from: 'bot', text: 'Claro, son $150. ¿Confirmo?' },
         ];
         
-        let messageY = -height / 2 + 70;
-        messages.forEach((msg, index) => {
+        let messageY = -height / 2 + headerHeight + 20;
+        messages.forEach((msg) => {
              const bubbleWidth = ctx.measureText(msg.text).width + 20;
              const bubbleHeight = 30;
              const isUser = msg.from === 'user';
@@ -131,6 +141,24 @@ const DualPhoneMockup = () => {
              
              messageY += bubbleHeight + 10;
         });
+
+        // Footer Input
+        const footerY = height/2 - footerHeight - 8;
+        ctx.fillStyle = '#f0f2f5';
+        ctx.fillRect(-width/2 + 8, footerY, width - 16, footerHeight);
+
+        // Input field
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.roundRect(-width/2 + 18, footerY + 7, width - 80, footerHeight - 14, 15);
+        ctx.fill();
+
+        // Send button
+        ctx.fillStyle = '#075E54';
+        ctx.beginPath();
+        ctx.arc(width/2 - 32, footerY + footerHeight/2, 16, 0, Math.PI * 2);
+        ctx.fill();
+
 
         ctx.restore();
     }
@@ -152,7 +180,7 @@ const DualPhoneMockup = () => {
 
         const phoneWidth = 220;
         const phoneHeight = 450;
-        const gap = -40; // Reduced gap to bring phones closer
+        const gap = -40;
         
         const totalWidth = phoneWidth * 2 + gap;
         const startX = (w - totalWidth) / 2;
