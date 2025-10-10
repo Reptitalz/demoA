@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
 import { useApp } from './AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +35,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   const router = useRouter();
   const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   
   const [incomingCall, setIncomingCall] = useState<{ roomName: string; callerId: string; callerInfo: any } | null>(null);
 
@@ -67,46 +68,71 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         type: 'SET_CONTACTS',
         payload: contacts.map(c => 
             c.chatPath === message.senderChatPath
-            ? { ...c, lastMessage: message.content, lastMessageTimestamp: Date.now() }
+            ? { ...c, lastMessage: message.content, lastMessageTimestamp: Date.now(), unreadCount: (c.unreadCount || 0) + 1 }
             : c
         ).sort((a,b) => (b.lastMessageTimestamp || 0) - (a.lastMessageTimestamp || 0))
     });
 
   }, [contacts, dispatch, toast]);
+  
+  const handleContactOnline = useCallback((onlineUserChatPath: string) => {
+    dispatch({ type: 'SET_CONTACTS', payload: contacts.map(c => c.chatPath === onlineUserChatPath ? { ...c, isOnline: true } : c) });
+  }, [contacts, dispatch]);
+
+  const handleContactOffline = useCallback((offlineUserChatPath: string) => {
+     dispatch({ type: 'SET_CONTACTS', payload: contacts.map(c => c.chatPath === offlineUserChatPath ? { ...c, isOnline: false } : c) });
+  }, [contacts, dispatch]);
+
 
   useEffect(() => {
-    if (userProfile.isAuthenticated && userProfile.chatPath) {
-        const newSocket = io(SOCKET_SERVER_URL, {
-            query: { userId: userProfile.chatPath } // Use chatPath to join room
-        });
-        
-        setSocket(newSocket);
-
-        newSocket.on('connect', () => {
-            console.log(`Connected to WebSocket server and joined room: ${userProfile.chatPath}`);
-        });
-
-        newSocket.on('incomingCall', (data) => {
-            setIncomingCall(data);
-        });
-        
-        newSocket.on('receiveMessage', handleReceiveMessage);
-
-        newSocket.on('callRejected', ({ callerId }) => {
-            if(userProfile._id?.toString() === callerId) {
-                toast({ title: "Llamada Rechazada", description: "El usuario ha rechazado la llamada." });
-            }
-        });
-
-        newSocket.on('disconnect', () => {
-            console.log('Disconnected from WebSocket server');
-        });
-
-        return () => {
-            newSocket.disconnect();
-        };
+    // Prevent creating multiple socket connections on re-renders
+    if (socketRef.current || !userProfile.isAuthenticated || !userProfile.chatPath) {
+      return;
     }
-  }, [userProfile.isAuthenticated, userProfile.chatPath, toast, handleReceiveMessage]);
+
+    const newSocket = io(SOCKET_SERVER_URL, {
+        query: { userId: userProfile.chatPath } // Use chatPath to join room
+    });
+    
+    socketRef.current = newSocket;
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+        console.log(`Connected to WebSocket server and joined room: ${userProfile.chatPath}`);
+    });
+
+    newSocket.on('incomingCall', (data) => {
+        setIncomingCall(data);
+    });
+    
+    newSocket.on('receiveMessage', handleReceiveMessage);
+    
+    newSocket.on('contact_online', handleContactOnline);
+    newSocket.on('contact_offline', handleContactOffline);
+    newSocket.on('online_users', (onlineUsers: { [chatPath: string]: string }) => {
+        const onlineChatPaths = Object.keys(onlineUsers);
+        dispatch({ type: 'SET_CONTACTS', payload: contacts.map(c => ({...c, isOnline: onlineChatPaths.includes(c.chatPath)})) });
+    });
+
+    newSocket.on('callRejected', ({ callerId }) => {
+        if(userProfile._id?.toString() === callerId) {
+            toast({ title: "Llamada Rechazada", description: "El usuario ha rechazado la llamada." });
+        }
+    });
+
+    newSocket.on('disconnect', () => {
+        console.log('Disconnected from WebSocket server');
+        socketRef.current = null;
+        setSocket(null);
+    });
+    
+    return () => {
+      newSocket.disconnect();
+      socketRef.current = null;
+      setSocket(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile.isAuthenticated, userProfile.chatPath]);
   
   const handleAcceptCall = () => {
     if (incomingCall) {

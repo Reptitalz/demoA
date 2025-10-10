@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { openDB, CONTACTS_STORE_NAME, MESSAGES_STORE_NAME, SESSIONS_STORE_NAME } from '@/lib/db';
 import { Loader2 } from 'lucide-react';
 import { useSocket } from '@/providers/SocketProvider';
@@ -301,12 +301,20 @@ const DesktopChatPage = () => {
 
         const { sid, storedMessages } = sessionData;
 
-        // Simplified logic: find partner from existing state.
         let partner: Contact | AssistantConfig | UserProfile | null = null;
         
-        partner = contacts.find(c => c.chatPath === chatPath) || null;
-        if (!partner) {
-            partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
+        // Prioritize fetching from local DB first for speed
+        const db = await openDB();
+        const contactFromDB = await db.get(CONTACTS_STORE_NAME, chatPath);
+
+        if (contactFromDB) {
+            partner = contactFromDB;
+        } else {
+            // Fallback to searching in global state (which should be synced from MongoDB)
+            partner = contacts.find(c => c.chatPath === chatPath) || null;
+            if (!partner) {
+                partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
+            }
         }
 
         if (partner) {
