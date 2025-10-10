@@ -284,7 +284,7 @@ const DesktopChatPage = () => {
   }, [socket, sessionId, userProfile.chatPath, chatPath, messages]);
 
 
- useEffect(() => {
+  useEffect(() => {
     if (!chatPath || !userProfile.isAuthenticated) {
         setIsLoadingAssistant(false);
         return;
@@ -292,7 +292,6 @@ const DesktopChatPage = () => {
 
     let isMounted = true;
     setIsLoadingAssistant(true);
-    setChatPartner(null);
     setError(null);
 
     const loadChat = async () => {
@@ -301,33 +300,13 @@ const DesktopChatPage = () => {
 
         const { sid, storedMessages } = sessionData;
 
-        // 1. Check local assistants and contacts first
-        let partner: AssistantConfig | UserProfile | Contact | null =
+        // Find the partner in local state
+        const partner =
             userProfile.assistants.find(a => a.chatPath === chatPath) ||
             contacts.find(c => c.chatPath === chatPath) ||
             null;
-        
-        // 2. If not found locally, fetch from public API
-        if (!partner) {
-            try {
-                const response = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    partner = data.assistant;
-                } else {
-                     const errorData = await response.json();
-                     throw new Error(errorData.message || 'No se encontró el chat.');
-                }
-            } catch (err: any) {
-                if (isMounted) {
-                    setError(err.message);
-                    setIsLoadingAssistant(false);
-                }
-                return;
-            }
-        }
-        
-        if (partner && isMounted) {
+
+        if (partner) {
             setChatPartner(partner);
             setError(null);
             
@@ -335,7 +314,7 @@ const DesktopChatPage = () => {
             if (storedMessages.length === 0) {
                  const initialMessageContent = partner && 'prompt' in partner
                     ? `¡Hola! Estás chateando con ${(partner as AssistantConfig).name}. ¿Cómo puedo ayudarte hoy?`
-                    : `Inicia tu conversación con ${partner.name}.`;
+                    : `Inicia tu conversación con ${partner.name || 'este contacto'}.`;
 
                 const initialMessage: ChatMessage = {
                     id: `initial_${Date.now()}`,
@@ -347,10 +326,10 @@ const DesktopChatPage = () => {
                 setMessages([initialMessage]);
                 saveMessageToDB(initialMessage, sid);
             }
-        } else if (isMounted) {
-             setError("No se encontró el chat. Es posible que el contacto ya no exista o la URL sea incorrecta.");
+        } else {
+            setError("No se encontró el chat. Es posible que el contacto ya no exista o la URL sea incorrecta.");
         }
-        if (isMounted) setIsLoadingAssistant(false);
+        setIsLoadingAssistant(false);
     };
 
     loadChat();
@@ -976,3 +955,5 @@ const DesktopChatPage = () => {
 };
 
 export default DesktopChatPage;
+
+    
