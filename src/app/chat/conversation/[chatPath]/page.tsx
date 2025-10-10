@@ -27,7 +27,7 @@ import { useSocket } from '@/providers/SocketProvider';
 
 
 const DB_NAME = 'HeyManitoChatDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5; // Updated version
 const MESSAGES_STORE_NAME = 'messages';
 const SESSION_STORE_NAME = 'session';
 
@@ -656,8 +656,8 @@ const DesktopChatPage = () => {
                     <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
                 </Avatar>
                 <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                    <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-base truncate text-foreground">{chatPartner?.name || 'Asistente'}</h3>
+                     <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
                         {isAssistantChat && (assistant as AssistantConfig).accountType === 'business' && (
                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -691,7 +691,7 @@ const DesktopChatPage = () => {
         )}
     </header>
     <main className="flex-1 overflow-y-auto relative pt-20">
-        <div className="absolute inset-x-0 top-16 bottom-0 chat-background" />
+        <div className="absolute inset-x-0 top-0 bottom-0 chat-background" />
         <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
         {messages.map((msg, index) => (
             <ChatBubble key={index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
