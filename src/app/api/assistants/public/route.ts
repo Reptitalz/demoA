@@ -1,62 +1,64 @@
 // src/app/api/assistants/public/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { UserProfile } from '@/types';
+import { UserProfile, AssistantConfig } from '@/types';
+import { ObjectId } from 'mongodb';
 
-// This public endpoint is used to fetch basic, shareable information about a user/assistant by their chatPath.
+// This is a public endpoint to find a user or an assistant by their chatPath.
+// It only returns non-sensitive information.
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const chatPath = searchParams.get('chatPath');
 
   if (!chatPath) {
-    return NextResponse.json({ message: 'El parámetro chatPath es requerido.' }, { status: 400 });
+    return NextResponse.json({ message: 'Se requiere el parámetro chatPath' }, { status: 400 });
   }
 
   try {
     const { db } = await connectToDatabase();
     
-    // It can be a user's personal chat path or an assistant's chat path
-    const profile = await db.collection<UserProfile>('userProfiles').findOne(
-        { $or: [{ chatPath: chatPath }, { "assistants.chatPath": chatPath }] },
-        { projection: { 
-            firstName: 1, 
-            lastName: 1, 
-            imageUrl: 1, 
-            chatPath: 1,
-            assistants: { $elemMatch: { chatPath: chatPath } } 
-        } }
+    // First, try to find a user profile with this chatPath
+    const userProfileCollection = db.collection<UserProfile>('userProfiles');
+    const user = await userProfileCollection.findOne({ chatPath });
+
+    if (user) {
+        // Found a user. Return public user data.
+        const publicUserData = {
+            id: user._id.toString(),
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            imageUrl: user.imageUrl,
+            chatPath: user.chatPath,
+            // You can add other public fields here if needed
+        };
+        return NextResponse.json({ assistant: publicUserData });
+    }
+
+    // If not found, try to find an assistant with this chatPath
+    const assistant = await userProfileCollection.findOne(
+      { "assistants.chatPath": chatPath },
+      { projection: { "assistants.$": 1 } }
     );
     
-    if (!profile) {
-        return NextResponse.json({ message: 'No se encontró ningún perfil con ese ID de chat.' }, { status: 404 });
-    }
-    
-    let publicProfile;
-
-    // Determine if the chatPath belongs to a user or an assistant
-    if (profile.chatPath === chatPath) {
-        // It's a user's personal profile
-        publicProfile = {
-            name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Usuario',
-            imageUrl: profile.imageUrl,
-            chatPath: profile.chatPath,
-        };
-    } else if (profile.assistants && profile.assistants.length > 0) {
-        // It's an assistant's profile
-        const assistant = profile.assistants[0];
-        publicProfile = {
-            name: assistant.name,
-            imageUrl: assistant.imageUrl,
-            chatPath: assistant.chatPath,
-        };
-    } else {
-         return NextResponse.json({ message: 'No se pudo determinar el perfil público.' }, { status: 404 });
+    if (assistant && assistant.assistants && assistant.assistants.length > 0) {
+      const foundAssistant = assistant.assistants[0];
+      // Return public assistant data
+      const publicAssistantData = {
+          id: foundAssistant.id,
+          name: foundAssistant.name,
+          imageUrl: foundAssistant.imageUrl,
+          chatPath: foundAssistant.chatPath,
+          prompt: foundAssistant.prompt, // Prompt might be needed for initial interaction
+          accountType: foundAssistant.accountType,
+          businessInfo: foundAssistant.businessInfo,
+      };
+      return NextResponse.json({ assistant: publicAssistantData });
     }
 
-    return NextResponse.json({ assistant: publicProfile }); // Keep 'assistant' key for client compatibility
+    // If neither a user nor an assistant is found
+    return NextResponse.json({ message: 'No se encontró ningún usuario o asistente con ese ID de chat.' }, { status: 404 });
 
   } catch (error) {
-    console.error('API Error (public profile):', error);
-    return NextResponse.json({ message: 'Error al obtener el perfil público' }, { status: 500 });
+    console.error('API Error (GET /api/assistants/public):', error);
+    return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

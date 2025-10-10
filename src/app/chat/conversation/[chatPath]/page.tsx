@@ -240,6 +240,8 @@ const DesktopChatPage = () => {
 
     let isMounted = true;
     setIsLoadingAssistant(true);
+    setChatPartner(null);
+    setError(null);
 
     const loadChat = async () => {
         const sessionData = await setupSessionAndMessages();
@@ -247,16 +249,37 @@ const DesktopChatPage = () => {
 
         const { sid, storedMessages } = sessionData;
 
-        // Determine if the chat partner is an assistant or another user/contact
-        const partner =
+        // 1. Check local assistants and contacts first
+        let partner: AssistantConfig | UserProfile | Contact | null =
             userProfile.assistants.find(a => a.chatPath === chatPath) ||
-            contacts.find(c => c.chatPath === chatPath);
+            contacts.find(c => c.chatPath === chatPath) ||
+            null;
         
-        if (partner) {
+        // 2. If not found locally, fetch from public API
+        if (!partner) {
+            try {
+                const response = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(chatPath)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    partner = data.assistant;
+                } else {
+                     const errorData = await response.json();
+                     throw new Error(errorData.message || 'No se encontró el chat.');
+                }
+            } catch (err: any) {
+                if (isMounted) {
+                    setError(err.message);
+                    setIsLoadingAssistant(false);
+                }
+                return;
+            }
+        }
+        
+        if (partner && isMounted) {
             setChatPartner(partner);
             setError(null);
             
-             // Set up initial message if it's a new chat
+            // Set up initial message if it's a new chat
             if (storedMessages.length === 0) {
                  const initialMessageContent = partner && 'prompt' in partner
                     ? `¡Hola! Estás chateando con ${(partner as AssistantConfig).name}. ¿Cómo puedo ayudarte hoy?`
@@ -270,10 +293,10 @@ const DesktopChatPage = () => {
                 setMessages([initialMessage]);
                 saveMessageToDB(initialMessage, sid);
             }
-        } else {
+        } else if (isMounted) {
              setError("No se encontró el chat. Es posible que el contacto ya no exista o la URL sea incorrecta.");
         }
-        setIsLoadingAssistant(false);
+        if (isMounted) setIsLoadingAssistant(false);
     };
 
     loadChat();
@@ -648,6 +671,10 @@ const DesktopChatPage = () => {
                     <div className="h-4 w-32 rounded bg-muted animate-pulse" />
                     <div className="h-3 w-20 rounded bg-muted animate-pulse" />
                 </div>
+            </div>
+        ) : error ? (
+            <div className="flex items-center gap-3 flex-grow">
+                 <p className="text-sm text-destructive">{error}</p>
             </div>
         ) : (
             <div className="flex items-center gap-3 flex-grow overflow-hidden">
