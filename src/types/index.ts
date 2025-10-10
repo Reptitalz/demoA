@@ -299,12 +299,12 @@ export interface AssistantWithMemory extends AssistantConfig {
 }
 
 export interface ChatMessage {
+  id: string; // Unique ID for each message (e.g., timestamp + random string)
   role: 'user' | 'model';
   content: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string };
   time: string;
-  id?: number;
+  status: 'sent' | 'delivered' | 'read';
 }
-
 
 export interface Conversation {
     _id: string;

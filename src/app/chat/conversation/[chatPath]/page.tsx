@@ -74,15 +74,30 @@ const saveMessageToDB = async (message: ChatMessage, sessionId: string) => {
     const db = await openDB();
     const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
     // Add sessionId to the message object before storing
-    tx.objectStore(MESSAGES_STORE_NAME).add({ ...message, sessionId });
+    tx.objectStore(MESSAGES_STORE_NAME).put({ ...message, sessionId });
     return tx.done;
 };
+
+const updateMessageStatusInDB = async (messageId: string, status: 'delivered' | 'read') => {
+  const db = await openDB();
+  const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
+  const store = tx.objectStore(MESSAGES_STORE_NAME);
+  const message = await store.get(messageId);
+  if (message) {
+    message.status = status;
+    await store.put(message);
+  }
+  return tx.done;
+};
+
 
 // --- Component ---
 
 const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage; assistant: AssistantConfig | null; onImageClick: (url: string) => void; }) => {
     const isUserMessage = message.role === 'user';
     const isGoogleMapsImage = typeof message.content === 'string' && message.content.includes('maps.googleapis.com/maps/api/staticmap');
+
+    const checkmarkColor = message.status === 'read' ? 'text-sky-400' : 'text-muted-foreground/80';
 
     return (
         <div className={cn("flex w-full max-w-lg mx-auto", isUserMessage ? "justify-end" : "justify-start")}>
@@ -95,7 +110,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                 )}
                 <div
                     className={cn(
-                        "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed relative",
+                        "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed relative break-words",
                         isUserMessage
                             ? "bg-primary text-primary-foreground rounded-br-none"
                             : "bg-card rounded-bl-none",
@@ -127,10 +142,15 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                         <p className={cn("text-[10px]", isUserMessage ? "text-primary-foreground/70" : "text-muted-foreground/80")}>
                             {message.time}
                         </p>
-                        {isUserMessage && (
-                            <div className="relative w-4 h-4">
-                                <FaCheck className="absolute left-0 h-3 w-3 text-sky-400" />
-                                <FaCheck className="absolute left-1 h-3 w-3 text-sky-400" />
+                         {isUserMessage && (
+                            <div className={cn("relative w-4 h-4", checkmarkColor)}>
+                                {message.status === 'sent' && <FaCheck className="absolute left-0.5 h-3 w-3" />}
+                                {(message.status === 'delivered' || message.status === 'read') && (
+                                    <>
+                                        <FaCheck className="absolute left-0 h-3 w-3" />
+                                        <FaCheck className="absolute left-1 h-3 w-3" />
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
@@ -198,6 +218,12 @@ const DesktopChatPage = () => {
         
         const storedMessages = await getMessagesFromDB(sid);
         setMessages(storedMessages);
+
+        // Mark messages as read when opening chat
+        if (socket && chatPartner?.chatPath) {
+          socket.emit('markAsRead', { senderChatPath: chatPartner.chatPath, recipientChatPath: userProfile.chatPath });
+        }
+
         return { sid, storedMessages };
     } catch(err) {
         console.error("Error setting up session:", err);
@@ -205,7 +231,7 @@ const DesktopChatPage = () => {
         setIsLoadingAssistant(false);
         return null;
     }
-  }, [chatPath]);
+  }, [chatPath, socket, chatPartner?.chatPath, userProfile.chatPath]);
 
     // WebSocket listener for incoming messages
   useEffect(() => {
@@ -215,24 +241,47 @@ const DesktopChatPage = () => {
         // Only process if the message is for the current chat
         if (message.recipientChatPath === userProfile.chatPath) {
              const receivedMessage: ChatMessage = {
+                id: message.id,
                 role: 'model', // It's from the other person, so we show it as 'model'
                 content: message.content,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'delivered' // Received messages are at least delivered
             };
             // Only add message if it's the current conversation
             if(message.senderChatPath === chatPath) {
                 setMessages(prev => [...prev, receivedMessage]);
                 saveMessageToDB(receivedMessage, sessionId);
+                 // Emit read receipt as we are in the chat
+                socket.emit('markAsRead', { senderChatPath: chatPath, recipientChatPath: userProfile.chatPath });
             }
         }
     };
+    
+    const handleMessageDelivered = (messageId: string) => {
+        setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'delivered' } : m));
+        updateMessageStatusInDB(messageId, 'delivered');
+    };
+
+    const handleMessagesRead = ({ senderChatPath }: { senderChatPath: string }) => {
+        if (senderChatPath === userProfile.chatPath) {
+             setMessages(prev => prev.map(m => m.status === 'delivered' ? { ...m, status: 'read' } : m));
+             // Also update in DB
+             messages.filter(m => m.status === 'delivered').forEach(m => updateMessageStatusInDB(m.id, 'read'));
+        }
+    };
+
 
     socket.on('receiveMessage', handleNewMessage);
+    socket.on('messageDelivered', handleMessageDelivered);
+    socket.on('messagesRead', handleMessagesRead);
+
 
     return () => {
       socket.off('receiveMessage', handleNewMessage);
+      socket.off('messageDelivered', handleMessageDelivered);
+      socket.off('messagesRead', handleMessagesRead);
     };
-  }, [socket, sessionId, userProfile.chatPath, chatPath]);
+  }, [socket, sessionId, userProfile.chatPath, chatPath, messages]);
 
 
  useEffect(() => {
@@ -289,9 +338,11 @@ const DesktopChatPage = () => {
                     : `Inicia tu conversación con ${partner.name}.`;
 
                 const initialMessage: ChatMessage = {
+                    id: `initial_${Date.now()}`,
                     role: 'model',
                     content: initialMessageContent,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    status: 'read'
                 };
                 setMessages([initialMessage]);
                 saveMessageToDB(initialMessage, sid);
@@ -342,9 +393,11 @@ const DesktopChatPage = () => {
 
               if (responseText) {
                  const aiResponse: ChatMessage = {
+                  id: `ai_${eventId}`,
                   role: 'model' as const,
                   content: responseText,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  status: 'delivered'
                 };
                 setMessages(prev => [...prev, aiResponse]);
                 saveMessageToDB(aiResponse, sessionId);
@@ -386,18 +439,24 @@ const DesktopChatPage = () => {
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [assistant?.id, processedEventIds, sessionId]);
   
-  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }) => {
+  const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
     if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath) {
         if (socket && typeof messageContent === 'string') {
             socket.emit('sendMessage', {
+                id: messageId,
                 senderId: userProfile._id,
                 senderChatPath: userProfile.chatPath,
                 senderProfile: { name: userProfile.name, imageUrl: userProfile.imageUrl },
                 recipientChatPath: chatPartner.chatPath,
                 content: messageContent,
+            }, (ack: { delivered: boolean }) => { // Acknowledgement callback
+                if (ack && ack.delivered) {
+                    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'delivered' } : m));
+                    updateMessageStatusInDB(messageId, 'delivered');
+                }
             });
         }
-        return; // Don't proceed to the rest of the function for personal chats
+        return;
     }
     
     // Logic for assistant chats
@@ -409,9 +468,11 @@ const DesktopChatPage = () => {
                 : "Recibí tu audio. Lo revisaré y te daré una respuesta.";
                 
             const modelResponse: ChatMessage = {
+                id: `response_${messageId}`,
                 role: 'model',
                 content: responseText,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'delivered'
             };
             setMessages(prev => [...prev, modelResponse]);
             await saveMessageToDB(modelResponse, sessionId);
@@ -443,10 +504,14 @@ const DesktopChatPage = () => {
     
     if (!messageToSend.trim() || isSending) return;
     
+    const messageId = `${Date.now()}_${Math.random()}`;
+
     const userMessage: ChatMessage = {
+      id: messageId,
       role: 'user',
       content: messageToSend,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'sent'
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -462,7 +527,7 @@ const DesktopChatPage = () => {
       setAssistantStatusMessage('Escribiendo...');
     }
 
-    sendMessageToServer(messageToSend);
+    sendMessageToServer(messageToSend, messageId);
   };
   
  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -500,11 +565,14 @@ const DesktopChatPage = () => {
             const dataUrl = canvas.toDataURL('image/jpeg', QUALITY);
             
             const imageMessageContent = { type: 'image' as const, url: dataUrl };
+            const messageId = `${Date.now()}_${Math.random()}`;
       
             const userMessage: ChatMessage = {
+                id: messageId,
                 role: 'user',
                 content: imageMessageContent,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'sent'
             };
 
             setMessages(prev => [...prev, userMessage]);
@@ -512,7 +580,7 @@ const DesktopChatPage = () => {
             
             setIsSending(false); // Do not show spinner for images
             
-            sendMessageToServer(imageMessageContent);
+            sendMessageToServer(imageMessageContent, messageId);
         };
         img.src = e.target?.result as string;
     };
@@ -594,16 +662,19 @@ const DesktopChatPage = () => {
           const reader = new FileReader();
           reader.onloadend = async () => {
               const base64Audio = reader.result as string;
+              const messageId = `${Date.now()}_${Math.random()}`;
               
               const audioMessage: ChatMessage = {
+                  id: messageId,
                   role: 'user',
                   content: { type: 'audio', url: base64Audio },
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  status: 'sent'
               };
 
               setMessages(prev => [...prev, audioMessage]);
               await saveMessageToDB(audioMessage, sessionId);
-              sendMessageToServer({ type: 'audio', url: base64Audio });
+              sendMessageToServer({ type: 'audio', url: base64Audio }, messageId);
           };
           reader.readAsDataURL(audioBlob);
 
@@ -643,16 +714,19 @@ const DesktopChatPage = () => {
         reader.onload = async (e) => {
             const dataUrl = e.target?.result as string;
             const fileMessageContent = { type, url: dataUrl, name: file.name };
+            const messageId = `${Date.now()}_${Math.random()}`;
             
             const userMessage: ChatMessage = {
+                id: messageId,
                 role: 'user',
                 content: fileMessageContent,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'sent'
             };
 
             setMessages(prev => [...prev, userMessage]);
             await saveMessageToDB(userMessage, sessionId);
-            sendMessageToServer(fileMessageContent);
+            sendMessageToServer(fileMessageContent, messageId);
         };
         reader.readAsDataURL(file);
 
@@ -724,7 +798,7 @@ const DesktopChatPage = () => {
         <div className="absolute inset-x-0 top-0 bottom-0 chat-background" />
         <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
         {messages.map((msg, index) => (
-            <ChatBubble key={index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
+            <ChatBubble key={msg.id || index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
         ))}
         {isSending && isAssistantChat && (
             <div className="flex justify-start animate-fadeIn max-w-lg mx-auto">

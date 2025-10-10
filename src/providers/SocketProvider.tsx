@@ -38,7 +38,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   
   const [incomingCall, setIncomingCall] = useState<{ roomName: string; callerId: string; callerInfo: any } | null>(null);
 
-  const handleReceiveMessage = useCallback((message: any) => {
+  const handleReceiveMessage = useCallback((message: any, ack: (data: { delivered: boolean }) => void) => {
+    // Acknowledge receipt of the message
+    if (ack) {
+      ack({ delivered: true });
+    }
+
     // Check if sender is already a contact
     const senderIsContact = contacts.some(c => c.chatPath === message.senderChatPath);
 
@@ -70,7 +75,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   }, [contacts, dispatch, toast]);
 
   useEffect(() => {
-    if (userProfile.isAuthenticated && userProfile._id) {
+    if (userProfile.isAuthenticated && userProfile.chatPath) {
         const newSocket = io(SOCKET_SERVER_URL, {
             query: { userId: userProfile.chatPath } // Use chatPath to join room
         });
@@ -101,7 +106,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             newSocket.disconnect();
         };
     }
-  }, [userProfile.isAuthenticated, userProfile._id, userProfile.chatPath, toast, handleReceiveMessage]);
+  }, [userProfile.isAuthenticated, userProfile.chatPath, toast, handleReceiveMessage]);
   
   const handleAcceptCall = () => {
     if (incomingCall) {
