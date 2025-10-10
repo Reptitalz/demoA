@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaUser, FaPaperPlane } from 'react-icons/fa';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import AppIcon from '../shared/AppIcon';
 
 const conversation = [
   { from: 'user', text: 'Hola, me interesa una pizza.' },

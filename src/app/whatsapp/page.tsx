@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import DualPhoneMockup from '@/components/landing/DualPhoneMockup';
 
 const CreditPackagesCarousel = () => {
     return (
@@ -86,6 +87,11 @@ const WhatsAppPage = () => {
                 </Button>
               </div>
           </motion.div>
+          
+           <div className="mt-20">
+              <DualPhoneMockup />
+          </div>
+
       </section>
 
       <section id="features" className="py-20 bg-muted/50">
