@@ -101,6 +101,14 @@ const rejectPaymentInDB = async (messageId: number) => {
      await tx.done;
 }
 
+const demoPendingPayments = [
+    { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0 },
+    { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantName: 'Asistente de Cobranza', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', status: 'pending', amount: 0 },
+];
+const demoCompletedPayments = [
+    { id: 'demo-3', messageId: 997, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 3', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'completed', amount: 1500 },
+];
+
 
 // Demo data for admin chat trays
 const demoAdminChats: AssistantConfig[] = [
@@ -222,7 +230,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
 
 export const BankView = () => {
     const { state } = useApp();
-    const { assistants } = state.userProfile;
+    const { assistants, isAuthenticated } = state.userProfile;
     const { toast } = useToast();
     const [allPayments, setAllPayments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -232,6 +240,14 @@ export const BankView = () => {
 
     const fetchPayments = useCallback(async () => {
         setIsLoading(true);
+
+        if (!isAuthenticated) {
+            // Show demo data if not authenticated
+            setAllPayments([...demoPendingPayments, ...demoCompletedPayments]);
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const [pendingMessages, authorizedPayments] = await Promise.all([
                 getAllMessagesFromDB(),
@@ -268,7 +284,7 @@ export const BankView = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [assistants, toast]);
+    }, [assistants, toast, isAuthenticated]);
     
     useEffect(() => {
         fetchPayments();
@@ -292,6 +308,11 @@ export const BankView = () => {
     };
     
     const handleAction = async (messageId: number, action: 'authorize' | 'reject', amount?: number) => {
+        if (!isAuthenticated) {
+            toast({ title: 'Modo Demo', description: 'Las acciones no están disponibles en modo demostración.' });
+            return;
+        }
+
         const paymentToProcess = allPayments.find(p => p.messageId === messageId);
         if (!paymentToProcess) return;
 
@@ -368,8 +389,9 @@ export const BankView = () => {
             <ScrollArea className="flex-grow px-2 min-h-0">
                 <div className="p-2 space-y-3">
                     {isLoading ? (
-                         <div className="flex justify-center items-center h-32">
+                         <div className="flex flex-col items-center justify-center p-8 text-muted-foreground">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="mt-2 text-sm">Cargando comprobantes...</p>
                         </div>
                     ) : filteredPayments.length > 0 ? filteredPayments.map(payment => (
                          <Card key={payment.id} className="glow-card">
