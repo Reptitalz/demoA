@@ -35,15 +35,10 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   const router = useRouter();
   const [socket, setSocket] = useState<Socket | null>(null);
-  const socketRef = useRef<Socket | null>(null);
   
   const [incomingCall, setIncomingCall] = useState<{ roomName: string; callerId: string; callerInfo: any } | null>(null);
 
-  const handleReceiveMessage = useCallback((message: any, ack: (data: { delivered: boolean }) => void) => {
-    // Acknowledge receipt of the message
-    if (ack) {
-      ack({ delivered: true });
-    }
+  const handleReceiveMessage = useCallback((message: any) => {
 
     // Check if sender is already a contact
     const senderIsContact = contacts.some(c => c.chatPath === message.senderChatPath);
@@ -76,17 +71,17 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   }, [contacts, dispatch, toast]);
   
   const handleContactOnline = useCallback((onlineUserChatPath: string) => {
-    dispatch({ type: 'SET_CONTACTS', payload: contacts.map(c => c.chatPath === onlineUserChatPath ? { ...c, isOnline: true } : c) });
-  }, [contacts, dispatch]);
+    dispatch({ type: 'SET_CONTACTS', payload: state.contacts.map(c => c.chatPath === onlineUserChatPath ? { ...c, isOnline: true } : c) });
+  }, [state.contacts, dispatch]);
 
   const handleContactOffline = useCallback((offlineUserChatPath: string) => {
-     dispatch({ type: 'SET_CONTACTS', payload: contacts.map(c => c.chatPath === offlineUserChatPath ? { ...c, isOnline: false } : c) });
-  }, [contacts, dispatch]);
+     dispatch({ type: 'SET_CONTACTS', payload: state.contacts.map(c => c.chatPath === offlineUserChatPath ? { ...c, isOnline: false } : c) });
+  }, [state.contacts, dispatch]);
 
 
   useEffect(() => {
     // Prevent creating multiple socket connections on re-renders
-    if (socketRef.current || !userProfile.isAuthenticated || !userProfile.chatPath) {
+    if (socket || !userProfile.isAuthenticated || !userProfile.chatPath) {
       return;
     }
 
@@ -94,7 +89,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         query: { userId: userProfile.chatPath } // Use chatPath to join room
     });
     
-    socketRef.current = newSocket;
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
@@ -111,7 +105,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     newSocket.on('contact_offline', handleContactOffline);
     newSocket.on('online_users', (onlineUsers: { [chatPath: string]: string }) => {
         const onlineChatPaths = Object.keys(onlineUsers);
-        dispatch({ type: 'SET_CONTACTS', payload: contacts.map(c => ({...c, isOnline: onlineChatPaths.includes(c.chatPath)})) });
+        dispatch({ type: 'SET_CONTACTS', payload: state.contacts.map(c => ({...c, isOnline: onlineChatPaths.includes(c.chatPath)})) });
     });
 
     newSocket.on('callRejected', ({ callerId }) => {
@@ -122,17 +116,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     newSocket.on('disconnect', () => {
         console.log('Disconnected from WebSocket server');
-        socketRef.current = null;
         setSocket(null);
     });
     
     return () => {
       newSocket.disconnect();
-      socketRef.current = null;
       setSocket(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile.isAuthenticated, userProfile.chatPath]);
+  }, [userProfile.isAuthenticated, userProfile.chatPath, socket, dispatch, state.contacts, toast, handleContactOffline, handleContactOnline, handleReceiveMessage]);
   
   const handleAcceptCall = () => {
     if (incomingCall) {

@@ -188,16 +188,27 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
     setVerifiedContact(null);
 
     try {
-      const res = await fetch(`/api/assistants/public?chatPath=${encodeURIComponent(trimmedPath)}`);
-      if (!res.ok) {
-        throw new Error('ID de chat no encontrado.');
-      }
-      const data = await res.json();
-      setVerifiedContact(data.assistant);
+        // This endpoint should be a public endpoint to find users/assistants by chatPath
+        const response = await fetch(`/api/user-profile/public?chatPath=${encodeURIComponent(trimmedPath)}`);
+        if (!response.ok) {
+            throw new Error('ID de chat no encontrado.');
+        }
+        const data = await response.json();
+        if (data.profile) {
+            // Adapt the public profile to a `Contact`-like structure
+            setVerifiedContact({
+                name: data.profile.firstName,
+                imageUrl: data.profile.imageUrl,
+                chatPath: data.profile.chatPath,
+            } as AssistantConfig);
+        } else {
+             throw new Error('Perfil no encontrado.');
+        }
+
     } catch (err: any) {
-      setError(err.message);
+        setError(err.message);
     } finally {
-      setIsVerifying(false);
+        setIsVerifying(false);
     }
   }, [state.userProfile.chatPath, contacts]);
   
