@@ -25,7 +25,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   
   return (
     <div className={cn("min-h-screen flex flex-col text-foreground bg-background")}>
-      {isMarketingPage && <DynamicCanvasBackground />}
+      {isClient && isMarketingPage && <DynamicCanvasBackground />}
       <div className="relative z-10 flex flex-col min-h-screen">
         {isMarketingPage && <Header fullWidth />}
         <div className={cn("flex-grow w-full")}>
