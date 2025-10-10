@@ -6,7 +6,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { APP_NAME, CREDIT_PACKAGES, MESSAGES_PER_CREDIT } from '@/config/appConfig';
 import Link from 'next/link';
-import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaWhatsapp, FaCoins } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaRobot, FaCog, FaMobileAlt, FaBrain, FaUniversity, FaCreditCard, FaWhatsapp, FaCoins, FaGooglePlay } from 'react-icons/fa';
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { motion } from "framer-motion";
 import AppIcon from '@/components/shared/AppIcon';
@@ -83,6 +83,15 @@ const WhatsAppPage = () => {
                     <Link href={"/login"}>
                         <FaRobot className="mr-2" />
                         Crear Asistente de WhatsApp
+                    </Link>
+                </Button>
+                 <Button asChild variant="outline" size="lg" className="w-full sm:w-auto bg-black text-white hover:bg-gray-800 hover:text-white border-black">
+                    <Link href={"#"}>
+                        <FaGooglePlay className="mr-2" />
+                        <div>
+                            <p className="text-xs text-left leading-tight">Disponible en</p>
+                            <p className="text-lg font-semibold leading-tight">Google Play</p>
+                        </div>
                     </Link>
                 </Button>
               </div>
