@@ -48,9 +48,10 @@ interface ChatItemProps {
   chat: Contact;
   onClick: (e: React.MouseEvent) => void;
   userProfile: UserProfile;
+  contacts: Contact[];
 }
 
-const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick, userProfile }) => {
+const ChatItem: React.FC<ChatItemProps> = ({ chat, onClick, userProfile, contacts }) => {
     const isOnline = chat.isOnline;
     
     const isAssistant = userProfile.assistants.some(a => a.chatPath === chat.chatPath);
@@ -372,10 +373,15 @@ export default function ChatListPage() {
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
                         >
-                            <ChatItem chat={chat} onClick={(e) => {
-                              e.stopPropagation();
-                              handleChatItemClick(chat);
-                            }} userProfile={state.userProfile} />
+                            <ChatItem 
+                                chat={chat} 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChatItemClick(chat);
+                                }} 
+                                userProfile={state.userProfile}
+                                contacts={contacts}
+                            />
                         </motion.div>
                     </div>
                  ))}
