@@ -8,7 +8,7 @@ body {
 }
 
 @layer base {
-  :root, .dark {
+  :root {
     /* Light Theme Only */
     --background: 220 20% 98%;
     --foreground: 224 71% 4%;
@@ -223,8 +223,8 @@ body {
   /* Page Transition Animations */
   .animate-page-out-left { animation: page-out-left 0.15s ease-out forwards; }
   .animate-page-out-right { animation: page-out-right 0.15s ease-out forwards; }
-  .animate-page-in-left { animation: page-in-left 0.15s ease-in; }
-  .animate-page-in-right { animation: page-in-right 0.15s ease-in; }
+  .animate-page-in-left { animation: page-in-left 0.2s ease-in; }
+  .animate-page-in-right { animation: page-in-right 0.2s ease-in; }
 
   @keyframes page-out-left {
     from { opacity: 1; transform: translateX(0); }
@@ -262,10 +262,6 @@ body {
       opacity: 1;
   }
 
-  .dark .chat-background {
-      opacity: 0.08;
-  }
-
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -279,11 +275,11 @@ body {
   }
 
   @keyframes scroll {
-    0% {
+    from {
       transform: translateX(0);
     }
-    100% {
-      transform: translateX(calc(-250px * 7));
+    to {
+      transform: translateX(-50%);
     }
   }
 }
