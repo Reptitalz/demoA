@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -6,6 +7,8 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { FaTimes } from "react-icons/fa"
 
 import { cn } from "@/lib/utils"
+import { Button } from "./button"
+import { FaCopy } from "react-icons/fa"
 
 const ToastProvider = ToastPrimitives.Provider
 
