@@ -209,18 +209,21 @@ const DesktopChatPage = () => {
 
     // WebSocket listener for incoming messages
   useEffect(() => {
-    if (!socket || !isPersonalChat) return;
+    if (!socket || !sessionId) return;
 
     const handleNewMessage = (message: any) => {
         // Only process if the message is for the current chat
-        if (message.senderChatPath === chatPath) {
+        if (message.recipientChatPath === userProfile.chatPath) {
              const receivedMessage: ChatMessage = {
                 role: 'model', // It's from the other person, so we show it as 'model'
                 content: message.content,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            setMessages(prev => [...prev, receivedMessage]);
-            saveMessageToDB(receivedMessage, sessionId);
+            // Only add message if it's the current conversation
+            if(message.senderChatPath === chatPath) {
+                setMessages(prev => [...prev, receivedMessage]);
+                saveMessageToDB(receivedMessage, sessionId);
+            }
         }
     };
 
@@ -229,7 +232,7 @@ const DesktopChatPage = () => {
     return () => {
       socket.off('receiveMessage', handleNewMessage);
     };
-  }, [socket, isPersonalChat, chatPath, sessionId]);
+  }, [socket, sessionId, userProfile.chatPath, chatPath]);
 
 
  useEffect(() => {
@@ -384,54 +387,54 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }) => {
-    if (!assistant?.chatPath) {
-        return;
-    }
-    
-    if (isPersonalChat) {
+    if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath) {
         if (socket && typeof messageContent === 'string') {
             socket.emit('sendMessage', {
                 senderId: userProfile._id,
                 senderChatPath: userProfile.chatPath,
-                recipientChatPath: chatPartner?.chatPath,
+                senderProfile: { name: userProfile.name, imageUrl: userProfile.imageUrl },
+                recipientChatPath: chatPartner.chatPath,
                 content: messageContent,
             });
         }
         return; // Don't proceed to the rest of the function for personal chats
     }
-
-    // Add image/audio responses here for non-personal chats
-    if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'audio')) {
-        const responseText = messageContent.type === 'image' 
-            ? "Recibí tu imagen. Será verificada por el propietario y pronto te daré una respuesta."
-            : "Recibí tu audio. Lo revisaré y te daré una respuesta.";
-            
-        const modelResponse: ChatMessage = {
-            role: 'model',
-            content: responseText,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages(prev => [...prev, modelResponse]);
-        await saveMessageToDB(modelResponse, sessionId);
-    }
     
-    fetch('/api/chat/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            assistantId: assistant.id,
-            message: messageContent,
-            destination: sessionId,
-            chatPath: assistant.chatPath,
-        })
-    }).then(response => {
-        if (assistant.type === 'desktop' && typeof messageContent === 'string') {
-            pollForResponse();
+    // Logic for assistant chats
+    if (isAssistantChat && assistant?.chatPath) {
+        // Add image/audio responses here for non-personal chats
+        if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'audio')) {
+            const responseText = messageContent.type === 'image' 
+                ? "Recibí tu imagen. Será verificada por el propietario y pronto te daré una respuesta."
+                : "Recibí tu audio. Lo revisaré y te daré una respuesta.";
+                
+            const modelResponse: ChatMessage = {
+                role: 'model',
+                content: responseText,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+            setMessages(prev => [...prev, modelResponse]);
+            await saveMessageToDB(modelResponse, sessionId);
         }
-    }).catch(err => {
-        console.error("Error sending message to proxy:", err);
-    });
-  }, [assistant?.id, assistant?.chatPath, assistant?.type, sessionId, pollForResponse, toast, isPersonalChat, socket, userProfile, chatPartner?.chatPath]);
+        
+        fetch('/api/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                assistantId: assistant.id,
+                message: messageContent,
+                destination: sessionId,
+                chatPath: assistant.chatPath,
+            })
+        }).then(response => {
+            if (assistant.type === 'desktop' && typeof messageContent === 'string') {
+                pollForResponse();
+            }
+        }).catch(err => {
+            console.error("Error sending message to proxy:", err);
+        });
+    }
+}, [isPersonalChat, isAssistantChat, assistant, chatPartner, sessionId, pollForResponse, socket, userProfile]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
