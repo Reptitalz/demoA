@@ -16,20 +16,9 @@ import { useState, useEffect } from "react"
 
 export function Toaster() {
   const { toasts } = useToast()
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    // This will run only on the client, after the initial render.
-    setIsClient(true)
-  }, [])
-  
-  if (!isClient) {
-    // On the server, render nothing to avoid hydration mismatches.
-    return null
-  }
 
   return (
-    <ToastProvider>
+    <>
       {toasts.map(function ({ id, title, description, action, copyable, ...props }) {
         const handleCopy = () => {
           const textToCopy = `${title ? title + '\n' : ''}${description || ''}`;
@@ -59,6 +48,6 @@ export function Toaster() {
         )
       })}
       <ToastViewport />
-    </ToastProvider>
+    </>
   )
 }
