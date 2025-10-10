@@ -21,7 +21,7 @@ import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
-import { openDB, CONTACTS_STORE_NAME, MESSAGES_STORE_NAME, SESSION_STORE_NAME } from '@/lib/db';
+import { openDB, CONTACTS_STORE_NAME, MESSAGES_STORE_NAME, SESSIONS_STORE_NAME } from '@/lib/db';
 import { Loader2 } from 'lucide-react';
 import { useSocket } from '@/providers/SocketProvider';
 
@@ -35,8 +35,8 @@ const DB_VERSION = 5; // Updated version
 const getSessionIdFromDB = async (chatPath: string): Promise<string | null> => {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(SESSION_STORE_NAME, 'readonly');
-    const store = tx.objectStore(SESSION_STORE_NAME);
+    const tx = db.transaction(SESSIONS_STORE_NAME, 'readonly');
+    const store = tx.objectStore(SESSIONS_STORE_NAME);
     const request = store.get(chatPath);
     request.onsuccess = () => {
       resolve(request.result?.sessionId || null);
@@ -50,8 +50,8 @@ const getSessionIdFromDB = async (chatPath: string): Promise<string | null> => {
 
 const setSessionIdInDB = async (chatPath: string, sessionId: string) => {
   const db = await openDB();
-  const tx = db.transaction(SESSION_STORE_NAME, 'readwrite');
-  tx.objectStore(SESSION_STORE_NAME).put({ chatPath, sessionId });
+  const tx = db.transaction(SESSIONS_STORE_NAME, 'readwrite');
+  tx.objectStore(SESSIONS_STORE_NAME).put({ chatPath, sessionId });
   return tx.done;
 };
 
@@ -314,6 +314,10 @@ const DesktopChatPage = () => {
         // If not found in DB, fallback to state (assistants list)
         if (!partner) {
             partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
+        }
+        
+        if (!partner) {
+            partner = contacts.find(c => c.chatPath === chatPath) || null;
         }
 
         if (partner) {
