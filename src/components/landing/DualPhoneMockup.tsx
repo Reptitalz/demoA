@@ -178,8 +178,8 @@ const DualPhoneMockup = () => {
 
         ctx.clearRect(0, 0, w, h);
 
-        const phoneWidth = 220;
-        const phoneHeight = 450;
+        const phoneWidth = 180;
+        const phoneHeight = 370;
         const gap = -40;
         
         const totalWidth = phoneWidth * 2 + gap;
