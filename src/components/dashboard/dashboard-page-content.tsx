@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils';
 import type { AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
 import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
-import { FaRegCommentDots } from "react-icons/fa";
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -38,51 +37,8 @@ const DashboardPageContent = () => {
   const [isLoadingMemory, setIsLoadingMemory] = useState(false);
   
   const isDemoMode = !userProfile.isAuthenticated;
-
-  // This is the single source of truth for demo data.
-  const demoProfile = {
-      isAuthenticated: false, // This is the key that triggers demo mode
-      assistants: [{
-          id: 'demo-asst-1',
-          name: 'Asistente de Ventas (Demo)',
-          isActive: true,
-          type: 'whatsapp' as const,
-          numberReady: true,
-          phoneLinked: '+15551234567',
-          messageCount: 1250,
-          monthlyMessageLimit: 5000,
-          purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
-          databaseId: 'demo-db-1'
-      },
-      {
-          id: 'demo-asst-2',
-          name: 'Asistente de Soporte (Demo)',
-          isActive: true,
-          type: 'desktop' as const,
-          numberReady: true,
-          messageCount: 300,
-          monthlyMessageLimit: 1000,
-          purposes: ['create_smart_db'],
-          databaseId: 'demo-db-2',
-          isFirstDesktopAssistant: true, // This assistant is in free trial
-          trialStartDate: subDays(new Date(), 5).toISOString(), // Trial started 5 days ago
-      }],
-      databases: [{
-          id: 'demo-db-1',
-          name: 'Inventario de Productos (Demo)',
-          source: 'google_sheets' as const,
-          accessUrl: '#'
-      },
-      {
-          id: 'demo-db-2',
-          name: 'Base de Conocimiento (Demo)',
-          source: 'smart_db' as const,
-          storageSize: 15 * 1024 * 1024, // 15MB
-      }],
-      credits: 5
-  };
-
-  const profileToRender = isDemoMode ? demoProfile : userProfile;
+  
+  const profileToRender = userProfile;
   const isDatabasesPage = pathname.endsWith('/databases');
 
   useEffect(() => {
@@ -91,10 +47,11 @@ const DashboardPageContent = () => {
         fetch(`/api/assistants/memory?userId=${userProfile._id}`)
             .then(res => res.json())
             .then((memoryData: AssistantMemory[]) => {
-                const assistantsWithMemory = userProfile.assistants.map(asst => ({
-                    ...asst,
-                    totalMemory: memoryData.find(m => m.assistantId === asst.id)?.totalMemory || 0
-                }));
+                const assistantsWithMemory = userProfile.assistants
+                    .map(asst => ({
+                        ...asst,
+                        totalMemory: memoryData.find(m => m.assistantId === asst.id)?.totalMemory || 0
+                    }));
                 setAssistantsMemory(assistantsWithMemory);
             })
             .catch(err => toast({ title: 'Error', description: 'No se pudo cargar la memoria de los asistentes.', variant: 'destructive' }))

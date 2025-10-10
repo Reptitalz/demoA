@@ -1,7 +1,8 @@
+
 "use client";
 
 import { Suspense } from 'react';
-import DashboardPageContent from '@/app/dashboard/DashboardPageContent';
+import DemoDashboardPageContent from '@/components/dashboard/demodashboard-page-content';
 import PageContainer from '@/components/layout/PageContainer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
@@ -14,7 +15,7 @@ export default function DemoProfilePage() {
         </PageContainer>
       }
     >
-      <DashboardPageContent />
+      <DemoDashboardPageContent />
     </Suspense>
   );
 }
