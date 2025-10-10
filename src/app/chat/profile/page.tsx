@@ -38,7 +38,7 @@ export default function ChatProfilePage() {
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
 
   const handleLogout = () => {
-      signOut({ callbackUrl: '/' });
+      signOut({ callbackUrl: '/chat' });
   }
 
   const handleEnableNotifications = async () => {
