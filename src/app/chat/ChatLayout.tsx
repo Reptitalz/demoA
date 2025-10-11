@@ -7,9 +7,10 @@ import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { FaComment, FaCamera, FaUser, FaPlus, FaPhoneAlt } from 'react-icons/fa';
+import { FaComment, FaCamera, FaUser, FaPlus, FaPhoneAlt, FaShoppingBag } from 'react-icons/fa';
 import AddChatDialog from '@/components/chat/AddChatDialog'; // Import the dialog
 import { Button } from '@/components/ui/button';
+import MarketplaceDialog from '@/components/chat/MarketplaceDialog'; // Import the new marketplace dialog
 
 const menuItems = [
     { path: '/chat/dashboard', icon: FaComment, label: 'Chats' },
@@ -22,6 +23,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
+  const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false); // State for the marketplace dialog
 
   const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
@@ -122,19 +124,33 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
       
-       {/* Floating Action Button */}
+       {/* Floating Action Buttons */}
       {showNavBar && (
-          <Button
-            size="icon"
-            className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground md:hidden"
-            onClick={() => setIsAddChatDialogOpen(true)}
-            aria-label="Añadir nuevo chat"
-          >
-              <FaPlus className="h-6 w-6" />
-          </Button>
+          <>
+            {/* Marketplace FAB */}
+            <Button
+                size="icon"
+                className="fixed bottom-16 left-1/2 -translate-x-1/2 mb-2 h-16 w-16 rounded-full shadow-lg bg-primary text-primary-foreground z-20 transition-transform transform hover:scale-105"
+                onClick={() => setIsMarketplaceOpen(true)}
+                aria-label="Abrir mercado"
+            >
+                <FaShoppingBag className="h-7 w-7" />
+            </Button>
+
+            {/* Add Chat FAB */}
+            <Button
+                size="icon"
+                className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg bg-brand-gradient text-primary-foreground md:hidden z-20"
+                onClick={() => setIsAddChatDialogOpen(true)}
+                aria-label="Añadir nuevo chat"
+            >
+                <FaPlus className="h-6 w-6" />
+            </Button>
+          </>
       )}
 
       <AddChatDialog isOpen={isAddChatDialogOpen} onOpenChange={setIsAddChatDialogOpen} />
+      <MarketplaceDialog isOpen={isMarketplaceOpen} onOpenChange={setIsMarketplaceOpen} />
     </>
   );
 }
