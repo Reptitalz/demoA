@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/providers/AppProvider';
 import ProductCatalogDialog from '@/components/chat/ProductCatalogDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { openDB, CONTACTS_STORE_NAME, MESSAGES_STORE_NAME, SESSIONS_STORE_NAME } from '@/lib/db';
 import { Loader2 } from 'lucide-react';
 import { useSocket } from '@/providers/SocketProvider';
@@ -303,10 +303,31 @@ const DesktopChatPage = () => {
 
         let partner: Contact | AssistantConfig | UserProfile | null = null;
         
-        // Find partner in existing state first
+        // 1. Find partner in existing state first
         partner = contacts.find(c => c.chatPath === chatPath) || null;
+        
+        // 2. If not in state, try to find in assistants list
         if (!partner) {
             partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
+        }
+
+        // 3. If still not found, try fetching public profile (as a last resort)
+        if (!partner) {
+            try {
+                const response = await fetch(`/api/user-profile/public?chatPath=${encodeURIComponent(chatPath)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.profile) {
+                         partner = {
+                            name: data.profile.firstName,
+                            imageUrl: data.profile.imageUrl,
+                            chatPath: data.profile.chatPath,
+                        } as Contact;
+                    }
+                }
+            } catch (fetchError) {
+                console.error("Could not fetch public profile:", fetchError);
+            }
         }
 
         if (partner) {
