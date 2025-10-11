@@ -130,7 +130,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
             {/* Marketplace FAB */}
             <Button
                 size="icon"
-                className="fixed bottom-16 left-1/2 -translate-x-1/2 mb-2 h-16 w-16 rounded-full shadow-lg bg-primary text-primary-foreground z-20 transition-transform transform hover:scale-105"
+                className="fixed bottom-8 left-1/2 -translate-x-1/2 h-16 w-16 rounded-full shadow-lg bg-primary text-primary-foreground z-20 transition-transform transform hover:scale-105"
                 onClick={() => setIsMarketplaceOpen(true)}
                 aria-label="Abrir mercado"
             >
