@@ -1,7 +1,7 @@
 // src/app/chat/ChatLayout.tsx
 "use client";
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import ChatNavBar from './ChatNavBar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
@@ -24,6 +24,11 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isAddChatDialogOpen, setIsAddChatDialogOpen] = useState(false);
   const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false); // State for the marketplace dialog
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
 
@@ -125,7 +130,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
       </div>
       
        {/* Floating Action Buttons */}
-      {showNavBar && (
+      {isClient && showNavBar && (
           <>
             {/* Marketplace FAB */}
             <Button
