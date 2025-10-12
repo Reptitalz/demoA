@@ -1,4 +1,3 @@
-
 // src/components/chat/admin/CreditHistoryDialog.tsx
 "use client";
 
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ReceiptDialog } from './AdminViews'; // Import the renamed component
+import ReceiptDialog from './ReceiptDialog';
 import { CreditLine } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
