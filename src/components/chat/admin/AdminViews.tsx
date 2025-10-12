@@ -914,6 +914,8 @@ export const CreditView = () => {
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isCompletedHistoryOpen, setIsCompletedHistoryOpen] = useState(false);
     const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
+    const [clientFilter, setClientFilter] = useState<'activos' | 'nuevos' | 'atrasados'>('activos');
+
 
     const activeCredits = state.userProfile.creditLines?.filter(cl => cl.status === 'approved' || cl.status === 'pending' || cl.status === 'Al Corriente' || cl.status === 'Atrasado') || [];
     
@@ -974,6 +976,20 @@ export const CreditView = () => {
 
                  <div className="space-y-3">
                     <h3 className="font-semibold text-foreground">Créditos Activos</h3>
+                     <div className="flex items-center gap-2">
+                        <Button size="sm" variant={clientFilter === 'activos' ? 'default' : 'outline'} className="text-xs h-7 rounded-full" onClick={() => setClientFilter('activos')}>
+                           <span className="mr-2 h-2 w-2 rounded-full bg-green-500"/>
+                            Activos
+                        </Button>
+                         <Button size="sm" variant={clientFilter === 'nuevos' ? 'default' : 'outline'} className="text-xs h-7 rounded-full" onClick={() => setClientFilter('nuevos')}>
+                           <span className="mr-2 h-2 w-2 rounded-full bg-red-500"/>
+                           Nuevos
+                        </Button>
+                         <Button size="sm" variant={clientFilter === 'atrasados' ? 'default' : 'outline'} className="text-xs h-7 rounded-full" onClick={() => setClientFilter('atrasados')}>
+                           <span className="mr-2 h-2 w-2 rounded-full bg-red-500"/>
+                           Atrasados
+                        </Button>
+                    </div>
                     {activeCredits.length > 0 ? activeCredits.map((credit) => (
                         <Card 
                             key={credit.id} 
