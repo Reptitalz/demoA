@@ -8,8 +8,10 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
 
 interface MarketplaceDialogProps {
   isOpen: boolean;
@@ -83,22 +85,29 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4"
+            className="p-4 sm:p-6 space-y-4"
         >
-            <Card onClick={() => setCurrentView('products')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
-                <Store className="h-10 w-10 text-primary mb-3"/>
-                <h3 className="font-bold text-lg">Tiendas</h3>
-                <p className="text-sm text-muted-foreground">Explora productos de vendedores locales.</p>
+            <div className="grid grid-cols-2 gap-4">
+                <Card onClick={() => setCurrentView('products')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
+                    <Store className="h-8 w-8 text-primary mb-2"/>
+                    <h3 className="font-bold text-base">Tiendas</h3>
+                    <p className="text-xs text-muted-foreground">Explora productos.</p>
+                </Card>
+                <Card onClick={() => setCurrentView('services')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
+                    <Briefcase className="h-8 w-8 text-primary mb-2"/>
+                    <h3 className="font-bold text-base">Servicios</h3>
+                    <p className="text-xs text-muted-foreground">Encuentra profesionales.</p>
+                </Card>
+            </div>
+             <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
+                <Landmark className="h-8 w-8 text-primary mb-2"/>
+                <h3 className="font-bold text-base">Créditos</h3>
+                <p className="text-xs text-muted-foreground">Opciones de financiamiento.</p>
             </Card>
-            <Card onClick={() => setCurrentView('services')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
-                <Briefcase className="h-10 w-10 text-primary mb-3"/>
-                <h3 className="font-bold text-lg">Servicios</h3>
-                <p className="text-sm text-muted-foreground">Encuentra profesionales para lo que necesites.</p>
-            </Card>
-            <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
-                <Landmark className="h-10 w-10 text-primary mb-3"/>
-                <h3 className="font-bold text-lg">Créditos</h3>
-                <p className="text-sm text-muted-foreground">Opciones de financiamiento a tu alcance.</p>
+            
+            <Card className="cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors flex items-center justify-center text-center p-4">
+                <Sparkles className="h-5 w-5 text-yellow-500 mr-3"/>
+                <p className="font-semibold text-sm text-muted-foreground">¡Novedades cada día!</p>
             </Card>
         </motion.div>
     );
@@ -173,11 +182,11 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-4xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+        <DialogHeader className="p-4 sm:p-6 pb-2">
            <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/10 rounded-lg">
-                <Store className="h-6 w-6 text-primary" />
+                <ShoppingBag className="h-6 w-6 text-primary" />
             </div>
             <div>
               <DialogTitle className="text-2xl font-bold text-brand-gradient">
