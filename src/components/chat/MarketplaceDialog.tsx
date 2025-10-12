@@ -1,17 +1,15 @@
 // src/components/chat/MarketplaceDialog.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FaShoppingBag, FaDollarSign, FaBoxOpen } from 'react-icons/fa';
+import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Button } from '../ui/button';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MarketplaceDialogProps {
   isOpen: boolean;
@@ -19,34 +17,159 @@ interface MarketplaceDialogProps {
 }
 
 // Demo data - replace with actual data from an API
-const demoProducts = [
-  { id: 1, name: "Asesoría de Marketing Digital", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing' },
-  { id: 2, name: "Diseño de Logotipo Profesional", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design' },
-  { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media' },
-  { id: 4, name: "Clases de Guitarra Acústica", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson' },
-  { id: 5, name: "Mantenimiento de PC Remoto", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance' },
-  { id: 6, name: "Crédito Rápido Personal", amount: 1000, interest: "10%", seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
-];
+const demoItems = {
+  products: [
+    { id: 1, name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing' },
+    { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design' },
+    { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media' },
+  ],
+  services: [
+    { id: 4, name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson' },
+    { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance' },
+  ],
+  credits: [
+    { id: 6, name: "Crédito Personal Rápido", amount: 1000, interest: "10%", seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
+  ]
+};
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 260,
-      damping: 20,
-    },
-  },
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } },
+};
+
+type View = 'categories' | 'products' | 'services' | 'credits';
+
+const categoryConfig = {
+    products: { icon: Store, title: 'Tiendas y Productos' },
+    services: { icon: Briefcase, title: 'Servicios Profesionales' },
+    credits: { icon: Landmark, title: 'Créditos y Finanzas' },
 };
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentView, setCurrentView] = useState<View>('categories');
+    
+    // Placeholder for items that would be fetched based on location
+    const [nearbyItems, setNearbyItems] = useState(demoItems);
 
-    const filteredProducts = useMemo(() => {
-        return demoProducts.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [searchTerm]);
+    useEffect(() => {
+        if (!isOpen) {
+            // Reset to initial state when dialog is closed
+            setTimeout(() => {
+                setCurrentView('categories');
+                setSearchTerm('');
+            }, 300);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        // This is where you would implement the location-based filtering
+        if (currentView !== 'categories') {
+            // TODO: Implementar lógica de geolocalización para obtener la ubicación del usuario
+            // y luego filtrar 'demoItems' para mostrar solo los que están cerca.
+            // Por ahora, simplemente usamos los datos de demostración completos.
+            setNearbyItems(demoItems);
+        }
+    }, [currentView]);
+
+    const filteredItems = useMemo(() => {
+        if (currentView === 'categories') return [];
+        return nearbyItems[currentView].filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [searchTerm, currentView, nearbyItems]);
+
+    const renderCategories = () => (
+         <motion.div 
+            key="categories"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
+            <Card onClick={() => setCurrentView('products')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
+                <Store className="h-10 w-10 text-primary mb-3"/>
+                <h3 className="font-bold text-lg">Tiendas</h3>
+                <p className="text-sm text-muted-foreground">Explora productos de vendedores locales.</p>
+            </Card>
+            <Card onClick={() => setCurrentView('services')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
+                <Briefcase className="h-10 w-10 text-primary mb-3"/>
+                <h3 className="font-bold text-lg">Servicios</h3>
+                <p className="text-sm text-muted-foreground">Encuentra profesionales para lo que necesites.</p>
+            </Card>
+            <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
+                <Landmark className="h-10 w-10 text-primary mb-3"/>
+                <h3 className="font-bold text-lg">Créditos</h3>
+                <p className="text-sm text-muted-foreground">Opciones de financiamiento a tu alcance.</p>
+            </Card>
+        </motion.div>
+    );
+
+    const renderItemsList = () => {
+        const Icon = currentView !== 'categories' ? categoryConfig[currentView].icon : Sparkles;
+        const title = currentView !== 'categories' ? categoryConfig[currentView].title : 'Resultados';
+
+        return (
+            <motion.div
+                key="items-list"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                className="flex flex-col h-full"
+            >
+                <div className="px-4 sm:px-6 pt-4 space-y-3">
+                    <Button variant="ghost" size="sm" onClick={() => setCurrentView('categories')} className="text-muted-foreground">
+                        <ArrowLeft className="mr-2 h-4 w-4"/> Volver a Categorías
+                    </Button>
+                    <div className="flex items-center gap-3">
+                        <Icon className="h-6 w-6 text-primary"/>
+                        <h3 className="text-xl font-bold">{title}</h3>
+                    </div>
+                     <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar en esta categoría..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 h-10"
+                        />
+                    </div>
+                </div>
+
+                <ScrollArea className="flex-grow my-4">
+                    <div className="px-4 sm:px-6">
+                        {filteredItems.length > 0 ? (
+                            <motion.div
+                                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                                variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                                initial="hidden"
+                                animate="visible"
+                            >
+                                {filteredItems.map(item => (
+                                    <motion.div key={item.id} variants={cardVariants}>
+                                        <Card className="overflow-hidden cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20">
+                                            <div className="aspect-square relative w-full">
+                                                <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" data-ai-hint={item.imageHint} />
+                                            </div>
+                                            <CardContent className="p-2 sm:p-3">
+                                                <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{item.name}</p>
+                                                <p className="text-xs text-muted-foreground">de {item.seller}</p>
+                                                <p className="font-bold text-base mt-1">
+                                                    {'price' in item ? `$${item.price.toFixed(2)}` : `$${(item as any).amount?.toLocaleString()}`}
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        ) : (
+                            <div className="flex items-center justify-center h-48 text-muted-foreground">
+                                <p>No se encontraron resultados.</p>
+                            </div>
+                        )}
+                    </div>
+                </ScrollArea>
+            </motion.div>
+        );
+    };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -54,74 +177,24 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         <DialogHeader className="p-4 sm:p-6 pb-0">
            <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/10 rounded-lg">
-                <FaShoppingBag className="h-6 w-6 text-primary" />
+                <Store className="h-6 w-6 text-primary" />
             </div>
             <div>
               <DialogTitle className="text-2xl font-bold text-brand-gradient">
                 Mercado
               </DialogTitle>
               <DialogDescription>
-                Explora productos y servicios de la comunidad.
+                Explora productos, servicios y créditos ofrecidos por la comunidad.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
-
-        <div className="px-4 sm:px-6 mt-2">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Buscar productos..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-10"
-                />
-            </div>
-        </div>
         
-        <div className="px-4 sm:px-6 mt-4">
-             <div className="p-3 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 flex items-center gap-3 text-sm">
-                <Sparkles className="h-5 w-5 shrink-0"/>
-                <p className="font-semibold">¡Nuevos productos de la comunidad cada día!</p>
-            </div>
-        </div>
-
-        <ScrollArea className="flex-grow my-4">
-            <div className="px-4 sm:px-6">
-                {filteredProducts.length > 0 ? (
-                    <motion.div 
-                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-                        variants={{
-                            visible: { transition: { staggerChildren: 0.05 } }
-                        }}
-                        initial="hidden"
-                        animate="visible"
-                    >
-                        {filteredProducts.map(product => (
-                            <motion.div key={product.id} variants={cardVariants}>
-                                <Card className="overflow-hidden cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20">
-                                    <div className="aspect-square relative w-full">
-                                        <Image src={product.imageUrl} alt={product.name} layout="fill" objectFit="cover" data-ai-hint={product.imageHint} />
-                                    </div>
-                                    <CardContent className="p-2 sm:p-3">
-                                        <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{product.name}</p>
-                                        <p className="text-xs text-muted-foreground">de {product.seller}</p>
-                                        <p className="font-bold text-base mt-1">
-                                            {'price' in product ? `$${product.price.toFixed(2)}` : `$${product.amount?.toLocaleString()}`}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                ) : (
-                    <div className="flex items-center justify-center h-48 text-muted-foreground">
-                        <p>No se encontraron productos para "{searchTerm}".</p>
-                    </div>
-                )}
-            </div>
-        </ScrollArea>
-        <DialogFooter className="p-4 border-t">
+        <AnimatePresence mode="wait">
+            {currentView === 'categories' ? renderCategories() : renderItemsList()}
+        </AnimatePresence>
+        
+        <DialogFooter className="p-4 border-t mt-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
