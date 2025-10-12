@@ -1,7 +1,7 @@
 // src/app/api/credit/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import { UserProfile, CreditLine } from '@/types';
+import type { UserProfile, CreditLine } from '@/types';
 import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';

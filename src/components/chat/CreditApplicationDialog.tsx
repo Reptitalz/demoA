@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { FaCreditCard, FaSpinner, FaIdCard, FaFileAlt, FaCheckCircle, FaArrowLeft, FaArrowRight, FaCamera, FaUpload, FaTimes, FaCalendarDay } from 'react-icons/fa';
+import { FaCreditCard, FaSpinner, FaIdCard, FaFileAlt, FaCheckCircle, FaArrowLeft, FaArrowRight, FaCamera, FaUpload, FaTimes } from 'react-icons/fa';
 import type { AssistantConfig } from '@/types';
 import { Progress } from '../ui/progress';
 import { Card, CardContent } from '../ui/card';
@@ -111,10 +111,6 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
             toast({ title: "Archivo Faltante", description: "Por favor, sube tu comprobante de domicilio.", variant: "destructive" });
             return;
         }
-        if (step === 3 && !paymentFrequency) {
-            toast({ title: "Selección Requerida", description: "Por favor, elige una frecuencia de pago.", variant: "destructive" });
-            return;
-        }
         setStep(prev => prev + 1);
     };
 
@@ -157,7 +153,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
             }
             
             toast({ title: "Solicitud Enviada", description: "Tus documentos han sido enviados para revisión." });
-            setStep(5);
+            setStep(4);
 
         } catch (error: any) {
             toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -181,12 +177,12 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
         }, 300);
     }
     
-    const progress = Math.round((step / 5) * 100);
+    const progress = Math.round((step / 4) * 100);
 
     return (
         <Dialog open={isOpen} onOpenChange={resetAndClose}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-md sm:h-auto sm:p-6">
-                <DialogHeader className="p-4 sm:p-0 border-b sm:border-b-0">
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <FaCreditCard /> Solicitud de Crédito
                     </DialogTitle>
@@ -195,11 +191,9 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                     </DialogDescription>
                 </DialogHeader>
                 
-                 <div className="px-4 sm:px-0">
-                    <Progress value={progress} className="w-full h-2" />
-                 </div>
+                 <Progress value={progress} className="w-full h-2" />
 
-                <div className="py-4 space-y-4 flex-grow min-h-0 overflow-y-auto px-4 sm:px-0">
+                <div className="py-4 space-y-4">
                     {step === 1 && (
                         <div className="space-y-4 animate-fadeIn">
                              <Alert>
@@ -222,44 +216,23 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                         </div>
                     )}
                     {step === 3 && (
-                        <div className="space-y-4 animate-fadeIn">
-                            <Alert>
-                                <AlertTitle>Paso 3: Frecuencia de Pago</AlertTitle>
-                                <AlertDescription>Elige cada cuánto tiempo prefieres realizar tus pagos.</AlertDescription>
-                            </Alert>
-                            <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                                {(['weekly', 'biweekly', 'monthly'] as const).map(freq => {
-                                    const labels = { weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
-                                    return (
-                                        <Card key={freq} onClick={() => setPaymentFrequency(freq)} className={cn("cursor-pointer transition-all", paymentFrequency === freq && "border-primary ring-2 ring-primary")}>
-                                            <CardContent className="p-3 sm:p-4 text-center space-y-1 sm:space-y-2">
-                                                <FaCalendarDay className="h-5 w-5 sm:h-6 sm:w-6 mx-auto text-primary"/>
-                                                <p className="font-semibold text-xs sm:text-sm">{labels[freq]}</p>
-                                            </CardContent>
-                                        </Card>
-                                    )
-                                })}
-                            </div>
+                        <div className="space-y-4 animate-fadeIn text-center p-4">
+                             <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4"/>
+                            <h3 className="text-lg font-semibold">Todo Listo para Enviar</h3>
+                            <p className="text-sm text-muted-foreground">Revisa que tus documentos sean correctos antes de enviar tu solicitud. Este proceso es seguro y tu información está protegida.</p>
                         </div>
                     )}
-                    {step === 4 && (
+                     {step === 4 && (
                          <div className="space-y-4 animate-fadeIn text-center p-4">
-                             <FaCheckCircle className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-green-500 mb-4"/>
-                            <h3 className="text-base sm:text-lg font-semibold">Todo Listo para Enviar</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground">Revisa que tus documentos sean correctos antes de enviar tu solicitud. Este proceso es seguro y tu información está protegida.</p>
-                        </div>
-                    )}
-                     {step === 5 && (
-                         <div className="space-y-4 animate-fadeIn text-center p-4 flex flex-col items-center justify-center h-full">
-                             <FaCheckCircle className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-primary mb-4"/>
-                            <h3 className="text-base sm:text-lg font-semibold">Solicitud en Revisión</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground">Hemos recibido tus documentos. Te notificaremos en este chat en un plazo de 24 horas cuando tu línea de crédito preaprobada esté lista.</p>
+                             <FaCheckCircle className="mx-auto h-16 w-16 text-primary mb-4"/>
+                            <h3 className="text-lg font-semibold">Solicitud en Revisión</h3>
+                            <p className="text-sm text-muted-foreground">Hemos recibido tus documentos. Te notificaremos en este chat en un plazo de 24 horas cuando tu línea de crédito preaprobada esté lista.</p>
                         </div>
                     )}
                 </div>
 
-                <DialogFooter className="p-4 sm:p-0 border-t sm:border-t-0 mt-auto flex-shrink-0">
-                    {step < 4 && (
+                <DialogFooter>
+                    {step < 3 && (
                         <div className="flex justify-between w-full">
                             {step > 1 ? (
                                 <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
@@ -268,11 +241,11 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                             ) : ( <div></div> )}
 
                             <Button onClick={handleNext} disabled={isProcessing}>
-                                Siguiente <FaArrowRight className="ml-2"/>
+                                Siguiente <FaArrowRight className="mr-2"/>
                             </Button>
                         </div>
                     )}
-                    {step === 4 && (
+                    {step === 3 && (
                         <div className="flex justify-between w-full">
                             <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
                                 <FaArrowLeft className="mr-2"/> Atrás
@@ -283,7 +256,7 @@ const CreditApplicationDialog = ({ isOpen, onOpenChange, assistant }: CreditAppl
                             </Button>
                         </div>
                     )}
-                    {step === 5 && (
+                    {step === 4 && (
                         <div className="w-full">
                             <Button onClick={resetAndClose} className="w-full">
                                 Entendido

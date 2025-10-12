@@ -12,6 +12,9 @@ import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, W
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import type { AssistantConfig, CreditOffer } from '@/types';
+import CreditApplicationDialog from './CreditApplicationDialog';
+import { useApp } from '@/providers/AppProvider';
 
 
 interface MarketplaceDialogProps {
@@ -31,8 +34,8 @@ const demoItems = {
     { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance' },
   ],
   credits: [
-    { id: 6, name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
-    { id: 7, name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan' },
+    { id: 'credit-1', name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
+    { id: 'credit-2', name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan' },
   ]
 };
 
@@ -50,9 +53,13 @@ const categoryConfig = {
 };
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
+    const { state } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
     const [currentView, setCurrentView] = useState<View>('categories');
     const { toast } = useToast();
+    const [isCreditDialogOpen, setIsCreditDialogOpen] = useState(false);
+    const [selectedCreditAssistant, setSelectedCreditAssistant] = useState<AssistantConfig | null>(null);
+
     
     // Placeholder for items that would be fetched based on location
     const [nearbyItems, setNearbyItems] = useState(demoItems);
@@ -80,11 +87,21 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         return nearbyItems[currentView].filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [searchTerm, currentView, nearbyItems]);
     
-    const handleRequestCredit = (creditName: string) => {
-        toast({
-            title: "Solicitud en Proceso",
-            description: `Tu solicitud para el "${creditName}" ha sido enviada. El proveedor te contactará.`,
-        });
+    const handleRequestCredit = (credit: any) => {
+        // Here, we'd find the assistant linked to this credit offer.
+        // For now, let's assume we can find them in the userProfile's assistants.
+        // In a real app, the `credit` object would have an `assistantId`.
+        const assistant = state.userProfile.assistants.find(a => a.name.includes(credit.seller));
+        if (assistant) {
+            setSelectedCreditAssistant(assistant);
+            setIsCreditDialogOpen(true);
+        } else {
+             toast({
+                title: "Asistente no encontrado",
+                description: "No se pudo encontrar al asistente que ofrece este crédito.",
+                variant: "destructive"
+            });
+        }
     }
 
     const renderCategories = () => (
@@ -99,18 +116,15 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 <Card onClick={() => setCurrentView('products')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
                     <Store className="h-8 w-8 text-primary mb-2"/>
                     <h3 className="font-bold text-base">Tiendas</h3>
-                    <p className="text-xs text-muted-foreground">Explora productos.</p>
                 </Card>
                 <Card onClick={() => setCurrentView('services')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
                     <Briefcase className="h-8 w-8 text-primary mb-2"/>
                     <h3 className="font-bold text-base">Servicios</h3>
-                    <p className="text-xs text-muted-foreground">Encuentra profesionales.</p>
                 </Card>
             </div>
              <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
                 <Landmark className="h-8 w-8 text-primary mb-2"/>
                 <h3 className="font-bold text-base">Créditos</h3>
-                <p className="text-xs text-muted-foreground">Opciones de financiamiento.</p>
             </Card>
             
             <Card className="cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors flex items-center justify-center text-center p-4">
@@ -183,7 +197,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                                     <Button size="sm" variant="secondary" className="flex-1">
                                                         <Send className="mr-2 h-4 w-4"/> Chatear
                                                     </Button>
-                                                    <Button size="sm" className="flex-1 bg-brand-gradient text-primary-foreground" onClick={() => handleRequestCredit(item.name)}>
+                                                    <Button size="sm" className="flex-1 bg-brand-gradient text-primary-foreground" onClick={() => handleRequestCredit(item)}>
                                                         <Wallet className="mr-2 h-4 w-4"/> Solicitar Crédito
                                                     </Button>
                                                 </div>
@@ -218,33 +232,42 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
-        <DialogHeader className="p-4 sm:p-6 pb-2">
-           <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-                <ShoppingBag className="h-6 w-6 text-primary" />
+    <>
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+            <DialogHeader className="p-4 sm:p-6 pb-2">
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                    <ShoppingBag className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                <DialogTitle className="text-2xl font-bold text-brand-gradient">
+                    Mercado
+                </DialogTitle>
+                <DialogDescription>
+                    Explora productos, servicios y créditos ofrecidos por la comunidad.
+                </DialogDescription>
+                </div>
             </div>
-            <div>
-              <DialogTitle className="text-2xl font-bold text-brand-gradient">
-                Mercado
-              </DialogTitle>
-              <DialogDescription>
-                Explora productos, servicios y créditos ofrecidos por la comunidad.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-        
-        <AnimatePresence mode="wait">
-            {currentView === 'categories' ? renderCategories() : renderItemsList()}
-        </AnimatePresence>
-        
-        <DialogFooter className="p-4 border-t mt-auto">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            </DialogHeader>
+            
+            <AnimatePresence mode="wait">
+                {currentView === 'categories' ? renderCategories() : renderItemsList()}
+            </AnimatePresence>
+            
+            <DialogFooter className="p-4 border-t mt-auto">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+            </DialogFooter>
+        </DialogContent>
+        </Dialog>
+        {selectedCreditAssistant && (
+            <CreditApplicationDialog 
+                isOpen={isCreditDialogOpen}
+                onOpenChange={setIsCreditDialogOpen}
+                assistant={selectedCreditAssistant}
+            />
+        )}
+    </>
   );
 };
 
