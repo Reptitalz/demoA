@@ -1,3 +1,4 @@
+
 // src/app/api/credit/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -78,6 +79,8 @@ export async function PUT(request: NextRequest) {
 
         if (status === 'approved') {
             updateFields['creditLines.$.amount'] = amount;
+            // When approved, set a more descriptive active status
+            updateFields['creditLines.$.status'] = 'Al Corriente'; 
         }
 
         const result = await userProfileCollection.updateOne(

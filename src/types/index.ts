@@ -142,9 +142,9 @@ export interface CollaboratorProfile {
 export interface CreditLine {
   id: string;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'active' | 'completed';
-  applicantIdentifier: string;
-  assistantId: string;
+  status: 'pending' | 'approved' | 'rejected' | 'active' | 'completed' | 'Al Corriente' | 'Atrasado';
+  applicantIdentifier: string; // The userProfile.chatPath of the person applying
+  assistantId: string; // The assistant that processed the application
   documents: {
     ineFront: string; // Data URL
     ineBack: string; // Data URL
