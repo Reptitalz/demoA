@@ -8,9 +8,10 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface MarketplaceDialogProps {
@@ -30,7 +31,8 @@ const demoItems = {
     { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance' },
   ],
   credits: [
-    { id: 6, name: "Crédito Personal Rápido", amount: 1000, interest: "10%", seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
+    { id: 6, name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
+    { id: 7, name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan' },
   ]
 };
 
@@ -50,6 +52,7 @@ const categoryConfig = {
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentView, setCurrentView] = useState<View>('categories');
+    const { toast } = useToast();
     
     // Placeholder for items that would be fetched based on location
     const [nearbyItems, setNearbyItems] = useState(demoItems);
@@ -65,11 +68,9 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     }, [isOpen]);
 
     useEffect(() => {
-        // This is where you would implement the location-based filtering
         if (currentView !== 'categories') {
             // TODO: Implementar lógica de geolocalización para obtener la ubicación del usuario
             // y luego filtrar 'demoItems' para mostrar solo los que están cerca.
-            // Por ahora, simplemente usamos los datos de demostración completos.
             setNearbyItems(demoItems);
         }
     }, [currentView]);
@@ -78,6 +79,13 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         if (currentView === 'categories') return [];
         return nearbyItems[currentView].filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [searchTerm, currentView, nearbyItems]);
+    
+    const handleRequestCredit = (creditName: string) => {
+        toast({
+            title: "Solicitud en Proceso",
+            description: `Tu solicitud para el "${creditName}" ha sido enviada. El proveedor te contactará.`,
+        });
+    }
 
     const renderCategories = () => (
          <motion.div 
@@ -147,25 +155,54 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                     <div className="px-4 sm:px-6">
                         {filteredItems.length > 0 ? (
                             <motion.div
-                                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                                className={cn("grid gap-4", currentView === 'credits' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-3')}
                                 variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
                                 initial="hidden"
                                 animate="visible"
                             >
                                 {filteredItems.map(item => (
                                     <motion.div key={item.id} variants={cardVariants}>
+                                      {currentView === 'credits' ? (
+                                        <Card className="overflow-hidden group glow-card transition-all duration-300">
+                                            <CardContent className="p-4 space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                      <p className="text-xs text-muted-foreground">{item.seller}</p>
+                                                      <p className="font-bold text-lg text-primary">{item.name}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-3xl font-extrabold text-foreground">${(item as any).amount?.toLocaleString()}</p>
+                                                        <p className="text-xs text-muted-foreground">Monto Máximo</p>
+                                                    </div>
+                                                </div>
+                                                 <div className="flex justify-between text-xs pt-3 border-t">
+                                                    <p>Tasa de interés: <span className="font-semibold">{(item as any).interest}% mensual</span></p>
+                                                    <p>Plazo: <span className="font-semibold">{(item as any).term}</span></p>
+                                                </div>
+                                                <div className="flex gap-2 pt-2">
+                                                    <Button size="sm" variant="secondary" className="flex-1">
+                                                        <Send className="mr-2 h-4 w-4"/> Chatear
+                                                    </Button>
+                                                    <Button size="sm" className="flex-1 bg-brand-gradient text-primary-foreground" onClick={() => handleRequestCredit(item.name)}>
+                                                        <Wallet className="mr-2 h-4 w-4"/> Solicitar Crédito
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                      ) : (
                                         <Card className="overflow-hidden cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20">
                                             <div className="aspect-square relative w-full">
-                                                <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" data-ai-hint={item.imageHint} />
+                                                <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" data-ai-hint={(item as any).imageHint} />
                                             </div>
                                             <CardContent className="p-2 sm:p-3">
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{item.name}</p>
                                                 <p className="text-xs text-muted-foreground">de {item.seller}</p>
                                                 <p className="font-bold text-base mt-1">
-                                                    {'price' in item ? `$${item.price.toFixed(2)}` : `$${(item as any).amount?.toLocaleString()}`}
+                                                    ${(item as any).price.toFixed(2)}
                                                 </p>
                                             </CardContent>
                                         </Card>
+                                      )}
                                     </motion.div>
                                 ))}
                             </motion.div>
@@ -182,7 +219,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
         <DialogHeader className="p-4 sm:p-6 pb-2">
            <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/10 rounded-lg">
