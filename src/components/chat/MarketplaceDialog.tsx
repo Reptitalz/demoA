@@ -2,10 +2,10 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
 import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send } from 'lucide-react';
@@ -47,9 +47,9 @@ const cardVariants = {
 type View = 'categories' | 'products' | 'services' | 'credits';
 
 const categoryConfig = {
-    products: { icon: Store, title: 'Tiendas y Productos' },
-    services: { icon: Briefcase, title: 'Servicios Profesionales' },
-    credits: { icon: Landmark, title: 'Créditos y Finanzas' },
+    products: { icon: Store, title: 'Tiendas y Productos', description: 'Explora productos de vendedores locales.' },
+    services: { icon: Briefcase, title: 'Servicios Profesionales', description: 'Encuentra profesionales para lo que necesites.' },
+    credits: { icon: Landmark, title: 'Créditos y Finanzas', description: 'Opciones de financiamiento a tu alcance.' },
 };
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
@@ -112,22 +112,39 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             exit={{ opacity: 0 }}
             className="p-4 sm:p-6 space-y-4"
         >
-            <div className="grid grid-cols-2 gap-4">
-                <Card onClick={() => setCurrentView('products')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
-                    <Store className="h-8 w-8 text-primary mb-2"/>
-                    <h3 className="font-bold text-base">Tiendas</h3>
-                </Card>
-                <Card onClick={() => setCurrentView('services')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
-                    <Briefcase className="h-8 w-8 text-primary mb-2"/>
-                    <h3 className="font-bold text-base">Servicios</h3>
-                </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {['products', 'services'].map(cat => {
+                    const config = categoryConfig[cat as keyof typeof categoryConfig];
+                    const Icon = config.icon;
+                    return (
+                        <Card key={cat} onClick={() => setCurrentView(cat as View)} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col text-left">
+                            <CardHeader className="p-4">
+                                <div className="h-20 bg-muted rounded-md mb-4 flex items-center justify-center">
+                                    {/* Placeholder for an image */}
+                                    <Icon className="h-8 w-8 text-muted-foreground" />
+                                </div>
+                                <CardTitle className="text-base font-bold">{config.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0 flex-grow">
+                                <CardDescription className="text-xs">{config.description}</CardDescription>
+                            </CardContent>
+                        </Card>
+                    )
+                })}
             </div>
-             <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col items-center justify-center text-center p-6">
-                <Landmark className="h-8 w-8 text-primary mb-2"/>
-                <h3 className="font-bold text-base">Créditos</h3>
+            <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col text-left">
+                 <CardHeader className="p-4">
+                    <div className="h-20 bg-muted rounded-md mb-4 flex items-center justify-center">
+                       <Landmark className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <CardTitle className="text-base font-bold">{categoryConfig.credits.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 flex-grow">
+                    <CardDescription className="text-xs">{categoryConfig.credits.description}</CardDescription>
+                </CardContent>
             </Card>
             
-            <Card className="cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors flex items-center justify-center text-center p-4">
+             <Card className="cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors flex items-center justify-center text-center p-4">
                 <Sparkles className="h-5 w-5 text-yellow-500 mr-3"/>
                 <p className="font-semibold text-sm text-muted-foreground">¡Novedades cada día!</p>
             </Card>
@@ -256,7 +273,9 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             </AnimatePresence>
             
             <DialogFooter className="p-4 border-t mt-auto">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+            <DialogClose asChild>
+                <Button variant="outline">Cerrar</Button>
+            </DialogClose>
             </DialogFooter>
         </DialogContent>
         </Dialog>
