@@ -51,13 +51,13 @@ const demoCart = [
 
 const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
+        <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+            <DialogHeader className="p-4 border-b">
                 <DialogTitle>Mis Pedidos</DialogTitle>
                 <DialogDescription>Aquí puedes ver el estado de tus compras.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[60vh] -mx-6 px-6">
-                <div className="py-4 space-y-4">
+            <ScrollArea className="flex-grow">
+                <div className="p-4 space-y-4">
                     {demoOrders.map(order => (
                         <Card key={order.id}>
                             <CardContent className="p-4 flex items-center gap-4">
@@ -75,6 +75,9 @@ const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
                     ))}
                 </div>
             </ScrollArea>
+             <DialogFooter className="p-4 border-t mt-auto">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+            </DialogFooter>
         </DialogContent>
     </Dialog>
 );
@@ -112,7 +115,7 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
                     <Button className="w-full">Proceder al Pago</Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog>
+    </Dialog>
     )
 };
 
@@ -378,7 +381,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             {selectedProduct && (
                 <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
                     <DialogContent className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg" onInteractOutside={(e) => e.preventDefault()}>
-                        <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
+                         <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
                          <div className="absolute inset-0 z-0">
                             <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="blur-lg scale-110 opacity-40" />
                             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
