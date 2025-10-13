@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -241,109 +241,123 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         );
     };
 
-  return (
-    <>
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
-            <DialogHeader className="p-4 sm:p-6 pb-2">
-            <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                    <ShoppingBag className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                <DialogTitle className="text-2xl font-bold text-brand-gradient">
-                    Mercado
-                </DialogTitle>
-                <DialogDescription>
-                    Explora productos, servicios y créditos ofrecidos por la comunidad.
-                </DialogDescription>
-                </div>
-            </div>
-            </DialogHeader>
-
-            <div className="px-4 sm:px-6 py-2 border-b border-t flex items-center justify-between text-sm">
-                 <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span>Mostrando resultados cerca de: <span className="font-semibold text-foreground">{location}</span></span>
-                </div>
-                <Button variant="link" size="sm" className="h-auto p-0" disabled>Cambiar</Button>
-            </div>
-            
-            <AnimatePresence mode="wait">
-                {currentView === 'categories' ? renderCategories() : renderItemsList()}
-            </AnimatePresence>
-            
-            <DialogFooter className="p-4 border-t mt-auto">
-            <DialogClose asChild>
-                <Button variant="outline">Cerrar</Button>
-            </DialogClose>
-            </DialogFooter>
-        </DialogContent>
-        </Dialog>
-        {selectedCreditAssistant && (
-            <CreditApplicationDialog 
-                isOpen={isCreditDialogOpen}
-                onOpenChange={setIsCreditDialogOpen}
-                assistant={selectedCreditAssistant}
-            />
-        )}
-        {selectedProduct && (
-            <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
-                <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
-                    <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
-                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedProduct(null)}>
-                           <ArrowLeft />
-                       </Button>
-                        <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
+    return (
+        <>
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+                <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+                    <DialogHeader className="p-4 sm:p-6 pb-2">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-primary/10 rounded-lg">
+                            <ShoppingBag className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                        <DialogTitle className="text-2xl font-bold text-brand-gradient">
+                            Mercado
+                        </DialogTitle>
+                        <DialogDescription>
+                            Explora productos, servicios y créditos ofrecidos por la comunidad.
+                        </DialogDescription>
+                        </div>
+                    </div>
                     </DialogHeader>
-                   <ScrollArea className="flex-grow pt-16 pb-24">
-                        <div className="relative aspect-video w-full">
-                           <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="shadow-lg" />
-                       </div>
-                       <div className="p-6 flex flex-col gap-4">
-                           <div className="flex flex-col gap-4">
-                             <div>
-                               <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
-                               <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
-                             </div>
-                             <p className="text-5xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
 
-                             <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                                <div className="flex items-center gap-3 text-sm">
-                                  <Truck className="h-5 w-5 text-muted-foreground"/>
-                                  <div>
-                                      <p className="font-semibold">Enviar a domicilio</p>
-                                      <p className="text-xs text-muted-foreground">Recibe tu producto en casa.</p>
-                                  </div>
-                                </div>
-                                <Separator />
-                                 <div className="flex items-center gap-3 text-sm">
-                                  <Store className="h-5 w-5 text-muted-foreground"/>
-                                  <div>
-                                      <p className="font-semibold">Recoger en local</p>
-                                      <p className="text-xs text-muted-foreground">Visita la tienda y recoge tu producto.</p>
-                                  </div>
-                                </div>
-                             </div>
-                             
-                             <div>
-                                 <h3 className="font-semibold mb-2">Descripción</h3>
-                                 <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
-                             </div>
-                           </div>
-                       </div>
-                   </ScrollArea>
-                   <div className="p-3 border-t sticky bottom-0 bg-background/80 backdrop-blur-sm">
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button variant="secondary" size="lg" className="text-base"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
-                          <Button size="lg" className="text-base bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
-                      </div>
-                  </div>
+                    <div className="px-4 sm:px-6 py-2 border-b border-t flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <MapPin className="h-4 w-4 text-primary" />
+                            <span>Mostrando resultados cerca de: <span className="font-semibold text-foreground">{location}</span></span>
+                        </div>
+                        <Button variant="link" size="sm" className="h-auto p-0" disabled>Cambiar</Button>
+                    </div>
+                    
+                    <AnimatePresence mode="wait">
+                        {currentView === 'categories' ? renderCategories() : renderItemsList()}
+                    </AnimatePresence>
+                    
+                    <DialogFooter className="p-4 border-t mt-auto">
+                    <DialogClose asChild>
+                        <Button variant="outline">Cerrar</Button>
+                    </DialogClose>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
-        )}
-    </>
-  );
+
+            {selectedCreditAssistant && (
+                <CreditApplicationDialog 
+                    isOpen={isCreditDialogOpen}
+                    onOpenChange={setIsCreditDialogOpen}
+                    assistant={selectedCreditAssistant}
+                />
+            )}
+            
+            <AnimatePresence>
+            {selectedProduct && (
+                <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+                    <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg overflow-hidden">
+                        <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
+                        <div className="absolute inset-0 z-0">
+                            <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="blur-lg scale-110 opacity-40" />
+                            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+                        </div>
+                        <ScrollArea className="relative z-10 flex-grow">
+                            <div className="p-6 pt-16 flex flex-col items-center justify-start min-h-full">
+                                <motion.div 
+                                    layoutId={`product-image-${selectedProduct.id}`}
+                                    className="w-48 h-48 sm:w-60 sm:h-60 relative rounded-xl overflow-hidden shadow-2xl"
+                                >
+                                    <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
+                                </motion.div>
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1, duration: 0.4}}
+                                    className="mt-6 text-center"
+                                >
+                                    <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
+                                    <h2 className="text-2xl font-bold mt-1">{selectedProduct.name}</h2>
+                                </motion.div>
+                            </div>
+                        </ScrollArea>
+                        <motion.div
+                             initial={{ y: "100%" }}
+                             animate={{ y: 0 }}
+                             exit={{ y: "100%" }}
+                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                             className="relative z-20 p-4 border-t bg-background/80 backdrop-blur-sm rounded-t-2xl shadow-lg"
+                         >
+                            <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mb-4" />
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Precio</p>
+                                    <p className="text-3xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-center">
+                                    <div>
+                                        <Truck className="h-6 w-6 mx-auto text-muted-foreground"/>
+                                        <p className="text-xs mt-1">A domicilio</p>
+                                    </div>
+                                    <div>
+                                        <Store className="h-6 w-6 mx-auto text-muted-foreground"/>
+                                        <p className="text-xs mt-1">En local</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <Separator className="my-4"/>
+                            <h3 className="font-semibold text-sm mb-2">Descripción</h3>
+                            <p className="text-sm text-muted-foreground mb-4 h-20 overflow-y-auto">{selectedProduct.description}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button variant="secondary" size="lg"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
+                                <Button size="lg" className="bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
+                            </div>
+                         </motion.div>
+                        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-background/50 rounded-full" onClick={() => setSelectedProduct(null)}>
+                           <ArrowLeft />
+                        </Button>
+                    </DialogContent>
+                </Dialog>
+            )}
+            </AnimatePresence>
+        </>
+    );
 };
 
 export default MarketplaceDialog;
