@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send, MapPin } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send, MapPin, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -25,13 +25,13 @@ interface MarketplaceDialogProps {
 // Demo data - replace with actual data from an API
 const demoItems = {
   products: [
-    { id: 1, name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing', location: 'Ciudad de México' },
-    { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design', location: 'Guadalajara' },
-    { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media', location: 'Ciudad de México' },
+    { id: 1, name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing', location: 'Ciudad de México', description: "Plan de marketing digital completo para tu negocio. Incluye análisis de competencia, estrategia de redes sociales y optimización SEO." },
+    { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design', location: 'Guadalajara', description: "Creación de un logotipo profesional y único que represente la identidad de tu marca. Incluye 3 revisiones." },
+    { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media', location: 'Ciudad de México', description: "Gestión mensual de hasta 3 redes sociales. Creación de contenido, programación de publicaciones e informe de resultados." },
   ],
   services: [
-    { id: 4, name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey' },
-    { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México' },
+    { id: 4, name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey', description: "Clases personalizadas de guitarra acústica o eléctrica para todos los niveles. Sesiones de 1 hora." },
+    { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México', description: "Limpieza física y de software para tu computadora. Optimización de rendimiento y eliminación de virus." },
   ],
   credits: [
     { id: 'credit-1', name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan', location: 'Guadalajara' },
@@ -59,17 +59,15 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     const { toast } = useToast();
     const [isCreditDialogOpen, setIsCreditDialogOpen] = useState(false);
     const [selectedCreditAssistant, setSelectedCreditAssistant] = useState<AssistantConfig | null>(null);
-    const [location, setLocation] = useState('Cerca de ti');
+    const [location, setLocation] = useState('Cargando...');
+    const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+
 
     useEffect(() => {
         if (isOpen) {
-             // TODO: Implement actual geolocation fetching
-            // For now, we'll simulate fetching a location.
             setTimeout(() => {
                 setLocation("Ciudad de México");
             }, 500);
-
-            // Reset view state when dialog opens
             setTimeout(() => {
                 setCurrentView('categories');
                 setSearchTerm('');
@@ -213,7 +211,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                             </CardContent>
                                         </Card>
                                       ) : (
-                                        <Card className="overflow-hidden cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20">
+                                        <Card onClick={() => setSelectedProduct(item)} className="overflow-hidden cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20">
                                             <div className="aspect-square relative w-full">
                                                 <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" data-ai-hint={(item as any).imageHint} />
                                             </div>
@@ -287,6 +285,27 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 onOpenChange={setIsCreditDialogOpen}
                 assistant={selectedCreditAssistant}
             />
+        )}
+        {selectedProduct && (
+            <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{selectedProduct.name}</DialogTitle>
+                        <DialogDescription>Vendido por {selectedProduct.seller}</DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <div className="aspect-video w-full relative rounded-lg overflow-hidden border">
+                             <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
+                        </div>
+                        <p className="text-2xl font-bold">${selectedProduct.price.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                    </div>
+                     <DialogFooter className="grid grid-cols-2 gap-2">
+                        <Button variant="outline"><Store className="mr-2 h-4 w-4"/> Recoger en local</Button>
+                        <Button><Truck className="mr-2 h-4 w-4"/> Enviar a domicilio</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         )}
     </>
   );
