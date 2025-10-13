@@ -14,7 +14,7 @@ import ChangeDatabaseTypeDialog from "./ChangeDatabaseTypeDialog";
 import { Progress } from "../ui/progress";
 import { formatBytes, cn } from "@/lib/utils";
 import KnowledgeManagementDialog from "./KnowledgeManagementDialog"; // Import the new dialog
-import { BookOpen } from "lucide-react";
+import { BookOpen, Bell } from "lucide-react";
 import ContactsDialog from "./ContactsDialog";
 import ConversationsDialog from "./ConversationsDialog";
 
@@ -140,6 +140,9 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                     <DropdownMenuItem onClick={() => setIsConversationsDialogOpen(true)} disabled={!linkedAssistant}>
                         <FaComments className="mr-2" /> Ver Chats
                     </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => setIsContactsDialogOpen(true)} disabled={!linkedAssistant}>
+                        <FaAddressBook className="mr-2" /> Ver Contactos
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsKnowledgeDialogOpen(true)} disabled={database.source !== 'smart_db'}>
                         <BookOpen className="mr-2 h-4 w-4" /> Conocimiento
                     </DropdownMenuItem>
@@ -234,32 +237,31 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
             </div>
           )}
         </CardContent>
-         <CardFooter className="flex flex-col items-start gap-2 border-t pt-3 text-xs">
-            {database.source === 'smart_db' ? (
-                <div className="w-full">
-                  <Button 
-                      className={cn("w-full", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")} 
-                      size="sm"
-                      onClick={() => setIsKnowledgeDialogOpen(true)}
-                  >
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      Conocimiento
-                  </Button>
-                </div>
-            ) : (
-                <>
-                    <h4 className="font-semibold">Vinculado a:</h4>
-                    {linkedAssistants.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                            {linkedAssistants.map(asst => (
-                                <Badge key={asst.id} variant="secondary">{asst.name}</Badge>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-muted-foreground">No está vinculado a ningún asistente.</p>
-                    )}
-                </>
-            )}
+         <CardFooter className="grid grid-cols-2 items-stretch gap-2 border-t pt-3 text-xs">
+            <Button 
+                className={cn("w-full h-full", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")} 
+                size="sm"
+                onClick={() => {
+                  if (database.source === 'smart_db') {
+                    setIsKnowledgeDialogOpen(true)
+                  } else {
+                     toast({ title: "Función no disponible", description: "La gestión de conocimiento solo está activa para Bases de Datos Inteligentes."})
+                  }
+                }}
+                disabled={database.source !== 'smart_db'}
+            >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Conocimiento
+            </Button>
+             <Button 
+                className="w-full h-full" 
+                size="sm"
+                variant="outline"
+                onClick={() => toast({title: "Próximamente", description: "La configuración de notificaciones estará disponible pronto."})}
+              >
+                <Bell className="mr-2 h-4 w-4" />
+                Notificador
+            </Button>
         </CardFooter>
       </Card>
 
@@ -303,6 +305,11 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
            <ConversationsDialog
               isOpen={isConversationsDialogOpen}
               onOpenChange={setIsConversationsDialogOpen}
+              assistant={linkedAssistant}
+          />
+           <ContactsDialog 
+              isOpen={isContactsDialogOpen}
+              onOpenChange={setIsContactsDialogOpen}
               assistant={linkedAssistant}
           />
         </>
