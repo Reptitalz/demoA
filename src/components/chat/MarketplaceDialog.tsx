@@ -17,7 +17,6 @@ import CreditApplicationDialog from './CreditApplicationDialog';
 import { useApp } from '@/providers/AppProvider';
 import { Separator } from '../ui/separator';
 
-
 interface MarketplaceDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,6 +38,84 @@ const demoItems = {
     { id: 'credit-2', name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan', location: 'Ciudad de México' },
   ]
 };
+
+const demoOrders = [
+    { id: 'order1', product: 'Asesoría de Marketing', price: 1500, status: 'En camino', seller: 'Juan Pérez', imageUrl: 'https://i.imgur.com/8p8Yf9u.png', address: 'Calle Falsa 123, CDMX' },
+    { id: 'order2', product: 'Clases de Guitarra', price: 300, status: 'Pendiente de inicio', seller: 'Sofía Luna', imageUrl: 'https://i.imgur.com/cQ0Dvhv.png', address: 'Servicio en línea' },
+];
+
+const demoCart = [
+     { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1 },
+];
+
+
+const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+                <DialogTitle>Mis Pedidos</DialogTitle>
+                <DialogDescription>Aquí puedes ver el estado de tus compras.</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] -mx-6 px-6">
+                <div className="py-4 space-y-4">
+                    {demoOrders.map(order => (
+                        <Card key={order.id}>
+                            <CardContent className="p-4 flex items-center gap-4">
+                                <Image src={order.imageUrl} alt={order.product} width={64} height={64} className="rounded-md object-cover aspect-square" />
+                                <div className="flex-grow">
+                                    <p className="font-semibold">{order.product}</p>
+                                    <p className="text-sm text-muted-foreground">{order.seller}</p>
+                                    <p className="text-xs text-primary">{order.status}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold">${order.price.toFixed(2)}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </ScrollArea>
+        </DialogContent>
+    </Dialog>
+);
+
+
+const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const total = demoCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Carrito de Compras</DialogTitle>
+                    <DialogDescription>Revisa tus productos antes de pagar.</DialogDescription>
+                </DialogHeader>
+                 <ScrollArea className="max-h-[50vh] -mx-6 px-6">
+                    <div className="py-4 space-y-4">
+                        {demoCart.map(item => (
+                             <div key={item.id} className="flex items-center gap-4">
+                                <Image src={item.imageUrl} alt={item.name} width={48} height={48} className="rounded-md object-cover" />
+                                <div className="flex-grow">
+                                    <p className="font-semibold text-sm">{item.name}</p>
+                                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} x {item.quantity}</p>
+                                </div>
+                                <p className="font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+                <Separator />
+                <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total:</span>
+                    <span>${total.toFixed(2)}</span>
+                </div>
+                <DialogFooter>
+                    <Button className="w-full">Proceder al Pago</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+};
+
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -62,6 +139,8 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     const [selectedCreditAssistant, setSelectedCreditAssistant] = useState<AssistantConfig | null>(null);
     const [location, setLocation] = useState('Cargando...');
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+    const [isOrdersOpen, setIsOrdersOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
 
     useEffect(() => {
@@ -136,11 +215,11 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             </div>
             
              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center">
+                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center" onClick={() => setIsOrdersOpen(true)}>
                     <Truck className="h-6 w-6" />
                     <span className="text-xs">Mis Pedidos</span>
                 </Button>
-                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center">
+                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center" onClick={() => setIsCartOpen(true)}>
                     <ShoppingCart className="h-6 w-6" />
                     <span className="text-xs">Carrito</span>
                 </Button>
@@ -298,16 +377,15 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             <AnimatePresence>
             {selectedProduct && (
                 <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
-                    <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg overflow-hidden">
+                    <DialogContent className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg" onInteractOutside={(e) => e.preventDefault()}>
                         <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
-                        <div className="absolute inset-0 z-0">
+                         <div className="absolute inset-0 z-0">
                             <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="blur-lg scale-110 opacity-40" />
                             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
                         </div>
                         <ScrollArea className="relative z-10 flex-grow pb-24">
                              <div className="p-4 flex flex-col gap-4">
-                                <motion.div 
-                                    layoutId={`product-image-${selectedProduct.id}`}
+                                <motion.div
                                     className="w-full aspect-square relative rounded-xl overflow-hidden shadow-2xl"
                                 >
                                     <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
@@ -316,35 +394,37 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1, duration: 0.4}}
-                                    className="text-left"
+                                    className="p-4 bg-background/70 backdrop-blur-md rounded-xl shadow-lg border border-white/10"
                                 >
-                                    <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
-                                    <h2 className="text-2xl font-bold mt-1">{selectedProduct.name}</h2>
-                                </motion.div>
-                                <motion.p 
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="text-4xl font-extrabold text-primary"
-                                >
-                                    ${selectedProduct.price.toFixed(2)}
-                                </motion.p>
-                                <Separator />
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="space-y-2">
-                                     <h3 className="font-semibold text-sm">Entrega</h3>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
-                                            <Store className="h-5 w-5 text-muted-foreground" />
-                                            <p className="text-xs">Recoger en local</p>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
+                                            <h2 className="text-2xl font-bold mt-1">{selectedProduct.name}</h2>
                                         </div>
-                                         <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                                        <p className="text-3xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="p-4 bg-background/70 backdrop-blur-md rounded-xl shadow-lg border border-white/10 space-y-3">
+                                     <h3 className="font-semibold text-sm">Entrega</h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
+                                            <Store className="h-5 w-5 text-muted-foreground" />
+                                            <div>
+                                                <p className="text-xs font-semibold">Recoger en local</p>
+                                                <p className="text-xs text-muted-foreground">Visita la tienda y recoge tu producto.</p>
+                                            </div>
+                                        </div>
+                                         <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
                                             <Truck className="h-5 w-5 text-muted-foreground" />
-                                            <p className="text-xs">Enviar a domicilio</p>
+                                            <div>
+                                                <p className="text-xs font-semibold">Enviar a domicilio</p>
+                                                <p className="text-xs text-muted-foreground">Recibe tu producto en casa.</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </motion.div>
-                                 <Separator />
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="space-y-2">
+                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="p-4 bg-background/70 backdrop-blur-md rounded-xl shadow-lg border border-white/10 space-y-2">
                                     <h3 className="font-semibold text-sm">Descripción</h3>
                                     <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
                                 </motion.div>
@@ -353,9 +433,9 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                         <motion.div
                              className="sticky bottom-0 z-20 p-4 border-t bg-background/80 backdrop-blur-sm"
                          >
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button variant="secondary" size="lg"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
-                                <Button size="lg" className="bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
+                             <div className="grid grid-cols-2 gap-2">
+                                <Button variant="secondary" size="lg">Agregar</Button>
+                                <Button size="lg" className="bg-brand-gradient text-primary-foreground">Comprar</Button>
                             </div>
                          </motion.div>
                         <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 bg-background/50 rounded-full" onClick={() => setSelectedProduct(null)}>
@@ -365,6 +445,8 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 </Dialog>
             )}
             </AnimatePresence>
+            <OrdersDialog isOpen={isOrdersOpen} onOpenChange={setIsOrdersOpen} />
+            <CartDialog isOpen={isCartOpen} onOpenChange={setIsCartOpen} />
         </>
     );
 };
