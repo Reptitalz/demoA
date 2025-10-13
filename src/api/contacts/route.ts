@@ -6,17 +6,41 @@ import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';
 
-// GET all contacts for the logged-in user
+// GET all contacts for the logged-in user OR a single public profile by chatPath
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
-
-  if (!userId || !ObjectId.isValid(userId)) {
-    return NextResponse.json({ message: 'Se requiere un ID de usuario válido' }, { status: 400 });
-  }
+  const chatPath = searchParams.get('chatPath');
 
   try {
     const { db } = await connectToDatabase();
+    
+    // --- Logic to get a single public profile by chatPath ---
+    if (chatPath) {
+        const userProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne(
+            { chatPath: chatPath },
+            { projection: { firstName: 1, lastName: 1, imageUrl: 1, chatPath: 1, accountType: 1 } }
+        );
+
+        if (!userProfile) {
+            return NextResponse.json({ message: 'Perfil no encontrado' }, { status: 404 });
+        }
+        
+        // Return a public-safe version of the profile
+        const publicProfile = {
+            name: `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim(),
+            imageUrl: userProfile.imageUrl,
+            chatPath: userProfile.chatPath,
+            accountType: userProfile.accountType
+        };
+
+        return NextResponse.json({ profile: publicProfile });
+    }
+
+    // --- Original logic to get all contacts for a specific user ---
+    if (!userId || !ObjectId.isValid(userId)) {
+      return NextResponse.json({ message: 'Se requiere un ID de usuario válido' }, { status: 400 });
+    }
     
     const userProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne(
         { _id: new ObjectId(userId) },
@@ -31,7 +55,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('API Error (GET /api/contacts):', error);
-    return NextResponse.json({ message: 'Error al obtener los contactos' }, { status: 500 });
+    return NextResponse.json({ message: 'Error al obtener los datos' }, { status: 500 });
   }
 }
 

@@ -311,18 +311,16 @@ const DesktopChatPage = () => {
             partner = userProfile.assistants.find(a => a.chatPath === chatPath) || null;
         }
 
-        // 3. If still not found, try fetching public profile (as a last resort)
+        // 3. If still not found, try fetching public profile
         if (!partner) {
             try {
-                const response = await fetch(`/api/user-profile/public?chatPath=${encodeURIComponent(chatPath)}`);
+                // Use the new API route for public lookups
+                const response = await fetch(`/api/contacts?chatPath=${encodeURIComponent(chatPath)}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.profile) {
-                         partner = {
-                            name: data.profile.firstName,
-                            imageUrl: data.profile.imageUrl,
-                            chatPath: data.profile.chatPath,
-                        } as Contact;
+                         // The fetched public profile is treated as a Contact
+                         partner = data.profile as Contact;
                     }
                 }
             } catch (fetchError) {
@@ -750,7 +748,7 @@ const DesktopChatPage = () => {
                 <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                      <div className="flex items-center gap-1.5">
                         <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
-                        {isAssistantChat && (assistant as AssistantConfig).accountType === 'business' && (
+                        {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
