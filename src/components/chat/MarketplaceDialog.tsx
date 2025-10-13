@@ -135,10 +135,16 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 })}
             </div>
             
-             <Card className="cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors flex items-center justify-center text-center p-4">
-                <Sparkles className="h-5 w-5 text-yellow-500 mr-3"/>
-                <p className="font-semibold text-sm text-muted-foreground">¡Novedades cada día!</p>
-            </Card>
+             <div className="grid grid-cols-2 gap-4">
+                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center">
+                    <Truck className="h-6 w-6" />
+                    <span className="text-xs">Mis Pedidos</span>
+                </Button>
+                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center">
+                    <ShoppingCart className="h-6 w-6" />
+                    <span className="text-xs">Carrito</span>
+                </Button>
+            </div>
         </motion.div>
     );
 
@@ -298,11 +304,11 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                             <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="blur-lg scale-110 opacity-40" />
                             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
                         </div>
-                        <ScrollArea className="relative z-10 flex-grow">
-                            <div className="p-6 pt-16 flex flex-col items-center justify-start min-h-full">
+                        <ScrollArea className="relative z-10 flex-grow pb-24">
+                             <div className="p-4 flex flex-col gap-4">
                                 <motion.div 
                                     layoutId={`product-image-${selectedProduct.id}`}
-                                    className="w-48 h-48 sm:w-60 sm:h-60 relative rounded-xl overflow-hidden shadow-2xl"
+                                    className="w-full aspect-square relative rounded-xl overflow-hidden shadow-2xl"
                                 >
                                     <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
                                 </motion.div>
@@ -310,40 +316,43 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1, duration: 0.4}}
-                                    className="mt-6 text-center"
+                                    className="text-left"
                                 >
                                     <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
                                     <h2 className="text-2xl font-bold mt-1">{selectedProduct.name}</h2>
                                 </motion.div>
+                                <motion.p 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="text-4xl font-extrabold text-primary"
+                                >
+                                    ${selectedProduct.price.toFixed(2)}
+                                </motion.p>
+                                <Separator />
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="space-y-2">
+                                     <h3 className="font-semibold text-sm">Entrega</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                                            <Store className="h-5 w-5 text-muted-foreground" />
+                                            <p className="text-xs">Recoger en local</p>
+                                        </div>
+                                         <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                                            <Truck className="h-5 w-5 text-muted-foreground" />
+                                            <p className="text-xs">Enviar a domicilio</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                                 <Separator />
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="space-y-2">
+                                    <h3 className="font-semibold text-sm">Descripción</h3>
+                                    <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                                </motion.div>
                             </div>
                         </ScrollArea>
                         <motion.div
-                             initial={{ y: "100%" }}
-                             animate={{ y: 0 }}
-                             exit={{ y: "100%" }}
-                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                             className="relative z-20 p-4 border-t bg-background/80 backdrop-blur-sm rounded-t-2xl shadow-lg"
+                             className="sticky bottom-0 z-20 p-4 border-t bg-background/80 backdrop-blur-sm"
                          >
-                            <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mb-4" />
-                            <div className="flex justify-between items-center mb-4">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Precio</p>
-                                    <p className="text-3xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 text-center">
-                                    <div>
-                                        <Truck className="h-6 w-6 mx-auto text-muted-foreground"/>
-                                        <p className="text-xs mt-1">A domicilio</p>
-                                    </div>
-                                    <div>
-                                        <Store className="h-6 w-6 mx-auto text-muted-foreground"/>
-                                        <p className="text-xs mt-1">En local</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <Separator className="my-4"/>
-                            <h3 className="font-semibold text-sm mb-2">Descripción</h3>
-                            <p className="text-sm text-muted-foreground mb-4 h-20 overflow-y-auto">{selectedProduct.description}</p>
                             <div className="grid grid-cols-2 gap-2">
                                 <Button variant="secondary" size="lg"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
                                 <Button size="lg" className="bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
