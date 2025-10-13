@@ -111,6 +111,11 @@ export interface CollaboratorBankInfo {
     clabe?: string;
 }
 
+export interface RequiredDocument {
+  id: string;
+  title: string;
+}
+
 export interface CreditOffer {
   id: string;
   amount: number;
@@ -121,6 +126,7 @@ export interface CreditOffer {
   customColor?: string;
   cardImageUrl?: string;
   assistantId: string; // The assistant that will offer this credit
+  requiredDocuments: RequiredDocument[];
 }
 
 export interface CollaboratorProfile {

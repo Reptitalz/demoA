@@ -21,7 +21,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile } from '@/types';
+import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile, RequiredDocument } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -514,23 +514,27 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [customColor, setCustomColor] = useState("#000000");
     const [cardImageUrl, setCardImageUrl] = useState<string | null>(null);
     const [assistantId, setAssistantId] = useState<string | undefined>();
+    const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([]);
+    const [newDocTitle, setNewDocTitle] = useState('');
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const assistants = state.userProfile.assistants || [];
-    const totalSteps = 5;
+    const totalSteps = 6; // Increased to 6
 
     const handleNext = () => {
         if (step === 1 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
         if (step === 2 && !interest) return toast({ title: "Campo requerido", description: "Por favor, ingresa una tasa de interés.", variant: "destructive" });
         if (step === 3 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
-        if (step === 4 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
+        if (step === 4 && requiredDocuments.length === 0) return toast({ title: "Campo requerido", description: "Añade al menos un documento requerido.", variant: "destructive" });
+        if (step === 5 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
         setStep(s => s + 1);
     };
     const handleBack = () => setStep(s => s - 1);
     
     const handleCreate = () => {
-        if (!amount || !interest || !term || !assistantId) {
+        if (!amount || !interest || !term || !assistantId || requiredDocuments.length === 0) {
             toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos para crear la oferta.", variant: "destructive" });
             return;
         }
@@ -545,6 +549,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             customColor: cardStyle === 'custom-color' ? customColor : undefined,
             cardImageUrl: cardStyle === 'custom-image' ? cardImageUrl : undefined,
             assistantId: assistantId,
+            requiredDocuments: requiredDocuments,
         };
 
         dispatch({ type: 'UPDATE_USER_PROFILE', payload: {
@@ -576,16 +581,12 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             return 0;
         }
         
-        // Simple interest calculation: P * r * t
-        // 'r' needs to match the time unit 't'
         let totalInterest = 0;
         switch (termUnit) {
             case 'weeks':
-                // Assuming 4 weeks per month for simplicity
                 totalInterest = principal * (monthlyRate / 4) * numTerms;
                 break;
             case 'fortnights':
-                // Assuming 2 fortnights per month
                 totalInterest = principal * (monthlyRate / 2) * numTerms;
                 break;
             case 'months':
@@ -595,6 +596,17 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         }
         return totalInterest;
     }, [amount, interest, term, termUnit]);
+    
+    const handleAddDocument = () => {
+        if (newDocTitle.trim()) {
+            setRequiredDocuments([...requiredDocuments, { id: `doc_${Date.now()}`, title: newDocTitle.trim() }]);
+            setNewDocTitle('');
+        }
+    };
+
+    const handleRemoveDocument = (id: string) => {
+        setRequiredDocuments(requiredDocuments.filter(doc => doc.id !== id));
+    };
 
 
     const stepContent = () => {
@@ -638,7 +650,33 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                         </RadioGroup>
                     </div>
             );
-            case 4:
+            case 4: return (
+                <div className="space-y-4">
+                    <Label className="text-base">Documentos Requeridos</Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            placeholder="Ej: Comprobante de ingresos"
+                            value={newDocTitle}
+                            onChange={(e) => setNewDocTitle(e.target.value)}
+                        />
+                        <Button onClick={handleAddDocument} size="sm">Añadir</Button>
+                    </div>
+                    <ScrollArea className="h-32 border rounded-md p-2">
+                        <div className="space-y-2">
+                            {requiredDocuments.map(doc => (
+                                <div key={doc.id} className="flex items-center justify-between bg-muted/50 p-2 rounded">
+                                    <p className="text-sm">{doc.title}</p>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveDocument(doc.id)}>
+                                        <XCircle className="h-4 w-4 text-destructive"/>
+                                    </Button>
+                                </div>
+                            ))}
+                            {requiredDocuments.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">No se han añadido documentos.</p>}
+                        </div>
+                    </ScrollArea>
+                </div>
+            );
+            case 5:
                 const selectedStyle = cardStyles.find(s => s.id === cardStyle);
                 const cardBgStyle = cardStyle === 'custom-image' && cardImageUrl
                     ? { backgroundImage: `url(${cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -692,7 +730,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                         </div>
                     </div>
                 );
-            case 5: return (
+            case 6: return (
                 <div className="space-y-2">
                     <Label htmlFor="assistant" className="text-base">Asistente Gestor</Label>
                     <Select onValueChange={setAssistantId} value={assistantId}>
