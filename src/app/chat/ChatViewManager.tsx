@@ -4,6 +4,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 // Importa los componentes de las páginas directamente
 import ChatListPage from './dashboard/page';
@@ -41,66 +42,81 @@ const routeOrder: { [key: string]: number } = {
 };
 
 const allViews = [
-  { path: /^\/chat\/dashboard$/, Component: ChatListPage },
-  { path: /^\/chat\/calls$/, Component: CallsPage },
-  { path: /^\/chat\/updates$/, Component: UpdatesPage },
-  { path: /^\/chat\/profile$/, Component: ChatProfilePage },
-  { path: /^\/chat\/admin$/, Component: AdminHomePage },
-  // La ruta de conversación se maneja de forma especial
-  { path: /^\/chat\/conversation\/[^/]+$/, Component: DesktopChatPage },
+  { path: '/chat/dashboard', Component: ChatListPage },
+  { path: '/chat/calls', Component: CallsPage },
+  { path: '/chat/updates', Component: UpdatesPage },
+  { path: '/chat/profile', Component: ChatProfilePage },
+  { path: '/chat/admin', Component: AdminHomePage },
 ];
 
-const ChatViewManager = ({ fallback }: { fallback: React.ReactNode }) => {
+const ChatViewManager = () => {
   const pathname = usePathname();
   const [direction, setDirection] = React.useState(0);
   const previousPathnameRef = React.useRef(pathname);
 
-  // Determina el componente activo actual
-  const ActiveComponent = React.useMemo(() => {
-    const activeView = allViews.find(view => view.path.test(pathname));
-    return activeView?.Component;
-  }, [pathname]);
-
+  // Determina la vista activa. Si es una conversación, se maneja por separado.
+  const isConversation = pathname.startsWith('/chat/conversation/');
+  const activeViewPath = isConversation ? '/chat/conversation' : Object.keys(routeOrder).find(p => pathname.startsWith(p)) || '/chat/dashboard';
+  
   React.useEffect(() => {
     const prevPath = previousPathnameRef.current;
-    const isPrevConversation = prevPath.startsWith('/chat/conversation/');
-    const isCurrentConversation = pathname.startsWith('/chat/conversation/');
-    
-    // Si vamos de una conversación a la lista, la dirección es -1 (hacia atrás)
-    if(isPrevConversation && !isCurrentConversation) {
-        setDirection(-1);
-    } 
-    // Si vamos de la lista a una conversación, la dirección es 1 (hacia adelante)
-    else if (!isPrevConversation && isCurrentConversation) {
-        setDirection(1);
-    }
-    // Lógica de pestañas
-    else {
-        const prevIndex = routeOrder[prevPath] ?? -1;
-        const currentIndex = routeOrder[pathname] ?? -1;
 
-        if (prevIndex !== -1 && currentIndex !== -1) {
-            setDirection(currentIndex > prevIndex ? 1 : -1);
-        }
+    if (prevPath.startsWith('/chat/conversation') && !isConversation) {
+      setDirection(-1); // Going back from a conversation to a main view
+    } else if (!prevPath.startsWith('/chat/conversation') && isConversation) {
+      setDirection(1); // Going from a main view to a conversation
+    } else {
+      const prevIndex = routeOrder[prevPath] ?? -1;
+      const currentIndex = routeOrder[activeViewPath] ?? -1;
+      if (prevIndex !== -1 && currentIndex !== -1) {
+        setDirection(currentIndex > prevIndex ? 1 : -1);
+      }
     }
     
     previousPathnameRef.current = pathname;
-  }, [pathname]);
-  
+  }, [pathname, activeViewPath]);
+
   return (
     <div className="h-full w-full overflow-hidden relative bg-background">
-      <AnimatePresence initial={false} custom={direction} mode="wait">
-        <motion.div
-          key={pathname} // La clave es el pathname para que AnimatePresence detecte el cambio
-          custom={direction}
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          className="h-full w-full absolute inset-0"
-        >
-          {ActiveComponent ? <ActiveComponent /> : fallback}
-        </motion.div>
+      {/* Main Tab Views (always rendered, visibility toggled) */}
+      <AnimatePresence initial={false} custom={direction}>
+        {allViews.map(({ path, Component }) => {
+          const isActive = activeViewPath.startsWith(path);
+          return (
+            <motion.div
+              key={path}
+              custom={direction}
+              variants={pageVariants}
+              initial="initial"
+              animate={isActive ? 'animate' : 'exit'}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                display: isActive ? 'block' : 'none',
+              }}
+            >
+              <Component />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+
+      {/* Conversation View (rendered only when active) */}
+      <AnimatePresence initial={false} custom={direction}>
+        {isConversation && (
+          <motion.div
+            key="/chat/conversation"
+            custom={direction}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="h-full w-full absolute inset-0"
+          >
+            <DesktopChatPage />
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

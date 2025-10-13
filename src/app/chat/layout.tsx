@@ -23,7 +23,7 @@ export default function ChatDashboardLayout({ children }: { children: ReactNode 
   // El ChatViewManager se encargará de renderizar la página correcta, incluida la de conversación.
   return (
     <ChatLayout>
-      <ChatViewManager fallback={children} />
+      <ChatViewManager />
     </ChatLayout>
   );
 }
