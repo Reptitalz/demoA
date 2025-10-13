@@ -4,7 +4,6 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 // Importa los componentes de las páginas directamente
 import ChatListPage from './dashboard/page';
@@ -13,24 +12,22 @@ import ChatProfilePage from './profile/page';
 import AdminHomePage from './admin/page';
 import DesktopChatPage from './conversation/[chatPath]/page';
 import CallsPage from './calls/page';
-import { Suspense } from 'react';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import PageContainer from '@/components/layout/PageContainer';
 
 const pageVariants = {
   initial: (direction: number) => ({
     x: direction > 0 ? "100%" : "-100%",
     opacity: 0,
+    transition: { type: 'tween', ease: 'anticipate', duration: 0.4 }
   }),
   animate: {
     x: "0%",
     opacity: 1,
-    transition: { type: 'spring', stiffness: 300, damping: 30 },
+    transition: { type: 'spring', stiffness: 280, damping: 25 },
   },
   exit: (direction: number) => ({
     x: direction < 0 ? "100%" : "-100%",
     opacity: 0,
-    transition: { type: 'spring', stiffness: 300, damping: 30 },
+    transition: { type: 'tween', ease: 'anticipate', duration: 0.4 }
   }),
 };
 
@@ -58,32 +55,43 @@ const ChatViewManager = ({ fallback }: { fallback: React.ReactNode }) => {
   const [direction, setDirection] = React.useState(0);
   const previousPathnameRef = React.useRef(pathname);
 
-  // Find the currently active component based on the path
+  // Determina el componente activo actual
   const ActiveComponent = React.useMemo(() => {
     const activeView = allViews.find(view => view.path.test(pathname));
     return activeView?.Component;
   }, [pathname]);
 
   React.useEffect(() => {
-    const prevIndex = routeOrder[previousPathnameRef.current] ?? -1;
-    const currentIndex = routeOrder[pathname] ?? -1;
-
-    if (prevIndex !== -1 && currentIndex !== -1) {
-      setDirection(currentIndex > prevIndex ? 1 : -1);
-    } else if (pathname.startsWith('/chat/conversation/')) {
-      setDirection(1);
-    } else {
-      setDirection(-1);
+    const prevPath = previousPathnameRef.current;
+    const isPrevConversation = prevPath.startsWith('/chat/conversation/');
+    const isCurrentConversation = pathname.startsWith('/chat/conversation/');
+    
+    // Si vamos de una conversación a la lista, la dirección es -1 (hacia atrás)
+    if(isPrevConversation && !isCurrentConversation) {
+        setDirection(-1);
+    } 
+    // Si vamos de la lista a una conversación, la dirección es 1 (hacia adelante)
+    else if (!isPrevConversation && isCurrentConversation) {
+        setDirection(1);
     }
+    // Lógica de pestañas
+    else {
+        const prevIndex = routeOrder[prevPath] ?? -1;
+        const currentIndex = routeOrder[pathname] ?? -1;
 
+        if (prevIndex !== -1 && currentIndex !== -1) {
+            setDirection(currentIndex > prevIndex ? 1 : -1);
+        }
+    }
+    
     previousPathnameRef.current = pathname;
   }, [pathname]);
   
   return (
     <div className="h-full w-full overflow-hidden relative bg-background">
-       <AnimatePresence initial={false} custom={direction} mode="wait">
+      <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
-          key={pathname}
+          key={pathname} // La clave es el pathname para que AnimatePresence detecte el cambio
           custom={direction}
           variants={pageVariants}
           initial="initial"
@@ -91,15 +99,7 @@ const ChatViewManager = ({ fallback }: { fallback: React.ReactNode }) => {
           exit="exit"
           className="h-full w-full absolute inset-0"
         >
-          <Suspense fallback={
-            <PageContainer>
-              <div className="h-full w-full flex items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            </PageContainer>
-          }>
-            {ActiveComponent ? <ActiveComponent /> : fallback}
-          </Suspense>
+          {ActiveComponent ? <ActiveComponent /> : fallback}
         </motion.div>
       </AnimatePresence>
     </div>
