@@ -13,7 +13,7 @@ import type { AssistantConfig, Contact, CreditLine, UserProfile } from '@/types'
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
-import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow } from 'lucide-react';
+import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import PlansDialog from '@/components/dashboard/PlansDialog';
@@ -252,6 +252,7 @@ export default function ChatListPage() {
     { icon: Bot, label: "Bots", view: 'bots', notificationCount: botsCount },
     { icon: Package, label: "Productos", view: 'products', notificationCount: productsCount },
     { icon: CreditCard, label: "Créditos", view: 'credit', notificationCount: creditsCount },
+    { icon: Truck, label: "Repartidores", view: 'delivery', notificationCount: 0 },
   ];
 
   const handleChatItemClick = (chat: Contact) => {
@@ -306,7 +307,7 @@ export default function ChatListPage() {
                 <div className="flex justify-between items-center mb-2">
                     <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
                 </div>
-                <div className="grid grid-cols-4 gap-1 text-center">
+                <div className="grid grid-cols-5 gap-1 text-center">
                     {memberButtons.map(btn => (
                         <MemberSectionButton
                             key={btn.view}

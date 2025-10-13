@@ -1,12 +1,13 @@
+
 // src/app/chat/admin/page.tsx
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown, CheckSquare } from 'lucide-react';
+import { Bot, Package, DollarSign, ArrowLeft, Star, MessageCircle, ShoppingCart, Landmark, CreditCard, XCircle, ShieldCheck, Crown, CheckSquare, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BankView, AssistantsList, ProductsView, CreditView } from '@/components/chat/admin/AdminViews';
+import { BankView, AssistantsList, ProductsView, CreditView, DeliveryView } from '@/components/chat/admin/AdminViews';
 import { Button } from '@/components/ui/button';
 import PlansDialog from '@/components/dashboard/PlansDialog';
 import { useApp } from '@/providers/AppProvider';
@@ -35,6 +36,7 @@ const menuItems = [
     { view: 'bots' as AdminView, title: 'Bots', description: "Supervisa las conversaciones en tiempo real.", icon: Bot, area: 'b' },
     { view: 'products' as AdminView, title: 'Productos', description: "Gestiona tu catálogo de productos y servicios.", icon: Package, area: 'c' },
     { view: 'credit' as AdminView, title: 'Crédito', description: "Administra líneas de crédito para clientes.", icon: DollarSign, area: 'd' },
+    { view: 'delivery' as AdminView, title: 'Repartidores', description: "Gestiona pedidos y rutas de entrega.", icon: Truck, area: 'e' },
 ];
 
 const AdminHomePageContent = () => (
@@ -88,6 +90,7 @@ const views: Record<AdminView, React.ComponentType> = {
     bots: AssistantsList,
     products: ProductsView,
     credit: CreditView,
+    delivery: DeliveryView,
 };
 
 export default function AdminHomePage() {
@@ -149,4 +152,4 @@ export default function AdminHomePage() {
   );
 }
 
-type AdminView = 'home' | 'bank' | 'bots' | 'products' | 'credit';
+type AdminView = 'home' | 'bank' | 'bots' | 'products' | 'credit' | 'delivery';
