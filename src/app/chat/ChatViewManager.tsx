@@ -18,46 +18,77 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import PageContainer from '@/components/layout/PageContainer';
 
 const pageVariants = {
-  initial: { opacity: 0, x: "100%" },
-  animate: { opacity: 1, x: "0%", transition: { duration: 0.2, ease: 'easeInOut' } },
-  exit: { opacity: 0, x: "-100%", transition: { duration: 0.2, ease: 'easeInOut' } },
+  initial: (direction: number) => ({
+    x: direction > 0 ? "100%" : "-100%",
+    opacity: 0,
+  }),
+  animate: {
+    x: "0%",
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 300, damping: 30 },
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? "100%" : "-100%",
+    opacity: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 30 },
+  }),
 };
 
 // Define un orden para las animaciones de las pestañas principales
-const routeOrder = ['/chat/dashboard', '/chat/calls', '/chat/updates', '/chat/profile', '/chat/admin'];
+const routeOrder: { [key: string]: number } = {
+  '/chat/dashboard': 0,
+  '/chat/calls': 1,
+  '/chat/updates': 2,
+  '/chat/profile': 3,
+  '/chat/admin': 4,
+};
 
 const allViews = [
-  { path: '/chat/dashboard', Component: ChatListPage },
-  { path: '/chat/calls', Component: CallsPage },
-  { path: '/chat/updates', Component: UpdatesPage },
-  { path: '/chat/profile', Component: ChatProfilePage },
-  { path: '/chat/admin', Component: AdminHomePage },
+  { path: /^\/chat\/dashboard$/, Component: ChatListPage },
+  { path: /^\/chat\/calls$/, Component: CallsPage },
+  { path: /^\/chat\/updates$/, Component: UpdatesPage },
+  { path: /^\/chat\/profile$/, Component: ChatProfilePage },
+  { path: /^\/chat\/admin$/, Component: AdminHomePage },
   // La ruta de conversación se maneja de forma especial
-  { path: '/chat/conversation', Component: DesktopChatPage },
+  { path: /^\/chat\/conversation\/[^/]+$/, Component: DesktopChatPage },
 ];
 
-const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
+const ChatViewManager = ({ fallback }: { fallback: React.ReactNode }) => {
   const pathname = usePathname();
+  const [direction, setDirection] = React.useState(0);
+  const previousPathnameRef = React.useRef(pathname);
 
   // Find the currently active component based on the path
   const ActiveComponent = React.useMemo(() => {
-    // Exact match or prefix match for conversation
-    const activeView = allViews.find(view => 
-      pathname.startsWith(view.path) && 
-      (view.path.includes('/conversation') || pathname === view.path)
-    );
+    const activeView = allViews.find(view => view.path.test(pathname));
     return activeView?.Component;
+  }, [pathname]);
+
+  React.useEffect(() => {
+    const prevIndex = routeOrder[previousPathnameRef.current] ?? -1;
+    const currentIndex = routeOrder[pathname] ?? -1;
+
+    if (prevIndex !== -1 && currentIndex !== -1) {
+      setDirection(currentIndex > prevIndex ? 1 : -1);
+    } else if (pathname.startsWith('/chat/conversation/')) {
+      setDirection(1);
+    } else {
+      setDirection(-1);
+    }
+
+    previousPathnameRef.current = pathname;
   }, [pathname]);
   
   return (
     <div className="h-full w-full overflow-hidden relative bg-background">
-       <AnimatePresence mode="wait">
+       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
-          key={pathname} // Use pathname as key to trigger animation on route change
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15, ease: 'easeIn' }}
+          key={pathname}
+          custom={direction}
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
           className="h-full w-full absolute inset-0"
         >
           <Suspense fallback={
@@ -67,7 +98,7 @@ const ChatViewManager = ({ children }: { children: React.ReactNode }) => {
               </div>
             </PageContainer>
           }>
-            {ActiveComponent ? <ActiveComponent /> : children}
+            {ActiveComponent ? <ActiveComponent /> : fallback}
           </Suspense>
         </motion.div>
       </AnimatePresence>
