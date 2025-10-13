@@ -300,7 +300,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                        <div className="p-4 rounded-lg overflow-hidden -mt-4">
                             <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} width={500} height={500} className="w-full h-auto object-cover rounded-lg shadow-lg" />
                        </div>
-                       <div className="px-6 py-4 space-y-4">
+                       <div className="px-6 py-4 flex flex-col gap-4">
                            <div>
                                <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
                                <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
@@ -333,7 +333,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                        </div>
                    </ScrollArea>
                     <div className="p-3 border-t sticky bottom-0 bg-background/80 backdrop-blur-sm">
-                        <div className="bg-card shadow-lg rounded-xl p-2 grid grid-cols-2 gap-2">
+                         <div className="bg-card shadow-lg rounded-xl p-2 grid grid-cols-2 gap-2">
                            <Button variant="secondary" size="lg" className="text-base"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
                            <Button size="lg" className="text-base bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
                        </div>
