@@ -290,36 +290,41 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         {selectedProduct && (
             <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
                 <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
-                    <DialogHeader className="p-4 border-b">
-                        <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
-                         <Button variant="ghost" size="icon" className="absolute top-2 left-2 sm:hidden" onClick={() => setSelectedProduct(null)}>
+                    <DialogHeader className="p-4 border-b absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-sm z-10">
+                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedProduct(null)}>
                            <ArrowLeft />
                        </Button>
+                        <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
                     </DialogHeader>
-                   <div className="relative aspect-video w-full">
-                       <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
-                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                   </div>
-                   <ScrollArea className="flex-grow">
-                       <div className="p-6 space-y-4">
+                   <ScrollArea className="flex-grow pt-16 pb-24">
+                       <div className="p-4 rounded-lg overflow-hidden -mt-4">
+                            <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} width={500} height={500} className="w-full h-auto object-cover rounded-lg shadow-lg" />
+                       </div>
+                       <div className="px-6 py-4 space-y-4">
                            <div>
                                <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
                                <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
                            </div>
                            
-                           <p className="text-4xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
-
-                            <Separator/>
-
-                            <div>
-                               <h3 className="font-semibold mb-2">Entrega</h3>
-                               <div className="space-y-2 text-sm">
-                                   <div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground"/> Recoger en local</div>
-                                   <div className="flex items-center gap-2"><Truck className="h-4 w-4 text-muted-foreground"/> Enviar a domicilio</div>
-                               </div>
-                            </div>
-
-                           <Separator />
+                           <p className="text-5xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
+                           
+                           <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                              <div className="flex items-center gap-3 text-sm">
+                                <Truck className="h-5 w-5 text-muted-foreground"/>
+                                <div>
+                                    <p className="font-semibold">Enviar a domicilio</p>
+                                    <p className="text-xs text-muted-foreground">Recibe tu producto en casa.</p>
+                                </div>
+                              </div>
+                              <Separator />
+                               <div className="flex items-center gap-3 text-sm">
+                                <Store className="h-5 w-5 text-muted-foreground"/>
+                                <div>
+                                    <p className="font-semibold">Recoger en local</p>
+                                    <p className="text-xs text-muted-foreground">Visita la tienda y recoge tu producto.</p>
+                                </div>
+                              </div>
+                           </div>
                            
                            <div>
                                <h3 className="font-semibold mb-2">Descripción</h3>
@@ -327,9 +332,11 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                            </div>
                        </div>
                    </ScrollArea>
-                    <div className="grid grid-cols-2 gap-2 p-2 border-t sticky bottom-0 bg-background">
-                       <Button variant="default" size="lg" className="bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar ahora</Button>
-                       <Button variant="secondary" size="lg"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar al carrito</Button>
+                    <div className="p-3 border-t sticky bottom-0 bg-background/80 backdrop-blur-sm">
+                        <div className="bg-card shadow-lg rounded-xl p-2 grid grid-cols-2 gap-2">
+                           <Button variant="secondary" size="lg" className="text-base"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
+                           <Button size="lg" className="text-base bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
+                       </div>
                    </div>
                 </DialogContent>
             </Dialog>
