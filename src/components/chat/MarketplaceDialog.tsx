@@ -8,13 +8,14 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send, MapPin, Truck } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { AssistantConfig, CreditOffer } from '@/types';
 import CreditApplicationDialog from './CreditApplicationDialog';
 import { useApp } from '@/providers/AppProvider';
+import { Separator } from '../ui/separator';
 
 
 interface MarketplaceDialogProps {
@@ -289,23 +290,34 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         {selectedProduct && (
             <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
                 <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
-                    <DialogHeader className="p-4 border-b">
-                        <DialogTitle>{selectedProduct.name}</DialogTitle>
-                        <DialogDescription>Vendido por {selectedProduct.seller}</DialogDescription>
-                    </DialogHeader>
-                    <ScrollArea className="flex-grow">
-                    <div className="p-4 space-y-4">
-                        <div className="aspect-video w-full relative rounded-lg overflow-hidden border">
-                             <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
-                        </div>
-                        <p className="text-2xl font-bold">${selectedProduct.price.toFixed(2)}</p>
-                        <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
-                    </div>
-                    </ScrollArea>
-                     <DialogFooter className="grid grid-cols-2 gap-2 p-4 border-t">
-                        <Button variant="outline"><Store className="mr-2 h-4 w-4"/> Recoger en local</Button>
-                        <Button><Truck className="mr-2 h-4 w-4"/> Enviar a domicilio</Button>
-                    </DialogFooter>
+                   <div className="relative aspect-[4/3] w-full">
+                       <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="rounded-t-lg" />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                       <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-white bg-black/20 hover:bg-black/40" onClick={() => setSelectedProduct(null)}>
+                           <ArrowLeft />
+                       </Button>
+                   </div>
+                   <ScrollArea className="flex-grow">
+                       <div className="p-6 space-y-4">
+                           <div>
+                               <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
+                               <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
+                           </div>
+                           
+                           <p className="text-4xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
+
+                           <Separator />
+                           
+                           <div>
+                               <h3 className="font-semibold mb-2">Descripción</h3>
+                               <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                           </div>
+                       </div>
+                   </ScrollArea>
+                   <DialogFooter className="grid grid-cols-2 gap-2 p-4 border-t sticky bottom-0 bg-background">
+                       <Button variant="default" size="lg"><ShoppingCart className="mr-2 h-5 w-5"/> Comprar ahora</Button>
+                       <Button variant="secondary" size="lg"><Send className="mr-2 h-4 w-4"/> Chatear</Button>
+                   </DialogFooter>
                 </DialogContent>
             </Dialog>
         )}
