@@ -1423,27 +1423,6 @@ export const AssistantsList = () => {
   );
 }
 
-export const DeliveryView = () => {
-    return (
-        <>
-        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                    <Truck className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                    <h1 className="text-xl font-bold">Gestión de Repartos</h1>
-                </div>
-            </div>
-        </header>
-        <div className="flex-grow flex items-center justify-center">
-            <p className="text-muted-foreground">Vista de Repartidores - Próximamente.</p>
-        </div>
-        </>
-    );
-};
-
-
 export const OtherView = ({ viewName }: { viewName: string }) => (
     <div className="flex flex-col h-full bg-transparent">
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
