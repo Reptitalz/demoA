@@ -292,13 +292,13 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
                     <DialogHeader className="p-4 border-b">
                         <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
-                    </DialogHeader>
-                   <div className="relative aspect-[4/3] w-full">
-                       <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="rounded-t-lg" />
-                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                       <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-white bg-black/20 hover:bg-black/40" onClick={() => setSelectedProduct(null)}>
+                         <Button variant="ghost" size="icon" className="absolute top-2 left-2 sm:hidden" onClick={() => setSelectedProduct(null)}>
                            <ArrowLeft />
                        </Button>
+                    </DialogHeader>
+                   <div className="relative aspect-video w-full">
+                       <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                    </div>
                    <ScrollArea className="flex-grow">
                        <div className="p-6 space-y-4">
@@ -309,6 +309,16 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                            
                            <p className="text-4xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
 
+                            <Separator/>
+
+                            <div>
+                               <h3 className="font-semibold mb-2">Entrega</h3>
+                               <div className="space-y-2 text-sm">
+                                   <div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground"/> Recoger en local</div>
+                                   <div className="flex items-center gap-2"><Truck className="h-4 w-4 text-muted-foreground"/> Enviar a domicilio</div>
+                               </div>
+                            </div>
+
                            <Separator />
                            
                            <div>
@@ -317,10 +327,10 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                            </div>
                        </div>
                    </ScrollArea>
-                   <DialogFooter className="grid grid-cols-2 gap-2 p-4 border-t sticky bottom-0 bg-background">
-                       <Button variant="default" size="lg"><Wallet className="mr-2 h-4 w-4"/> Comprar ahora</Button>
+                    <div className="grid grid-cols-2 gap-2 p-2 border-t sticky bottom-0 bg-background">
+                       <Button variant="default" size="lg" className="bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar ahora</Button>
                        <Button variant="secondary" size="lg"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar al carrito</Button>
-                   </DialogFooter>
+                   </div>
                 </DialogContent>
             </Dialog>
         )}
