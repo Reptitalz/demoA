@@ -1,4 +1,3 @@
-
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -144,14 +143,19 @@ export default function ChatListPage() {
 
   useEffect(() => {
     const fetchNotificationCounts = async () => {
+        if (!state.userProfile.isAuthenticated) return;
         try {
             const db = await openDB();
             
-            // Count pending authorizations (image/video/audio messages)
+            // Count pending authorizations
             const pendingTx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
             const pendingStore = pendingTx.objectStore(MESSAGES_STORE_NAME);
             const allMessages: StoredMessage[] = await pendingStore.getAll();
-            const pendingAuthorizations = allMessages.filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type));
+            const pendingAuthorizations = allMessages.filter(msg => 
+                msg.role === 'user' && 
+                typeof msg.content === 'object' && 
+                ['image', 'video', 'audio', 'document'].includes(msg.content.type)
+            );
             setAuthorizationsCount(pendingAuthorizations.length);
 
             // Count pending credit applications
@@ -165,29 +169,16 @@ export default function ChatListPage() {
         }
     };
 
-    // Fetch counts when the component mounts and user is authenticated
-    if (state.userProfile.isAuthenticated) {
-        fetchNotificationCounts();
-    }
+    fetchNotificationCounts();
   }, [state.userProfile.isAuthenticated, state.userProfile.creditLines]);
 
 
-  const demoContact: Contact = {
-    chatPath: 'demo-chat',
-    name: 'Hey Manito! (Demo)',
-    imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-    lastMessage: '¡Bienvenido! Haz clic para ver un ejemplo.',
-    isDemo: true,
-    conversationSize: 0,
-  };
-
   const chatsToDisplay = useMemo(() => {
-    const allContacts = state.userProfile.isAuthenticated ? contacts : [demoContact];
-    if (!allContacts) return [demoContact];
-    return allContacts.filter(chat =>
+    if (!contacts) return [];
+    return contacts.filter(chat =>
         chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, contacts, state.userProfile.isAuthenticated, demoContact]);
+  }, [searchTerm, contacts]);
 
   const handleAdminNav = (path: string) => {
     router.push(path);
@@ -195,24 +186,16 @@ export default function ChatListPage() {
 
   const handleConfirmDelete = () => {
     if (alertInfo?.type === 'delete' && alertInfo.contact) {
-      if (alertInfo.contact.isDemo) {
-        toast({ title: "Acción no permitida", description: "No se puede eliminar el chat de demostración." });
-      } else {
-        removeContact(alertInfo.contact.chatPath);
-        toast({ title: "Contacto Eliminado", description: `Se ha eliminado a ${alertInfo.contact.name}.` });
-      }
+      removeContact(alertInfo.contact.chatPath);
+      toast({ title: "Contacto Eliminado", description: `Se ha eliminado a ${alertInfo.contact.name}.` });
     }
     setAlertInfo(null);
   }
   
   const handleConfirmClear = () => {
      if (alertInfo?.type === 'clear' && alertInfo.contact) {
-       if (alertInfo.contact.isDemo) {
-        toast({ title: "Acción no permitida", description: "No se puede limpiar el chat de demostración." });
-      } else {
         clearContactChat(alertInfo.contact.chatPath);
         toast({ title: "Chat Limpiado", description: `La conversación con ${alertInfo.contact.name} ha sido limpiada.` });
-      }
     }
     setAlertInfo(null);
   }
@@ -230,7 +213,7 @@ export default function ChatListPage() {
       if (permission === 'granted') {
         new Notification(title, options);
       } else {
-        toast({ title: "Permiso denegado", description: "No se pueden mostrar notificaciones. Habilítalas en la configuración de tu navegador." });
+        toast({ title: "Permiso denegado", description: "No se podrán mostrar notificaciones. Habilítalas en la configuración de tu navegador." });
       }
     } else {
          toast({ title: "Notificaciones bloqueadas", description: "Habilita las notificaciones en la configuración de tu navegador para usar esta función.", variant: "destructive" });
@@ -240,7 +223,7 @@ export default function ChatListPage() {
   const showMemoryInfo = (contact: Contact) => {
     showPushNotification(`Info de: ${contact.name}`, {
         body: `El chat ocupa aproximadamente ${formatBytes(contact.conversationSize)}.`,
-        icon: '/heymanito.svg' // You can use your app icon
+        icon: '/heymanito.svg'
     });
   }
 
@@ -326,7 +309,8 @@ export default function ChatListPage() {
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
-                 {chatsToDisplay.map((chat) => (
+                {chatsToDisplay.length > 0 ? (
+                 chatsToDisplay.map((chat) => (
                     <div key={chat.chatPath} className="relative bg-background dark:bg-gray-900 rounded-lg overflow-hidden">
                         <AnimatePresence>
                             {activeSwipe?.chatPath === chat.chatPath && (
@@ -385,7 +369,13 @@ export default function ChatListPage() {
                             />
                         </motion.div>
                     </div>
-                 ))}
+                 ))
+                 ) : (
+                    <div className="text-center py-16 text-muted-foreground">
+                        <p>No tienes chats activos.</p>
+                        <Button variant="link" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
+                    </div>
+                 )}
             </div>
         </main>
     </div>

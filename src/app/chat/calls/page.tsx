@@ -27,9 +27,10 @@ export default function CallsPage() {
         router.push(`/chat/call/${contactId}?type=${type}`);
     };
     
+    // Demo call history
     const callHistory = [
-        { id: 1, name: 'Juan Pérez', type: 'outgoing', time: 'Ayer, 10:30 PM', missed: false },
-        { id: 2, name: 'Maria López', type: 'incoming', time: 'Hace 2 días', missed: true },
+        // { id: 1, name: 'Juan Pérez', type: 'outgoing', time: 'Ayer, 10:30 PM', missed: false },
+        // { id: 2, name: 'Maria López', type: 'incoming', time: 'Hace 2 días', missed: true },
     ];
 
     return (
