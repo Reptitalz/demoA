@@ -1,14 +1,14 @@
 // src/components/chat/MarketplaceDialog.tsx
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -297,47 +297,48 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                         <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
                     </DialogHeader>
                    <ScrollArea className="flex-grow pt-16 pb-24">
-                       <div className="p-4 rounded-lg overflow-hidden -mt-4">
-                            <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} width={500} height={500} className="w-full h-auto object-cover rounded-lg shadow-lg" />
+                        <div className="relative aspect-video w-full">
+                           <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="shadow-lg" />
                        </div>
-                       <div className="px-6 py-4 flex flex-col gap-4">
-                           <div>
+                       <div className="p-6 flex flex-col gap-4">
+                           <div className="flex flex-col gap-4">
+                             <div>
                                <p className="text-sm text-muted-foreground">Vendido por {selectedProduct.seller}</p>
                                <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
-                           </div>
-                           
-                           <p className="text-5xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
-                           
-                           <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                              <div className="flex items-center gap-3 text-sm">
-                                <Truck className="h-5 w-5 text-muted-foreground"/>
-                                <div>
-                                    <p className="font-semibold">Enviar a domicilio</p>
-                                    <p className="text-xs text-muted-foreground">Recibe tu producto en casa.</p>
+                             </div>
+                             <p className="text-5xl font-extrabold text-primary">${selectedProduct.price.toFixed(2)}</p>
+
+                             <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                                <div className="flex items-center gap-3 text-sm">
+                                  <Truck className="h-5 w-5 text-muted-foreground"/>
+                                  <div>
+                                      <p className="font-semibold">Enviar a domicilio</p>
+                                      <p className="text-xs text-muted-foreground">Recibe tu producto en casa.</p>
+                                  </div>
                                 </div>
-                              </div>
-                              <Separator />
-                               <div className="flex items-center gap-3 text-sm">
-                                <Store className="h-5 w-5 text-muted-foreground"/>
-                                <div>
-                                    <p className="font-semibold">Recoger en local</p>
-                                    <p className="text-xs text-muted-foreground">Visita la tienda y recoge tu producto.</p>
+                                <Separator />
+                                 <div className="flex items-center gap-3 text-sm">
+                                  <Store className="h-5 w-5 text-muted-foreground"/>
+                                  <div>
+                                      <p className="font-semibold">Recoger en local</p>
+                                      <p className="text-xs text-muted-foreground">Visita la tienda y recoge tu producto.</p>
+                                  </div>
                                 </div>
-                              </div>
-                           </div>
-                           
-                           <div>
-                               <h3 className="font-semibold mb-2">Descripción</h3>
-                               <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                             </div>
+                             
+                             <div>
+                                 <h3 className="font-semibold mb-2">Descripción</h3>
+                                 <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                             </div>
                            </div>
                        </div>
                    </ScrollArea>
-                    <div className="p-3 border-t sticky bottom-0 bg-background/80 backdrop-blur-sm">
-                         <div className="bg-card shadow-lg rounded-xl p-2 grid grid-cols-2 gap-2">
-                           <Button variant="secondary" size="lg" className="text-base"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
-                           <Button size="lg" className="text-base bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
-                       </div>
-                   </div>
+                   <div className="p-3 border-t sticky bottom-0 bg-background/80 backdrop-blur-sm">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button variant="secondary" size="lg" className="text-base"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar</Button>
+                          <Button size="lg" className="text-base bg-brand-gradient text-primary-foreground"><Wallet className="mr-2 h-4 w-4"/> Comprar</Button>
+                      </div>
+                  </div>
                 </DialogContent>
             </Dialog>
         )}
