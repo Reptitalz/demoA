@@ -290,6 +290,9 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         {selectedProduct && (
             <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
                 <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+                    <DialogHeader className="p-4 border-b">
+                        <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
+                    </DialogHeader>
                    <div className="relative aspect-[4/3] w-full">
                        <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" className="rounded-t-lg" />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
