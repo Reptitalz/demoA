@@ -39,7 +39,9 @@ const menuItems = [
     { view: 'delivery' as AdminView, title: 'Repartidores', description: "Gestiona pedidos y rutas de entrega.", icon: Truck, area: 'e' },
 ];
 
-const AdminHomePageContent = () => (
+const AdminHomePageContent = () => {
+    const router = useRouter();
+    return (
     <>
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
             <h1 className="text-2xl font-bold">Panel de Miembro</h1>
@@ -58,7 +60,6 @@ const AdminHomePageContent = () => (
                         >
                             <Card
                                 onClick={() => {
-                                  const router = useRouter();
                                   router.push(`/chat/admin?view=${item.view}`, { scroll: false });
                                 }}
                                 className={cn(
@@ -82,7 +83,7 @@ const AdminHomePageContent = () => (
             </div>
         </div>
     </>
-);
+)};
 
 const views: Record<AdminView, React.ComponentType> = {
     home: AdminHomePageContent,
@@ -100,7 +101,20 @@ export default function AdminHomePage() {
   const { isAuthenticated } = state.userProfile;
   const [isPlansOpen, setIsPlansOpen] = useState(false);
 
-  const activeView = (searchParams.get('view') as AdminView) || 'home';
+  // Initialize with 'home' and update on the client to avoid hydration mismatch
+  const [activeView, setActiveView] = useState<AdminView>('home');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This ensures searchParams is only read on the client side
+    setIsClient(true);
+    const viewFromUrl = searchParams.get('view') as AdminView;
+    if (viewFromUrl && views[viewFromUrl]) {
+        setActiveView(viewFromUrl);
+    } else {
+        setActiveView('home');
+    }
+  }, [searchParams]);
 
   const handleUpgradeClick = () => {
     if (!isAuthenticated) {
@@ -115,35 +129,33 @@ export default function AdminHomePage() {
   }
   
   const handleBackToAdminHome = () => {
-    router.push('/chat/admin');
+    router.push('/chat/admin', { scroll: false });
   }
+  
+  const ActiveComponent = views[activeView] || views.home;
 
   return (
     <>
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {activeView !== 'home' && (
          <div className="p-2 border-b bg-card/80 backdrop-blur-sm flex justify-between items-center">
-            <button onClick={handleBackToDashboard} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft size={16} /> Volver a los chats
+            <button onClick={handleBackToAdminHome} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <ArrowLeft size={16} /> Volver al panel
             </button>
         </div>
       )}
       <div className="flex-grow relative">
         <AnimatePresence initial={false} mode="wait">
-            {Object.entries(views).map(([view, Component]) => {
-                return activeView === view && (
-                     <motion.div
-                        key={view}
-                        variants={pageVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className="h-full w-full overflow-y-auto"
-                     >
-                        <Component />
-                    </motion.div>
-                )
-            })}
+             <motion.div
+                key={activeView}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="h-full w-full overflow-y-auto"
+             >
+                {isClient ? <ActiveComponent /> : <AdminHomePageContent />}
+            </motion.div>
         </AnimatePresence>
       </div>
     </div>
