@@ -816,7 +816,9 @@ export const DeliveryView = () => {
     );
 };
 
-
+export const AssistantsList = () => <div></div>;
+export const ProductsView = () => <div></div>;
+export const CreditView = () => <div></div>;
 export const OtherView = ({ viewName }: { viewName: string }) => (
     <div className="flex flex-col h-full bg-transparent">
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
