@@ -45,6 +45,7 @@ import AddProductDialog from '@/components/chat/admin/AddProductDialog';
 import CreateCatalogDialog from './CreateCatalogDialog';
 import CreditHistoryDialog from './CreditHistoryDialog';
 import ReceiptDialog from './ReceiptDialog';
+import { Badge } from '@/components/ui/badge';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
