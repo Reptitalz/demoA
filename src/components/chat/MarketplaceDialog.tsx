@@ -288,19 +288,21 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         )}
         {selectedProduct && (
             <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
+                <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+                    <DialogHeader className="p-4 border-b">
                         <DialogTitle>{selectedProduct.name}</DialogTitle>
                         <DialogDescription>Vendido por {selectedProduct.seller}</DialogDescription>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
+                    <ScrollArea className="flex-grow">
+                    <div className="p-4 space-y-4">
                         <div className="aspect-video w-full relative rounded-lg overflow-hidden border">
                              <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} layout="fill" objectFit="cover" />
                         </div>
                         <p className="text-2xl font-bold">${selectedProduct.price.toFixed(2)}</p>
                         <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
                     </div>
-                     <DialogFooter className="grid grid-cols-2 gap-2">
+                    </ScrollArea>
+                     <DialogFooter className="grid grid-cols-2 gap-2 p-4 border-t">
                         <Button variant="outline"><Store className="mr-2 h-4 w-4"/> Recoger en local</Button>
                         <Button><Truck className="mr-2 h-4 w-4"/> Enviar a domicilio</Button>
                     </DialogFooter>
