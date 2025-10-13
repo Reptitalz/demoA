@@ -506,6 +506,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const { state, dispatch } = useApp();
     const { toast } = useToast();
     const [step, setStep] = useState(1);
+    const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
     const [interest, setInterest] = useState('');
     const [term, setTerm] = useState('');
@@ -521,26 +522,28 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [isProcessing, setIsProcessing] = useState(false);
 
     const assistants = state.userProfile.assistants || [];
-    const totalSteps = 6; // Increased to 6
+    const totalSteps = 7;
 
     const handleNext = () => {
-        if (step === 1 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
-        if (step === 2 && !interest) return toast({ title: "Campo requerido", description: "Por favor, ingresa una tasa de interés.", variant: "destructive" });
-        if (step === 3 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
-        if (step === 4 && requiredDocuments.length === 0) return toast({ title: "Campo requerido", description: "Añade al menos un documento requerido.", variant: "destructive" });
-        if (step === 5 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
+        if (step === 1 && !name) return toast({ title: "Campo requerido", description: "Por favor, ingresa un nombre para la oferta.", variant: "destructive" });
+        if (step === 2 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
+        if (step === 3 && !interest) return toast({ title: "Campo requerido", description: "Por favor, ingresa una tasa de interés.", variant: "destructive" });
+        if (step === 4 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
+        if (step === 5 && requiredDocuments.length === 0) return toast({ title: "Campo requerido", description: "Añade al menos un documento requerido.", variant: "destructive" });
+        if (step === 6 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
         setStep(s => s + 1);
     };
     const handleBack = () => setStep(s => s - 1);
     
     const handleCreate = () => {
-        if (!amount || !interest || !term || !assistantId || requiredDocuments.length === 0) {
+        if (!name || !amount || !interest || !term || !assistantId || requiredDocuments.length === 0) {
             toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos para crear la oferta.", variant: "destructive" });
             return;
         }
 
         const newOffer: CreditOffer = {
             id: `co_${Date.now()}`,
+            name,
             amount: parseFloat(amount),
             interest: parseFloat(interest),
             term: parseInt(term),
@@ -613,18 +616,24 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         switch(step) {
             case 1: return (
                 <div className="space-y-2">
+                    <Label htmlFor="offer-name" className="text-base">Nombre de la Oferta</Label>
+                    <Input id="offer-name" type="text" placeholder="Ej: Crédito Emprendedor" value={name} onChange={e => setName(e.target.value)} className="text-lg py-6" />
+                </div>
+            );
+            case 2: return (
+                <div className="space-y-2">
                     <Label htmlFor="amount" className="text-base">Monto Máximo del Crédito</Label>
                     <Input id="amount" type="number" placeholder="Ej: 5000" value={amount} onChange={e => setAmount(e.target.value)} className="text-lg py-6" />
                 </div>
             );
-            case 2: return (
+            case 3: return (
                 <div className="space-y-2">
                     <Label htmlFor="interest" className="text-base">Tasa de Interés</Label>
                     <Input id="interest" type="number" placeholder="Ej: 10" value={interest} onChange={e => setInterest(e.target.value)} className="text-lg py-6" />
                     <p className="text-xs text-muted-foreground pt-1">¿Cuánto quieres ganar de interés?</p>
                 </div>
             );
-            case 3: 
+            case 4: 
                 const profit = calculateProfit();
                 return (
                     <div className="space-y-4">
@@ -650,7 +659,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                         </RadioGroup>
                     </div>
             );
-            case 4: return (
+            case 5: return (
                 <div className="space-y-4">
                     <Label className="text-base">Documentos Requeridos</Label>
                     <div className="flex items-center gap-2">
@@ -676,7 +685,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                     </ScrollArea>
                 </div>
             );
-            case 5:
+            case 6:
                 const selectedStyle = cardStyles.find(s => s.id === cardStyle);
                 const cardBgStyle = cardStyle === 'custom-image' && cardImageUrl
                     ? { backgroundImage: `url(${cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -730,7 +739,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                         </div>
                     </div>
                 );
-            case 6: return (
+            case 7: return (
                 <div className="space-y-2">
                     <Label htmlFor="assistant" className="text-base">Asistente Gestor</Label>
                     <Select onValueChange={setAssistantId} value={assistantId}>

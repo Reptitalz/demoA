@@ -118,6 +118,7 @@ export interface RequiredDocument {
 
 export interface CreditOffer {
   id: string;
+  name: string;
   amount: number;
   interest: number; // e.g., 10 for 10%
   term: number; // e.g. 12
