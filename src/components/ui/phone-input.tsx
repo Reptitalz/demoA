@@ -22,8 +22,8 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     return (
       <PhoneInputLib
         ref={ref}
-        // Classes for the container
-        className={cn('phone-input-root flex items-center', className)}
+        // Use a wrapper to apply styles, not the root component itself
+        className={cn('phone-input-root', className)}
         // Use the Input component from shadcn as the input field
         inputComponent={Input}
         // Pass the rest of the properties

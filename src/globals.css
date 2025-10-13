@@ -269,6 +269,19 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  
+  .animate-scroll {
+    animation: scroll 40s linear infinite;
+  }
+
+  @keyframes scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 .material-symbols-outlined {
@@ -278,3 +291,16 @@ body {
   'GRAD' 0,
   'opsz' 24
 }
+
+/* Custom styles for react-phone-number-input */
+.phone-input-root .PhoneInputCountry {
+    @apply bg-card border border-input rounded-l-md px-2;
+}
+.phone-input-root .PhoneInputInput {
+    @apply h-10 w-full rounded-r-md border border-input bg-transparent px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
+    border-left: none; /* Remove left border from the input itself */
+}
+.phone-input-root .PhoneInputCountrySelect {
+  @apply text-foreground;
+}
+
