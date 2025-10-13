@@ -9,19 +9,31 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaBookReader } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { AssistantMemory, AssistantWithMemory } from '@/types';
+import type { AssistantConfig, AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
-import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
+import ConversationsDialog from './ConversationsDialog';
+import { BookText, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
+import InstructionsDialog from '../chat/admin/InstructionsDialog';
+import ReceiptDialog from '../chat/admin/ReceiptDialog';
+import NotifierDialog from './NotifierDialog';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+// Demo data for new trays
+const demoPendingPayments = [
+    { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date() },
+    { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantName: 'Asistente de Cobranza', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', status: 'pending', amount: 0, receivedAt: subDays(new Date(), 1) },
+];
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -33,8 +45,13 @@ const DashboardPageContent = () => {
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
-  const [assistantsMemory, setAssistantsMemory] = useState<AssistantWithMemory[]>([]);
-  const [isLoadingMemory, setIsLoadingMemory] = useState(false);
+  
+  // States for new trays
+  const [isInstructionsDialogOpen, setIsInstructionsDialogOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [isNotifierDialogOpen, setIsNotifierDialogOpen] = useState(false);
+  const [selectedAssistant, setSelectedAssistant] = useState<AssistantConfig | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
   
   const isDemoMode = !userProfile.isAuthenticated;
 
@@ -64,7 +81,7 @@ const DashboardPageContent = () => {
           purposes: ['create_smart_db'],
           databaseId: 'demo-db-2',
           isFirstDesktopAssistant: true, // This assistant is in free trial
-          trialStartDate: subDays(new Date(), 5).toISOString(), // Trial started 5 days ago
+          trialStartDate: subDays(new Date(), 5).toISOString(),
       }],
       databases: [{
           id: 'demo-db-1',
@@ -83,26 +100,7 @@ const DashboardPageContent = () => {
   };
   
   const profileToRender = isDemoMode ? demoProfile : userProfile;
-  const isDatabasesPage = pathname.endsWith('/databases');
-
-  useEffect(() => {
-    if (isDatabasesPage && userProfile.isAuthenticated && userProfile._id) {
-        setIsLoadingMemory(true);
-        fetch(`/api/assistants/memory?userId=${userProfile._id}`)
-            .then(res => res.json())
-            .then((memoryData: AssistantMemory[]) => {
-                const assistantsWithMemory = userProfile.assistants
-                    .map(asst => ({
-                        ...asst,
-                        totalMemory: memoryData.find(m => m.assistantId === asst.id)?.totalMemory || 0
-                    }));
-                setAssistantsMemory(assistantsWithMemory);
-            })
-            .catch(err => toast({ title: 'Error', description: 'No se pudo cargar la memoria de los asistentes.', variant: 'destructive' }))
-            .finally(() => setIsLoadingMemory(false));
-    }
-  }, [isDatabasesPage, userProfile.isAuthenticated, userProfile._id, userProfile.assistants, toast]);
-
+  
   // Handle session and payment status logic for authenticated users
   useEffect(() => {
     if (loadingStatus.active && !isDemoMode) {
@@ -191,6 +189,22 @@ const DashboardPageContent = () => {
   
   const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId);
 
+  const handleOpenInstructions = (assistant: AssistantConfig) => {
+    setSelectedAssistant(assistant);
+    setIsInstructionsDialogOpen(true);
+  };
+  
+  const handleOpenReceipt = (payment: any) => {
+    setSelectedPayment(payment);
+    setIsReceiptDialogOpen(true);
+  }
+
+  const handleOpenNotifier = (assistant: AssistantConfig) => {
+    setSelectedAssistant(assistant);
+    setIsNotifierDialogOpen(true);
+  }
+
+
   if (loadingStatus.active && !isDemoMode) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[calc(100vh-150px)]">
@@ -201,7 +215,7 @@ const DashboardPageContent = () => {
   
   const renderContentForRoute = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
-    
+    const isDatabasesPage = pathname.endsWith('/databases');
     const isProfilePage = pathname.endsWith('/profile');
 
     if (isAssistantsPage) {
@@ -247,70 +261,64 @@ const DashboardPageContent = () => {
     if (isDatabasesPage) {
       return (
         <div className="space-y-6">
-            <div>
-                <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <FaDatabase size={18} className="text-primary" />
-                        Bases de Datos Vinculadas
-                    </h3>
-                    {showAddDatabaseButton && (
-                        <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="transition-transform transform hover:scale-105 text-xs px-2 py-1">
-                            <FaStar size={13} className="mr-1" />
-                            Añadir Base de Datos
-                        </Button>
-                    )}
-                </div>
-                {profileToRender.databases.length > 0 ? (
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mt-4">
-                        {profileToRender.databases.map((db, index) => (
-                            <DatabaseInfoCard key={db.id} database={db as any} animationDelay={`${0.2 + index * 0.1}s`} />
-                        ))}
-                    </div>
-                ) : (
-                    <Card className="text-center py-10 animate-fadeIn mt-4" style={{ animationDelay: '0.2s' }}>
-                        <CardContent className="flex flex-col items-center gap-3">
-                            <FaDatabase size={40} className="text-muted-foreground" />
-                            <h3 className="text-lg font-semibold">No tienes bases de datos</h3>
-                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                                Conecta una Hoja de Google o crea una Base de Datos Inteligente para darle a tus asistentes el conocimiento que necesitan para operar.
-                            </p>
-                            {showAddDatabaseButton && (
-                                <Button onClick={() => isDemoMode ? handleActionInDemo('Añadir Base de Datos') : setIsAddDatabaseDialogOpen(true)} size="sm" className="text-sm px-4 py-2 mt-2">Añadir Base de Datos</Button>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+          {/* Bandeja de Instrucciones */}
+          <Card className="animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><BookText className="h-5 w-5 text-primary" /> Bandeja de Instrucciones</CardTitle>
+              <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {profileToRender.assistants.map(asst => (
+                  <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                    <p className="font-medium text-sm">{asst.name}</p>
+                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenInstructions(asst as any)}>Editar</Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-            <Separator />
-            
-            <div>
-                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-                    <FaBrain size={18} className="text-primary" />
-                    Memoria de los Asistentes
-                </h3>
-                {isLoadingMemory ? (
-                     <div className="flex items-center justify-center p-8">
-                        <FaSpinner className="h-8 w-8 animate-spin text-primary" />
+          {/* Bandeja de Autorizaciones */}
+          <Card className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><CheckSquare className="h-5 w-5 text-green-500" /> Bandeja de Autorizaciones</CardTitle>
+              <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {demoPendingPayments.map(payment => (
+                  <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                    <div className="overflow-hidden">
+                       <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
+                       <p className="text-xs text-muted-foreground">Recibido: {format(payment.receivedAt, "dd MMM, h:mm a", { locale: es })}</p>
                     </div>
-                ) : assistantsMemory.length > 0 ? (
-                     <div className="space-y-4">
-                        {assistantsMemory.map((asst, index) => (
-                            <AssistantMemoryCard key={asst.id} assistant={asst} animationDelay={`${0.4 + index * 0.1}s`} />
-                        ))}
-                    </div>
-                ) : (
-                    <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
-                        <CardContent className="flex flex-col items-center gap-3">
-                            <FaBrain size={40} className="text-muted-foreground" />
-                            <h3 className="text-lg font-semibold">Sin Actividad de Memoria</h3>
-                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                                Tus asistentes aún no han almacenado ninguna conversación. La memoria se irá llenando a medida que interactúen.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                    <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment)}>
+                       <Eye className="mr-2 h-3 w-3"/> Revisar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Bandeja de Notificador */}
+          <Card className="animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Bell className="h-5 w-5 text-orange-500" /> Bandeja de Notificador</CardTitle>
+              <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                 {profileToRender.assistants.map(asst => (
+                  <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                    <p className="font-medium text-sm">{asst.name}</p>
+                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenNotifier(asst as any)}>Configurar</Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -450,6 +458,25 @@ const DashboardPageContent = () => {
         isOpen={isPersonalInfoOpen}
         onOpenChange={setIsPersonalInfoOpen}
       />
+      {selectedAssistant && (
+          <>
+            <InstructionsDialog 
+              isOpen={isInstructionsDialogOpen}
+              onOpenChange={setIsInstructionsDialogOpen}
+              assistant={selectedAssistant}
+            />
+            <NotifierDialog
+                isOpen={isNotifierDialogOpen}
+                onOpenChange={setIsNotifierDialogOpen}
+                assistant={selectedAssistant}
+            />
+          </>
+      )}
+       <ReceiptDialog
+            payment={selectedPayment}
+            isOpen={isReceiptDialogOpen}
+            onOpenChange={setIsReceiptDialogOpen}
+        />
     </>
   );
 };
