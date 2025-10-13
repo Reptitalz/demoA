@@ -17,6 +17,7 @@ import KnowledgeManagementDialog from "./KnowledgeManagementDialog"; // Import t
 import { BookOpen, Bell } from "lucide-react";
 import ContactsDialog from "./ContactsDialog";
 import ConversationsDialog from "./ConversationsDialog";
+import NotifierDialog from "./NotifierDialog"; // Import the new NotifierDialog
 
 interface DatabaseInfoCardProps {
   database: DatabaseConfig;
@@ -28,9 +29,10 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
   const { toast } = useToast();
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isChangeTypeDialogOpen, setIsChangeTypeDialogOpen] = useState(false);
-  const [isKnowledgeDialogOpen, setIsKnowledgeDialogOpen] = useState(false); // State for the new dialog
+  const [isKnowledgeDialogOpen, setIsKnowledgeDialogOpen] = useState(false);
   const [isContactsDialogOpen, setIsContactsDialogOpen] = useState(false);
   const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
+  const [isNotifierDialogOpen, setIsNotifierDialogOpen] = useState(false); // State for NotifierDialog
   
   const linkedAssistants = state.userProfile.assistants.filter(a => a.databaseId === database.id);
   const linkedAssistant = linkedAssistants[0];
@@ -257,7 +259,14 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
                 className="w-full h-full" 
                 size="sm"
                 variant="outline"
-                onClick={() => toast({title: "Próximamente", description: "La configuración de notificaciones estará disponible pronto."})}
+                onClick={() => {
+                  if (linkedAssistant) {
+                    setIsNotifierDialogOpen(true);
+                  } else {
+                    toast({ title: "Asistente no vinculado", description: "Esta base de datos debe estar vinculada a un asistente para usar el notificador." });
+                  }
+                }}
+                disabled={!linkedAssistant}
               >
                 <Bell className="mr-2 h-4 w-4" />
                 Notificador
@@ -310,6 +319,11 @@ const DatabaseInfoCard = ({ database, animationDelay = "0s" }: DatabaseInfoCardP
            <ContactsDialog 
               isOpen={isContactsDialogOpen}
               onOpenChange={setIsContactsDialogOpen}
+              assistant={linkedAssistant}
+          />
+          <NotifierDialog 
+              isOpen={isNotifierDialogOpen}
+              onOpenChange={setIsNotifierDialogOpen}
               assistant={linkedAssistant}
           />
         </>
