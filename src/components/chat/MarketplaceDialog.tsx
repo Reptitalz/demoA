@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -315,8 +315,8 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                        </div>
                    </ScrollArea>
                    <DialogFooter className="grid grid-cols-2 gap-2 p-4 border-t sticky bottom-0 bg-background">
-                       <Button variant="default" size="lg"><ShoppingCart className="mr-2 h-5 w-5"/> Comprar ahora</Button>
-                       <Button variant="secondary" size="lg"><Send className="mr-2 h-4 w-4"/> Chatear</Button>
+                       <Button variant="default" size="lg"><Wallet className="mr-2 h-4 w-4"/> Comprar ahora</Button>
+                       <Button variant="secondary" size="lg"><ShoppingCart className="mr-2 h-4 w-4"/> Agregar al carrito</Button>
                    </DialogFooter>
                 </DialogContent>
             </Dialog>
