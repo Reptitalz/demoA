@@ -28,6 +28,7 @@ import ReceiptDialog from '../chat/admin/ReceiptDialog';
 import NotifierDialog from './NotifierDialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Demo data for new trays
 const demoPendingPayments = [
@@ -260,66 +261,72 @@ const DashboardPageContent = () => {
     
     if (isDatabasesPage) {
       return (
-        <div className="space-y-6">
-          {/* Bandeja de Instrucciones */}
-          <Card className="animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BookText className="h-5 w-5 text-primary" /> Bandeja de Instrucciones</CardTitle>
-              <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {profileToRender.assistants.map(asst => (
-                  <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <p className="font-medium text-sm">{asst.name}</p>
-                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenInstructions(asst as any)}>Editar</Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Bandeja de Autorizaciones */}
-          <Card className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><CheckSquare className="h-5 w-5 text-green-500" /> Bandeja de Autorizaciones</CardTitle>
-              <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {demoPendingPayments.map(payment => (
-                  <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <div className="overflow-hidden">
-                       <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
-                       <p className="text-xs text-muted-foreground">Recibido: {format(payment.receivedAt, "dd MMM, h:mm a", { locale: es })}</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment)}>
-                       <Eye className="mr-2 h-3 w-3"/> Revisar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Bandeja de Notificador */}
-          <Card className="animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Bell className="h-5 w-5 text-orange-500" /> Bandeja de Notificador</CardTitle>
-              <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                 {profileToRender.assistants.map(asst => (
-                  <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <p className="font-medium text-sm">{asst.name}</p>
-                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenNotifier(asst as any)}>Configurar</Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="instructions" className="w-full animate-fadeIn">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
+              <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones</TabsTrigger>
+              <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
+            </TabsList>
+            <TabsContent value="instructions" className="mt-4">
+                <Card>
+                  <CardHeader>
+                      <CardTitle>Bandeja de Instrucciones</CardTitle>
+                      <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="space-y-2">
+                          {profileToRender.assistants.map(asst => (
+                              <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                  <p className="font-medium text-sm">{asst.name}</p>
+                                  <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenInstructions(asst as any)}>Editar</Button>
+                              </div>
+                          ))}
+                      </div>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="authorizations" className="mt-4">
+                <Card>
+                  <CardHeader>
+                      <CardTitle>Bandeja de Autorizaciones</CardTitle>
+                      <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="space-y-2">
+                          {demoPendingPayments.map(payment => (
+                              <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                  <div className="overflow-hidden">
+                                      <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
+                                      <p className="text-xs text-muted-foreground">Recibido: {format(payment.receivedAt, "dd MMM, h:mm a", { locale: es })}</p>
+                                  </div>
+                                  <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment)}>
+                                      <Eye className="mr-2 h-3 w-3"/> Revisar
+                                  </Button>
+                              </div>
+                          ))}
+                      </div>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="notifier" className="mt-4">
+               <Card>
+                  <CardHeader>
+                      <CardTitle>Bandeja de Notificador</CardTitle>
+                      <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="space-y-2">
+                          {profileToRender.assistants.map(asst => (
+                              <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                  <p className="font-medium text-sm">{asst.name}</p>
+                                  <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenNotifier(asst as any)}>Configurar</Button>
+                              </div>
+                          ))}
+                      </div>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
       );
     }
     
@@ -482,3 +489,4 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
+
