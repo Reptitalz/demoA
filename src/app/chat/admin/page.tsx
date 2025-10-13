@@ -1,4 +1,3 @@
-
 // src/app/chat/admin/page.tsx
 "use client";
 
@@ -123,13 +122,9 @@ export default function AdminHomePage() {
         setIsPlansOpen(true);
     }
   };
-
-  const handleBackToDashboard = () => {
-    router.push('/chat/dashboard');
-  }
   
   const handleBackToAdminHome = () => {
-    router.push('/chat/admin', { scroll: false });
+    router.push('/chat/dashboard', { scroll: false });
   }
   
   const ActiveComponent = views[activeView] || views.home;
