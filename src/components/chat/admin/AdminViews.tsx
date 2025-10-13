@@ -531,6 +531,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         if (step === 4 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
         if (step === 5 && requiredDocuments.length === 0) return toast({ title: "Campo requerido", description: "Añade al menos un documento requerido.", variant: "destructive" });
         if (step === 6 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
+        if (step === 7 && !assistantId) return toast({ title: "Campo requerido", description: "Por favor, selecciona un asistente gestor.", variant: "destructive" });
         setStep(s => s + 1);
     };
     const handleBack = () => setStep(s => s - 1);
@@ -662,6 +663,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             case 5: return (
                 <div className="space-y-4">
                     <Label className="text-base">Documentos Requeridos</Label>
+                    <p className="text-sm text-muted-foreground -mt-3">Define el nombre del documento que quieres recibir del cliente para validar su crédito.</p>
                     <div className="flex items-center gap-2">
                         <Input
                             placeholder="Ej: Comprobante de ingresos"
