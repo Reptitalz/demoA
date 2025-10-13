@@ -349,11 +349,12 @@ export const BankView = () => {
 }
 
 const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
-    // Demo data for completed credits
-    const completedCredits = [
-        { id: 4, client: 'Cliente D', amount: 1500, completedDate: '2024-07-15' },
-        { id: 5, client: 'Cliente E', amount: 2000, completedDate: '2024-06-30' },
-    ];
+    const { state } = useApp();
+    const { userProfile } = state;
+
+    const completedCredits = useMemo(() => {
+        return userProfile.creditLines?.filter(cl => cl.status === 'completed') || [];
+    }, [userProfile.creditLines]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -374,9 +375,9 @@ const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onO
                                             <CheckCircle className="h-5 w-5 text-green-600" />
                                         </div>
                                         <div>
-                                            <p className="font-semibold text-sm">{credit.client}</p>
+                                            <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
                                             <p className="text-xs text-muted-foreground">
-                                                Completado el {format(new Date(credit.completedDate), 'dd MMM, yyyy', { locale: es })}
+                                                Completado el {format(new Date(credit.updatedAt), 'dd MMM, yyyy', { locale: es })}
                                             </p>
                                         </div>
                                     </div>
@@ -488,7 +489,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             }}
                             className={cn(
                                 "h-2 w-2 rounded-full transition-all",
-                                activeIndex === index ? "w-6 bg-primary" : "bg-muted-foreground/50"
+                                activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
                             )}
                             aria-label={`Ir a la oferta ${index + 1}`}
                         />
