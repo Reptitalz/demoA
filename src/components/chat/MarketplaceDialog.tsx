@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingBag, Wallet, Send, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -25,17 +25,17 @@ interface MarketplaceDialogProps {
 // Demo data - replace with actual data from an API
 const demoItems = {
   products: [
-    { id: 1, name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing' },
-    { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design' },
-    { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media' },
+    { id: 1, name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing', location: 'Ciudad de México' },
+    { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design', location: 'Guadalajara' },
+    { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media', location: 'Ciudad de México' },
   ],
   services: [
-    { id: 4, name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson' },
-    { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance' },
+    { id: 4, name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey' },
+    { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México' },
   ],
   credits: [
-    { id: 'credit-1', name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan' },
-    { id: 'credit-2', name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan' },
+    { id: 'credit-1', name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan', location: 'Guadalajara' },
+    { id: 'credit-2', name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan', location: 'Ciudad de México' },
   ]
 };
 
@@ -59,14 +59,17 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     const { toast } = useToast();
     const [isCreditDialogOpen, setIsCreditDialogOpen] = useState(false);
     const [selectedCreditAssistant, setSelectedCreditAssistant] = useState<AssistantConfig | null>(null);
-
-    
-    // Placeholder for items that would be fetched based on location
-    const [nearbyItems, setNearbyItems] = useState(demoItems);
+    const [location, setLocation] = useState('Cerca de ti');
 
     useEffect(() => {
-        if (!isOpen) {
-            // Reset to initial state when dialog is closed
+        if (isOpen) {
+             // TODO: Implement actual geolocation fetching
+            // For now, we'll simulate fetching a location.
+            setTimeout(() => {
+                setLocation("Ciudad de México");
+            }, 500);
+
+            // Reset view state when dialog opens
             setTimeout(() => {
                 setCurrentView('categories');
                 setSearchTerm('');
@@ -74,23 +77,16 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         }
     }, [isOpen]);
 
-    useEffect(() => {
-        if (currentView !== 'categories') {
-            // TODO: Implementar lógica de geolocalización para obtener la ubicación del usuario
-            // y luego filtrar 'demoItems' para mostrar solo los que están cerca.
-            setNearbyItems(demoItems);
-        }
-    }, [currentView]);
-
     const filteredItems = useMemo(() => {
         if (currentView === 'categories') return [];
-        return nearbyItems[currentView].filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [searchTerm, currentView, nearbyItems]);
+        
+        return demoItems[currentView].filter(item => 
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            item.location.toLowerCase() === location.toLowerCase()
+        );
+    }, [searchTerm, currentView, location]);
     
     const handleRequestCredit = (credit: any) => {
-        // Here, we'd find the assistant linked to this credit offer.
-        // For now, let's assume we can find them in the userProfile's assistants.
-        // In a real app, the `credit` object would have an `assistantId`.
         const assistant = state.userProfile.assistants.find(a => a.name.includes(credit.seller));
         if (assistant) {
             setSelectedCreditAssistant(assistant);
@@ -170,7 +166,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                      <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Buscar en esta categoría..."
+                            placeholder={`Buscar en ${title.toLowerCase()}...`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 h-10"
@@ -182,7 +178,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                     <div className="px-4 sm:px-6">
                         {filteredItems.length > 0 ? (
                             <motion.div
-                                className={cn("grid gap-4", currentView === 'credits' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-3')}
+                                className={cn("grid gap-4", currentView === 'credits' ? 'grid-cols-1' : 'grid-cols-2')}
                                 variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
                                 initial="hidden"
                                 animate="visible"
@@ -234,8 +230,10 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                 ))}
                             </motion.div>
                         ) : (
-                            <div className="flex items-center justify-center h-48 text-muted-foreground">
-                                <p>No se encontraron resultados.</p>
+                            <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-center">
+                                <MapPin className="h-10 w-10 mb-2"/>
+                                <p className="font-semibold">No hay resultados en tu área.</p>
+                                <p className="text-sm">Intenta buscar en otra ubicación o revisa más tarde.</p>
                             </div>
                         )}
                     </div>
@@ -263,6 +261,14 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 </div>
             </div>
             </DialogHeader>
+
+            <div className="px-4 sm:px-6 py-2 border-b border-t flex items-center justify-between text-sm">
+                 <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span>Mostrando resultados cerca de: <span className="font-semibold text-foreground">{location}</span></span>
+                </div>
+                <Button variant="link" size="sm" className="h-auto p-0" disabled>Cambiar</Button>
+            </div>
             
             <AnimatePresence mode="wait">
                 {currentView === 'categories' ? renderCategories() : renderItemsList()}
