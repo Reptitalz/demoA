@@ -1,4 +1,3 @@
-
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -6,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase, Landmark } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase, Landmark, MapPin } from 'lucide-react';
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -797,6 +796,17 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 };
 
 export const DeliveryView = () => {
+    const [deliveries, setDeliveries] = useState([
+        { id: 'delivery-1', productName: 'Pastel de Chocolate Grande', productValue: 450.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'pending', clientName: 'Homero Simpson' },
+        { id: 'delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María' },
+    ]);
+    const { toast } = useToast();
+
+    const handleUpdateStatus = (deliveryId: string, newStatus: 'pending' | 'en_route' | 'delivered') => {
+        setDeliveries(prev => prev.map(d => d.id === deliveryId ? { ...d, status: newStatus } : d));
+        toast({ title: 'Estado Actualizado', description: `El pedido para ${deliveries.find(d => d.id === deliveryId)?.clientName} ahora está ${newStatus === 'en_route' ? 'en ruta' : 'marcado como entregado'}.` });
+    };
+
     return (
         <>
             <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
@@ -809,9 +819,56 @@ export const DeliveryView = () => {
                     </div>
                 </div>
             </header>
-            <div className="flex-grow flex items-center justify-center">
-                <p className="text-muted-foreground">Vista de Repartidores - Próximamente.</p>
-            </div>
+            <ScrollArea className="flex-grow px-2 min-h-0">
+                <div className="p-2 space-y-4">
+                    {deliveries.filter(d => d.status !== 'delivered').length > 0 ? (
+                        deliveries.filter(d => d.status !== 'delivered').map(delivery => (
+                            <Card key={delivery.id} className="glow-card">
+                                <CardHeader className="pb-3">
+                                    <div className="flex justify-between items-start">
+                                        <CardTitle className="text-base">{delivery.productName}</CardTitle>
+                                        <Badge variant={delivery.status === 'pending' ? 'destructive' : 'default'}>
+                                            {delivery.status === 'pending' ? 'Pendiente' : 'En Ruta'}
+                                        </Badge>
+                                    </div>
+                                    <CardDescription>Para: {delivery.clientName}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex justify-between items-center bg-muted/50 p-2 rounded-md">
+                                        <span className="text-sm font-medium">Valor:</span>
+                                        <span className="font-bold text-green-500">${delivery.productValue.toFixed(2)}</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold">Destino:</p>
+                                        <p className="text-sm">{delivery.destination}</p>
+                                    </div>
+                                </CardContent>
+                                <CardFooter className="grid grid-cols-2 gap-2">
+                                     <Button asChild variant="outline" size="sm">
+                                        <a href={delivery.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+                                            <MapPin className="mr-2 h-4 w-4" /> Ver en Mapa
+                                        </a>
+                                    </Button>
+                                    {delivery.status === 'pending' ? (
+                                        <Button size="sm" onClick={() => handleUpdateStatus(delivery.id, 'en_route')}>
+                                            <Send className="mr-2 h-4 w-4" /> Iniciar Entrega
+                                        </Button>
+                                    ) : (
+                                         <Button size="sm" onClick={() => handleUpdateStatus(delivery.id, 'delivered')} className="bg-green-600 hover:bg-green-700">
+                                            <CheckCircle className="mr-2 h-4 w-4" /> Marcar como Entregado
+                                        </Button>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        ))
+                    ) : (
+                        <div className="text-center py-16 text-muted-foreground">
+                            <Truck className="mx-auto h-12 w-12 mb-4"/>
+                            <p>No hay entregas pendientes.</p>
+                        </div>
+                    )}
+                </div>
+            </ScrollArea>
         </>
     );
 };
