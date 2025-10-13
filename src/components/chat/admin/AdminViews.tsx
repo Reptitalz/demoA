@@ -169,10 +169,11 @@ export const BankView = () => {
             const pending = pendingMessages
                 .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type))
                 .map((msg, index) => {
+                    // Try to find the assistant associated with this message's session
                     const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath));
                     const content = msg.content as { type: string, url: string, name?: string };
                     return {
-                        id: `pending-${msg.id || index}`,
+                        id: `pending-${msg.id || Date.now() + index}`,
                         messageId: msg.id,
                         product: `Comprobante (${content.type})`,
                         fileName: content.name,
@@ -191,7 +192,7 @@ export const BankView = () => {
             setAllPayments([...pending, ...completed]);
 
         } catch (error) {
-            console.error(error);
+            console.error("Failed to load payments from IndexedDB:", error);
             toast({ title: 'Error', description: 'No se pudieron cargar los comprobantes desde la base de datos local.', variant: 'destructive'});
         } finally {
             setIsLoading(false);
