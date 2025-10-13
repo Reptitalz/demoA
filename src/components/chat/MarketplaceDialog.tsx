@@ -47,9 +47,9 @@ const cardVariants = {
 type View = 'categories' | 'products' | 'services' | 'credits';
 
 const categoryConfig = {
-    products: { icon: Store, title: 'Tiendas y Productos', description: 'Explora productos de vendedores locales.' },
-    services: { icon: Briefcase, title: 'Servicios Profesionales', description: 'Encuentra profesionales para lo que necesites.' },
-    credits: { icon: Landmark, title: 'Créditos y Finanzas', description: 'Opciones de financiamiento a tu alcance.' },
+    products: { icon: Store, title: 'Tiendas', description: 'Explora productos de vendedores locales.', gradient: 'from-blue-500 to-cyan-500' },
+    services: { icon: Briefcase, title: 'Servicios', description: 'Encuentra profesionales para lo que necesites.', gradient: 'from-purple-500 to-violet-500' },
+    credits: { icon: Landmark, title: 'Créditos', description: 'Opciones de financiamiento a tu alcance.', gradient: 'from-emerald-500 to-green-500' },
 };
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
@@ -112,37 +112,33 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             exit={{ opacity: 0 }}
             className="p-4 sm:p-6 space-y-4"
         >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {['products', 'services'].map(cat => {
-                    const config = categoryConfig[cat as keyof typeof categoryConfig];
+            <div className="grid grid-cols-1 gap-4">
+                {Object.keys(categoryConfig).map(catKey => {
+                    const cat = catKey as keyof typeof categoryConfig;
+                    const config = categoryConfig[cat];
                     const Icon = config.icon;
                     return (
-                        <Card key={cat} onClick={() => setCurrentView(cat as View)} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col text-left">
-                            <CardHeader className="p-4">
-                                <div className="h-20 bg-muted rounded-md mb-4 flex items-center justify-center">
-                                    {/* Placeholder for an image */}
-                                    <Icon className="h-8 w-8 text-muted-foreground" />
-                                </div>
-                                <CardTitle className="text-base font-bold">{config.title}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4 pt-0 flex-grow">
-                                <CardDescription className="text-xs">{config.description}</CardDescription>
-                            </CardContent>
-                        </Card>
-                    )
+                        <div
+                            key={cat}
+                            onClick={() => setCurrentView(cat)}
+                            className={cn(
+                                'relative rounded-xl p-6 text-white overflow-hidden cursor-pointer group transition-all duration-300 ease-in-out',
+                                'bg-gradient-to-br',
+                                config.gradient
+                            )}
+                        >
+                            <div className="absolute -right-4 -bottom-4 w-24 h-24 text-white/10 group-hover:scale-125 transition-transform duration-300">
+                                <Icon className="w-full h-full" />
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="text-xl font-bold">{config.title}</h3>
+                                <p className="text-sm opacity-80 mt-1">{config.description}</p>
+                            </div>
+                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
+                        </div>
+                    );
                 })}
             </div>
-            <Card onClick={() => setCurrentView('credits')} className="cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20 flex flex-col text-left">
-                 <CardHeader className="p-4">
-                    <div className="h-20 bg-muted rounded-md mb-4 flex items-center justify-center">
-                       <Landmark className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <CardTitle className="text-base font-bold">{categoryConfig.credits.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0 flex-grow">
-                    <CardDescription className="text-xs">{categoryConfig.credits.description}</CardDescription>
-                </CardContent>
-            </Card>
             
              <Card className="cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors flex items-center justify-center text-center p-4">
                 <Sparkles className="h-5 w-5 text-yellow-500 mr-3"/>
@@ -251,7 +247,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
   return (
     <>
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+        <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
             <DialogHeader className="p-4 sm:p-6 pb-2">
             <div className="flex items-center gap-4">
                 <div className="p-3 bg-primary/10 rounded-lg">
