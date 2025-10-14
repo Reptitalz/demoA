@@ -13,7 +13,7 @@ import { HandCoins, ShoppingCart } from 'lucide-react';
 import { FaCcVisa, FaCcMastercard, FaCcAmex } from 'react-icons/fa';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import DualPhoneMockup from '@/components/landing/DualPhoneMockup';
+import PhoneMockup from '@/components/landing/PhoneMockup';
 
 
 const tools = [
@@ -158,7 +158,7 @@ const NewHomepage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                >
-                  <DualPhoneMockup />
+                  <PhoneMockup />
               </motion.div>
           </div>
       </section>
