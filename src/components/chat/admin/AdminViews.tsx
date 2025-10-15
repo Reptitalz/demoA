@@ -1,4 +1,3 @@
-
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -22,7 +21,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile, RequiredDocument } from '@/types';
+import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile, RequiredDocument, Delivery } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -795,15 +794,27 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
 };
 
 export const DeliveryView = () => {
-    const [deliveries, setDeliveries] = useState([
-        { id: 'delivery-1', productName: 'Pastel de Chocolate Grande', productValue: 450.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'pending', clientName: 'Homero Simpson' },
-        { id: 'delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María' },
-    ]);
+    const { state, dispatch } = useApp();
+    const { isAuthenticated, deliveries: userDeliveries } = state.userProfile;
     const { toast } = useToast();
 
+    const initialDeliveries: Delivery[] = [
+        { id: 'demo-delivery-1', productName: 'Pastel de Chocolate Grande', productValue: 450.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'pending', clientName: 'Homero Simpson' },
+        { id: 'demo-delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María' },
+    ];
+    
+    const deliveries = isAuthenticated ? (userDeliveries || []) : initialDeliveries;
+
     const handleUpdateStatus = (deliveryId: string, newStatus: 'pending' | 'en_route' | 'delivered') => {
-        setDeliveries(prev => prev.map(d => d.id === deliveryId ? { ...d, status: newStatus } : d));
-        toast({ title: 'Estado Actualizado', description: `El pedido para ${deliveries.find(d => d.id === deliveryId)?.clientName} ahora está ${newStatus === 'en_route' ? 'en ruta' : 'marcado como entregado'}.` });
+        if (isAuthenticated) {
+            const updatedDeliveries = deliveries.map(d => 
+                d.id === deliveryId ? { ...d, status: newStatus } : d
+            );
+            dispatch({ type: 'UPDATE_USER_PROFILE', payload: { deliveries: updatedDeliveries } });
+        } else {
+             // In demo mode, we just show a toast
+            toast({ title: 'Modo Demo', description: 'El estado de la entrega no se guardará.' });
+        }
     };
 
     return (
