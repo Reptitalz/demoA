@@ -11,7 +11,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { genkit } from 'genkit';
 
 const ExtractAmountInputSchema = z.object({
   image: z.string().describe("A Data URI of an image, expected to be a receipt or transfer screenshot. Format: 'data:<mimetype>;base64,<encoded_data>'."),
@@ -57,13 +56,4 @@ const extractAmountFlow = ai.defineFlow(
 export async function extractAmountFromImage(input: ExtractAmountInput): Promise<number> {
     const result = await extractAmountFlow(input);
     return result.amount;
-}
-
-// Ensure the flow is included in the dev server
-if (process.env.NODE_ENV === 'development') {
-    genkit({
-      plugins: [
-      ],
-      flows: [extractAmountFlow],
-    });
 }
