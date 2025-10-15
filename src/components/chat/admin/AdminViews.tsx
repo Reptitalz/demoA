@@ -793,6 +793,148 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     );
 };
 
+export const CreditView = () => {
+    const { state, dispatch } = useApp();
+    const { userProfile } = state;
+    const { toast } = useToast();
+    const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [selectedCredit, setSelectedCredit] = useState<CreditLine | null>(null);
+
+    const pendingCredits = useMemo(() => userProfile.creditLines?.filter(cl => cl.status === 'pending') || [], [userProfile.creditLines]);
+    const activeCredits = useMemo(() => userProfile.creditLines?.filter(cl => cl.status === 'Al Corriente' || cl.status === 'Atrasado') || [], [userProfile.creditLines]);
+
+     const handleUpdateCreditStatus = (creditId: string, newStatus: 'approved' | 'rejected', amount?: number) => {
+        if (newStatus === 'approved' && (!amount || amount <= 0)) {
+            toast({ title: "Monto requerido", description: "Debes especificar un monto para aprobar el crédito.", variant: "destructive" });
+            return;
+        }
+
+        const updatedCreditLines = userProfile.creditLines?.map(cl => {
+            if (cl.id === creditId) {
+                return { ...cl, status: newStatus === 'approved' ? 'Al Corriente' : 'rejected', amount: amount || cl.amount, updatedAt: new Date().toISOString() };
+            }
+            return cl;
+        });
+
+        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { creditLines: updatedCreditLines } });
+        toast({ title: "Estado Actualizado", description: `La solicitud ha sido ${newStatus === 'approved' ? 'aprobada' : 'rechazada'}.` });
+    };
+
+    return (
+        <>
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <DollarSign className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">Gestión de Créditos</h1>
+                    </div>
+                </div>
+            </header>
+            <ScrollArea className="flex-grow p-4 min-h-0">
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <CardTitle>Ofertas de Crédito</CardTitle>
+                                <Button size="sm" onClick={() => setIsCreateOfferOpen(true)}><Plus className="mr-2 h-4 w-4"/>Crear Oferta</Button>
+                            </div>
+                            <CardDescription>Crea y gestiona las ofertas de crédito que tus asistentes pueden ofrecer.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+                        </CardContent>
+                    </Card>
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Solicitudes Pendientes ({pendingCredits.length})</CardTitle>
+                            <CardDescription>Revisa y aprueba o rechaza nuevas solicitudes de crédito.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           {pendingCredits.length > 0 ? (
+                               <div className="space-y-2">
+                                  {pendingCredits.map(credit => (
+                                    <div key={credit.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                        <div>
+                                            <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
+                                            <p className="text-xs text-muted-foreground">{format(new Date(credit.createdAt), 'dd MMM, yyyy', { locale: es })}</p>
+                                        </div>
+                                        <Button size="sm" variant="secondary" onClick={() => setSelectedCredit(credit)}>
+                                            <Eye className="mr-2 h-4 w-4"/> Revisar
+                                        </Button>
+                                    </div>
+                                  ))}
+                               </div>
+                           ) : <p className="text-sm text-center text-muted-foreground py-4">No hay solicitudes pendientes.</p>}
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <CardTitle>Créditos Activos</CardTitle>
+                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setIsHistoryOpen(true)}>Ver Historial</Button>
+                            </div>
+                            <CardDescription>Da seguimiento a las líneas de crédito que has otorgado.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {activeCredits.length > 0 ? (
+                                <div className="space-y-2">
+                                  {activeCredits.map(credit => (
+                                      <div key={credit.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                          <div>
+                                              <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
+                                              <p className="text-xs text-muted-foreground">Monto: ${credit.amount.toFixed(2)}</p>
+                                          </div>
+                                           <Badge variant={credit.status === 'Atrasado' ? 'destructive' : 'default'}>{credit.status}</Badge>
+                                      </div>
+                                  ))}
+                                </div>
+                           ) : <p className="text-sm text-center text-muted-foreground py-4">No hay créditos activos.</p>}
+                        </CardContent>
+                    </Card>
+
+                </div>
+            </ScrollArea>
+             <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen} />
+             <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} />
+
+             {selectedCredit && (
+                <Dialog open={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)}>
+                    <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Revisar Solicitud de {selectedCredit.applicantIdentifier}</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <p className="text-sm">Frecuencia de pago solicitada: <span className="font-semibold">{selectedCredit.paymentFrequency}</span></p>
+                             <div className="grid grid-cols-3 gap-2">
+                               <a href={selectedCredit.documents.ineFront} target="_blank" rel="noopener noreferrer"><Image src={selectedCredit.documents.ineFront} alt="INE Frontal" width={100} height={60} className="rounded-md object-cover border"/></a>
+                               <a href={selectedCredit.documents.ineBack} target="_blank" rel="noopener noreferrer"><Image src={selectedCredit.documents.ineBack} alt="INE Trasera" width={100} height={60} className="rounded-md object-cover border"/></a>
+                               <a href={selectedCredit.documents.proofOfAddress} target="_blank" rel="noopener noreferrer"><Image src={selectedCredit.documents.proofOfAddress} alt="Comprobante" width={100} height={60} className="rounded-md object-cover border"/></a>
+                            </div>
+                             <div className="space-y-2 pt-4">
+                                <Label htmlFor="approval-amount">Monto a Aprobar</Label>
+                                <Input id="approval-amount" type="number" placeholder="Ingresa el monto del crédito" />
+                            </div>
+                        </div>
+                        <DialogFooter className="grid grid-cols-2 gap-2">
+                            <Button variant="destructive" onClick={() => { handleUpdateCreditStatus(selectedCredit.id, 'rejected'); setSelectedCredit(null); }}>Rechazar</Button>
+                            <Button onClick={() => { 
+                                const amount = parseFloat((document.getElementById('approval-amount') as HTMLInputElement).value);
+                                handleUpdateCreditStatus(selectedCredit.id, 'approved', amount);
+                                setSelectedCredit(null);
+                            }}>Aprobar Crédito</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+             )}
+        </>
+    );
+};
+
 export const DeliveryView = () => {
     const { state, dispatch } = useApp();
     const { isAuthenticated, deliveries: userDeliveries } = state.userProfile;
@@ -811,6 +953,7 @@ export const DeliveryView = () => {
                 d.id === deliveryId ? { ...d, status: newStatus } : d
             );
             dispatch({ type: 'UPDATE_USER_PROFILE', payload: { deliveries: updatedDeliveries } });
+            toast({title: 'Estado Actualizado', description: `La entrega ahora está ${newStatus}.`})
         } else {
              // In demo mode, we just show a toast
             toast({ title: 'Modo Demo', description: 'El estado de la entrega no se guardará.' });
@@ -1034,148 +1177,6 @@ export const ProductsView = () => {
             </ScrollArea>
              <CreateCatalogDialog isOpen={isAddCatalogOpen} onOpenChange={setIsAddCatalogOpen} />
              {editingCatalogId && <AddProductDialog isOpen={isAddProductOpen} onOpenChange={setIsAddProductOpen} catalogId={editingCatalogId} productToEdit={editingProduct} />}
-        </>
-    );
-};
-
-export const CreditView = () => {
-    const { state, dispatch } = useApp();
-    const { userProfile } = state;
-    const { toast } = useToast();
-    const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const [selectedCredit, setSelectedCredit] = useState<CreditLine | null>(null);
-
-    const pendingCredits = useMemo(() => userProfile.creditLines?.filter(cl => cl.status === 'pending') || [], [userProfile.creditLines]);
-    const activeCredits = useMemo(() => userProfile.creditLines?.filter(cl => cl.status === 'Al Corriente' || cl.status === 'Atrasado') || [], [userProfile.creditLines]);
-
-     const handleUpdateCreditStatus = (creditId: string, newStatus: 'approved' | 'rejected', amount?: number) => {
-        if (newStatus === 'approved' && (!amount || amount <= 0)) {
-            toast({ title: "Monto requerido", description: "Debes especificar un monto para aprobar el crédito.", variant: "destructive" });
-            return;
-        }
-
-        const updatedCreditLines = userProfile.creditLines?.map(cl => {
-            if (cl.id === creditId) {
-                return { ...cl, status: newStatus === 'approved' ? 'Al Corriente' : 'rejected', amount: amount || cl.amount, updatedAt: new Date().toISOString() };
-            }
-            return cl;
-        });
-
-        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { creditLines: updatedCreditLines } });
-        toast({ title: "Estado Actualizado", description: `La solicitud ha sido ${newStatus === 'approved' ? 'aprobada' : 'rechazada'}.` });
-    };
-
-    return (
-        <>
-            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                        <DollarSign className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold">Gestión de Créditos</h1>
-                    </div>
-                </div>
-            </header>
-            <ScrollArea className="flex-grow p-4 min-h-0">
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <CardTitle>Ofertas de Crédito</CardTitle>
-                                <Button size="sm" onClick={() => setIsCreateOfferOpen(true)}><Plus className="mr-2 h-4 w-4"/>Crear Oferta</Button>
-                            </div>
-                            <CardDescription>Crea y gestiona las ofertas de crédito que tus asistentes pueden ofrecer.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
-                        </CardContent>
-                    </Card>
-
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Solicitudes Pendientes ({pendingCredits.length})</CardTitle>
-                            <CardDescription>Revisa y aprueba o rechaza nuevas solicitudes de crédito.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           {pendingCredits.length > 0 ? (
-                               <div className="space-y-2">
-                                  {pendingCredits.map(credit => (
-                                    <div key={credit.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                        <div>
-                                            <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
-                                            <p className="text-xs text-muted-foreground">{format(new Date(credit.createdAt), 'dd MMM, yyyy', { locale: es })}</p>
-                                        </div>
-                                        <Button size="sm" variant="secondary" onClick={() => setSelectedCredit(credit)}>
-                                            <Eye className="mr-2 h-4 w-4"/> Revisar
-                                        </Button>
-                                    </div>
-                                  ))}
-                               </div>
-                           ) : <p className="text-sm text-center text-muted-foreground py-4">No hay solicitudes pendientes.</p>}
-                        </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <CardTitle>Créditos Activos</CardTitle>
-                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setIsHistoryOpen(true)}>Ver Historial</Button>
-                            </div>
-                            <CardDescription>Da seguimiento a las líneas de crédito que has otorgado.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {activeCredits.length > 0 ? (
-                                <div className="space-y-2">
-                                  {activeCredits.map(credit => (
-                                      <div key={credit.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                          <div>
-                                              <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
-                                              <p className="text-xs text-muted-foreground">Monto: ${credit.amount.toFixed(2)}</p>
-                                          </div>
-                                           <Badge variant={credit.status === 'Atrasado' ? 'destructive' : 'default'}>{credit.status}</Badge>
-                                      </div>
-                                  ))}
-                                </div>
-                           ) : <p className="text-sm text-center text-muted-foreground py-4">No hay créditos activos.</p>}
-                        </CardContent>
-                    </Card>
-
-                </div>
-            </ScrollArea>
-             <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen} />
-             <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} />
-
-             {selectedCredit && (
-                <Dialog open={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)}>
-                    <DialogContent className="sm:max-w-lg">
-                        <DialogHeader>
-                            <DialogTitle>Revisar Solicitud de {selectedCredit.applicantIdentifier}</DialogTitle>
-                        </DialogHeader>
-                        <div className="py-4 space-y-4">
-                            <p className="text-sm">Frecuencia de pago solicitada: <span className="font-semibold">{selectedCredit.paymentFrequency}</span></p>
-                             <div className="grid grid-cols-3 gap-2">
-                               <a href={selectedCredit.documents.ineFront} target="_blank" rel="noopener noreferrer"><Image src={selectedCredit.documents.ineFront} alt="INE Frontal" width={100} height={60} className="rounded-md object-cover border"/></a>
-                               <a href={selectedCredit.documents.ineBack} target="_blank" rel="noopener noreferrer"><Image src={selectedCredit.documents.ineBack} alt="INE Trasera" width={100} height={60} className="rounded-md object-cover border"/></a>
-                               <a href={selectedCredit.documents.proofOfAddress} target="_blank" rel="noopener noreferrer"><Image src={selectedCredit.documents.proofOfAddress} alt="Comprobante" width={100} height={60} className="rounded-md object-cover border"/></a>
-                            </div>
-                             <div className="space-y-2 pt-4">
-                                <Label htmlFor="approval-amount">Monto a Aprobar</Label>
-                                <Input id="approval-amount" type="number" placeholder="Ingresa el monto del crédito" />
-                            </div>
-                        </div>
-                        <DialogFooter className="grid grid-cols-2 gap-2">
-                            <Button variant="destructive" onClick={() => { handleUpdateCreditStatus(selectedCredit.id, 'rejected'); setSelectedCredit(null); }}>Rechazar</Button>
-                            <Button onClick={() => { 
-                                const amount = parseFloat((document.getElementById('approval-amount') as HTMLInputElement).value);
-                                handleUpdateCreditStatus(selectedCredit.id, 'approved', amount);
-                                setSelectedCredit(null);
-                            }}>Aprobar Crédito</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-             )}
         </>
     );
 };
