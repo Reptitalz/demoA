@@ -111,11 +111,11 @@ const rejectPaymentInDB = async (messageId: number) => {
 }
 
 const demoPendingPayments = [
-    { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0 },
-    { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantName: 'Asistente de Cobranza', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', status: 'pending', amount: 0 },
+    { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date() },
+    { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantName: 'Asistente de Cobranza', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date() },
 ];
 const demoCompletedPayments = [
-    { id: 'demo-3', messageId: 997, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 3', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'completed', amount: 1500 },
+    { id: 'demo-3', messageId: 997, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 3', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'completed', amount: 1500, receivedAt: new Date() },
 ];
 
 
@@ -171,7 +171,6 @@ export const BankView = () => {
             const pending = pendingMessages
                 .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type))
                 .map((msg, index) => {
-                    // Try to find the assistant associated with this message's session
                     const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath));
                     const content = msg.content as { type: string, url: string, name?: string };
                     return {
@@ -184,7 +183,7 @@ export const BankView = () => {
                         chatPath: msg.sessionId,
                         amount: 0.00,
                         receiptUrl: content.url,
-                        receivedAt: msg.time, // Assuming ChatMessage has a 'time' property
+                        receivedAt: new Date(), 
                         status: 'pending',
                     };
                 });
@@ -237,7 +236,6 @@ export const BankView = () => {
                 await authorizePaymentInDB(authorizedPayment);
                 toast({ title: "Acción Realizada", description: "El comprobante ha sido autorizado."});
                 
-                // Optimistic UI update
                 setAllPayments(prev => {
                     const pending = prev.filter(p => p.messageId !== messageId);
                     const completed = [...prev.filter(p => p.status === 'completed'), authorizedPayment];
@@ -248,7 +246,6 @@ export const BankView = () => {
                 await rejectPaymentInDB(messageId);
                 toast({ title: "Acción Realizada", description: "El comprobante ha sido rechazado y eliminado."});
                 
-                // Optimistic UI update
                 setAllPayments(prev => prev.filter(p => p.messageId !== messageId));
             }
         } catch(error) {
