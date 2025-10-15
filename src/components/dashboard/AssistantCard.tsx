@@ -108,6 +108,7 @@ const AssistantCard = ({
   // Status logic
   let badgeText: string;
   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+  const isNowActive = (assistant.isActive && assistant.numberReady) || (assistant.verificationCode && assistant.verificationCode.startsWith('A-'));
   
   if (assistant.type === 'desktop') {
     const trialDaysRemaining = assistant.trialStartDate ? 30 - differenceInDays(new Date(), new Date(assistant.trialStartDate)) : 0;
@@ -121,7 +122,7 @@ const AssistantCard = ({
       badgeText = "Inactivo";
     }
   } else { // WhatsApp
-      if (assistant.isActive && assistant.numberReady) {
+      if (isNowActive) {
           badgeText = "Activo";
           badgeVariant = "default";
       } else if (assistant.phoneLinked && !assistant.numberReady) {
@@ -242,7 +243,7 @@ const AssistantCard = ({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:pt-4">
-             {assistant.isActive && assistant.numberReady ? (
+             {isNowActive ? (
                 <>
                     <div className="flex items-center gap-2">
                          <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={assistant.type === 'desktop'}>
