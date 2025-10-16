@@ -92,7 +92,7 @@ const updateMessageStatusInDB = async (messageId: string, status: 'delivered' | 
 
 // --- Component ---
 
-const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage; assistant: AssistantConfig | null; onImageClick: (url: string) => void; }) => {
+const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageClick: (url: string) => void; }) => {
     const isUserMessage = message.role === 'user';
     const isGoogleMapsImage = typeof message.content === 'string' && message.content.includes('maps.googleapis.com/maps/api/staticmap');
 
@@ -108,12 +108,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
             className={cn("flex w-full max-w-lg", isUserMessage ? "justify-end ml-auto" : "justify-start mr-auto")}
         >
             <div className={cn("flex items-end gap-2", isUserMessage && "flex-row-reverse")}>
-                {!isUserMessage && (
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={assistant?.imageUrl} />
-                        <AvatarFallback>{assistant?.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                )}
+                
                 <div
                     className={cn(
                         "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed relative break-words",
@@ -722,71 +717,83 @@ const DesktopChatPage = () => {
 
   const showProductsButton = assistant?.catalogId && state.userProfile.catalogs?.some(c => c.id === assistant.catalogId);
   
+  const renderHeaderContent = () => {
+    if (isLoadingAssistant) {
+      return (
+        <div className="flex items-center gap-3 flex-grow">
+          <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+          <div className="space-y-1">
+            <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-20 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex items-center gap-3 flex-grow">
+          <p className="text-sm text-destructive">{error}</p>
+        </div>
+      );
+    }
+    
+    return (
+        <div className="flex items-center gap-3 flex-grow overflow-hidden">
+            <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
+                <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
+            </Avatar>
+            <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                 <div className="flex items-center gap-1.5">
+                    <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
+                    {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
+                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                            </svg>
+                        </Badge>
+                    )}
+                    {isAssistantChat && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+                    )}
+                </div>
+                <p className="text-xs text-green-500 font-medium">
+                   {isAssistantChat ? assistantStatusMessage : (contactIsOnline ? 'en línea' : 'desconectado')}
+                </p>
+            </div>
+            <div className="flex items-center gap-1">
+                {isPersonalChat && (
+                    <>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=video`)}>
+                            <FaVideo />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
+                            <FaPhone />
+                        </Button>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+  }
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 bg-card/80 backdrop-blur-sm text-foreground p-3 flex items-center shadow-md z-20 border-b">
         <Button variant="ghost" size="icon" className="h-8 w-8 mr-2" onClick={() => router.push('/chat/dashboard')}>
             <FaArrowLeft />
         </Button>
-        {isLoadingAssistant ? (
-            <div className="flex items-center gap-3 flex-grow">
-                <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
-                <div className="space-y-1">
-                    <div className="h-4 w-32 rounded bg-muted animate-pulse" />
-                    <div className="h-3 w-20 rounded bg-muted animate-pulse" />
-                </div>
-            </div>
-        ) : error ? (
-            <div className="flex items-center gap-3 flex-grow">
-                 <p className="text-sm text-destructive">{error}</p>
-            </div>
-        ) : (
-            <div className="flex items-center gap-3 flex-grow overflow-hidden">
-                <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                    <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
-                    <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
-                </Avatar>
-                <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                     <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
-                        {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
-                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                    <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                    <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                                </svg>
-                            </Badge>
-                        )}
-                        {isAssistantChat && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
-                        )}
-                    </div>
-                    <p className="text-xs text-green-500 font-medium">
-                       {isAssistantChat ? assistantStatusMessage : (contactIsOnline ? 'en línea' : 'desconectado')}
-                    </p>
-                </div>
-                <div className="flex items-center gap-1">
-                    {isPersonalChat && (
-                        <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=video`)}>
-                                <FaVideo />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
-                                <FaPhone />
-                            </Button>
-                        </>
-                    )}
-                </div>
-            </div>
-        )}
+        {renderHeaderContent()}
     </header>
     <main className="flex-1 overflow-y-auto relative pt-20">
         <div className="absolute inset-x-0 top-0 bottom-0 chat-background" />
         <div className="relative z-[1] p-4 flex flex-col gap-2 pb-28">
         <AnimatePresence>
             {messages.map((msg, index) => (
-                <ChatBubble key={msg.id || index} message={msg} assistant={assistant} onImageClick={setSelectedImage} />
+                <ChatBubble key={msg.id || index} message={msg} onImageClick={setSelectedImage} />
             ))}
         </AnimatePresence>
         {isSending && isAssistantChat && (
@@ -965,5 +972,3 @@ const DesktopChatPage = () => {
 };
 
 export default DesktopChatPage;
-
-    
