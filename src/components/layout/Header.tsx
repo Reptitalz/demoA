@@ -49,7 +49,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
             <nav className="flex items-center gap-2">
-                <NavLink href="/#features">Funciones</NavLink>
+                <NavLink href="/whatsapp">Productos</NavLink>
                 <NavLink href="/#pricing">Precios</NavLink>
                 <NavLink href="/colaboradores">Colaboradores</NavLink>
                 <NavLink href="#contact">Contacto</NavLink>
@@ -88,7 +88,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                             </Link>
                         </div>
                         <nav className="flex flex-col gap-2 p-4">
-                            <NavLink href="/#features" onClick={() => setIsSheetOpen(false)}>Funciones</NavLink>
+                            <NavLink href="/whatsapp" onClick={() => setIsSheetOpen(false)}>Productos</NavLink>
                             <NavLink href="/#pricing" onClick={() => setIsSheetOpen(false)}>Precios</NavLink>
                             <NavLink href="/colaboradores" onClick={() => setIsSheetOpen(false)}>Colaboradores</NavLink>
                             <NavLink href="#contact" onClick={() => setIsSheetOpen(false)}>Contacto</NavLink>
