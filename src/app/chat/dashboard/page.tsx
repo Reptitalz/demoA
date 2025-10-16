@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp } from 'react-icons/fa';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -33,6 +33,7 @@ import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/lib/db';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import AppIcon from '@/components/shared/AppIcon';
 
 
 interface StoredMessage {
@@ -371,9 +372,13 @@ export default function ChatListPage() {
                     </div>
                  ))
                  ) : (
-                    <div className="text-center py-16 text-muted-foreground">
-                        <p>No tienes chats activos.</p>
-                        <Button variant="link" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
+                    <div className="flex flex-col items-center justify-center h-[calc(100vh-300px)] text-center text-muted-foreground p-4">
+                        <div className="w-40 h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
+                            <FaWhatsapp className="h-20 w-20 text-gray-400 dark:text-gray-500"/>
+                        </div>
+                        <h2 className="text-xl font-semibold text-foreground">Bienvenido a {APP_NAME}</h2>
+                        <p className="max-w-xs mx-auto mt-2">Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.</p>
+                        <Button className="mt-6" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
                     </div>
                  )}
             </div>
