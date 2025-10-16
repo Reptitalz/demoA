@@ -79,7 +79,7 @@ const WhatsAppPage = () => {
                   Crea un asistente inteligente que trabaje para ti directamente en WhatsApp. Atiende a tus clientes, vende y gestiona tu negocio, todo de forma automática.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                <Button asChild size="lg" className="w-full sm:w-auto bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border">
                     <Link href={"/login"}>
                         <FaRobot className="mr-2" />
                         Crear Asistente de WhatsApp
