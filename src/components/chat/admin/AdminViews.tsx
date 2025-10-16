@@ -705,8 +705,8 @@ export const CreditView = () => {
                     </div>
                 </div>
             </header>
-            <ScrollArea className="flex-grow p-4 min-h-0">
-                <div className="space-y-6">
+            <ScrollArea className="flex-grow min-h-0">
+                <div className="p-4 space-y-6">
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
