@@ -67,8 +67,8 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-                <NavLink href="/#pricing">Precios</NavLink>
                 <NavLink href="/colaboradores">Colaboradores</NavLink>
+                <NavLink href="/#pricing">Precios</NavLink>
                 <NavLink href="#contact">Contacto</NavLink>
             </nav>
             <Separator orientation="vertical" className="h-6 mx-2" />
@@ -121,8 +121,8 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                            <NavLink href="/#pricing" onClick={() => setIsSheetOpen(false)}>Precios</NavLink>
                             <NavLink href="/colaboradores" onClick={() => setIsSheetOpen(false)}>Colaboradores</NavLink>
+                            <NavLink href="/#pricing" onClick={() => setIsSheetOpen(false)}>Precios</NavLink>
                             <NavLink href="#contact" onClick={() => setIsSheetOpen(false)}>Contacto</NavLink>
                         </nav>
                         <Separator />
