@@ -96,7 +96,8 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
     const isUserMessage = message.role === 'user';
     const isGoogleMapsImage = typeof message.content === 'string' && message.content.includes('maps.googleapis.com/maps/api/staticmap');
 
-    const checkmarkColor = message.status === 'read' ? 'text-sky-400' : 'text-muted-foreground/80';
+    const checkmarkColor = message.status === 'read' ? 'text-sky-400' : isUserMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80';
+
 
     return (
         <motion.div 
@@ -118,7 +119,7 @@ const ChatBubble = ({ message, assistant, onImageClick }: { message: ChatMessage
                         "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed relative break-words",
                         isUserMessage
                             ? "bg-primary text-primary-foreground rounded-br-none"
-                            : "bg-card rounded-bl-none",
+                            : "bg-card text-card-foreground rounded-bl-none",
                         isGoogleMapsImage ? "p-1" : "px-3 py-2"
                     )}
                 >
