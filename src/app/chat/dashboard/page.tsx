@@ -12,7 +12,7 @@ import type { AssistantConfig, Contact, CreditLine, UserProfile } from '@/types'
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
-import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck } from 'lucide-react';
+import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import PlansDialog from '@/components/dashboard/PlansDialog';
@@ -125,7 +125,7 @@ const MemberSectionButton = ({ icon: Icon, label, notificationCount, onClick }: 
 }
 
 export default function ChatListPage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const { state, dispatch } = useApp();
   const router = useRouter();
   const { toast } = useToast();
@@ -138,9 +138,18 @@ export default function ChatListPage() {
   const [activeSwipe, setActiveSwipe] = useState<{ chatPath: string; direction: 'left' | 'right' } | null>(null);
   const dragOccurred = useRef(false);
   const [alertInfo, setAlertInfo] = useState<{ type: 'delete' | 'clear', contact: Contact } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [authorizationsCount, setAuthorizationsCount] = useState(0);
   const [creditsCount, setCreditsCount] = useState(0);
+  
+  useEffect(() => {
+    // Only set loading to false when session is determined AND contacts have been loaded from context
+    if (sessionStatus !== 'loading' && state.contacts) {
+        setIsLoading(false);
+    }
+  }, [sessionStatus, state.contacts]);
+
 
   useEffect(() => {
     const fetchNotificationCounts = async () => {
@@ -244,6 +253,90 @@ export default function ChatListPage() {
     router.push(`/chat/conversation/${chat.chatPath}`);
   };
 
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-300px)]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    if (chatsToDisplay.length > 0) {
+      return chatsToDisplay.map((chat) => (
+        <div key={chat.chatPath} className="relative bg-background dark:bg-gray-900 rounded-lg overflow-hidden">
+          <AnimatePresence>
+            {activeSwipe?.chatPath === chat.chatPath && (
+              <motion.div
+                key="actions"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="absolute inset-y-0 left-0 flex items-center bg-gray-100 dark:bg-slate-800"
+              >
+                <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={() => showMemoryInfo(chat)}>
+                  <HardDrive size={20}/>
+                  <span className="text-xs mt-1">Info</span>
+                </Button>
+                <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-yellow-500/20 hover:bg-yellow-500/30 rounded-none" onClick={() => setAlertInfo({type: 'clear', contact: chat})}>
+                  <XCircle size={20}/>
+                  <span className="text-xs mt-1">Limpiar</span>
+                </Button>
+                <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={() => setAlertInfo({type: 'delete', contact: chat})}>
+                  <Trash2 size={20}/>
+                  <span className="text-xs mt-1">Borrar</span>
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <motion.div
+            drag="x"
+            dragConstraints={{ left: 0, right: 240 }}
+            onDragStart={(e) => { e.stopPropagation(); dragOccurred.current = false; }}
+            onDrag={(e) => { e.stopPropagation(); dragOccurred.current = true; }}
+            onDragEnd={(event, info) => {
+              const isSwipeRight = info.offset.x > 80;
+              if (isSwipeRight) {
+                setActiveSwipe({ chatPath: chat.chatPath, direction: 'right' });
+              } else {
+                setActiveSwipe(null);
+              }
+            }}
+            onClick={(e) => {
+              if (dragOccurred.current || activeSwipe) { e.stopPropagation(); return; }
+              handleChatItemClick(chat);
+            }}
+            animate={{ x: activeSwipe?.chatPath === chat.chatPath ? 240 : 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
+          >
+            <ChatItem 
+              chat={chat} 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleChatItemClick(chat);
+              }} 
+              userProfile={state.userProfile}
+              contacts={contacts}
+            />
+          </motion.div>
+        </div>
+      ));
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-300px)] text-center text-muted-foreground p-4">
+        <div className="w-40 h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
+          <FaWhatsapp className="h-20 w-20 text-gray-400 dark:text-gray-500"/>
+        </div>
+        <h2 className="text-xl font-semibold text-foreground">Bienvenido a {APP_NAME}</h2>
+        <p className="max-w-xs mx-auto mt-2">Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.</p>
+        <Button className="mt-6" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
+      </div>
+    );
+  };
+
   return (
     <>
     <div className="flex flex-col h-full bg-background dark:bg-gray-900 font-display pb-16 md:pb-0">
@@ -310,77 +403,7 @@ export default function ChatListPage() {
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
-                {chatsToDisplay.length > 0 ? (
-                 chatsToDisplay.map((chat) => (
-                    <div key={chat.chatPath} className="relative bg-background dark:bg-gray-900 rounded-lg overflow-hidden">
-                        <AnimatePresence>
-                            {activeSwipe?.chatPath === chat.chatPath && (
-                                <motion.div
-                                    key="actions"
-                                    initial={{ opacity: 0, x: -50 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -50 }}
-                                    transition={{ duration: 0.2, ease: 'easeInOut' }}
-                                    className="absolute inset-y-0 left-0 flex items-center bg-gray-100 dark:bg-slate-800"
-                                >
-                                     <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-blue-500/20 hover:bg-blue-500/30 rounded-none" onClick={() => showMemoryInfo(chat)}>
-                                        <HardDrive size={20}/>
-                                        <span className="text-xs mt-1">Info</span>
-                                    </Button>
-                                    <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-yellow-500/20 hover:bg-yellow-500/30 rounded-none" onClick={() => setAlertInfo({type: 'clear', contact: chat})}>
-                                        <XCircle size={20}/>
-                                        <span className="text-xs mt-1">Limpiar</span>
-                                    </Button>
-                                    <Button variant="ghost" className="h-full w-20 flex flex-col items-center justify-center text-muted-foreground bg-destructive/20 hover:bg-destructive/30 rounded-none" onClick={() => setAlertInfo({type: 'delete', contact: chat})}>
-                                        <Trash2 size={20}/>
-                                        <span className="text-xs mt-1">Borrar</span>
-                                    </Button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                         <motion.div
-                            drag="x"
-                            dragConstraints={{ left: 0, right: 240 }}
-                            onDragStart={(e) => { e.stopPropagation(); dragOccurred.current = false; }}
-                            onDrag={(e) => { e.stopPropagation(); dragOccurred.current = true; }}
-                            onDragEnd={(event, info) => {
-                                const isSwipeRight = info.offset.x > 80;
-                                if (isSwipeRight) {
-                                    setActiveSwipe({ chatPath: chat.chatPath, direction: 'right' });
-                                } else {
-                                    setActiveSwipe(null);
-                                }
-                            }}
-                            onClick={(e) => {
-                                if (dragOccurred.current || activeSwipe) { e.stopPropagation(); return; }
-                                handleChatItemClick(chat);
-                            }}
-                            animate={{ x: activeSwipe?.chatPath === chat.chatPath ? 240 : 0 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="relative z-10 cursor-grab active:cursor-grabbing bg-background dark:bg-gray-900"
-                        >
-                            <ChatItem 
-                                chat={chat} 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleChatItemClick(chat);
-                                }} 
-                                userProfile={state.userProfile}
-                                contacts={contacts}
-                            />
-                        </motion.div>
-                    </div>
-                 ))
-                 ) : (
-                    <div className="flex flex-col items-center justify-center h-[calc(100vh-300px)] text-center text-muted-foreground p-4">
-                        <div className="w-40 h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
-                            <FaWhatsapp className="h-20 w-20 text-gray-400 dark:text-gray-500"/>
-                        </div>
-                        <h2 className="text-xl font-semibold text-foreground">Bienvenido a {APP_NAME}</h2>
-                        <p className="max-w-xs mx-auto mt-2">Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.</p>
-                        <Button className="mt-6" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
-                    </div>
-                 )}
+                {renderContent()}
             </div>
         </main>
     </div>
