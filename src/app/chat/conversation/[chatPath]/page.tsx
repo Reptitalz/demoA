@@ -98,7 +98,6 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
 
     const checkmarkColor = message.status === 'read' ? 'text-sky-400' : isUserMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80';
 
-
     return (
         <motion.div 
             layout
@@ -108,14 +107,13 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
             className={cn("flex w-full max-w-lg", isUserMessage ? "justify-end ml-auto" : "justify-start mr-auto")}
         >
             <div className={cn("flex items-end gap-2", isUserMessage && "flex-row-reverse")}>
-                
                 <div
                     className={cn(
                         "rounded-xl max-w-xs md:max-w-md shadow-md text-sm leading-relaxed relative break-words",
-                        isUserMessage
-                            ? "bg-primary text-primary-foreground rounded-br-none"
-                            : "bg-card text-card-foreground rounded-bl-none",
-                        isGoogleMapsImage ? "p-1" : "px-3 py-2"
+                        isUserMessage ? "bg-primary text-primary-foreground" : "bg-card text-card-foreground",
+                        isGoogleMapsImage ? "p-1" : "px-3 py-2",
+                        !isUserMessage && "rounded-bl-none",
+                        isUserMessage && "rounded-br-none"
                     )}
                 >
                     {typeof message.content === 'string' ? (
@@ -128,12 +126,12 @@ const ChatBubble = ({ message, onImageClick }: { message: ChatMessage; onImageCl
                         )
                     ) : message.content.type === 'image' ? (
                         <div className="cursor-pointer" onClick={() => onImageClick(message.content.url)}>
-                            <Image
+                             <Image
                                 src={message.content.url}
                                 alt="Imagen enviada"
-                                width={200}
-                                height={200}
-                                className="rounded-md"
+                                width={250}
+                                height={250}
+                                className="rounded-md object-cover max-w-full h-auto"
                             />
                         </div>
                     ) : message.content.type === 'audio' ? (
