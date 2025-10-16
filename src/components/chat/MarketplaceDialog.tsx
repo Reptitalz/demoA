@@ -87,12 +87,12 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
     const total = demoCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+                <DialogHeader className="p-4 border-b">
                     <DialogTitle>Carrito de Compras</DialogTitle>
                     <DialogDescription>Revisa tus productos antes de pagar.</DialogDescription>
                 </DialogHeader>
-                 <ScrollArea className="max-h-[50vh] -mx-6 px-6">
+                 <ScrollArea className="flex-grow p-4">
                     <div className="py-4 space-y-4">
                         {demoCart.map(item => (
                              <div key={item.id} className="flex items-center gap-4">
@@ -106,14 +106,14 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
                         ))}
                     </div>
                 </ScrollArea>
-                <Separator />
-                <div className="flex justify-between items-center font-bold text-lg">
-                    <span>Total:</span>
-                    <span>${total.toFixed(2)}</span>
-                </div>
-                <DialogFooter>
+                 <div className="p-4 border-t mt-auto">
+                    <Separator className="mb-4" />
+                    <div className="flex justify-between items-center font-bold text-lg mb-4">
+                        <span>Total:</span>
+                        <span>${total.toFixed(2)}</span>
+                    </div>
                     <Button className="w-full">Proceder al Pago</Button>
-                </DialogFooter>
+                </div>
             </DialogContent>
     </Dialog>
     )
