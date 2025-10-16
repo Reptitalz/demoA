@@ -98,7 +98,7 @@ const CallPage = () => {
             )}
 
             {/* Call Info */}
-            <div className="absolute top-16 left-1/2 -translate-x-1/2 text-center">
+             <div className="absolute top-16 left-1/2 -translate-x-1/2 text-center p-4 bg-black/50 backdrop-blur-sm rounded-xl" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.5)'}}>
                 <h1 className="text-2xl font-bold">{contact?.name || 'Desconocido'}</h1>
                 <p className="text-sm text-white/80">{callStatus}</p>
             </div>
