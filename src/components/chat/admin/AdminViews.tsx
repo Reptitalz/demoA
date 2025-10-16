@@ -1015,7 +1015,7 @@ export const DeliveryView = () => {
                                         </Button>
                                     ) : (
                                          <Button size="sm" onClick={() => handleUpdateStatus(delivery.id, 'delivered')} className="bg-green-600 hover:bg-green-700">
-                                            <CheckCircle className="mr-2 h-4 w-4" /> Marcar como Entregado
+                                            <CheckCircle className="mr-2 h-4 w-4" /> Entrega Completada
                                         </Button>
                                     )}
                                 </CardFooter>
