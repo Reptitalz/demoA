@@ -6,60 +6,30 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSignInAlt, FaDollarSign } from 'react-icons/fa';
+import { FaSignInAlt, FaRocket, FaBars, FaWhatsapp } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { FaChevronDown, FaWhatsapp, FaUserFriends, FaRocket, FaEnvelope, FaBars } from 'react-icons/fa';
 import { Separator } from '../ui/separator';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   fullWidth?: boolean;
 }
 
-const NavLinks = ({ inSheet = false, onNavigate }: { inSheet?: boolean, onNavigate?: () => void }) => {
+const NavLink = ({ href, children, onClick }: { href: string; children: React.ReactNode; onClick?: () => void }) => {
     const router = useRouter();
 
-    const handleLinkClick = (path: string) => {
-        router.push(path);
-        if (onNavigate) {
-            onNavigate();
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        router.push(href);
+        if (onClick) {
+            onClick();
         }
     };
-
+    
     return (
-        <>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        Productos <FaChevronDown className="h-3 w-3" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => handleLinkClick('/whatsapp')}>
-                        <FaWhatsapp className="mr-2" /> Hey Manito! WhatsApp
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleLinkClick('/')}>
-                        <AppIcon className="mr-2 h-4 w-4" /> Hey Manito! App
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button variant="ghost" size="sm" asChild>
-                <Link href="/#pricing" onClick={onNavigate}><FaDollarSign className="mr-2" />Precios</Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleLinkClick('/colaboradores')}>
-                <FaUserFriends className="mr-2" /> Colaboradores
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-                <Link href="#contact" onClick={onNavigate}>Contacto</Link>
-            </Button>
-        </>
+        <Link href={href} onClick={handleClick} className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            {children}
+        </Link>
     );
 };
 
@@ -78,20 +48,27 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
-            <NavLinks />
+            <nav className="flex items-center gap-2">
+                <NavLink href="/#features">Funciones</NavLink>
+                <NavLink href="/#pricing">Precios</NavLink>
+                <NavLink href="/colaboradores">Colaboradores</NavLink>
+                <NavLink href="#contact">Contacto</NavLink>
+            </nav>
             <Separator orientation="vertical" className="h-6 mx-2" />
-            <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
-                <FaSignInAlt className="mr-2 h-4 w-4" />
-                Iniciar sesión
-            </Button>
-             <Button 
-                size="sm" 
-                onClick={() => router.push('/make')}
-                className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
-              >
-                <FaRocket className="mr-2 h-4 w-4"/>
-                Crear Asistente
-            </Button>
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
+                    <FaSignInAlt className="mr-2 h-4 w-4" />
+                    Iniciar sesión
+                </Button>
+                 <Button 
+                    size="sm" 
+                    onClick={() => router.push('/make')}
+                    className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                  >
+                    <FaRocket className="mr-2 h-4 w-4"/>
+                    Crear Asistente
+                </Button>
+            </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -110,11 +87,14 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                                 <h1 className="font-bold text-foreground text-lg">{APP_NAME}</h1>
                             </Link>
                         </div>
-                        <div className="flex flex-col items-stretch text-left gap-1 p-4">
-                            <NavLinks inSheet={true} onNavigate={() => setIsSheetOpen(false)} />
-                        </div>
+                        <nav className="flex flex-col gap-2 p-4">
+                            <NavLink href="/#features" onClick={() => setIsSheetOpen(false)}>Funciones</NavLink>
+                            <NavLink href="/#pricing" onClick={() => setIsSheetOpen(false)}>Precios</NavLink>
+                            <NavLink href="/colaboradores" onClick={() => setIsSheetOpen(false)}>Colaboradores</NavLink>
+                            <NavLink href="#contact" onClick={() => setIsSheetOpen(false)}>Contacto</NavLink>
+                        </nav>
                         <Separator />
-                        <div className="p-4 mt-auto space-y-2">
+                        <div className="p-4 mt-auto space-y-3">
                              <Button 
                                 size="sm" 
                                 onClick={() => { router.push('/make'); setIsSheetOpen(false); }}
