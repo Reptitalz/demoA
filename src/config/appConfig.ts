@@ -1,6 +1,6 @@
 
 import type { AssistantPurpose, AuthProviderType } from '@/types';
-import { FaGoogle, FaBrain, FaBell } from 'react-icons/fa';
+import { FaGoogle, FaBrain, FaBell, FaCheckSquare } from 'react-icons/fa';
 import type React from 'react';
 
 export const APP_NAME = "Hey Manito!";
@@ -25,6 +25,12 @@ export const assistantPurposesConfig: AssistantPurpose[] = [
     name: "Notificar al Propietario",
     description: "Recibe notificaciones en tu WhatsApp cuando ocurran eventos importantes.",
     icon: FaBell
+  },
+  {
+    id: "manage_authorizations",
+    name: "Gestionar Autorizaciones",
+    description: "Recibe y gestiona comprobantes de pago y otros documentos.",
+    icon: FaCheckSquare
   }
 ];
 

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaBookReader } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,9 +20,9 @@ import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { AssistantConfig, AssistantMemory, AssistantWithMemory } from '@/types';
+import type { Authorization, AssistantConfig, AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
-import ConversationsDialog from './ConversationsDialog';
+import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
 import { BookText, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
 import InstructionsDialog from '../chat/admin/InstructionsDialog';
 import ReceiptDialog from '../chat/admin/ReceiptDialog';
@@ -30,11 +31,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Demo data for new trays
-const demoPendingPayments = [
-    { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date() },
-    { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantName: 'Asistente de Cobranza', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', status: 'pending', amount: 0, receivedAt: subDays(new Date(), 1) },
-];
 
 const DashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -68,8 +64,12 @@ const DashboardPageContent = () => {
           phoneLinked: '+15551234567',
           messageCount: 1250,
           monthlyMessageLimit: 5000,
-          purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
-          databaseId: 'demo-db-1'
+          purposes: ['import_spreadsheet', 'notify_owner +15551234567', 'manage_authorizations'],
+          databaseId: 'demo-db-1',
+          authorizations: [
+            { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantId: 'demo-asst-1', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date().toISOString(), chatPath: '' },
+            { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantId: 'demo-asst-1', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', receiptUrl: '', status: 'pending', amount: 0, receivedAt: subDays(new Date(), 1).toISOString(), chatPath: '' },
+          ]
       },
       {
           id: 'demo-asst-2',
@@ -195,8 +195,8 @@ const DashboardPageContent = () => {
     setIsInstructionsDialogOpen(true);
   };
   
-  const handleOpenReceipt = (payment: any) => {
-    setSelectedPayment(payment);
+  const handleOpenReceipt = (payment: any, assistantName: string) => {
+    setSelectedPayment({...payment, assistantName});
     setIsReceiptDialogOpen(true);
   }
 
@@ -204,6 +204,41 @@ const DashboardPageContent = () => {
     setSelectedAssistant(assistant);
     setIsNotifierDialogOpen(true);
   }
+  
+  const handleReceiptAction = async (authId: string, assistantId: string, action: 'completed' | 'rejected', amount?: number) => {
+    try {
+        const response = await fetch('/api/authorizations', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ authorizationId: authId, assistantId, status: action, amount }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al actualizar la autorización');
+        }
+        
+        // Optimistic update on the frontend
+        const updatedAssistants = profileToRender.assistants.map(asst => {
+            if (asst.id === assistantId) {
+                return {
+                    ...asst,
+                    authorizations: (asst.authorizations || []).map(auth => 
+                        auth.id === authId ? { ...auth, status: action, amount: action === 'completed' ? amount || auth.amount : auth.amount } : auth
+                    )
+                };
+            }
+            return asst;
+        });
+
+        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants as any } });
+        toast({ title: 'Éxito', description: `El comprobante ha sido ${action === 'completed' ? 'aprobado' : 'rechazado'}.` });
+
+    } catch (error: any) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+        setIsReceiptDialogOpen(false);
+    }
+  };
 
 
   if (loadingStatus.active && !isDemoMode) {
@@ -260,11 +295,15 @@ const DashboardPageContent = () => {
     }
     
     if (isDatabasesPage) {
+      const allPendingAuthorizations = profileToRender.assistants.flatMap(a => 
+        (a.authorizations || []).filter(auth => auth.status === 'pending').map(auth => ({ ...auth, assistantName: a.name, assistantId: a.id }))
+      );
+
       return (
         <Tabs defaultValue="instructions" className="w-full animate-fadeIn">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
-              <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones</TabsTrigger>
+              <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
               <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
             </TabsList>
             <TabsContent value="instructions" className="mt-4">
@@ -293,17 +332,19 @@ const DashboardPageContent = () => {
                   </CardHeader>
                   <CardContent>
                       <div className="space-y-2">
-                          {demoPendingPayments.map(payment => (
+                          {allPendingAuthorizations.length > 0 ? allPendingAuthorizations.map(payment => (
                               <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                                   <div className="overflow-hidden">
                                       <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
-                                      <p className="text-xs text-muted-foreground">Recibido: {format(payment.receivedAt, "dd MMM, h:mm a", { locale: es })}</p>
+                                      <p className="text-xs text-muted-foreground">Recibido: {format(new Date(payment.receivedAt), "dd MMM, h:mm a", { locale: es })}</p>
                                   </div>
-                                  <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment)}>
+                                  <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment, payment.assistantName)}>
                                       <Eye className="mr-2 h-3 w-3"/> Revisar
                                   </Button>
                               </div>
-                          ))}
+                          )) : (
+                            <p className="text-center text-muted-foreground text-sm py-4">No hay autorizaciones pendientes.</p>
+                          )}
                       </div>
                   </CardContent>
                 </Card>
@@ -483,6 +524,7 @@ const DashboardPageContent = () => {
             payment={selectedPayment}
             isOpen={isReceiptDialogOpen}
             onOpenChange={setIsReceiptDialogOpen}
+            onAction={handleReceiptAction as any}
         />
     </>
   );

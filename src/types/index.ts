@@ -13,7 +13,7 @@ declare module 'next-auth' {
 }
 
 
-export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db" | "sell_credits" | "sell_products";
+export type AssistantPurposeType = "import_spreadsheet" | "notify_owner" | "notify_clients" | "create_smart_db" | "sell_credits" | "sell_products" | "manage_authorizations";
 
 export interface AssistantPurpose {
   id: AssistantPurposeType;
@@ -76,6 +76,19 @@ export interface AssistantTools {
   googleSheets?: GoogleSheetsTool;
 }
 
+export interface Authorization {
+  id: string;
+  messageId?: number; // from IndexedDB if applicable
+  product: string; // e.g. 'Comprobante (imagen)'
+  fileName?: string;
+  userName: string; // from userIdentifier
+  chatPath: string; // session ID
+  amount: number;
+  receiptUrl: string; // data URL
+  receivedAt: string; // ISO date string
+  status: 'pending' | 'completed' | 'rejected';
+}
+
 export interface AssistantConfig {
   id: string;
   name: string;
@@ -100,6 +113,7 @@ export interface AssistantConfig {
   trialStartDate?: string;
   isPlanActive?: boolean;
   accountType?: 'personal' | 'business'; // Added for business verification badge
+  authorizations?: Authorization[];
 }
 
 export type AuthProviderType = "google" | "phone" | "email";
