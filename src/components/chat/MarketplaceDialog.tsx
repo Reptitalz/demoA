@@ -46,11 +46,17 @@ const demoCart = [
 
 const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
-    const { deliveries, assistants } = state.userProfile;
+    const { deliveries, assistants, isAuthenticated } = state.userProfile;
+
+    const demoDeliveries: Delivery[] = [
+        { id: 'demo-delivery-1', productName: 'Asesoría de Marketing', productValue: 1500.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'en_route', clientName: 'Juan Pérez' },
+        { id: 'demo-delivery-2', productName: 'Clases de Guitarra', productValue: 300.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'pending', clientName: 'Sofía Luna' },
+    ];
 
     const activeDeliveries = useMemo(() => {
-        return (deliveries || []).filter(d => d.status !== 'delivered');
-    }, [deliveries]);
+        const source = isAuthenticated ? (deliveries || []) : demoDeliveries;
+        return source.filter(d => d.status !== 'delivered');
+    }, [deliveries, isAuthenticated]);
 
     const getAssistantName = (assistantId: string | undefined) => {
         if (!assistantId) return 'Vendedor Desconocido';
@@ -163,8 +169,11 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     const [isCartOpen, setIsCartOpen] = useState(false);
 
     const activeDeliveriesCount = useMemo(() => {
-        return (state.userProfile.deliveries || []).filter(d => d.status !== 'delivered').length;
-    }, [state.userProfile.deliveries]);
+        const source = state.userProfile.isAuthenticated ? (state.userProfile.deliveries || []) : [{}, {}]; // Demo count
+        return source.filter(d => d.status !== 'delivered').length;
+    }, [state.userProfile.deliveries, state.userProfile.isAuthenticated]);
+    
+    const cartItemCount = demoCart.length;
 
 
     useEffect(() => {
@@ -239,22 +248,29 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             </div>
             
              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
+                 <div className="relative w-full">
                     <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center w-full" onClick={() => setIsOrdersOpen(true)}>
                         <Truck className="h-6 w-6" />
                         <span className="text-xs">Mis Pedidos</span>
                     </Button>
                     {activeDeliveriesCount > 0 && (
                         <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background">
-                            {activeDeliveriesCount}
+                            {activeDeliveriesCount > 9 ? '9+' : activeDeliveriesCount}
                         </div>
                     )}
                 </div>
 
-                <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center" onClick={() => setIsCartOpen(true)}>
-                    <ShoppingCart className="h-6 w-6" />
-                    <span className="text-xs">Carrito</span>
-                </Button>
+                <div className="relative w-full">
+                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center w-full" onClick={() => setIsCartOpen(true)}>
+                        <ShoppingCart className="h-6 w-6" />
+                        <span className="text-xs">Carrito</span>
+                    </Button>
+                     {cartItemCount > 0 && (
+                        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background">
+                            {cartItemCount > 9 ? '9+' : cartItemCount}
+                        </div>
+                    )}
+                </div>
             </div>
         </motion.div>
     );
