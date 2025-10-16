@@ -265,17 +265,20 @@ export interface WizardState {
     relevantColumnsDescription?: string;
   };
   authMethod: AuthProviderType | null;
-  // User details, now optional in the wizard itself
+  // User details, now part of the wizard for new user onboarding
   firstName: string;
   lastName: string;
   email: string;
   imageUrl?: string;
   address: UserAddress;
+  accountType?: 'personal' | 'business';
+  chatMode?: 'me' | 'ia';
+
+
   ownerPhoneNumberForNotifications: string;
   isReconfiguring: boolean;
   editingAssistantId: string | null;
   acceptedTerms: boolean;
-  accountType?: 'personal' | 'business';
 }
 
 export interface LoadingStatus {

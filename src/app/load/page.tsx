@@ -22,6 +22,8 @@ const LoadPage = () => {
         router.prefetch('/chat/updates');
         router.prefetch('/chat/profile');
         router.prefetch('/chat/admin');
+        router.prefetch('/chat');
+        router.prefetch('/chat/begin');
     }, [router]);
 
 

@@ -82,7 +82,7 @@ type Action =
   | { type: 'SET_AUTH_METHOD'; payload: AuthProviderType | null }
   | { type: 'UPDATE_OWNER_PHONE_NUMBER'; payload: string }
   | { type: 'SET_TERMS_ACCEPTED'; payload: boolean }
-  | { type: 'UPDATE_WIZARD_USER_DETAILS'; payload: { field: keyof WizardState; value: string | UserAddress } }
+  | { type: 'UPDATE_WIZARD_USER_DETAILS'; payload: { field: keyof WizardState; value: any } }
   | { type: 'COMPLETE_SETUP'; payload: UserProfile }
   | { type: 'RESET_WIZARD' }
   | { type: 'SYNC_PROFILE_FROM_API'; payload: UserProfile }
@@ -212,7 +212,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       const updatedUserProfile = { ...state.userProfile, ...action.payload };
       if (action.payload.catalogs) {
           updatedUserProfile.allProducts = (action.payload.catalogs || []).flatMap(catalog =>
-              catalog.products.map(product => ({ ...product, seller: catalog.name }))
+              catalog.products.map(p => ({ ...p, seller: catalog.name }))
           );
       }
       return { ...state, userProfile: updatedUserProfile };
@@ -388,27 +388,28 @@ async function saveUserProfile(userProfile: UserProfile): Promise<void> {
 async function createNewUserProfile(user: any, wizardState: WizardState): Promise<UserProfile> {
     
     let newAssistants: AssistantConfig[] = [];
-    if (wizardState.assistantType) {
-        const isDesktopAssistant = wizardState.assistantType === 'desktop';
-        const assistantName = wizardState.assistantName || (isDesktopAssistant ? "Mi Asistente de Escritorio" : "Mi Asistente de WhatsApp");
+    // The new onboarding flow always creates one "desktop" assistant
+    // which is the user's personal chat profile.
+    const assistantName = wizardState.firstName || user.name?.split(' ')[0] || 'Mi Perfil';
 
-        newAssistants.push({
-          id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-          name: assistantName,
-          type: wizardState.assistantType,
-          prompt: wizardState.assistantPrompt || "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
-          purposes: Array.from(wizardState.selectedPurposes),
-          isActive: isDesktopAssistant,
-          numberReady: isDesktopAssistant,
-          messageCount: 0,
-          monthlyMessageLimit: isDesktopAssistant ? 10000 : 0,
-          imageUrl: wizardState.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
-          chatPath: generateChatPath(assistantName),
-          isFirstDesktopAssistant: isDesktopAssistant,
-          trialStartDate: isDesktopAssistant ? new Date().toISOString() : undefined,
-          accountType: 'personal',
-        });
-    }
+    newAssistants.push({
+      id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: assistantName,
+      type: 'desktop', // This is their personal chat profile assistant
+      prompt: wizardState.chatMode === 'ia' 
+        ? "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa en nombre de " + assistantName
+        : "Este es un perfil de usuario, no un bot. No respondas automáticamente.",
+      purposes: wizardState.chatMode === 'ia' ? ['create_smart_db'] : [],
+      isActive: true,
+      numberReady: true,
+      messageCount: 0,
+      monthlyMessageLimit: 10000,
+      imageUrl: wizardState.imageUrl || user.image || DEFAULT_ASSISTANT_IMAGE_URL,
+      chatPath: generateChatPath(assistantName),
+      isFirstDesktopAssistant: true,
+      trialStartDate: new Date().toISOString(),
+      accountType: wizardState.accountType,
+    });
     
     const userName = wizardState.firstName || user.name?.split(' ')[0] || '';
     
@@ -424,6 +425,7 @@ async function createNewUserProfile(user: any, wizardState: WizardState): Promis
       databases: [],
       catalogs: [],
       credits: 0,
+      accountType: wizardState.accountType || 'personal',
     };
     
     const response = await fetch('/api/create-user-profile', {
