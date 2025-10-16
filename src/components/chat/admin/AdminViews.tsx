@@ -937,28 +937,35 @@ export const CreditView = () => {
 
 export const DeliveryView = () => {
     const { state, dispatch } = useApp();
-    const { isAuthenticated, deliveries: userDeliveries } = state.userProfile;
+    const { isAuthenticated, deliveries: userDeliveries, assistants } = state.userProfile;
     const { toast } = useToast();
 
-    const initialDeliveries: Delivery[] = [
-        { id: 'demo-delivery-1', productName: 'Pastel de Chocolate Grande', productValue: 450.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'pending', clientName: 'Homero Simpson' },
-        { id: 'demo-delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María' },
+    // Use demo data only if not authenticated
+    const demoDeliveries: Delivery[] = [
+        { id: 'demo-delivery-1', productName: 'Pastel de Chocolate Grande', productValue: 450.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'pending', clientName: 'Homero Simpson', assistantId: 'demo-asst-1' },
+        { id: 'demo-delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María', assistantId: 'demo-asst-2' },
     ];
     
-    const deliveries = isAuthenticated ? (userDeliveries || []) : initialDeliveries;
+    const deliveries = isAuthenticated ? (userDeliveries || []) : demoDeliveries;
 
     const handleUpdateStatus = (deliveryId: string, newStatus: 'pending' | 'en_route' | 'delivered') => {
         if (isAuthenticated) {
-            const updatedDeliveries = deliveries.map(d => 
+            const updatedDeliveries = (userDeliveries || []).map(d => 
                 d.id === deliveryId ? { ...d, status: newStatus } : d
             );
             dispatch({ type: 'UPDATE_USER_PROFILE', payload: { deliveries: updatedDeliveries } });
-            toast({title: 'Estado Actualizado', description: `La entrega ahora está ${newStatus}.`})
+            toast({title: 'Estado Actualizado', description: `La entrega ahora está como '${newStatus}'.`})
         } else {
-             // In demo mode, we just show a toast
             toast({ title: 'Modo Demo', description: 'El estado de la entrega no se guardará.' });
         }
     };
+    
+     const getAssistantName = (assistantId: string | undefined) => {
+        if (!assistantId) return 'Vendedor Desconocido';
+        const assistant = assistants.find(a => a.id === assistantId);
+        return assistant?.name || 'Vendedor Desconocido';
+    };
+
 
     return (
         <>
