@@ -1,4 +1,3 @@
-
 // src/app/chat/call/[id]/page.tsx
 "use client";
 
@@ -65,7 +64,7 @@ const CallPage = () => {
     };
 
     return (
-        <div className="flex flex-col h-full w-full bg-slate-800 text-white relative">
+        <div className="flex flex-col h-full w-full bg-black text-white relative">
             {/* Remote User Video (background) or Avatar */}
             <div className="absolute inset-0 flex items-center justify-center">
                  {!isCameraOff && callType === 'video' ? (
@@ -74,7 +73,7 @@ const CallPage = () => {
                         <p className="text-muted-foreground">Video del Contacto</p>
                      </div>
                 ) : (
-                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+                    <div className="w-full h-full bg-black flex items-center justify-center">
                          <Avatar className="h-40 w-40">
                             <AvatarImage src={contact?.imageUrl} alt={contact?.name} />
                             <AvatarFallback className="text-6xl">{contact?.name?.charAt(0)}</AvatarFallback>
