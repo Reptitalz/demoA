@@ -57,7 +57,7 @@ const LoadPage = () => {
             setTimeout(() => {
                 if (status === 'authenticated') {
                     router.replace('/chat/dashboard');
-                } else if (status === 'unauthenticated') {
+                } else { // Catches 'unauthenticated' and any other state
                     router.replace('/chat');
                 }
             }, 300); // Short delay for animation to complete

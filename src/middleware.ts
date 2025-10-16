@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -18,6 +19,12 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/chat/admin') || // The new admin section in chat
       pathname.startsWith('/chat/dashboard') || // The new chat dashboard
       pathname.startsWith('/colaboradores/dashboard'); // The collaborator dashboard
+
+  // The base /chat route should be public, but it's caught by the matcher.
+  // We explicitly exclude it from the protected check.
+  if (pathname === '/chat') {
+    return NextResponse.next();
+  }
 
   if (isProtectedRoute) {
     const token = await getToken({ req, secret, raw: true });
