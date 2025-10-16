@@ -484,7 +484,7 @@ const DesktopChatPage = () => {
     if (e) e.preventDefault();
     const messageToSend = messageOverride || currentMessage;
     
-    if (!messageToSend.trim() || isSending) return;
+    if (!messageToSend.trim()) return;
     
     const messageId = `${Date.now()}_${Math.random()}`;
 
@@ -514,7 +514,7 @@ const DesktopChatPage = () => {
   
  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || isSending) return;
+    if (!file) return;
 
     const MAX_SIZE = 800; // Max width/height 800px
     const QUALITY = 0.7; // 70% JPEG quality
@@ -780,7 +780,7 @@ const DesktopChatPage = () => {
             </div>
         );
     }
-
+    
     return null;
   }
 
@@ -876,12 +876,11 @@ const DesktopChatPage = () => {
           <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
             <Input
                 type="text"
-                placeholder={isAssistantChat && !assistant?.isActive ? "El asistente IA está desactivado" : "Escribe un mensaje..."}
+                placeholder="Escribe un mensaje..."
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 className="bg-card rounded-full flex-1 border-none focus-visible:ring-1 focus-visible:ring-primary h-11 text-base"
                 autoComplete="off"
-                disabled={isSending || (isAssistantChat && !assistant?.isActive)}
             />
             <input
                 type="file"
@@ -905,7 +904,7 @@ const DesktopChatPage = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             />
             {currentMessage.trim() ? (
-                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" disabled={isSending || !currentMessage.trim() || (isAssistantChat && !assistant?.isActive)}>
+                <Button type="submit" size="icon" className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11">
                     <FaPaperPlane className="h-5 w-5" />
                 </Button>
             ) : (
@@ -913,7 +912,6 @@ const DesktopChatPage = () => {
                     type="button" 
                     size="icon" 
                     className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" 
-                    disabled={isSending || (isAssistantChat && !assistant?.isActive)}
                     onMouseDown={startRecording}
                     onMouseUp={stopRecordingAndSend}
                     onTouchStart={startRecording}
