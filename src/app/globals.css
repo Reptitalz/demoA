@@ -11,19 +11,19 @@ body {
   :root {
     /* Light Theme Only */
     --background: 220 20% 98%;
-    --foreground: 0 0% 0%; /* Changed to black for high contrast */
+    --foreground: 224 71% 4%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%; /* Changed to black */
+    --card-foreground: 224 71% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%; /* Changed to black */
+    --popover-foreground: 224 71% 4%;
 
     --primary: 262 80% 58%; /* Vibrant Purple */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 14% 90%;
-    --secondary-foreground: 0 0% 0%; /* Changed to black */
+    --secondary-foreground: 224 71% 4%;
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 40%;
@@ -292,4 +292,19 @@ body {
   'opsz' 24
 }
 
-    
+/* Custom styles for react-phone-number-input */
+.phone-input-root .PhoneInputCountry {
+    @apply bg-card border border-input rounded-l-md px-2;
+}
+.phone-input-root .PhoneInputInput {
+    @apply h-10 w-full rounded-r-md border border-input bg-transparent px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
+    border-left: none; /* Remove left border from the input itself */
+}
+.phone-input-root .PhoneInputCountrySelect {
+  @apply text-foreground;
+}
+
+@keyframes scan {
+    0% { transform: translateY(-10%); }
+    100% { transform: translateY(110%); }
+}
