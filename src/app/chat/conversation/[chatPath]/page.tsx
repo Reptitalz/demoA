@@ -729,6 +729,7 @@ const DesktopChatPage = () => {
         </div>
       );
     }
+    
     if (error) {
       return (
         <div className="flex items-center gap-3 flex-grow">
@@ -736,6 +737,7 @@ const DesktopChatPage = () => {
         </div>
       );
     }
+
     if (chatPartner) {
         return (
             <div className="flex items-center gap-3 flex-grow overflow-hidden">
@@ -766,10 +768,10 @@ const DesktopChatPage = () => {
                 <div className="flex items-center gap-1">
                     {isPersonalChat && (
                         <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=video`)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => router.push(`/chat/call/${chatPath}?type=video`)}>
                                 <FaVideo />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
                                 <FaPhone />
                             </Button>
                         </>
@@ -778,6 +780,7 @@ const DesktopChatPage = () => {
             </div>
         );
     }
+
     return null;
   }
 
