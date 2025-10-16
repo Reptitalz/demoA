@@ -12,7 +12,7 @@ import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import type { AssistantConfig, CreditOffer } from '@/types';
+import type { AssistantConfig, CreditOffer, Delivery } from '@/types';
 import CreditApplicationDialog from './CreditApplicationDialog';
 import { useApp } from '@/providers/AppProvider';
 import { Separator } from '../ui/separator';
@@ -39,48 +39,65 @@ const demoItems = {
   ]
 };
 
-const demoOrders = [
-    { id: 'order1', product: 'Asesoría de Marketing', price: 1500, status: 'En camino', seller: 'Juan Pérez', imageUrl: 'https://i.imgur.com/8p8Yf9u.png', address: 'Calle Falsa 123, CDMX' },
-    { id: 'order2', product: 'Clases de Guitarra', price: 300, status: 'Pendiente de inicio', seller: 'Sofía Luna', imageUrl: 'https://i.imgur.com/cQ0Dvhv.png', address: 'Servicio en línea' },
-];
-
 const demoCart = [
      { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1 },
 ];
 
 
-const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
-            <DialogHeader className="p-4 border-b">
-                <DialogTitle>Mis Pedidos</DialogTitle>
-                <DialogDescription>Aquí puedes ver el estado de tus compras.</DialogDescription>
-            </DialogHeader>
-            <ScrollArea className="flex-grow">
-                <div className="p-4 space-y-4">
-                    {demoOrders.map(order => (
-                        <Card key={order.id}>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <Image src={order.imageUrl} alt={order.product} width={64} height={64} className="rounded-md object-cover aspect-square" />
-                                <div className="flex-grow">
-                                    <p className="font-semibold">{order.product}</p>
-                                    <p className="text-sm text-muted-foreground">{order.seller}</p>
-                                    <p className="text-xs text-primary">{order.status}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold">${order.price.toFixed(2)}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </ScrollArea>
-             <DialogFooter className="p-4 border-t mt-auto">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
+const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const { state } = useApp();
+    const { deliveries, assistants } = state.userProfile;
+
+    const activeDeliveries = useMemo(() => {
+        return (deliveries || []).filter(d => d.status !== 'delivered');
+    }, [deliveries]);
+
+    const getAssistantName = (assistantId: string | undefined) => {
+        if (!assistantId) return 'Vendedor Desconocido';
+        const assistant = assistants.find(a => a.id === assistantId);
+        return assistant?.name || 'Vendedor Desconocido';
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+                <DialogHeader className="p-4 border-b">
+                    <DialogTitle>Mis Pedidos</DialogTitle>
+                    <DialogDescription>Aquí puedes ver el estado de tus compras a domicilio.</DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 space-y-4">
+                        {activeDeliveries.length > 0 ? (
+                            activeDeliveries.map(order => (
+                                <Card key={order.id}>
+                                    <CardContent className="p-4 flex items-center gap-4">
+                                        <Package className="h-10 w-10 text-primary" />
+                                        <div className="flex-grow">
+                                            <p className="font-semibold">{order.productName}</p>
+                                            <p className="text-sm text-muted-foreground">{getAssistantName((order as any).assistantId)}</p>
+                                            <p className="text-xs text-primary">{order.status === 'en_route' ? 'En camino' : 'Pendiente'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold">${order.productValue.toFixed(2)}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="text-center py-10 text-muted-foreground">
+                                <TruckIcon className="mx-auto h-12 w-12 mb-4" />
+                                <p>No hay pedidos activos en este momento.</p>
+                            </div>
+                        )}
+                    </div>
+                </ScrollArea>
+                <DialogFooter className="p-4 border-t mt-auto">
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 
 const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
@@ -455,3 +472,5 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 };
 
 export default MarketplaceDialog;
+
+    
