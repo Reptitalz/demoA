@@ -937,7 +937,7 @@ export const CreditView = () => {
 
 export const DeliveryView = () => {
     const { state, dispatch } = useApp();
-    const { isAuthenticated, deliveries: userDeliveries, assistants } = state.userProfile;
+    const { isAuthenticated, deliveries: userDeliveries = [], assistants } = state.userProfile;
     const { toast } = useToast();
 
     // Use demo data only if not authenticated
@@ -946,15 +946,15 @@ export const DeliveryView = () => {
         { id: 'demo-delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María', assistantId: 'demo-asst-2' },
     ];
     
-    const deliveries = isAuthenticated ? (userDeliveries || []) : demoDeliveries;
+    const deliveries = isAuthenticated ? userDeliveries : demoDeliveries;
 
     const handleUpdateStatus = (deliveryId: string, newStatus: 'pending' | 'en_route' | 'delivered') => {
         if (isAuthenticated) {
-            const updatedDeliveries = (userDeliveries || []).map(d => 
+            const updatedDeliveries = userDeliveries.map(d => 
                 d.id === deliveryId ? { ...d, status: newStatus } : d
             );
             dispatch({ type: 'UPDATE_USER_PROFILE', payload: { deliveries: updatedDeliveries } });
-            toast({title: 'Estado Actualizado', description: `La entrega ahora está como '${newStatus}'.`})
+            toast({title: 'Estado Actualizado', description: `La entrega ahora está como '${newStatus === 'delivered' ? 'Entregado' : (newStatus === 'en_route' ? 'En Ruta' : 'Pendiente')}'.`})
         } else {
             toast({ title: 'Modo Demo', description: 'El estado de la entrega no se guardará.' });
         }
@@ -1010,7 +1010,7 @@ export const DeliveryView = () => {
                                         </a>
                                     </Button>
                                     {delivery.status === 'pending' ? (
-                                        <Button size="sm" onClick={() => handleUpdateStatus(delivery.id, 'en_route')}>
+                                        <Button size="sm" onClick={() => handleUpdateStatus(delivery.id, 'en_route')} className="bg-brand-gradient text-primary-foreground">
                                             <Send className="mr-2 h-4 w-4" /> Iniciar Entrega
                                         </Button>
                                     ) : (

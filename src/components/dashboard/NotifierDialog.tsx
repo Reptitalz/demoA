@@ -117,7 +117,7 @@ const NotifierDialog = ({ isOpen, onOpenChange, assistant }: NotifierDialogProps
                         />
                      </div>
                  </div>
-                 <Button className="w-full mt-auto" onClick={handleSendNotifications} disabled={isSending}>
+                 <Button className="w-full mt-auto bg-brand-gradient text-primary-foreground" onClick={handleSendNotifications} disabled={isSending}>
                     {isSending ? <FaSpinner className="animate-spin mr-2" /> : null}
                     Programar y Enviar Notificaciones
                 </Button>
