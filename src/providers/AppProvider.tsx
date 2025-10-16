@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
-import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus, Contact, Catalog, Product } from '@/types';
+import type { AppState, WizardState, UserProfile, AssistantPurposeType, AuthProviderType, AssistantConfig, DatabaseConfig, UserAddress, LoadingStatus, Contact, Catalog, Product, CartItem, Delivery } from '@/types';
 import { toast } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
@@ -41,6 +42,8 @@ const initialUserProfileState: UserProfile = {
   assistants: [],
   databases: [],
   catalogs: [],
+  cart: [],
+  deliveries: [],
   credits: 0,
   purchasedUnlimitedPlans: 0,
 };
@@ -96,7 +99,12 @@ type Action =
   | { type: 'SET_CONTACTS'; payload: Contact[] }
   | { type: 'ADD_PRODUCT_TO_CATALOG'; payload: { catalogId: string; product: Product } }
   | { type: 'UPDATE_PRODUCT_IN_CATALOG'; payload: { catalogId: string; product: Product } }
-  | { type: 'ADD_CONTACT'; payload: Contact };
+  | { type: 'ADD_CONTACT'; payload: Contact }
+  | { type: 'ADD_TO_CART'; payload: Product }
+  | { type: 'UPDATE_CART_ITEM_QUANTITY'; payload: { productId: string; quantity: number } }
+  | { type: 'REMOVE_FROM_CART'; payload: string }
+  | { type: 'CLEAR_CART' };
+
 
 
 function generateChatPath(name: string): string {
@@ -299,6 +307,34 @@ const appReducer = (state: AppState, action: Action): AppState => {
       }
       return { ...state, contacts: [...state.contacts, action.payload] };
     }
+    case 'ADD_TO_CART': {
+        const cart = state.userProfile.cart || [];
+        const existingItem = cart.find(item => item.id === action.payload.id);
+        let newCart;
+        if (existingItem) {
+            newCart = cart.map(item =>
+                item.id === action.payload.id
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
+            );
+        } else {
+            newCart = [...cart, { ...action.payload, quantity: 1 }];
+        }
+        return { ...state, userProfile: { ...state.userProfile, cart: newCart } };
+    }
+    case 'UPDATE_CART_ITEM_QUANTITY': {
+        const { productId, quantity } = action.payload;
+        const newCart = (state.userProfile.cart || []).map(item =>
+            item.id === productId ? { ...item, quantity } : item
+        );
+        return { ...state, userProfile: { ...state.userProfile, cart: newCart } };
+    }
+    case 'REMOVE_FROM_CART': {
+        const newCart = (state.userProfile.cart || []).filter(item => item.id !== action.payload);
+        return { ...state, userProfile: { ...state.userProfile, cart: newCart } };
+    }
+    case 'CLEAR_CART':
+        return { ...state, userProfile: { ...state.userProfile, cart: [] } };
     default:
       return state;
   }

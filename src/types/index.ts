@@ -1,4 +1,5 @@
 
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -29,7 +30,13 @@ export interface Product {
     description?: string;
     price: number;
     imageUrl?: string;
+    seller?: string;
 }
+
+export interface CartItem extends Product {
+    quantity: number;
+}
+
 
 export interface Catalog {
   id: string;
@@ -187,6 +194,18 @@ export interface Contact {
   accountType?: 'personal' | 'business';
 }
 
+export interface Delivery {
+    id: string;
+    productName: string;
+    productValue: number;
+    destination: string;
+    googleMapsUrl: string;
+    status: 'pending' | 'en_route' | 'delivered';
+    clientName: string;
+    assistantId?: string; // ID of the assistant that created the delivery
+}
+
+
 export interface UserProfile {
   _id?: ObjectId;
   firebaseUid: string; // This will now hold the user's unique ID from next-auth
@@ -210,6 +229,8 @@ export interface UserProfile {
   accountType?: 'personal' | 'business';
   creditLines?: CreditLine[];
   creditOffers?: CreditOffer[];
+  cart?: CartItem[];
+  deliveries?: Delivery[];
   credits: number;
 }
 

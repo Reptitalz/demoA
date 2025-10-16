@@ -8,11 +8,11 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User, ChevronUp } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User, ChevronUp, Plus, Minus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import type { AssistantConfig, CreditOffer, Delivery } from '@/types';
+import type { AssistantConfig, CreditOffer, Delivery, Product } from '@/types';
 import CreditApplicationDialog from './CreditApplicationDialog';
 import { useApp } from '@/providers/AppProvider';
 import { Separator } from '../ui/separator';
@@ -25,13 +25,13 @@ interface MarketplaceDialogProps {
 // Demo data - replace with actual data from an API
 const demoItems = {
   products: [
-    { id: 1, name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing', location: 'Ciudad de México', description: "Plan de marketing digital completo para tu negocio. Incluye análisis de competencia, estrategia de redes sociales y optimización SEO." },
-    { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design', location: 'Guadalajara', description: "Creación de un logotipo profesional y único que represente la identidad de tu marca. Incluye 3 revisiones." },
-    { id: 3, name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media', location: 'Ciudad de México', description: "Gestión mensual de hasta 3 redes sociales. Creación de contenido, programación de publicaciones e informe de resultados." },
+    { id: 'prod_1', name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing', location: 'Ciudad de México', description: "Plan de marketing digital completo para tu negocio. Incluye análisis de competencia, estrategia de redes sociales y optimización SEO." },
+    { id: 'prod_2', name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design', location: 'Guadalajara', description: "Creación de un logotipo profesional y único que represente la identidad de tu marca. Incluye 3 revisiones." },
+    { id: 'prod_3', name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media', location: 'Ciudad de México', description: "Gestión mensual de hasta 3 redes sociales. Creación de contenido, programación de publicaciones e informe de resultados." },
   ],
   services: [
-    { id: 4, name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey', description: "Clases personalizadas de guitarra acústica o eléctrica para todos los niveles. Sesiones de 1 hora." },
-    { id: 5, name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México', description: "Limpieza física y de software para tu computadora. Optimización de rendimiento y eliminación de virus." },
+    { id: 'serv_1', name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey', description: "Clases personalizadas de guitarra acústica o eléctrica para todos los niveles. Sesiones de 1 hora." },
+    { id: 'serv_2', name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México', description: "Limpieza física y de software para tu computadora. Optimización de rendimiento y eliminación de virus." },
   ],
   credits: [
     { id: 'credit-1', name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan', location: 'Guadalajara' },
@@ -39,8 +39,8 @@ const demoItems = {
   ]
 };
 
-const demoCart = [
-     { id: 2, name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1 },
+const demoCart: (Product & { quantity: number })[] = [
+     { id: 'prod_2', name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1, description: '' },
 ];
 
 
@@ -48,13 +48,8 @@ const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
     const { state } = useApp();
     const { deliveries, assistants, isAuthenticated } = state.userProfile;
 
-    const demoDeliveries: Delivery[] = [
-        { id: 'demo-delivery-1', productName: 'Asesoría de Marketing', productValue: 1500.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'en_route', clientName: 'Juan Pérez' },
-        { id: 'demo-delivery-2', productName: 'Clases de Guitarra', productValue: 300.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'pending', clientName: 'Sofía Luna' },
-    ];
-
     const activeDeliveries = useMemo(() => {
-        const source = isAuthenticated ? (deliveries || []) : demoDeliveries;
+        const source = isAuthenticated ? (deliveries || []) : [];
         return source.filter(d => d.status !== 'delivered');
     }, [deliveries, isAuthenticated]);
 
@@ -107,7 +102,30 @@ const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
 
 
 const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
-    const total = demoCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const { state, dispatch } = useApp();
+    const { isAuthenticated, cart = [] } = state.userProfile;
+    const items = isAuthenticated ? cart : demoCart;
+
+    const total = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
+
+    const handleQuantityChange = (productId: string, change: 1 | -1) => {
+        if (!isAuthenticated) return;
+        const existingItem = items.find(item => item.id === productId);
+        if (existingItem) {
+            const newQuantity = existingItem.quantity + change;
+            if (newQuantity > 0) {
+                dispatch({ type: 'UPDATE_CART_ITEM_QUANTITY', payload: { productId, quantity: newQuantity } });
+            } else {
+                dispatch({ type: 'REMOVE_FROM_CART', payload: productId });
+            }
+        }
+    };
+    
+    const handleClearCart = () => {
+        if (!isAuthenticated) return;
+        dispatch({ type: 'CLEAR_CART' });
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
@@ -117,16 +135,31 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
                 </DialogHeader>
                  <ScrollArea className="flex-grow p-4">
                     <div className="py-4 space-y-4">
-                        {demoCart.map(item => (
-                             <div key={item.id} className="flex items-center gap-4">
-                                <Image src={item.imageUrl} alt={item.name} width={48} height={48} className="rounded-md object-cover" />
-                                <div className="flex-grow">
-                                    <p className="font-semibold text-sm">{item.name}</p>
-                                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} x {item.quantity}</p>
+                        {items.length > 0 ? (
+                            items.map(item => (
+                                <div key={item.id} className="flex items-center gap-4">
+                                    <Image src={item.imageUrl || ''} alt={item.name} width={64} height={64} className="rounded-md object-cover" />
+                                    <div className="flex-grow">
+                                        <p className="font-semibold text-sm">{item.name}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleQuantityChange(item.id, -1)} disabled={!isAuthenticated}>
+                                                <Minus className="h-3 w-3"/>
+                                            </Button>
+                                            <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleQuantityChange(item.id, 1)} disabled={!isAuthenticated}>
+                                                <Plus className="h-3 w-3"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <p className="font-bold text-right">${(item.price * item.quantity).toFixed(2)}</p>
                                 </div>
-                                <p className="font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                            ))
+                        ) : (
+                            <div className="text-center text-muted-foreground py-16">
+                                <ShoppingCart className="mx-auto h-12 w-12 mb-4" />
+                                <p>Tu carrito está vacío.</p>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </ScrollArea>
                  <div className="p-4 border-t mt-auto">
@@ -135,10 +168,15 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
                         <span>Total:</span>
                         <span>${total.toFixed(2)}</span>
                     </div>
-                    <Button className="w-full">Proceder al Pago</Button>
+                    {items.length > 0 && (
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={handleClearCart} disabled={!isAuthenticated}><Trash2 className="mr-2 h-4 w-4"/>Vaciar Carrito</Button>
+                            <Button className="w-full flex-1">Proceder al Pago</Button>
+                        </div>
+                    )}
                 </div>
             </DialogContent>
-    </Dialog>
+        </Dialog>
     )
 };
 
@@ -157,7 +195,8 @@ const categoryConfig = {
 };
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
-    const { state } = useApp();
+    const { state, dispatch } = useApp();
+    const { isAuthenticated, cart = [] } = state.userProfile;
     const [searchTerm, setSearchTerm] = useState('');
     const [currentView, setCurrentView] = useState<View>('categories');
     const { toast } = useToast();
@@ -169,11 +208,14 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     const [isCartOpen, setIsCartOpen] = useState(false);
 
     const activeDeliveriesCount = useMemo(() => {
-        const source = state.userProfile.isAuthenticated ? (state.userProfile.deliveries || []) : [{}, {}]; // Demo count
+        const source = isAuthenticated ? (state.userProfile.deliveries || []) : [];
         return source.filter(d => d.status !== 'delivered').length;
-    }, [state.userProfile.deliveries, state.userProfile.isAuthenticated]);
+    }, [state.userProfile.deliveries, isAuthenticated]);
     
-    const cartItemCount = demoCart.length;
+    const cartItemCount = useMemo(() => {
+        const source = isAuthenticated ? cart : demoCart;
+        return source.reduce((sum, item) => sum + item.quantity, 0);
+    }, [cart, isAuthenticated]);
 
 
     useEffect(() => {
@@ -190,6 +232,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
     const filteredItems = useMemo(() => {
         if (currentView === 'categories') return [];
+        if (!demoItems[currentView]) return [];
         
         return demoItems[currentView].filter(item => 
             item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -209,6 +252,19 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 variant: "destructive"
             });
         }
+    }
+    
+    const handleAddToCart = (product: Product) => {
+        if (!isAuthenticated) {
+            toast({ title: 'Inicia Sesión', description: 'Debes iniciar sesión para agregar productos al carrito.' });
+            return;
+        }
+        dispatch({ type: 'ADD_TO_CART', payload: product });
+        toast({
+            title: "Producto Agregado",
+            description: `"${product.name}" ha sido añadido a tu carrito.`,
+        });
+        setSelectedProduct(null); // Close detail view
     }
 
     const renderCategories = () => (
@@ -482,7 +538,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                              className="sticky bottom-0 z-20 p-4 border-t bg-background/80 backdrop-blur-sm"
                          >
                              <div className="grid grid-cols-2 gap-2">
-                                <Button variant="secondary" size="lg">Agregar</Button>
+                                <Button variant="secondary" size="lg" onClick={() => handleAddToCart(selectedProduct)}>Agregar</Button>
                                 <Button size="lg" className="bg-brand-gradient text-primary-foreground">Comprar</Button>
                             </div>
                          </motion.div>
