@@ -41,6 +41,8 @@ import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
 import ReceiptDialog from './ReceiptDialog';
 import { Badge } from '@/components/ui/badge';
+import AddProductDialog from './AddProductDialog';
+import CreateCatalogDialog from './CreateCatalogDialog';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
@@ -900,7 +902,7 @@ export const DeliveryView = () => {
 export const AssistantsList = () => {
   const router = useRouter();
   const { state } = useApp();
-  const assistants = state.userProfile.assistants || demoAdminChats;
+  const assistants = state.userProfile.assistants || [];
 
   return (
     <>
