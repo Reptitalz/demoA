@@ -232,6 +232,7 @@ export interface UserProfile {
   cart?: CartItem[];
   deliveries?: Delivery[];
   credits: number;
+  allProducts?: Product[];
 }
 
 export interface WizardState {

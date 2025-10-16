@@ -22,13 +22,8 @@ interface MarketplaceDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Demo data - replace with actual data from an API
+// Demo data for credits, services can be phased out or integrated later
 const demoItems = {
-  products: [
-    { id: 'prod_1', name: "Asesoría de Marketing", price: 1500, seller: "Juan Pérez", imageUrl: "https://i.imgur.com/8p8Yf9u.png", imageHint: 'digital marketing', location: 'Ciudad de México', description: "Plan de marketing digital completo para tu negocio. Incluye análisis de competencia, estrategia de redes sociales y optimización SEO." },
-    { id: 'prod_2', name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", imageHint: 'logo design', location: 'Guadalajara', description: "Creación de un logotipo profesional y único que represente la identidad de tu marca. Incluye 3 revisiones." },
-    { id: 'prod_3', name: "Paquete de Redes Sociales", price: 2500, seller: "Carlos Ruiz", imageUrl: "https://i.imgur.com/uSfeGjW.png", imageHint: 'social media', location: 'Ciudad de México', description: "Gestión mensual de hasta 3 redes sociales. Creación de contenido, programación de publicaciones e informe de resultados." },
-  ],
   services: [
     { id: 'serv_1', name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey', description: "Clases personalizadas de guitarra acústica o eléctrica para todos los niveles. Sesiones de 1 hora." },
     { id: 'serv_2', name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México', description: "Limpieza física y de software para tu computadora. Optimización de rendimiento y eliminación de virus." },
@@ -196,7 +191,7 @@ const categoryConfig = {
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
     const { state, dispatch } = useApp();
-    const { isAuthenticated, cart = [] } = state.userProfile;
+    const { isAuthenticated, cart = [], allProducts } = state.userProfile;
     const [searchTerm, setSearchTerm] = useState('');
     const [currentView, setCurrentView] = useState<View>('categories');
     const { toast } = useToast();
@@ -232,13 +227,20 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
     const filteredItems = useMemo(() => {
         if (currentView === 'categories') return [];
-        if (!demoItems[currentView]) return [];
+        let itemsToFilter = [];
+
+        if (currentView === 'products') {
+            itemsToFilter = allProducts || [];
+        } else if (currentView === 'services' || currentView === 'credits') {
+            itemsToFilter = demoItems[currentView] || [];
+        }
         
-        return demoItems[currentView].filter(item => 
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            item.location.toLowerCase() === location.toLowerCase()
+        return itemsToFilter.filter(item => 
+            item.name.toLowerCase().includes(searchTerm.toLowerCase())
+            // Location filter is temporarily disabled to show all products
+            // && item.location.toLowerCase() === location.toLowerCase()
         );
-    }, [searchTerm, currentView, location]);
+    }, [searchTerm, currentView, location, allProducts]);
     
     const handleRequestCredit = (credit: any) => {
         const assistant = state.userProfile.assistants.find(a => a.name.includes(credit.seller));
@@ -403,7 +405,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                       ) : (
                                         <Card onClick={() => setSelectedProduct(item)} className="overflow-hidden cursor-pointer group glow-card transition-all duration-300 hover:scale-105 hover:shadow-primary/20">
                                             <div className="aspect-square relative w-full">
-                                                <Image src={item.imageUrl} alt={item.name} layout="fill" objectFit="cover" data-ai-hint={(item as any).imageHint} />
+                                                <Image src={item.imageUrl || ''} alt={item.name} layout="fill" objectFit="cover" data-ai-hint={(item as any).imageHint} />
                                             </div>
                                             <CardContent className="p-2 sm:p-3">
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{item.name}</p>
@@ -420,8 +422,8 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                         ) : (
                             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-center">
                                 <MapPin className="h-10 w-10 mb-2"/>
-                                <p className="font-semibold">No hay resultados en tu área.</p>
-                                <p className="text-sm">Intenta buscar en otra ubicación o revisa más tarde.</p>
+                                <p className="font-semibold">No hay resultados.</p>
+                                <p className="text-sm">Intenta con otra búsqueda o revisa más tarde.</p>
                             </div>
                         )}
                     </div>

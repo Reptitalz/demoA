@@ -46,6 +46,7 @@ const initialUserProfileState: UserProfile = {
   deliveries: [],
   credits: 0,
   purchasedUnlimitedPlans: 0,
+  allProducts: [],
 };
 
 const initialLoadingStatus: LoadingStatus = {
@@ -189,11 +190,16 @@ const appReducer = (state: AppState, action: Action): AppState => {
         const apiProfile = action.payload;
         const newIsSetupComplete = apiProfile.assistants && apiProfile.assistants.length > 0;
         
+        const allProducts = (apiProfile.catalogs || []).flatMap(catalog =>
+            catalog.products.map(product => ({ ...product, seller: catalog.name }))
+        );
+
         const freshUserProfile: UserProfile = {
             ...initialUserProfileState,
             ...apiProfile,
             isAuthenticated: true,
             credits: apiProfile.credits || 0,
+            allProducts,
         };
 
         return {
@@ -203,7 +209,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
         };
     }
     case 'UPDATE_USER_PROFILE': {
-      return { ...state, userProfile: { ...state.userProfile, ...action.payload }};
+      const updatedUserProfile = { ...state.userProfile, ...action.payload };
+      if (action.payload.catalogs) {
+          updatedUserProfile.allProducts = (action.payload.catalogs || []).flatMap(catalog =>
+              catalog.products.map(product => ({ ...product, seller: catalog.name }))
+          );
+      }
+      return { ...state, userProfile: updatedUserProfile };
     }
     case 'ADD_ASSISTANT':
       return { ...state, userProfile: { ...state.userProfile, assistants: [...state.userProfile.assistants, action.payload] }};
@@ -283,7 +295,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
         }
         return cat;
       });
-      return { ...state, userProfile: { ...state.userProfile, catalogs: updatedCatalogs }};
+      const allProducts = updatedCatalogs.flatMap(catalog =>
+            catalog.products.map(p => ({ ...p, seller: catalog.name }))
+        );
+      return { ...state, userProfile: { ...state.userProfile, catalogs: updatedCatalogs, allProducts }};
     }
     case 'UPDATE_PRODUCT_IN_CATALOG': {
       const { catalogId, product } = action.payload;
@@ -298,7 +313,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
         }
         return cat;
       });
-      return { ...state, userProfile: { ...state.userProfile, catalogs: updatedCatalogs }};
+      const allProducts = updatedCatalogs.flatMap(catalog =>
+            catalog.products.map(p => ({ ...p, seller: catalog.name }))
+        );
+      return { ...state, userProfile: { ...state.userProfile, catalogs: updatedCatalogs, allProducts }};
     }
     case 'ADD_CONTACT': {
       const existingContact = state.contacts.find(c => c.chatPath === action.payload.chatPath);
