@@ -11,19 +11,19 @@ body {
   :root {
     /* Light Theme Only */
     --background: 220 20% 98%;
-    --foreground: 224 71% 4%;
+    --foreground: 0 0% 0%; /* Changed to black for high contrast */
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 0 0% 0%; /* Changed to black */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 0 0% 0%; /* Changed to black */
 
     --primary: 262 80% 58%; /* Vibrant Purple */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 14% 90%;
-    --secondary-foreground: 224 71% 4%;
+    --secondary-foreground: 0 0% 0%; /* Changed to black */
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 40%;
@@ -291,3 +291,5 @@ body {
   'GRAD' 0,
   'opsz' 24
 }
+
+    
