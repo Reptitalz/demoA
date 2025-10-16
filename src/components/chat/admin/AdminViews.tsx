@@ -940,13 +940,7 @@ export const DeliveryView = () => {
     const { isAuthenticated, deliveries: userDeliveries = [], assistants } = state.userProfile;
     const { toast } = useToast();
 
-    // Use demo data only if not authenticated
-    const demoDeliveries: Delivery[] = [
-        { id: 'demo-delivery-1', productName: 'Pastel de Chocolate Grande', productValue: 450.00, destination: 'Av. Siempre Viva 742, Springfield', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Siempre+Viva+742,+Springfield', status: 'pending', clientName: 'Homero Simpson', assistantId: 'demo-asst-1' },
-        { id: 'demo-delivery-2', productName: 'Docena de Cupcakes Variados', productValue: 250.00, destination: 'Calle Falsa 123, Ciudad de México', googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Calle+Falsa+123,+Ciudad+de+México', status: 'en_route', clientName: 'Ana María', assistantId: 'demo-asst-2' },
-    ];
-    
-    const deliveries = isAuthenticated ? userDeliveries : demoDeliveries;
+    const deliveries = isAuthenticated ? userDeliveries : [];
 
     const handleUpdateStatus = (deliveryId: string, newStatus: 'pending' | 'en_route' | 'delivered') => {
         if (isAuthenticated) {
