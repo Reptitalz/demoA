@@ -10,6 +10,8 @@ import { FaSignInAlt, FaRocket, FaBars, FaWhatsapp } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from '../ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
   fullWidth?: boolean;
@@ -49,7 +51,22 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
             <nav className="flex items-center gap-2">
-                <NavLink href="/whatsapp">Productos</NavLink>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                            Productos
+                            <ChevronDown className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                        <DropdownMenuItem onSelect={() => router.push('/')}>
+                            Hey Manito! App
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => router.push('/whatsapp')}>
+                            Hey Manito! WhatsApp
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <NavLink href="/#pricing">Precios</NavLink>
                 <NavLink href="/colaboradores">Colaboradores</NavLink>
                 <NavLink href="#contact">Contacto</NavLink>
@@ -88,7 +105,22 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                             </Link>
                         </div>
                         <nav className="flex flex-col gap-2 p-4">
-                            <NavLink href="/whatsapp" onClick={() => setIsSheetOpen(false)}>Productos</NavLink>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="justify-start px-3 py-2 font-medium text-muted-foreground">
+                                        Productos
+                                        <ChevronDown className="h-4 w-4 ml-auto" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-56">
+                                     <DropdownMenuItem onSelect={() => { router.push('/'); setIsSheetOpen(false); }}>
+                                        Hey Manito! App
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => { router.push('/whatsapp'); setIsSheetOpen(false); }}>
+                                        Hey Manito! WhatsApp
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                             <NavLink href="/#pricing" onClick={() => setIsSheetOpen(false)}>Precios</NavLink>
                             <NavLink href="/colaboradores" onClick={() => setIsSheetOpen(false)}>Colaboradores</NavLink>
                             <NavLink href="#contact" onClick={() => setIsSheetOpen(false)}>Contacto</NavLink>
