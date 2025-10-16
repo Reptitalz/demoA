@@ -1,3 +1,4 @@
+
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -327,9 +328,7 @@ export default function ChatListPage() {
 
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-300px)] text-center text-muted-foreground p-4">
-        <div className="w-40 h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
-          <FaWhatsapp className="h-20 w-20 text-gray-400 dark:text-gray-500"/>
-        </div>
+        <AppIcon className="h-20 w-20 mb-4" />
         <h2 className="text-xl font-semibold text-foreground">Bienvenido a {APP_NAME}</h2>
         <p className="max-w-xs mx-auto mt-2">Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.</p>
         <Button className="mt-6" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
