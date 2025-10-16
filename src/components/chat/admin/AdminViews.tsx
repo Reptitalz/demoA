@@ -21,7 +21,7 @@ import DatabaseLinkDialog from './DatabaseLinkDialog';
 import InstructionsDialog from './InstructionsDialog';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile, RequiredDocument, Delivery } from '@/types';
+import type { AssistantConfig, ChatMessage, Product, Catalog, CreditLine, CreditOffer, UserProfile, RequiredDocument, Delivery, Authorization } from '@/types';
 import BusinessInfoDialog from '@/components/dashboard/BusinessInfoDialog';
 import CreateAssistantDialog from '@/components/dashboard/CreateAssistantDialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -39,11 +39,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppIcon from '@/components/shared/AppIcon';
 import { Progress } from '@/components/ui/progress';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
-import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/lib/db';
-import { Textarea } from '@/components/ui/textarea';
-import AddProductDialog from '@/components/chat/admin/AddProductDialog';
-import CreateCatalogDialog from './CreateCatalogDialog';
-import CreditHistoryDialog from './CreditHistoryDialog';
 import ReceiptDialog from './ReceiptDialog';
 import { Badge } from '@/components/ui/badge';
 
@@ -57,203 +52,78 @@ interface StoredMessage extends ChatMessage {
     id?: number; 
 }
 
-const getAllMessagesFromDB = async (): Promise<StoredMessage[]> => {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction(MESSAGES_STORE_NAME, 'readonly');
-        const store = transaction.objectStore(MESSAGES_STORE_NAME);
-        const request = store.getAll();
-        request.onsuccess = () => {
-            resolve(request.result as StoredMessage[]);
-        };
-        request.onerror = () => {
-            console.error('Error fetching all messages:', request.error);
-            reject(request.error);
-        };
-    });
-};
-
-const getAllAuthorizedPayments = async (): Promise<any[]> => {
-    const db = await openDB();
-    return new Promise((resolve) => {
-        const tx = db.transaction(AUTHORIZED_PAYMENTS_STORE_NAME, 'readonly');
-        const store = tx.objectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve([]);
-    });
-}
-
-const authorizePaymentInDB = async (payment: any) => {
-    const db = await openDB();
-    const tx = db.transaction([AUTHORIZED_PAYMENTS_STORE_NAME, MESSAGES_STORE_NAME], 'readwrite');
-    const authStore = tx.objectStore(AUTHORIZED_PAYMENTS_STORE_NAME);
-    const msgStore = tx.objectStore(MESSAGES_STORE_NAME);
-    
-    // Ensure the object being put has the keyPath property
-    if (!payment.messageId) {
-        throw new Error("Payment object must have a messageId to be authorized.");
-    }
-    
-    await authStore.put(payment);
-    // After authorizing, delete the original message to remove it from "pending"
-    await msgStore.delete(payment.messageId);
-    
-    await tx.done;
-}
-
-const rejectPaymentInDB = async (messageId: number) => {
-     const db = await openDB();
-     const tx = db.transaction(MESSAGES_STORE_NAME, 'readwrite');
-     await tx.objectStore(MESSAGES_STORE_NAME).delete(messageId);
-     await tx.done;
-}
-
-const demoPendingPayments = [
-    { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date() },
-    { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantName: 'Asistente de Cobranza', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date() },
-];
-const demoCompletedPayments = [
-    { id: 'demo-3', messageId: 997, product: 'Comprobante (imagen)', assistantName: 'Asistente de Ventas', userName: 'Cliente Demo 3', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'completed', amount: 1500, receivedAt: new Date() },
-];
-
-
-// Demo data for admin chat trays
-const demoAdminChats: AssistantConfig[] = [
-    {
-        id: 'user-1',
-        name: 'Cliente A - Asistente de Ventas',
-        isActive: true,
-        type: 'whatsapp',
-        messageCount: 0,
-        monthlyMessageLimit: 0,
-        purposes: [],
-        chatPath: 'demo-asistente-1',
-    },
-    {
-        id: 'user-2',
-        name: 'Usuario B - Asistente de Soporte',
-        isActive: false,
-        type: 'whatsapp',
-        messageCount: 0,
-        monthlyMessageLimit: 0,
-        purposes: [],
-        chatPath: 'demo-asistente-2',
-    },
-];
 
 export const BankView = () => {
-    const { state } = useApp();
+    const { state, dispatch } = useApp();
     const { assistants, isAuthenticated } = state.userProfile;
     const { toast } = useToast();
-    const [allPayments, setAllPayments] = useState<any[]>([]);
+    const [allAuthorizations, setAllAuthorizations] = useState<Authorization[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = useState(false);
     const [filter, setFilter] = useState<'pending' | 'completed'>('pending');
 
-    const fetchPayments = useCallback(async () => {
-        setIsLoading(true);
-
-        if (!isAuthenticated) {
-            setAllPayments([...demoPendingPayments, ...demoCompletedPayments]);
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const [pendingMessages, authorizedPayments] = await Promise.all([
-                getAllMessagesFromDB(),
-                getAllAuthorizedPayments()
-            ]);
-            
-            const pending = pendingMessages
-                .filter(msg => msg.role === 'user' && typeof msg.content === 'object' && ['image', 'video', 'audio', 'document'].includes(msg.content.type))
-                .map((msg, index) => {
-                    const assistant = assistants.find(a => a.chatPath && msg.sessionId.includes(a.chatPath));
-                    const content = msg.content as { type: string, url: string, name?: string };
-                    return {
-                        id: `pending-${msg.id || Date.now() + index}`,
-                        messageId: msg.id,
-                        product: `Comprobante (${content.type})`,
-                        fileName: content.name,
-                        assistantName: assistant?.name || 'Desconocido',
-                        userName: `Usuario ${msg.sessionId.slice(-6)}`,
-                        chatPath: msg.sessionId,
-                        amount: 0.00,
-                        receiptUrl: content.url,
-                        receivedAt: new Date(), 
-                        status: 'pending',
-                    };
-                });
-            
-            const completed = authorizedPayments.map(p => ({ ...p, status: 'completed' }));
-            
-            setAllPayments([...pending, ...completed]);
-
-        } catch (error) {
-            console.error("Failed to load payments from IndexedDB:", error);
-            toast({ title: 'Error', description: 'No se pudieron cargar los comprobantes desde la base de datos local.', variant: 'destructive'});
-        } finally {
-            setIsLoading(false);
-        }
-    }, [assistants, toast, isAuthenticated]);
-    
     useEffect(() => {
-        fetchPayments();
-    }, [fetchPayments]);
+        setIsLoading(true);
+        const authorizations = (assistants || []).flatMap(a => 
+            (a.authorizations || []).map(auth => ({ ...auth, assistantName: a.name, assistantId: a.id }))
+        );
+        setAllAuthorizations(authorizations);
+        setIsLoading(false);
+    }, [assistants]);
 
     const filteredPayments = useMemo(() => {
-        return allPayments.filter(p => p.status === filter);
-    }, [filter, allPayments]);
+        return allAuthorizations.filter(p => p.status === filter);
+    }, [filter, allAuthorizations]);
 
     const totalIncome = useMemo(() => {
-        return allPayments.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0);
-    }, [allPayments]);
+        return allAuthorizations.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0);
+    }, [allAuthorizations]);
     
     const pendingCount = useMemo(() => {
-        return allPayments.filter(p => p.status === 'pending').length;
-    }, [allPayments]);
+        return allAuthorizations.filter(p => p.status === 'pending').length;
+    }, [allAuthorizations]);
 
     const handleViewReceipt = (payment: any) => {
         setSelectedPayment(payment);
         setIsReceiptOpen(true);
     };
     
-    const handleAction = async (messageId: number, action: 'authorize' | 'reject', amount?: number) => {
-        if (!isAuthenticated) {
-            toast({ title: 'Modo Demo', description: 'Las acciones no están disponibles en modo demostración.' });
-            return;
-        }
-    
-        const paymentToProcess = allPayments.find(p => p.messageId === messageId);
-        if (!paymentToProcess) return;
-    
-        try {
-            if (action === 'authorize' && amount) {
-                const authorizedPayment = { ...paymentToProcess, status: 'completed', amount: amount, authorizedAt: new Date() };
-                await authorizePaymentInDB(authorizedPayment);
-                toast({ title: "Acción Realizada", description: "El comprobante ha sido autorizado."});
-                
-                setAllPayments(prev => {
-                    const pending = prev.filter(p => p.messageId !== messageId);
-                    const completed = [...prev.filter(p => p.status === 'completed'), authorizedPayment];
-                    return [...pending.filter(p=>p.status==='pending'), ...completed];
-                });
-    
-            } else if (action === 'reject') {
-                await rejectPaymentInDB(messageId);
-                toast({ title: "Acción Realizada", description: "El comprobante ha sido rechazado y eliminado."});
-                
-                setAllPayments(prev => prev.filter(p => p.messageId !== messageId));
-            }
-        } catch(error) {
-            console.error("DB action failed:", error);
-            toast({ title: "Error", description: `No se pudo ${action === 'authorize' ? 'autorizar' : 'rechazar'} el comprobante.`, variant: "destructive" });
-        } finally {
-            setIsReceiptOpen(false);
-        }
+    const handleAction = async (authId: string, assistantId: string, action: 'completed' | 'rejected', amount?: number) => {
+      try {
+          const response = await fetch('/api/authorizations', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ authorizationId: authId, assistantId, status: action, amount }),
+          });
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Error al actualizar la autorización');
+          }
+          
+          // Optimistic update on the frontend
+          const updatedAssistants = assistants.map(asst => {
+              if (asst.id === assistantId) {
+                  return {
+                      ...asst,
+                      authorizations: (asst.authorizations || []).map(auth => 
+                          auth.id === authId ? { ...auth, status: action, amount: action === 'completed' ? amount || auth.amount : auth.amount } : auth
+                      )
+                  };
+              }
+              return asst;
+          });
+  
+          dispatch({ type: 'UPDATE_USER_PROFILE', payload: { assistants: updatedAssistants as any } });
+          toast({ title: 'Éxito', description: `El comprobante ha sido ${action === 'completed' ? 'aprobado' : 'rechazado'}.` });
+  
+      } catch (error: any) {
+          toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } finally {
+          setIsReceiptOpen(false);
+      }
     };
+
 
     return (
         <>
@@ -340,7 +210,7 @@ export const BankView = () => {
                 payment={selectedPayment}
                 isOpen={isReceiptOpen}
                 onOpenChange={setIsReceiptOpen}
-                onAction={handleAction}
+                onAction={(...args) => handleAction(selectedPayment.id, selectedPayment.assistantId, ...args)}
             />
         </>
     );
