@@ -729,7 +729,6 @@ const DesktopChatPage = () => {
         </div>
       );
     }
-
     if (error) {
       return (
         <div className="flex items-center gap-3 flex-grow">
@@ -737,47 +736,49 @@ const DesktopChatPage = () => {
         </div>
       );
     }
-    
-    return (
-        <div className="flex items-center gap-3 flex-grow overflow-hidden">
-            <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
-                <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                 <div className="flex items-center gap-1.5">
-                    <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
-                    {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
-                        <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
-                                <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
-                                <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
-                            </svg>
-                        </Badge>
-                    )}
-                    {isAssistantChat && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+    if (chatPartner) {
+        return (
+            <div className="flex items-center gap-3 flex-grow overflow-hidden">
+                <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                    <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
+                    <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
+                </Avatar>
+                <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                     <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
+                        {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
+                            <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L14.09 8.26L20.36 9.27L15.23 13.91L16.42 20.09L12 16.77L7.58 20.09L8.77 13.91L3.64 9.27L9.91 8.26L12 2Z" fill="#0052FF"/>
+                                    <path d="M12 2L9.91 8.26L3.64 9.27L8.77 13.91L7.58 20.09L12 16.77L16.42 20.09L15.23 13.91L20.36 9.27L14.09 8.26L12 2Z" fill="#388BFF"/>
+                                    <path d="m10.5 13.5-2-2-1 1 3 3 6-6-1-1-5 5Z" fill="#fff"/>
+                                </svg>
+                            </Badge>
+                        )}
+                        {isAssistantChat && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">IA</Badge>
+                        )}
+                    </div>
+                    <p className="text-xs text-green-500 font-medium">
+                       {isAssistantChat ? assistantStatusMessage : (contactIsOnline ? 'en línea' : 'desconectado')}
+                    </p>
+                </div>
+                <div className="flex items-center gap-1">
+                    {isPersonalChat && (
+                        <>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=video`)}>
+                                <FaVideo />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
+                                <FaPhone />
+                            </Button>
+                        </>
                     )}
                 </div>
-                <p className="text-xs text-green-500 font-medium">
-                   {isAssistantChat ? assistantStatusMessage : (contactIsOnline ? 'en línea' : 'desconectado')}
-                </p>
             </div>
-            <div className="flex items-center gap-1">
-                {isPersonalChat && (
-                    <>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=video`)}>
-                            <FaVideo />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={()={() => router.push(`/chat/call/${chatPath}?type=audio`)}>
-                            <FaPhone />
-                        </Button>
-                    </>
-                )}
-            </div>
-        </div>
-    );
+        );
+    }
+    return null;
   }
 
   return (
