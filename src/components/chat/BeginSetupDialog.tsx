@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
 import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle, FaRobot, FaCreditCard, FaShoppingBag, FaCheck } from 'react-icons/fa';
-import { motion, useAnimation, useMotionValue } from 'framer-motion';
+import { motion, useAnimation, useMotionValue, AnimationControls } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import AppIcon from '../shared/AppIcon';
 import { Card } from '../ui/card';
@@ -24,7 +24,7 @@ interface BeginSetupDialogProps {
 }
 
 const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
-    const planControls = useAnimation();
+    const planControls: AnimationControls = useAnimation();
     const planCarouselRef = useRef<HTMLUListElement>(null);
     const [planDragConstraints, setPlanDragConstraints] = useState<null | { left: number; right: number }>(null);
 
@@ -168,13 +168,13 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     useEffect(() => {
         const calculateConstraints = () => {
-             if (step === 4 && carouselRef.current) {
+             if ((step === 4 || step === 5) && carouselRef.current) {
                 const carouselWidth = carouselRef.current.scrollWidth / 2; // Since we duplicate items
                 setDragConstraints({ left: -carouselWidth, right: 0 });
                 controls.start({
                     x: -carouselWidth,
                     transition: {
-                        duration: 40,
+                        duration: (step === 4 ? 40 : 30),
                         ease: "linear",
                         repeat: Infinity,
                         repeatType: "loop",
@@ -334,7 +334,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                     
                     {step < totalSteps ? (
                         <Button onClick={handleNext} disabled={isProcessing}>
-                            Siguiente <FaArrowRight className="ml-2" />
+                           Siguiente <FaArrowRight className="ml-2" />
                         </Button>
                     ) : (
                         // The finish button is now inside the last step's content
@@ -347,3 +347,4 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 };
 
 export default BeginSetupDialog;
+ 
