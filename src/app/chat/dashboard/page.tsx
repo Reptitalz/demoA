@@ -445,7 +445,7 @@ export default function ChatListPage() {
                          <Button className="w-full" onClick={() => {
                              setShowWelcomeDialog(false);
                              setIsAddChatOpen(true);
-                         }}>Añade tu primer contacto</Button>
+                         }}>Empezar</Button>
                     </AlertDialogAction>
                     <Button variant="outline" className="w-full" onClick={() => signIn('google')}>
                         <FcGoogle className="mr-2 h-4 w-4" />
