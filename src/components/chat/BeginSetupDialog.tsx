@@ -59,22 +59,23 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
         });
     };
     
-    const FeatureCard = ({ icon: Icon, title, description, rotation, delay }: { icon: React.ElementType, title: string, description: string, rotation: string, delay: number }) => (
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: delay, type: 'spring', stiffness: 100 }}
-        className={`relative group ${rotation}`}
-      >
-        <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 p-6 text-center flex flex-col items-center">
-            <div className="p-4 bg-primary/10 rounded-full mb-4 group-hover:scale-110 transition-transform">
-                <Icon className="h-8 w-8 text-primary" />
-            </div>
-            <h4 className="font-bold text-lg">{title}</h4>
-            <p className="text-sm text-muted-foreground mt-2">{description}</p>
-        </Card>
-      </motion.div>
-    );
+    const features = [
+      {
+        icon: FaRobot,
+        title: "Bots Inteligentes",
+        description: "Crea asistentes que responden, venden y gestionan por ti.",
+      },
+      {
+        icon: FaCreditCard,
+        title: "Líneas de Crédito",
+        description: "Ofrece financiamiento a tus clientes y gestiona la cobranza.",
+      },
+      {
+        icon: FaShoppingBag,
+        title: "Productos y Servicios",
+        description: "Muestra tu catálogo y permite que tus bots tomen pedidos.",
+      },
+    ];
 
     const renderStepContent = () => {
         switch (step) {
@@ -97,33 +98,30 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                 return <Step3_UserDetails />;
             case 4:
                 return (
-                   <div className="animate-fadeIn w-full">
+                   <div className="animate-fadeIn w-full overflow-hidden">
                         <div className="text-center mb-8">
                            <h3 className="text-xl font-semibold">Descubre lo que Puedes Hacer</h3>
                            <p className="text-sm text-muted-foreground">Hey Manito! te da herramientas para potenciar tu negocio.</p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-stretch perspective-[1000px]">
-                           <FeatureCard 
-                             icon={FaRobot}
-                             title="Bots Inteligentes"
-                             description="Crea asistentes que responden, venden y gestionan por ti."
-                             rotation="sm:-rotate-3"
-                             delay={0.1}
-                           />
-                           <FeatureCard 
-                             icon={FaCreditCard}
-                             title="Líneas de Crédito"
-                             description="Ofrece financiamiento a tus clientes y gestiona la cobranza."
-                             rotation=""
-                             delay={0.2}
-                           />
-                           <FeatureCard 
-                             icon={FaShoppingBag}
-                             title="Productos y Servicios"
-                             description="Muestra tu catálogo y permite que tus bots tomen pedidos."
-                             rotation="sm:rotate-3"
-                             delay={0.3}
-                           />
+                        <div
+                            className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
+                        >
+                            <ul className="flex items-center justify-center md:justify-start [&_li]:mx-4 animate-scroll">
+                                {[...features, ...features].map((feature, index) => {
+                                    const Icon = feature.icon;
+                                    return (
+                                        <li key={index} className="flex-shrink-0 w-64 p-3">
+                                            <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg p-6 text-center flex flex-col items-center">
+                                                <div className="p-4 bg-primary/10 rounded-full mb-4">
+                                                    <Icon className="h-8 w-8 text-primary" />
+                                                </div>
+                                                <h4 className="font-bold text-lg">{feature.title}</h4>
+                                                <p className="text-sm text-muted-foreground mt-2">{feature.description}</p>
+                                            </Card>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
                         </div>
                    </div>
                 );
@@ -164,9 +162,12 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                     {renderStepContent()}
                 </div>
                 <DialogFooter className="flex justify-between w-full p-6 border-t">
-                    <Button variant="outline" onClick={handleBack} disabled={step === 1 || isProcessing}>
-                        <FaArrowLeft className="mr-2" /> Atrás
-                    </Button>
+                    {step > 1 ? (
+                        <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
+                            <FaArrowLeft className="mr-2" /> Atrás
+                        </Button>
+                    ) : <div />}
+                    
                     {step < totalSteps ? (
                         <Button onClick={handleNext} disabled={isProcessing}>
                             Siguiente <FaArrowRight className="ml-2" />
