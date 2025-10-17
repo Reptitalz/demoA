@@ -16,14 +16,6 @@ const Step3_UserDetails = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    dispatch({
-      type: 'UPDATE_WIZARD_USER_DETAILS',
-      payload: { field: name as keyof UserProfile, value }
-    });
-  };
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -51,7 +43,7 @@ const Step3_UserDetails = () => {
       <div className="text-center">
         <h3 className="text-xl font-semibold">Personaliza tu Perfil</h3>
         <p className="text-sm text-muted-foreground">
-          Elige una imagen de perfil y completa tus datos.
+          Elige una imagen de perfil para que tus contactos te reconozcan.
         </p>
       </div>
 
@@ -79,35 +71,6 @@ const Step3_UserDetails = () => {
             accept="image/png, image/jpeg, image/webp"
             onChange={handleImageChange}
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstNameDetails" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4" /> Nombre
-            </Label>
-            <Input
-              id="firstNameDetails"
-              name="firstName"
-              placeholder="Tu nombre"
-              value={firstName}
-              onChange={handleInputChange}
-              aria-required="true"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4" /> Apellido
-            </Label>
-            <Input
-              id="lastName"
-              name="lastName"
-              placeholder="Tu apellido"
-              value={lastName}
-              onChange={handleInputChange}
-              aria-required="true"
-            />
-          </div>
-        </div>
       </div>
     </div>
   );
