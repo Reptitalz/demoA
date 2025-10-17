@@ -6,10 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle, FaRobot, FaCreditCard, FaShoppingBag } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import AppIcon from '../shared/AppIcon';
+import { Card } from '../ui/card';
 
 // Simplified step components to be self-contained
 import Step2_UserDetails from '../auth/wizard-steps/Step2_UserDetails';
@@ -57,6 +58,23 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
             setIsProcessing(false);
         });
     };
+    
+    const FeatureCard = ({ icon: Icon, title, description, rotation, delay }: { icon: React.ElementType, title: string, description: string, rotation: string, delay: number }) => (
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: delay, type: 'spring', stiffness: 100 }}
+        className={`relative group ${rotation}`}
+      >
+        <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 p-6 text-center flex flex-col items-center">
+            <div className="p-4 bg-primary/10 rounded-full mb-4 group-hover:scale-110 transition-transform">
+                <Icon className="h-8 w-8 text-primary" />
+            </div>
+            <h4 className="font-bold text-lg">{title}</h4>
+            <p className="text-sm text-muted-foreground mt-2">{description}</p>
+        </Card>
+      </motion.div>
+    );
 
     const renderStepContent = () => {
         switch (step) {
@@ -78,7 +96,37 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
             case 3:
                 return <Step3_UserDetails />;
             case 4:
-                return <div>Paso 4: Tipo de Cuenta</div>;
+                return (
+                   <div className="animate-fadeIn w-full">
+                        <div className="text-center mb-8">
+                           <h3 className="text-xl font-semibold">Descubre lo que Puedes Hacer</h3>
+                           <p className="text-sm text-muted-foreground">Hey Manito! te da herramientas para potenciar tu negocio.</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-stretch perspective-[1000px]">
+                           <FeatureCard 
+                             icon={FaRobot}
+                             title="Bots Inteligentes"
+                             description="Crea asistentes que responden, venden y gestionan por ti."
+                             rotation="sm:-rotate-3"
+                             delay={0.1}
+                           />
+                           <FeatureCard 
+                             icon={FaCreditCard}
+                             title="Líneas de Crédito"
+                             description="Ofrece financiamiento a tus clientes y gestiona la cobranza."
+                             rotation=""
+                             delay={0.2}
+                           />
+                           <FeatureCard 
+                             icon={FaShoppingBag}
+                             title="Productos y Servicios"
+                             description="Muestra tu catálogo y permite que tus bots tomen pedidos."
+                             rotation="sm:rotate-3"
+                             delay={0.3}
+                           />
+                        </div>
+                   </div>
+                );
             case 5:
                 return <div>Paso 5: Carrusel</div>;
             case 6:
