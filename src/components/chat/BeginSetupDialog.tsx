@@ -168,7 +168,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     useEffect(() => {
         const calculateConstraints = () => {
-             if ((step === 4 || step === 5) && carouselRef.current) {
+             if (carouselRef.current) {
                 const carouselWidth = carouselRef.current.scrollWidth / 2; // Since we duplicate items
                 setDragConstraints({ left: -carouselWidth, right: 0 });
                 controls.start({
@@ -181,8 +181,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                     },
                 });
             } else {
-              controls.stop();
-              setDragConstraints(null);
+              setDragConstraints({ left: 0, right: 0 });
             }
         };
         const timer = setTimeout(calculateConstraints, 100);
@@ -315,7 +314,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+            <DialogContent showCloseButton={false} className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
                     <DialogDescription>
@@ -326,11 +325,11 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                     {renderStepContent()}
                 </div>
                 <DialogFooter className="flex justify-between w-full p-6 border-t">
-                    {step > 1 ? (
+                    {step > 1 && (
                         <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
                             <FaArrowLeft className="mr-2" /> Atrás
                         </Button>
-                    ) : <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>}
+                    )}
                     
                     {step < totalSteps ? (
                         <Button onClick={handleNext} disabled={isProcessing}>
@@ -348,3 +347,5 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
 export default BeginSetupDialog;
  
+
+    
