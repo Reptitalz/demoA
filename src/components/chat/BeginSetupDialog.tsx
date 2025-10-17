@@ -17,6 +17,7 @@ import Step2_UserDetails from '../auth/wizard-steps/Step2_UserDetails';
 import Step3_UserDetails from '../auth/wizard-steps/Step3_UserDetails';
 import { Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Progress } from '../ui/progress';
 
 interface BeginSetupDialogProps {
   isOpen: boolean;
@@ -118,7 +119,7 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
                                 <p className="text-xs text-muted-foreground mb-3">{plan.description}</p>
                                 
                                 <div className="mb-4">
-                                    <span className="text-3xl font-extrabold">{plan.price}</span>
+                                    <span className="text-4xl font-extrabold">{plan.price}</span>
                                     <span className="text-xs text-muted-foreground">{plan.priceDetails}</span>
                                 </div>
 
@@ -315,29 +316,34 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     return (
         <Dialog open={isOpen} onOpenChange={handleDialogClose}>
             <DialogContent showCloseButton={false} className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-                <DialogHeader className="p-6 pb-2">
+                <DialogHeader className="p-6 pb-2 border-b">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
-                    <DialogDescription>
-                        Sigue estos pasos para personalizar tu experiencia. Paso {step} de {totalSteps}.
-                    </DialogDescription>
+                     <div className="space-y-2 pt-2">
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>Progreso</span>
+                            <span>Paso {step} de {totalSteps}</span>
+                        </div>
+                        <Progress value={(step / totalSteps) * 100} className="h-1.5" />
+                    </div>
                 </DialogHeader>
                 <div className="py-4 min-h-[400px] flex-grow flex items-center justify-center overflow-hidden">
                     {renderStepContent()}
                 </div>
                 <DialogFooter className="flex justify-between w-full p-6 border-t">
-                    {step > 1 && (
+                    {step > 1 ? (
                         <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
                             <FaArrowLeft className="mr-2" /> Atrás
                         </Button>
-                    )}
+                    ) : <div></div>}
                     
                     {step < totalSteps ? (
                         <Button onClick={handleNext} disabled={isProcessing}>
                            Siguiente <FaArrowRight className="ml-2" />
                         </Button>
                     ) : (
-                        // The finish button is now inside the last step's content
-                        null 
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>
+                            Cerrar
+                        </Button>
                     )}
                 </DialogFooter>
             </DialogContent>
@@ -347,5 +353,4 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
 export default BeginSetupDialog;
  
-
     
