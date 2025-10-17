@@ -35,6 +35,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const carouselRef = useRef<HTMLUListElement>(null);
     const [dragConstraints, setDragConstraints] = useState<null | { left: number; right: number }>(null);
 
+
     useEffect(() => {
         if (isOpen) {
             setStep(1);
@@ -58,6 +59,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                 },
             });
         } else {
+          if (animation) controls.stop();
           setDragConstraints(null);
         }
         return () => {
@@ -131,7 +133,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                            <h3 className="text-xl font-semibold">Descubre lo que Puedes Hacer</h3>
                            <p className="text-sm text-muted-foreground">Hey Manito! te da herramientas para potenciar tu negocio.</p>
                         </div>
-                        <div
+                        <motion.div
                             className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
                             onHoverStart={() => controls.stop()}
                             onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
@@ -164,7 +166,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                                     );
                                 })}
                             </motion.ul>
-                        </div>
+                        </motion.div>
                    </div>
                 );
             case 5:
