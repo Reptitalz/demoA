@@ -93,17 +93,17 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-            <DialogContent className="sm:max-w-lg" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-                <DialogHeader>
+            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+                <DialogHeader className="p-6 pb-2">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
                     <DialogDescription>
                         Sigue estos pasos para personalizar tu experiencia. Paso {step} de {totalSteps}.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4 min-h-[300px] flex items-center justify-center">
+                <div className="py-4 min-h-[300px] flex-grow flex items-center justify-center">
                     {renderStepContent()}
                 </div>
-                <DialogFooter className="flex justify-between w-full">
+                <DialogFooter className="flex justify-between w-full p-6 border-t">
                     <Button variant="outline" onClick={handleBack} disabled={step === 1 || isProcessing}>
                         <FaArrowLeft className="mr-2" /> Atrás
                     </Button>
