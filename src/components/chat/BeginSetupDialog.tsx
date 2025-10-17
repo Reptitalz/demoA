@@ -24,6 +24,32 @@ interface BeginSetupDialogProps {
 }
 
 const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
+    const planControls = useAnimation();
+    const planCarouselRef = useRef<HTMLUListElement>(null);
+    const [planDragConstraints, setPlanDragConstraints] = useState<null | { left: number; right: number }>(null);
+
+    useEffect(() => {
+        const calculateConstraints = () => {
+            if (planCarouselRef.current) {
+                const carouselWidth = planCarouselRef.current.scrollWidth / 2;
+                setPlanDragConstraints({ left: -carouselWidth, right: 0 });
+                planControls.start({
+                    x: -carouselWidth,
+                    transition: {
+                        duration: 30, // Slower duration for fewer items
+                        ease: "linear",
+                        repeat: Infinity,
+                        repeatType: "loop",
+                    },
+                });
+            }
+        };
+        // Timeout to ensure layout is calculated
+        const timer = setTimeout(calculateConstraints, 100);
+        return () => clearTimeout(timer);
+
+    }, [planControls]);
+
     const plans = [
         {
             name: "Gratuito",
@@ -62,35 +88,57 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
                 <h3 className="text-xl font-semibold">Elige tu Plan</h3>
                 <p className="text-sm text-muted-foreground">Comienza gratis y crece sin límites cuando estés listo.</p>
             </div>
-            {plans.map((plan, index) => (
-                <div key={index} className={cn(
-                    "rounded-xl p-6 flex flex-col border",
-                    plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
-                )}>
-                    <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
-                    
-                    <div className="mb-6">
-                        <span className="text-4xl font-extrabold">{plan.price}</span>
-                        <span className="text-muted-foreground">{plan.priceDetails}</span>
-                    </div>
+            <motion.div
+                className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
+                onHoverStart={() => planControls.stop()}
+                onHoverEnd={() => { if (planCarouselRef.current) { planControls.start({ x: -planCarouselRef.current.scrollWidth / 2, transition: { duration: 30, ease: "linear", repeat: Infinity, repeatType: "loop" } }) } }}
+            >
+                <motion.ul
+                    ref={planCarouselRef}
+                    className="flex items-stretch justify-center md:justify-start [&_li]:mx-2"
+                    style={{ x: useMotionValue(0) }}
+                    animate={planControls}
+                    drag="x"
+                    dragConstraints={planDragConstraints}
+                    onDragEnd={() => {
+                        if (planCarouselRef.current) {
+                            planControls.start({ x: -planCarouselRef.current.scrollWidth / 2, transition: { duration: 30, ease: "linear", repeat: Infinity, repeatType: "loop" } });
+                        }
+                    }}
+                >
+                    {[...plans, ...plans].map((plan, index) => (
+                        <li key={index} className="flex-shrink-0 w-64 p-1">
+                            <div className={cn(
+                                "rounded-xl p-4 flex flex-col border h-full",
+                                plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
+                            )}>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <h3 className="text-md font-bold text-foreground">{plan.name}</h3>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-3">{plan.description}</p>
+                                
+                                <div className="mb-4">
+                                    <span className="text-3xl font-extrabold">{plan.price}</span>
+                                    <span className="text-xs text-muted-foreground">{plan.priceDetails}</span>
+                                </div>
 
-                    <ul className="space-y-3 text-sm flex-grow">
-                        {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                                <FaCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
-                                <span>{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
+                                <ul className="space-y-2 text-xs flex-grow">
+                                    {plan.features.map((feature, i) => (
+                                        <li key={i} className="flex items-start gap-2">
+                                            <FaCheck className="h-3 w-3 text-green-500 shrink-0 mt-0.5"/>
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
 
-                    <div className="mt-auto pt-6">
-                        {plan.button}
-                    </div>
-                </div>
-            ))}
+                                <div className="mt-auto pt-4">
+                                    {plan.button}
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </motion.ul>
+            </motion.div>
         </div>
     );
 };
@@ -106,10 +154,8 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const totalSteps = 6;
 
     const controls = useAnimation();
-    const x = useMotionValue(0);
     const carouselRef = useRef<HTMLUListElement>(null);
-    const [dragConstraints, setDragConstraints] = useState<null | { left: number; right: number }>(null);
-
+    const [dragConstraints, setDragConstraints] = useState<null | {left: number, right: number}>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -119,29 +165,26 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     }, [isOpen, dispatch]);
 
     useEffect(() => {
-        let animation: any;
-        if (step === 4 && carouselRef.current) {
-            const carouselWidth = carouselRef.current.scrollWidth / 2; // Since we duplicate items
-            setDragConstraints({ left: -carouselWidth, right: 0 });
-
-            animation = controls.start({
-                x: -carouselWidth,
-                transition: {
-                    duration: 40,
-                    ease: "linear",
-                    repeat: Infinity,
-                    repeatType: "loop",
-                },
-            });
-        } else {
-          if (animation) controls.stop();
-          setDragConstraints(null);
-        }
-        return () => {
-            if (animation) {
-                controls.stop();
+        const calculateConstraints = () => {
+             if (step === 4 && carouselRef.current) {
+                const carouselWidth = carouselRef.current.scrollWidth / 2; // Since we duplicate items
+                setDragConstraints({ left: -carouselWidth, right: 0 });
+                controls.start({
+                    x: -carouselWidth,
+                    transition: {
+                        duration: 40,
+                        ease: "linear",
+                        repeat: Infinity,
+                        repeatType: "loop",
+                    },
+                });
+            } else {
+              controls.stop();
+              setDragConstraints(null);
             }
         };
+        const timer = setTimeout(calculateConstraints, 100);
+        return () => clearTimeout(timer);
     }, [step, controls]);
 
     const handleNext = () => {
@@ -216,7 +259,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                              <motion.ul
                                 ref={carouselRef}
                                 className="flex items-center justify-center md:justify-start [&_li]:mx-4"
-                                style={{ x }}
+                                style={{ x: useMotionValue(0) }}
                                 animate={controls}
                                 drag="x"
                                 dragConstraints={dragConstraints}
@@ -302,3 +345,5 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 };
 
 export default BeginSetupDialog;
+
+    
