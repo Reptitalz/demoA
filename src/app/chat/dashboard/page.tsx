@@ -452,7 +452,7 @@ export default function ChatListPage() {
                     <AlertDialogAction asChild>
                          <Button className="w-full" onClick={handleStart}>Empezar</Button>
                     </AlertDialogAction>
-                     <Button variant="outline" className="w-full mt-2 sm:mt-0" onClick={() => signIn('google')}>
+                     <Button variant="outline" className="w-full mt-2 sm:mt-0" onClick={() => signIn('google', { callbackUrl: '/chat/dashboard' })}>
                         <FcGoogle className="mr-2 h-4 w-4" />
                         ¿Ya tienes cuenta?
                     </Button>
