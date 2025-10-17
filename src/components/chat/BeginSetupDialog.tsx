@@ -156,8 +156,9 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     const controls = useAnimation();
     const carouselRef = useRef<HTMLUListElement>(null);
-    const [dragConstraints, setDragConstraints] = useState<null | {left: number, right: number}>(null);
     const motionX = useMotionValue(0);
+
+    const [dragConstraints, setDragConstraints] = useState<{left: number, right: number} | null>(null);
 
 
     useEffect(() => {
@@ -181,8 +182,6 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         repeatType: "loop",
                     },
                 });
-            } else {
-              setDragConstraints({ left: 0, right: 0 });
             }
         };
         const timer = setTimeout(calculateConstraints, 100);
@@ -318,6 +317,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
             <DialogContent showCloseButton={false} className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                 <DialogHeader className="p-6 pb-2 border-b">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
+                    <DialogDescription>Sigue estos pasos para personalizar tu experiencia.</DialogDescription>
                      <div className="space-y-2 pt-2">
                         <div className="flex justify-between items-center text-xs text-muted-foreground">
                             <span>Progreso</span>
@@ -341,9 +341,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                            Siguiente <FaArrowRight className="ml-2" />
                         </Button>
                     ) : (
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
-                            Cerrar
-                        </Button>
+                        null
                     )}
                 </DialogFooter>
             </DialogContent>
