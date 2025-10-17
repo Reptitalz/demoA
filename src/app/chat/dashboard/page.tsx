@@ -429,12 +429,12 @@ export default function ChatListPage() {
         </AlertDialogContent>
        </AlertDialog>
        <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
-            <AlertDialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-transparent shadow-none">
+            <AlertDialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
                 <AlertDialogHeader className="text-center">
                     <div className="flex flex-col items-center text-center">
                         <AppIcon className="h-20 w-20 mb-4" />
-                        <AlertDialogTitle>¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
-                        <AlertDialogDescription className="max-w-xs">
+                        <AlertDialogTitle className="text-foreground">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
+                        <AlertDialogDescription className="max-w-xs text-muted-foreground">
                         Parece que no tienes ningún chat. Para comenzar, añade tu primer contacto usando su ID de chat o escaneando su código QR.
                         </AlertDialogDescription>
                     </div>
