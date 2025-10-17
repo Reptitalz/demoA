@@ -4,7 +4,8 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp, FaGoogle } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -12,7 +13,7 @@ import type { AssistantConfig, Contact, CreditLine, UserProfile } from '@/types'
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
-import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck, Loader2, FcGoogle } from 'lucide-react';
+import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import PlansDialog from '@/components/dashboard/PlansDialog';
@@ -148,7 +149,7 @@ export default function ChatListPage() {
     // Only set loading to false when session is determined AND contacts have been loaded from context
     if (sessionStatus !== 'loading' && state.contacts) {
         setIsLoading(false);
-        // If it's the first time, no contacts, and user is not logged in, show the welcome dialog
+         // If it's the first time, no contacts, and user is not logged in, show the welcome dialog
         if (state.contacts.length === 0 && sessionStatus !== 'authenticated') {
             setShowWelcomeDialog(true);
         }
@@ -329,7 +330,7 @@ export default function ChatListPage() {
         </div>
       ));
     }
-
+    
     // The welcome dialog will be shown automatically via the `showWelcomeDialog` state
     return null;
   };
