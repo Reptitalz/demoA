@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
-import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle, FaRobot, FaCreditCard, FaShoppingBag } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle, FaRobot, FaCreditCard, FaShoppingBag, FaCheck } from 'react-icons/fa';
 import { motion, useAnimation, useMotionValue } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import AppIcon from '../shared/AppIcon';
@@ -15,11 +15,86 @@ import { Card } from '../ui/card';
 // Simplified step components to be self-contained
 import Step2_UserDetails from '../auth/wizard-steps/Step2_UserDetails';
 import Step3_UserDetails from '../auth/wizard-steps/Step3_UserDetails';
+import { Crown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BeginSetupDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
+    const plans = [
+        {
+            name: "Gratuito",
+            description: "Para empezar a explorar",
+            price: "$0",
+            priceDetails: "/siempre",
+            features: [
+                'Máximo 100 mensajes por día para todos los bots.',
+                'Autorización en banco limitada a 100 transacciones diarias.',
+                'Catálogo de solo 5 artículos para la venta.',
+                'Solo se puede ofrecer una línea de crédito.',
+            ],
+            button: <Button size="sm" className="w-full text-xs mt-2" disabled>Actualmente Activo</Button>
+        },
+        {
+            name: "Ilimitado",
+            description: "Desbloquea todo el potencial",
+            price: "$179",
+            priceDetails: "/al mes",
+            features: [
+                'Mensajes ilimitados para todos tus asistentes.',
+                'Transacciones bancarias sin restricciones.',
+                'Catálogo de productos ilimitado.',
+                'Múltiples líneas de crédito para tus clientes.',
+            ],
+            button: <Button onClick={onUpgrade} size="sm" className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border text-xs mt-2">
+                        <Crown className="mr-2 h-3 w-3"/>
+                        Obtener Plan
+                    </Button>
+        }
+    ];
+
+    return (
+        <div className="space-y-6">
+             <div className="text-center">
+                <h3 className="text-xl font-semibold">Elige tu Plan</h3>
+                <p className="text-sm text-muted-foreground">Comienza gratis y crece sin límites cuando estés listo.</p>
+            </div>
+            {plans.map((plan, index) => (
+                <div key={index} className={cn(
+                    "rounded-xl p-6 flex flex-col border",
+                    plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
+                )}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                    
+                    <div className="mb-6">
+                        <span className="text-4xl font-extrabold">{plan.price}</span>
+                        <span className="text-muted-foreground">{plan.priceDetails}</span>
+                    </div>
+
+                    <ul className="space-y-3 text-sm flex-grow">
+                        {plan.features.map((feature, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                                <FaCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
+                                <span>{feature}</span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div className="mt-auto pt-6">
+                        {plan.button}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 
 const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const { dispatch } = useApp();
@@ -135,8 +210,8 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         </div>
                         <motion.div
                             className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
-                            onHoverStart={() => controls.stop()}
-                            onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
+                             onHoverStart={() => controls.stop()}
+                             onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
                         >
                              <motion.ul
                                 ref={carouselRef}
@@ -170,7 +245,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                    </div>
                 );
             case 5:
-                return <div>Paso 5: Carrusel</div>;
+                return <PlanComparison onUpgrade={() => setStep(6)} />;
             case 6:
                 return (
                     <div className="text-center space-y-4">
@@ -202,7 +277,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         Sigue estos pasos para personalizar tu experiencia. Paso {step} de {totalSteps}.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4 min-h-[300px] flex-grow flex items-center justify-center">
+                <div className="py-4 min-h-[400px] flex-grow flex items-center justify-center overflow-hidden">
                     {renderStepContent()}
                 </div>
                 <DialogFooter className="flex justify-between w-full p-6 border-t">
