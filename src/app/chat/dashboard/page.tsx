@@ -22,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -238,6 +237,11 @@ export default function ChatListPage() {
         icon: '/heymanito.svg'
     });
   }
+  
+   const handleStart = () => {
+        setShowWelcomeDialog(false);
+        router.push('/chat/begin');
+    };
 
   const botsCount = state.userProfile.assistants?.length || 0;
   const productsCount = state.userProfile.catalogs?.reduce((sum, cat) => sum + cat.products.length, 0) || 0;
@@ -425,24 +429,21 @@ export default function ChatListPage() {
         </AlertDialogContent>
        </AlertDialog>
         <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
-            <AlertDialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
+             <AlertDialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
                 <AlertDialogHeader className="text-center">
                     <div className="flex flex-col items-center text-center">
                         <AppIcon className="h-20 w-20 mb-4" />
                         <AlertDialogTitle className="text-foreground">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
-                        <AlertDialogDescription className="max-w-xs text-muted-foreground">
+                        <AlertDialogDescription className="text-sm max-w-xs text-muted-foreground">
                            {APP_NAME} es una red social de chat con superpoderes de IA. Conecta con tus contactos, crea asistentes inteligentes para automatizar tareas y gestiona tu negocio desde un solo lugar.
                         </AlertDialogDescription>
                     </div>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col gap-2 w-full max-w-xs">
+                <AlertDialogFooter className="flex-col gap-4 w-full max-w-xs sm:max-w-sm">
                     <AlertDialogAction asChild>
-                         <Button className="w-full" onClick={() => {
-                             setShowWelcomeDialog(false);
-                             router.push('/chat/begin');
-                         }}>Empezar</Button>
+                         <Button className="w-full" onClick={handleStart}>Empezar</Button>
                     </AlertDialogAction>
-                    <Button variant="outline" className="w-full" onClick={() => signIn('google')}>
+                    <Button variant="outline" className="w-full mt-2 sm:mt-0" onClick={() => signIn('google')}>
                         <FcGoogle className="mr-2 h-4 w-4" />
                         ¿Ya tienes cuenta?
                     </Button>
