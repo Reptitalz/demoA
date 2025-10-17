@@ -258,7 +258,7 @@ export default function ChatListPage() {
   ];
 
   const handleChatItemClick = (chat: Contact) => {
-    dispatch({ type: 'MARK_CHAT_AS_READ', payload: chat.chatPath });
+    // dispatch({ type: 'MARK_CHAT_AS_READ', payload: chat.chatPath });
     router.push(`/chat/conversation/${chat.chatPath}`);
   };
 
@@ -436,7 +436,7 @@ export default function ChatListPage() {
                 <AlertDialogHeader className="text-center">
                     <div className="flex flex-col items-center text-center">
                         <AppIcon className="h-20 w-20 mb-4" />
-                        <AlertDialogTitle className="text-foreground">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
+                        <AlertDialogTitle className="text-foreground text-2xl">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
                         <AlertDialogDescription className="text-sm max-w-xs text-muted-foreground">
                            {APP_NAME} es una red social de chat con superpoderes de IA. Conecta con tus contactos, crea asistentes inteligentes para automatizar tareas y gestiona tu negocio desde un solo lugar.
                         </AlertDialogDescription>
