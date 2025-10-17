@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { signIn } from 'next-auth/react';
+import AppIcon from '../shared/AppIcon';
 
 // Simplified step components to be self-contained
 import Step2_UserDetails from '../auth/wizard-steps/Step2_UserDetails';
@@ -60,7 +61,18 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const renderStepContent = () => {
         switch (step) {
             case 1:
-                return <div>Paso 1: Bienvenida</div>;
+                return (
+                    <div className="text-center animate-fadeIn flex flex-col items-center justify-center">
+                        <motion.div
+                            animate={{ y: [-10, 10, -10] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                        >
+                            <AppIcon className="h-24 w-24 mb-6 drop-shadow-2xl" />
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-brand-gradient">¡Bienvenido a Hey Manito!</h3>
+                        <p className="mt-2 text-muted-foreground">La red social con superpoderes de IA.</p>
+                    </div>
+                );
             case 2:
                 return <Step2_UserDetails />;
             case 3:
@@ -93,7 +105,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-            <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+            <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
                     <DialogDescription>
