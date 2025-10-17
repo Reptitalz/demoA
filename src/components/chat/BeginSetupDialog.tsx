@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
 import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle, FaRobot, FaCreditCard, FaShoppingBag } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, useAnimation, useMotionValue } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import AppIcon from '../shared/AppIcon';
 import { Card } from '../ui/card';
@@ -22,7 +22,7 @@ interface BeginSetupDialogProps {
 }
 
 const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
-    const { state, dispatch } = useApp();
+    const { dispatch } = useApp();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
     
@@ -30,12 +30,37 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const [step, setStep] = useState(1);
     const totalSteps = 6;
 
+    const controls = useAnimation();
+    const x = useMotionValue(0);
+    const carouselRef = useRef<HTMLUListElement>(null);
+
     useEffect(() => {
         if (isOpen) {
             setStep(1);
             dispatch({ type: 'RESET_WIZARD' });
         }
     }, [isOpen, dispatch]);
+
+    useEffect(() => {
+        let animation: any;
+        if (step === 4 && carouselRef.current) {
+            const carouselWidth = carouselRef.current.scrollWidth / 2; // Since we duplicate items
+            animation = controls.start({
+                x: -carouselWidth,
+                transition: {
+                    duration: 40,
+                    ease: "linear",
+                    repeat: Infinity,
+                    repeatType: "loop",
+                },
+            });
+        }
+        return () => {
+            if (animation) {
+                controls.stop();
+            }
+        };
+    }, [step, controls]);
 
     const handleNext = () => {
         if (step < totalSteps) setStep(s => s + 1);
@@ -46,8 +71,6 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     };
 
     const handleFinish = () => {
-        // Here you would normally gather all data from the wizard state
-        // and then initiate the sign-in process.
         setIsProcessing(true);
         signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
             toast({
@@ -105,8 +128,23 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         </div>
                         <div
                             className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
+                            onHoverStart={() => controls.stop()}
+                            onHoverEnd={() => controls.start({ x: -carouselRef.current!.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })}
                         >
-                            <ul className="flex items-center justify-center md:justify-start [&_li]:mx-4 animate-scroll">
+                             <motion.ul
+                                ref={carouselRef}
+                                className="flex items-center justify-center md:justify-start [&_li]:mx-4"
+                                style={{ x }}
+                                animate={controls}
+                                drag="x"
+                                dragConstraints={{
+                                    left: -carouselRef.current!.scrollWidth / 2,
+                                    right: 0
+                                }}
+                                onDragEnd={() => {
+                                    controls.start({ x: -carouselRef.current!.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } });
+                                }}
+                            >
                                 {[...features, ...features].map((feature, index) => {
                                     const Icon = feature.icon;
                                     return (
@@ -121,7 +159,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                                         </li>
                                     );
                                 })}
-                            </ul>
+                            </motion.ul>
                         </div>
                    </div>
                 );
