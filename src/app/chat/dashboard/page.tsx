@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield } from 'react-icons/fa';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -146,10 +146,8 @@ export default function ChatListPage() {
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   
   useEffect(() => {
-    // Only set loading to false when session is determined AND contacts have been loaded from context
     if (sessionStatus !== 'loading' && state.contacts) {
         setIsLoading(false);
-         // If it's the first time, no contacts, and user is not logged in, show the welcome dialog
         if (state.contacts.length === 0 && sessionStatus !== 'authenticated') {
             setShowWelcomeDialog(true);
         }
@@ -163,7 +161,6 @@ export default function ChatListPage() {
         try {
             const db = await openDB();
             
-            // Count pending authorizations
             const pendingTx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
             const pendingStore = pendingTx.objectStore(MESSAGES_STORE_NAME);
             const allMessages: StoredMessage[] = await pendingStore.getAll();
@@ -174,7 +171,6 @@ export default function ChatListPage() {
             );
             setAuthorizationsCount(pendingAuthorizations.length);
 
-            // Count pending credit applications
             if (state.userProfile.creditLines) {
               const pendingCredits = state.userProfile.creditLines.filter(cl => cl.status === 'pending');
               setCreditsCount(pendingCredits.length);
@@ -331,7 +327,6 @@ export default function ChatListPage() {
       ));
     }
     
-    // The welcome dialog will be shown automatically via the `showWelcomeDialog` state
     return null;
   };
 
@@ -444,7 +439,7 @@ export default function ChatListPage() {
                     <AlertDialogAction asChild>
                          <Button className="w-full" onClick={() => {
                              setShowWelcomeDialog(false);
-                             setIsAddChatOpen(true);
+                             router.push('/chat/begin');
                          }}>Empezar</Button>
                     </AlertDialogAction>
                     <Button variant="outline" className="w-full" onClick={() => signIn('google')}>

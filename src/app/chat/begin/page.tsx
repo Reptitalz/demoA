@@ -356,6 +356,7 @@ const BeginPage = () => {
         }
         dispatch({ type: 'UPDATE_ASSISTANT_TYPE', payload: 'desktop' });
         dispatch({ type: 'UPDATE_WIZARD_USER_DETAILS', payload: { field: 'accountType', value: accountType } });
+        dispatch({ type: 'UPDATE_WIZARD_USER_DETAILS', payload: { field: 'chatMode', value: chatMode } });
 
         signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
             toast({

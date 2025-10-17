@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const assistantName = "Mi Primer Asistente";
+    const assistantName = `Asistente de ${firstName}`;
     const userName = `${firstName} ${lastName}`;
 
     const newAssistant: AssistantConfig = {
