@@ -125,7 +125,7 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
                                 <ul className="space-y-2 text-xs flex-grow">
                                     {plan.features.map((feature, i) => (
                                         <li key={i} className="flex items-start gap-2">
-                                            <FaCheck className="h-3 w-3 text-green-500 shrink-0 mt-0.5"/>
+                                            <FaCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
                                             <span>{feature}</span>
                                         </li>
                                     ))}
@@ -156,6 +156,8 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const controls = useAnimation();
     const carouselRef = useRef<HTMLUListElement>(null);
     const [dragConstraints, setDragConstraints] = useState<null | {left: number, right: number}>(null);
+    const motionX = useMotionValue(0);
+
 
     useEffect(() => {
         if (isOpen) {
@@ -259,7 +261,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                              <motion.ul
                                 ref={carouselRef}
                                 className="flex items-center justify-center md:justify-start [&_li]:mx-4"
-                                style={{ x: useMotionValue(0) }}
+                                style={{ x: motionX }}
                                 animate={controls}
                                 drag="x"
                                 dragConstraints={dragConstraints}
@@ -345,5 +347,3 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 };
 
 export default BeginSetupDialog;
-
-    
