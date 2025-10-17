@@ -53,6 +53,66 @@ const ToolsCarousel = () => {
     );
 };
 
+const DiagonalGradientSeparator = () => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let animationFrameId: number;
+        
+        const resizeCanvas = () => {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            ctx.scale(dpr, dpr);
+        };
+
+        const draw = (time: number) => {
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            if (canvas.width !== width * (window.devicePixelRatio || 1) || canvas.height !== height * (window.devicePixelRatio || 1)) {
+                resizeCanvas();
+            }
+
+            ctx.clearRect(0, 0, width, height);
+
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+            const shimmerPosition = (Math.sin(time / 1500) + 1) / 2; // Varies from 0 to 1
+
+            gradient.addColorStop(0, `hsl(${primaryColor})`);
+            gradient.addColorStop(shimmerPosition, `hsl(${accentColor})`);
+            gradient.addColorStop(1, `hsl(${primaryColor})`);
+            
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 40; // A thick line
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(-20, height + 20);
+            ctx.lineTo(width + 20, -20);
+            ctx.stroke();
+            
+            animationFrameId = requestAnimationFrame(draw);
+        };
+
+        draw(0);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, []);
+
+    return <div className="h-20 w-full bg-muted/50"><canvas ref={canvasRef} className="w-full h-full" /></div>;
+};
+
 
 type DeviceType = 'ios' | 'android' | 'web' | 'loading';
 
@@ -172,7 +232,8 @@ const NewHomepage = () => {
             <ToolsCarousel />
         </div>
       </section>
-
+      
+      <DiagonalGradientSeparator />
 
       <section className="py-20 bg-background">
         <div className="container max-w-4xl mx-auto px-4">
