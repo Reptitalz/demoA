@@ -1,4 +1,3 @@
-
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -143,11 +142,16 @@ export default function ChatListPage() {
   
   const [authorizationsCount, setAuthorizationsCount] = useState(0);
   const [creditsCount, setCreditsCount] = useState(0);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   
   useEffect(() => {
     // Only set loading to false when session is determined AND contacts have been loaded from context
     if (sessionStatus !== 'loading' && state.contacts) {
         setIsLoading(false);
+        // If it's the first time and there are no contacts, show the welcome dialog
+        if (state.contacts.length === 0) {
+            setShowWelcomeDialog(true);
+        }
     }
   }, [sessionStatus, state.contacts]);
 
@@ -326,14 +330,8 @@ export default function ChatListPage() {
       ));
     }
 
-    return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-300px)] text-center text-muted-foreground p-4">
-        <AppIcon className="h-20 w-20 mb-4" />
-        <h2 className="text-xl font-semibold text-foreground">Bienvenido a {APP_NAME}</h2>
-        <p className="max-w-xs mx-auto mt-2">Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.</p>
-        <Button className="mt-6" onClick={() => setIsAddChatOpen(true)}>Añade tu primer contacto</Button>
-      </div>
-    );
+    // The welcome dialog will be shown automatically via the `showWelcomeDialog` state
+    return null;
   };
 
   return (
@@ -430,6 +428,30 @@ export default function ChatListPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
        </AlertDialog>
+       <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <div className="flex flex-col items-center text-center">
+                        <AppIcon className="h-20 w-20 mb-4" />
+                        <AlertDialogTitle>¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        Parece que no tienes ningún chat. Para comenzar, añade tu primer contacto usando su ID de chat o escaneando su código QR.
+                        </AlertDialogDescription>
+                    </div>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col gap-2">
+                    <AlertDialogAction asChild>
+                         <Button className="w-full" onClick={() => {
+                             setShowWelcomeDialog(false);
+                             setIsAddChatOpen(true);
+                         }}>Añade tu primer contacto</Button>
+                    </AlertDialogAction>
+                    <AlertDialogCancel asChild>
+                        <Button variant="outline" className="w-full">Cerrar</Button>
+                    </AlertDialogCancel>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 };
