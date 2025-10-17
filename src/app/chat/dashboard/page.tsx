@@ -149,13 +149,14 @@ export default function ChatListPage() {
   const [isBeginSetupOpen, setIsBeginSetupOpen] = useState(false);
   
   useEffect(() => {
-    if (sessionStatus !== 'loading' && state.contacts) {
+    if (sessionStatus !== 'loading' && contacts) {
         setIsLoading(false);
-        if (state.contacts.length === 0 && sessionStatus !== 'authenticated') {
+        // Only show welcome dialog if NOT authenticated and there are no contacts.
+        if (sessionStatus !== 'authenticated' && contacts.length === 0) {
             setShowWelcomeDialog(true);
         }
     }
-  }, [sessionStatus, state.contacts]);
+}, [sessionStatus, contacts]);
 
 
   useEffect(() => {
