@@ -33,6 +33,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const controls = useAnimation();
     const x = useMotionValue(0);
     const carouselRef = useRef<HTMLUListElement>(null);
+    const [dragConstraints, setDragConstraints] = useState<null | { left: number; right: number }>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -45,6 +46,8 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
         let animation: any;
         if (step === 4 && carouselRef.current) {
             const carouselWidth = carouselRef.current.scrollWidth / 2; // Since we duplicate items
+            setDragConstraints({ left: -carouselWidth, right: 0 });
+
             animation = controls.start({
                 x: -carouselWidth,
                 transition: {
@@ -54,6 +57,8 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                     repeatType: "loop",
                 },
             });
+        } else {
+          setDragConstraints(null);
         }
         return () => {
             if (animation) {
@@ -129,7 +134,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         <div
                             className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
                             onHoverStart={() => controls.stop()}
-                            onHoverEnd={() => controls.start({ x: -carouselRef.current!.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })}
+                            onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
                         >
                              <motion.ul
                                 ref={carouselRef}
@@ -137,19 +142,18 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                                 style={{ x }}
                                 animate={controls}
                                 drag="x"
-                                dragConstraints={{
-                                    left: -carouselRef.current!.scrollWidth / 2,
-                                    right: 0
-                                }}
+                                dragConstraints={dragConstraints}
                                 onDragEnd={() => {
-                                    controls.start({ x: -carouselRef.current!.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } });
+                                  if(carouselRef.current) {
+                                    controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } });
+                                  }
                                 }}
                             >
                                 {[...features, ...features].map((feature, index) => {
                                     const Icon = feature.icon;
                                     return (
-                                        <li key={index} className="flex-shrink-0 w-64 p-3">
-                                            <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg p-6 text-center flex flex-col items-center">
+                                        <li key={index} className="flex-shrink-0 w-64 p-3 group">
+                                            <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 p-6 text-center flex flex-col items-center">
                                                 <div className="p-4 bg-primary/10 rounded-full mb-4">
                                                     <Icon className="h-8 w-8 text-primary" />
                                                 </div>
@@ -204,7 +208,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
                             <FaArrowLeft className="mr-2" /> Atrás
                         </Button>
-                    ) : <div />}
+                    ) : <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>}
                     
                     {step < totalSteps ? (
                         <Button onClick={handleNext} disabled={isProcessing}>
