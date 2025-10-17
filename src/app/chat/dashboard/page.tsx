@@ -4,15 +4,15 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp } from 'react-icons/fa';
-import { useSession } from 'next-auth/react';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp, FaGoogle } from 'react-icons/fa';
+import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import type { AssistantConfig, Contact, CreditLine, UserProfile } from '@/types';
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
-import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck, Loader2 } from 'lucide-react';
+import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck, Loader2, FcGoogle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import PlansDialog from '@/components/dashboard/PlansDialog';
@@ -148,8 +148,8 @@ export default function ChatListPage() {
     // Only set loading to false when session is determined AND contacts have been loaded from context
     if (sessionStatus !== 'loading' && state.contacts) {
         setIsLoading(false);
-        // If it's the first time and there are no contacts, show the welcome dialog
-        if (state.contacts.length === 0) {
+        // If it's the first time, no contacts, and user is not logged in, show the welcome dialog
+        if (state.contacts.length === 0 && sessionStatus !== 'authenticated') {
             setShowWelcomeDialog(true);
         }
     }
@@ -428,14 +428,14 @@ export default function ChatListPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
        </AlertDialog>
-       <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
+        <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
             <AlertDialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
                 <AlertDialogHeader className="text-center">
                     <div className="flex flex-col items-center text-center">
                         <AppIcon className="h-20 w-20 mb-4" />
                         <AlertDialogTitle className="text-foreground">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
                         <AlertDialogDescription className="max-w-xs text-muted-foreground">
-                        Parece que no tienes ningún chat. Para comenzar, añade tu primer contacto usando su ID de chat o escaneando su código QR.
+                        Parece que no tienes ningún chat. Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.
                         </AlertDialogDescription>
                     </div>
                 </AlertDialogHeader>
@@ -446,9 +446,10 @@ export default function ChatListPage() {
                              setIsAddChatOpen(true);
                          }}>Añade tu primer contacto</Button>
                     </AlertDialogAction>
-                    <AlertDialogCancel asChild>
-                        <Button variant="outline" className="w-full">Cerrar</Button>
-                    </AlertDialogCancel>
+                    <Button variant="outline" className="w-full" onClick={() => signIn('google')}>
+                        <FcGoogle className="mr-2 h-4 w-4" />
+                        ¿Ya tienes cuenta?
+                    </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
