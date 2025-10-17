@@ -5,7 +5,6 @@ import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FaWhatsapp } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -14,6 +13,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
 import { Bot, CheckSquare, Package, Trash2, XCircle, HardDrive, CreditCard, Gem, User, Shield, Briefcase, Workflow, Truck, Loader2 } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import PlansDialog from '@/components/dashboard/PlansDialog';
@@ -436,7 +436,7 @@ export default function ChatListPage() {
                         <AppIcon className="h-20 w-20 mb-4" />
                         <AlertDialogTitle className="text-foreground">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
                         <AlertDialogDescription className="max-w-xs text-muted-foreground">
-                        Parece que no tienes ningún chat. Para comenzar, añade un contacto usando su ID de chat o escaneando su código QR.
+                           {APP_NAME} es una red social de chat con superpoderes de IA. Conecta con tus contactos, crea asistentes inteligentes para automatizar tareas y gestiona tu negocio desde un solo lugar.
                         </AlertDialogDescription>
                     </div>
                 </AlertDialogHeader>
