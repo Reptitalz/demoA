@@ -342,44 +342,46 @@ export default function ChatListPage() {
   return (
     <>
     <div className="flex flex-col h-full bg-background dark:bg-gray-900 font-display pb-16 md:pb-0">
-        <header className="bg-background dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 px-4 pt-4 pb-3">
-             <div className="flex items-center justify-between h-10">
-                <AnimatePresence initial={false}>
-                    {isSearchOpen ? (
-                         <motion.div
-                            key="search-input"
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.2, ease: 'easeInOut' }}
-                            className="flex-grow"
-                        >
-                            <Input 
-                                placeholder="Buscar chats..." 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full h-10" 
-                                autoFocus
-                            />
-                        </motion.div>
-                    ) : (
-                        <motion.h1 
-                            key="title"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-3xl font-bold text-gray-900 dark:text-white"
-                        >
-                            Chats
-                        </motion.h1>
-                    )}
-                </AnimatePresence>
-                <button className="text-gray-900 dark:text-white p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                    <FaSearch className="text-xl" />
-                </button>
-            </div>
-        </header>
+        {sessionStatus === 'authenticated' && (
+          <header className="bg-background dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 px-4 pt-4 pb-3">
+              <div className="flex items-center justify-between h-10">
+                  <AnimatePresence initial={false}>
+                      {isSearchOpen ? (
+                          <motion.div
+                              key="search-input"
+                              initial={{ opacity: 0, y: -20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              transition={{ duration: 0.2, ease: 'easeInOut' }}
+                              className="flex-grow"
+                          >
+                              <Input 
+                                  placeholder="Buscar chats..." 
+                                  value={searchTerm}
+                                  onChange={(e) => setSearchTerm(e.target.value)}
+                                  className="w-full h-10" 
+                                  autoFocus
+                              />
+                          </motion.div>
+                      ) : (
+                          <motion.h1 
+                              key="title"
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2 }}
+                              className="text-3xl font-bold text-gray-900 dark:text-white"
+                          >
+                              Chats
+                          </motion.h1>
+                      )}
+                  </AnimatePresence>
+                  <button className="text-gray-900 dark:text-white p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+                      <FaSearch className="text-xl" />
+                  </button>
+              </div>
+          </header>
+        )}
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
             {sessionStatus === 'authenticated' && (
