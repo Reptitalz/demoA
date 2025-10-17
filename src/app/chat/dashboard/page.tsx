@@ -4,7 +4,8 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield, FcGoogle } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaChevronDown, FaChevronUp, FaBuilding, FaDollarSign, FaUserTie, FaUserShield } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
@@ -34,6 +35,7 @@ import { openDB, MESSAGES_STORE_NAME, AUTHORIZED_PAYMENTS_STORE_NAME } from '@/l
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AppIcon from '@/components/shared/AppIcon';
+import BeginSetupDialog from '@/components/chat/BeginSetupDialog';
 
 
 interface StoredMessage {
@@ -143,6 +145,7 @@ export default function ChatListPage() {
   const [authorizationsCount, setAuthorizationsCount] = useState(0);
   const [creditsCount, setCreditsCount] = useState(0);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
+  const [isBeginSetupOpen, setIsBeginSetupOpen] = useState(false);
   
   useEffect(() => {
     if (sessionStatus !== 'loading' && state.contacts) {
@@ -240,7 +243,7 @@ export default function ChatListPage() {
   
    const handleStart = () => {
         setShowWelcomeDialog(false);
-        router.push('/chat/begin');
+        setIsBeginSetupOpen(true);
     };
 
   const botsCount = state.userProfile.assistants?.length || 0;
@@ -443,13 +446,14 @@ export default function ChatListPage() {
                     <AlertDialogAction asChild>
                          <Button className="w-full" onClick={handleStart}>Empezar</Button>
                     </AlertDialogAction>
-                    <Button variant="outline" className="w-full mt-2 sm:mt-0" onClick={() => signIn('google')}>
+                     <Button variant="outline" className="w-full mt-2 sm:mt-0" onClick={() => signIn('google')}>
                         <FcGoogle className="mr-2 h-4 w-4" />
                         ¿Ya tienes cuenta?
                     </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+        <BeginSetupDialog isOpen={isBeginSetupOpen} onOpenChange={setIsBeginSetupOpen} />
     </>
   );
 };
