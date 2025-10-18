@@ -79,7 +79,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                 </Button>
                  <Button 
                     size="sm" 
-                    onClick={() => router.push('/make')}
+                    onClick={() => router.push('/load')}
                     className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
                   >
                     <FaRocket className="mr-2 h-4 w-4"/>
@@ -129,7 +129,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                         <div className="p-4 mt-auto space-y-3">
                              <Button 
                                 size="sm" 
-                                onClick={() => { router.push('/make'); setIsSheetOpen(false); }}
+                                onClick={() => { router.push('/load'); setIsSheetOpen(false); }}
                                 className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
                               >
                                 <FaRocket className="mr-2 h-4 w-4"/>
