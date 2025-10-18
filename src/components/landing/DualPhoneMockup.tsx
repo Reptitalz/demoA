@@ -84,33 +84,35 @@ const DualPhoneMockup = () => {
         <div className="w-full h-full flex justify-center items-center md:gap-4 relative">
              {/* Desktop layout: Side by side */}
             <div className="hidden md:flex justify-center items-center gap-4">
-                 <Phone rotation={-5} animationDelay={0}>
+                 <Phone rotation={-5}>
                     <DashboardScreen />
                 </Phone>
-                <Phone rotation={5} animationDelay={0.2}>
+                <Phone rotation={5}>
                     <WhatsAppScreen />
                 </Phone>
             </div>
 
-            {/* Mobile layout: Stacked and animated */}
+            {/* Mobile layout: Swapping animation */}
             <div className="md:hidden w-full h-full flex justify-center items-center">
                 <Phone 
-                    rotation={-5}
+                    rotation={0}
                     animation={{
-                        y: [-20, 20],
-                        zIndex: [20, 10],
+                        x: ['-25%', '0%', '-25%'],
+                        scale: [0.9, 1, 0.9],
+                        zIndex: [10, 20, 10]
                     }}
-                    style={{ transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', repeatType: "reverse" } }}
+                     style={{ transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
                 >
                     <DashboardScreen />
                 </Phone>
                 <Phone 
-                    rotation={5}
-                    animation={{
-                        y: [20, -20],
-                        zIndex: [10, 20],
+                    rotation={0}
+                     animation={{
+                        x: ['25%', '0%', '25%'],
+                        scale: [0.9, 1, 0.9],
+                        zIndex: [10, 20, 10]
                     }}
-                    style={{ transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', repeatType: "reverse" } }}
+                    style={{ transition: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 } }}
                 >
                     <WhatsAppScreen />
                 </Phone>
