@@ -198,7 +198,7 @@ const NewHomepage = () => {
                       Hey Manito! es la evolución del chat. Chatea, vende, y automatiza tu negocio con asistentes de IA, todo desde una plataforma gratuita.
                   </p>
                   <div className="mt-8 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
-                    <Button asChild size="lg" className="w-full sm:w-auto bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border">
+                    <Button asChild size="lg" className="w-full sm:w-auto bg-blue-500 text-primary-foreground hover:opacity-90 shiny-border">
                         <Link href={"/load"}>
                             <FaRobot className="mr-2" />
                             Crear Asistente Gratis
