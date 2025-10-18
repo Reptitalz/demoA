@@ -163,12 +163,12 @@ const LoadPage = () => {
             </div>
              <div className="absolute bottom-10 z-10 w-full max-w-xs px-4 flex flex-col items-center gap-2 text-center">
                 <div className="w-full">
+                    <p className="text-xs text-muted-foreground mb-2">Hey Manito App</p>
                     <Progress value={progress} className="h-1.5" />
                     <p className="text-xs text-muted-foreground mt-2">
                         {status === 'loading' ? 'Verificando sesión...' : 'Cargando aplicación...'}
                     </p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">Hey Manito App</p>
             </div>
         </div>
     );
