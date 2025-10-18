@@ -223,10 +223,10 @@ const DualPhoneMockup = () => {
                 <Phone 
                     rotation={0}
                     animation={{
-                        x: ['0%', '30%', '30%', '0%'],
-                        scale: [1, 0.9, 0.9, 1],
-                        zIndex: [20, 10, 10, 20],
-                        transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' }
+                        x: ['0%', '25%', '0%'],
+                        scale: [1, 0.85, 1],
+                        zIndex: [20, 10, 20],
+                        transition: { duration: 12, repeat: Infinity, repeatType: "yoyo", ease: 'easeInOut' }
                     }}
                 >
                     <WhatsAppScreen />
@@ -234,10 +234,10 @@ const DualPhoneMockup = () => {
                 <Phone 
                     rotation={0}
                      animation={{
-                        x: ['-30%', '0%', '0%', '-30%'],
-                        scale: [0.9, 1, 1, 0.9],
-                        zIndex: [10, 20, 20, 10],
-                        transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' }
+                        x: ['-25%', '0%', '-25%'],
+                        scale: [0.85, 1, 0.85],
+                        zIndex: [10, 20, 10],
+                        transition: { duration: 12, repeat: Infinity, repeatType: "yoyo", ease: 'easeInOut' }
                     }}
                 >
                     <DashboardScreen />
@@ -248,5 +248,6 @@ const DualPhoneMockup = () => {
 };
 
 export default DualPhoneMockup;
+
 
 
