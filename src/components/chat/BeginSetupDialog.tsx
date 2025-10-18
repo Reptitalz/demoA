@@ -146,7 +146,7 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
 
 
 const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
-    const { dispatch } = useApp();
+    const { state, dispatch } = useApp();
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
     
@@ -190,6 +190,14 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     }, [step, controls]);
 
     const handleNext = () => {
+        if (step === 2 && !state.wizard.firstName.trim()) {
+            toast({ title: "Nombre Requerido", description: "Por favor, ingresa un nombre de usuario.", variant: "destructive" });
+            return;
+        }
+        if (step === 3 && !state.wizard.imageUrl) {
+            toast({ title: "Imagen Requerida", description: "Por favor, selecciona una imagen de perfil.", variant: "destructive" });
+            return;
+        }
         if (step < totalSteps) setStep(s => s + 1);
     };
 
