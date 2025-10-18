@@ -34,7 +34,7 @@ const CreditPackagesCarousel = () => {
                                         <span className="text-5xl font-extrabold">${pkg.price.toLocaleString('es-MX')}</span>
                                         <span className="text-muted-foreground"> MXN</span>
                                     </div>
-                                    <div className="text-lg font-semibold flex items-center gap-2 text-primary">
+                                    <div className="text-lg font-semibold flex items-center gap-2 text-green-600">
                                        <FaCoins /> {messages.toLocaleString()} mensajes
                                     </div>
                                 </CardContent>
