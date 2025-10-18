@@ -80,25 +80,31 @@ const DiagonalGradientSeparator = () => {
 
             ctx.clearRect(0, 0, width, height);
 
-            const gradient = ctx.createLinearGradient(0, 0, width, height);
-            
             const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
             const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-
-            const shimmerPosition = (Math.sin(time / 1500) + 1) / 2; // Varies from 0 to 1
-
-            gradient.addColorStop(0, `hsl(${primaryColor})`);
-            gradient.addColorStop(shimmerPosition, `hsl(${accentColor})`);
-            gradient.addColorStop(1, `hsl(${primaryColor})`);
             
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 40; // A thick line
-            ctx.lineCap = 'butt'; // Use 'butt' for sharp edges
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, `hsl(${primaryColor})`);
+            gradient.addColorStop(1, `hsl(${accentColor})`);
 
+            ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.moveTo(0, height);
-            ctx.lineTo(width, 0);
-            ctx.stroke();
+            ctx.moveTo(0, height * 0.3);
+
+            const waveAmplitude = height * 0.2;
+            const waveFrequency = 2;
+            const waveSpeed = time / 1000;
+
+            ctx.bezierCurveTo(
+              width / 4, height * 0.3 + Math.sin(waveSpeed * waveFrequency) * waveAmplitude,
+              width * 3 / 4, height * 0.3 - Math.sin(waveSpeed * waveFrequency) * waveAmplitude,
+              width, height * 0.3
+            );
+
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.closePath();
+            ctx.fill();
             
             animationFrameId = requestAnimationFrame(draw);
         };
@@ -110,7 +116,7 @@ const DiagonalGradientSeparator = () => {
         };
     }, []);
 
-    return <div className="h-20 w-full bg-muted/50"><canvas ref={canvasRef} className="w-full h-full" /></div>;
+    return <div className="h-40 w-full"><canvas ref={canvasRef} className="w-full h-full" /></div>;
 };
 
 
