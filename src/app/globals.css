@@ -19,7 +19,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    --primary: 221 83% 53%; /* Vibrant Blue */
+    --primary: 262 80% 58%; /* Vibrant Purple */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 14% 90%;
@@ -28,7 +28,7 @@ body {
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 40%;
 
-    --accent: 180 83% 45%; /* Vibrant Cyan */
+    --accent: 300 85% 60%; /* Vibrant Pinkish-Violet */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -36,7 +36,7 @@ body {
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --ring: 262 80% 58%;
 
     --radius: 0.75rem;
   }

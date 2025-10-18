@@ -5,7 +5,7 @@ import { APP_NAME } from '@/config/appConfig';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FaSignInAlt, FaRocket, FaBars, FaWhatsapp } from 'react-icons/fa';
 import AppIcon from '@/components/shared/AppIcon';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -38,7 +38,15 @@ const NavLink = ({ href, children, onClick }: { href: string; children: React.Re
 
 const Header = ({ fullWidth = false }: HeaderProps) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const isWhatsAppPage = pathname === '/whatsapp';
+  const createButtonAction = () => router.push(isWhatsAppPage ? '/login' : '/load');
+  const createButtonMobileAction = () => {
+    router.push(isWhatsAppPage ? '/login' : '/load');
+    setIsSheetOpen(false);
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-20 bg-background/80 backdrop-blur-sm border-b">
@@ -79,10 +87,13 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                 </Button>
                  <Button 
                     size="sm" 
-                    onClick={() => router.push('/load')}
-                    className="bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                    onClick={createButtonAction}
+                    className={cn(
+                      "text-primary-foreground hover:opacity-90 shiny-border",
+                      isWhatsAppPage ? "bg-green-gradient" : "bg-brand-gradient"
+                    )}
                   >
-                    <FaRocket className="mr-2 h-4 w-4"/>
+                    {isWhatsAppPage ? <FaWhatsapp className="mr-2 h-4 w-4" /> : <FaRocket className="mr-2 h-4 w-4"/>}
                     Crear Asistente
                 </Button>
             </div>
@@ -129,10 +140,13 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                         <div className="p-4 mt-auto space-y-3">
                              <Button 
                                 size="sm" 
-                                onClick={() => { router.push('/load'); setIsSheetOpen(false); }}
-                                className="w-full bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                                onClick={createButtonMobileAction}
+                                className={cn(
+                                  "w-full text-primary-foreground hover:opacity-90 shiny-border",
+                                  isWhatsAppPage ? "bg-green-gradient" : "bg-brand-gradient"
+                                )}
                               >
-                                <FaRocket className="mr-2 h-4 w-4"/>
+                                {isWhatsAppPage ? <FaWhatsapp className="mr-2 h-4 w-4" /> : <FaRocket className="mr-2 h-4 w-4"/>}
                                 Crear Asistente
                             </Button>
                              <Button variant="outline" size="sm" className="w-full" onClick={() => { router.push('/login'); setIsSheetOpen(false); }}>
