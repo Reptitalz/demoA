@@ -155,7 +155,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const totalSteps = 6;
 
     const controls = useAnimation();
-    const carouselRef = useRef<HTMLUListElement>(null);
+    const carouselRef = useRef<HTMLDivElement>(null);
     const motionX = useMotionValue(0);
 
     const [dragConstraints, setDragConstraints] = useState<{left: number, right: number} | null>(null);
@@ -226,6 +226,18 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
       },
     ];
 
+    const handleCardClick = (index: number) => {
+        if (carouselRef.current) {
+          const cardWidth = 256; // w-64
+          const gap = 16; // mx-4 (8*2)
+          const targetScroll = (cardWidth + gap) * index - (carouselRef.current.offsetWidth / 2) + (cardWidth / 2);
+          carouselRef.current.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth',
+          });
+        }
+    };
+
     const renderStepContent = () => {
         switch (step) {
             case 1:
@@ -253,27 +265,18 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                            <p className="text-sm text-muted-foreground">Hey Manito! te da herramientas para potenciar tu negocio.</p>
                         </div>
                         <motion.div
-                            className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-200px),transparent_100%)]"
-                             onHoverStart={() => controls.stop()}
-                             onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
+                            ref={carouselRef}
+                            className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
+                            onHoverStart={() => controls.stop()}
+                            onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
                         >
-                             <motion.ul
-                                ref={carouselRef}
-                                className="flex items-center justify-center md:justify-start [&_li]:mx-4"
-                                style={{ x: motionX }}
-                                animate={controls}
-                                drag="x"
-                                dragConstraints={dragConstraints}
-                                onDragEnd={() => {
-                                  if(carouselRef.current) {
-                                    controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } });
-                                  }
-                                }}
+                             <ul
+                                className="flex items-center justify-start [&_li]:mx-2"
                             >
                                 {[...features, ...features].map((feature, index) => {
                                     const Icon = feature.icon;
                                     return (
-                                        <li key={index} className="flex-shrink-0 w-64 p-3 group">
+                                        <li key={index} className="flex-shrink-0 w-64 p-3 group snap-center" onClick={() => handleCardClick(index)}>
                                             <Card className="h-full bg-card/50 backdrop-blur-sm border-border/20 shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 p-6 text-center flex flex-col items-center">
                                                 <div className="p-4 bg-primary/10 rounded-full mb-4">
                                                     <Icon className="h-8 w-8 text-primary" />
@@ -284,7 +287,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                                         </li>
                                     );
                                 })}
-                            </motion.ul>
+                            </ul>
                         </motion.div>
                    </div>
                 );
@@ -352,3 +355,4 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 export default BeginSetupDialog;
  
     
+
