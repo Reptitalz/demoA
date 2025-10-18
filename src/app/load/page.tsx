@@ -160,18 +160,16 @@ const LoadPage = () => {
                  >
                     <AppIcon className="h-24 w-24 drop-shadow-2xl" />
                  </motion.div>
-                <div className="w-full mt-6">
-                    <Progress value={progress} className="h-2" />
+            </div>
+             <div className="absolute bottom-10 z-10 w-full max-w-xs px-4 flex flex-col items-center gap-2 text-center">
+                <div className="w-full">
+                    <Progress value={progress} className="h-1.5" />
                     <p className="text-xs text-muted-foreground mt-2">
                         {status === 'loading' ? 'Verificando sesión...' : 'Cargando aplicación...'}
                     </p>
                 </div>
+                <p className="text-xs text-muted-foreground mt-4">Hey Manito App</p>
             </div>
-             {status === 'loading' && (
-                <div className="absolute bottom-10 z-10 flex flex-col items-center gap-2 text-center">
-                    <p className="text-xs text-muted-foreground">Hey Manito App</p>
-                </div>
-            )}
         </div>
     );
 };
