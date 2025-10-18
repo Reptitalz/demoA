@@ -2,10 +2,12 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { FaRobot, FaWhatsapp } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaRobot, FaWhatsapp, FaUser, FaPaperPlane } from 'react-icons/fa';
 import AppIcon from '../shared/AppIcon';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 
 const Phone = ({ children, className, rotation = 0, animation, style }: { children: React.ReactNode, className?: string, rotation?: number, animation?: any, style?: React.CSSProperties }) => (
     <motion.div
@@ -53,31 +55,155 @@ const DashboardScreen = () => (
     </>
 );
 
-const WhatsAppScreen = () => (
-    <>
-        <div className="flex-shrink-0 p-2.5 bg-[#005E54] z-10 flex items-center gap-2 text-white">
-            <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <FaWhatsapp className="h-5 w-5 text-gray-600" />
+const conversation = [
+  { from: 'user', text: 'Hola, me interesa una pizza.' },
+  { from: 'bot', text: '¡Claro! Tenemos Peperoni, Hawaiana y Mexicana. ¿Cuál te gustaría?' },
+  { from: 'user', text: 'Quiero la de peperoni, por favor.' },
+  { from: 'bot', text: 'Excelente elección. El costo es de $150. ¿Deseas confirmar tu pedido ahora?' },
+  { from: 'user', text: 'Sí, confirmar.' },
+  { from: 'bot', text: 'Escribiendo...', isTyping: true },
+  { from: 'bot', text: '¡Perfecto! Tu pedido está en camino. Gracias por preferirnos.' },
+];
+
+const ChatBubble = ({ from, text, isTyping }: { from: 'user' | 'bot'; text: string; isTyping?: boolean }) => {
+  const isUser = from === 'user';
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      className={cn("flex items-end gap-2 max-w-[80%]", isUser ? 'self-end' : 'self-start')}
+    >
+      {!isUser && (
+        <Avatar className="h-6 w-6">
+           <AvatarImage src="/heymanito.svg" alt="Bot Avatar" />
+          <AvatarFallback><FaRobot /></AvatarFallback>
+        </Avatar>
+      )}
+      <div
+        className={cn(
+          "rounded-2xl px-3 py-2 text-sm shadow-md",
+          isUser
+            ? "bg-primary text-primary-foreground rounded-br-none"
+            : "bg-card text-card-foreground rounded-bl-none border"
+        )}
+      >
+        {isTyping ? (
+          <div className="flex items-center gap-1 p-1">
+            <motion.span className="h-1.5 w-1.5 bg-muted-foreground rounded-full" animate={{ y: [-2, 2, -2] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }} />
+            <motion.span className="h-1.5 w-1.5 bg-muted-foreground rounded-full" animate={{ y: [-2, 2, -2] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}/>
+            <motion.span className="h-1.5 w-1.5 bg-muted-foreground rounded-full" animate={{ y: [-2, 2, -2] }} transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}/>
+          </div>
+        ) : (
+          text
+        )}
+      </div>
+       {isUser && (
+        <Avatar className="h-6 w-6">
+          <AvatarFallback><FaUser /></AvatarFallback>
+        </Avatar>
+      )}
+    </motion.div>
+  );
+};
+
+
+const WhatsAppScreen = () => {
+    const [messages, setMessages] = React.useState<(typeof conversation[0])[]>([]);
+    const [typingText, setTypingText] = React.useState('');
+  
+    React.useEffect(() => {
+      let messageIndex = 0;
+      let typingInterval: NodeJS.Timeout;
+      let messageInterval: NodeJS.Timeout;
+
+      const typeMessage = (msg: typeof conversation[0]) => {
+          if (msg.from !== 'user') return;
+          let charIndex = 0;
+          typingInterval = setInterval(() => {
+              if (charIndex < msg.text.length) {
+                  setTypingText(msg.text.substring(0, charIndex + 1));
+                  charIndex++;
+              } else {
+                  clearInterval(typingInterval);
+              }
+          }, 50); // Typing speed
+      }
+
+      const showNextMessage = () => {
+        if (messageIndex < conversation.length) {
+            const currentMsg = conversation[messageIndex];
+            
+            if (currentMsg.from === 'user') {
+                typeMessage(currentMsg);
+                // Wait for typing to finish before showing the message bubble
+                setTimeout(() => {
+                    setMessages(prev => [...prev, currentMsg]);
+                    setTypingText('');
+                    messageIndex++;
+                    scheduleNext();
+                }, 50 * currentMsg.text.length + 500); // 50ms per char + 0.5s pause
+            } else {
+                 setMessages(prev => [...prev, currentMsg]);
+                 messageIndex++;
+                 scheduleNext();
+            }
+
+        } else {
+          // Restart animation after a delay
+          setTimeout(() => {
+            setMessages([]);
+            messageIndex = 0;
+            scheduleNext();
+          }, 4000);
+        }
+      };
+      
+      const scheduleNext = () => {
+          const currentMsg = conversation[messageIndex -1];
+          const delay = currentMsg?.isTyping ? 1500 : (currentMsg?.text.length || 20) * 40;
+          messageInterval = setTimeout(showNextMessage, delay);
+      }
+
+      showNextMessage();
+  
+      return () => {
+          clearInterval(typingInterval);
+          clearTimeout(messageInterval);
+      }
+    }, []);
+
+    return (
+        <>
+            <div className="flex-shrink-0 p-2.5 bg-[#005E54] z-10 flex items-center gap-2 text-white">
+                <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
+                    <FaWhatsapp className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                    <p className="font-semibold text-sm">Cliente</p>
+                    <p className="text-xs opacity-80">en línea</p>
+                </div>
             </div>
-            <div>
-                <p className="font-semibold text-sm">Cliente</p>
-                <p className="text-xs opacity-80">en línea</p>
+             <div className="flex-grow p-3 flex flex-col gap-3 overflow-y-auto bg-[#E5DDD5] chat-background">
+                <AnimatePresence>
+                    {messages.map((msg, i) => (
+                        msg && <ChatBubble key={i} from={msg.from as 'user' | 'bot'} text={msg.text} isTyping={!!msg.isTyping} />
+                    ))}
+                </AnimatePresence>
             </div>
-        </div>
-        <div className="flex-grow p-3 flex flex-col gap-2 overflow-y-auto bg-[#E5DDD5] chat-background">
-            <div className="self-end bg-white rounded-lg p-2 max-w-[80%] text-sm shadow">Hola, ¿tienen pizzas?</div>
-            <div className="self-start bg-[#DCF8C6] rounded-lg p-2 max-w-[80%] text-sm shadow">¡Hola! Sí, tenemos de Peperoni, Hawaiana y Mexicana.</div>
-            <div className="self-end bg-white rounded-lg p-2 max-w-[80%] text-sm shadow">Una de peperoni, por favor.</div>
-            <div className="self-start bg-[#DCF8C6] rounded-lg p-2 max-w-[80%] text-sm shadow">Claro, son $150. ¿Confirmo tu pedido?</div>
-        </div>
-        <div className="flex-shrink-0 p-2 bg-[#F0F2F5] border-t z-10 flex items-center gap-2">
-            <div className="flex-grow bg-white rounded-full h-8" />
-            <div className="w-8 h-8 rounded-full bg-[#00A884] flex items-center justify-center">
-                <FaWhatsapp className="text-white h-4 w-4" />
+            <div className="flex-shrink-0 p-2 bg-[#F0F2F5] border-t z-10 flex items-center gap-2">
+                <div className="flex-grow bg-white rounded-full h-8 px-3 flex items-center">
+                    <p className="text-sm text-muted-foreground">{typingText}</p>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-[#00A884] flex items-center justify-center">
+                    <FaPaperPlane className="text-white h-4 w-4" />
+                </div>
             </div>
-        </div>
-    </>
-);
+        </>
+    );
+};
 
 const DualPhoneMockup = () => {
     return (
@@ -97,24 +223,24 @@ const DualPhoneMockup = () => {
                 <Phone 
                     rotation={0}
                     animation={{
-                        x: ['-25%', '0%', '-25%'],
-                        scale: [0.9, 1, 0.9],
-                        zIndex: [10, 20, 10]
+                        x: ['0%', '30%', '30%', '0%'],
+                        scale: [1, 0.9, 0.9, 1],
+                        zIndex: [20, 10, 10, 20],
+                        transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' }
                     }}
-                     style={{ transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
                 >
-                    <DashboardScreen />
+                    <WhatsAppScreen />
                 </Phone>
                 <Phone 
                     rotation={0}
                      animation={{
-                        x: ['25%', '0%', '25%'],
-                        scale: [0.9, 1, 0.9],
-                        zIndex: [10, 20, 10]
+                        x: ['-30%', '0%', '0%', '-30%'],
+                        scale: [0.9, 1, 1, 0.9],
+                        zIndex: [10, 20, 20, 10],
+                        transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' }
                     }}
-                    style={{ transition: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 } }}
                 >
-                    <WhatsAppScreen />
+                    <DashboardScreen />
                 </Phone>
             </div>
         </div>
@@ -122,3 +248,4 @@ const DualPhoneMockup = () => {
 };
 
 export default DualPhoneMockup;
+
