@@ -229,7 +229,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const handleCardClick = (index: number) => {
         if (carouselRef.current) {
           const cardWidth = 256; // w-64
-          const gap = 16; // mx-4 (8*2)
+          const gap = 16; // mx-2 (8*2)
           const targetScroll = (cardWidth + gap) * index - (carouselRef.current.offsetWidth / 2) + (cardWidth / 2);
           carouselRef.current.scrollTo({
             left: targetScroll,
@@ -267,8 +267,6 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                         <motion.div
                             ref={carouselRef}
                             className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
-                            onHoverStart={() => controls.stop()}
-                            onHoverEnd={() => { if(carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 40, ease: "linear", repeat: Infinity, repeatType: "loop" } })} }}
                         >
                              <ul
                                 className="flex items-center justify-start [&_li]:mx-2"
@@ -318,7 +316,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     return (
         <Dialog open={isOpen} onOpenChange={handleDialogClose}>
             <DialogContent showCloseButton={false} className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-                <DialogHeader className="p-6 pb-2 border-b">
+                <DialogHeader className="p-4 pb-2 border-b">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
                     <DialogDescription>Sigue estos pasos para personalizar tu experiencia.</DialogDescription>
                      <div className="space-y-2 pt-2">
@@ -332,7 +330,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                 <div className="py-4 min-h-[400px] flex-grow flex items-center justify-center overflow-hidden">
                     {renderStepContent()}
                 </div>
-                <DialogFooter className="flex justify-between w-full p-6 border-t">
+                <DialogFooter className="flex justify-between w-full p-4 border-t">
                     {step > 1 ? (
                         <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
                             <FaArrowLeft className="mr-2" /> Atrás
