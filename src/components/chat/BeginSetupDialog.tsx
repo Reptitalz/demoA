@@ -110,20 +110,20 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
                     {[...plans, ...plans].map((plan, index) => (
                         <li key={index} className="flex-shrink-0 w-64 p-1">
                             <div className={cn(
-                                "rounded-xl p-4 flex flex-col border h-full",
+                                "rounded-xl p-6 flex flex-col border h-full",
                                 plan.name === "Ilimitado" ? "border-primary/50 bg-primary/5" : "bg-muted/30"
                             )}>
                                 <div className="flex items-center gap-3 mb-2">
-                                    <h3 className="text-md font-bold text-foreground">{plan.name}</h3>
+                                    <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
                                 </div>
-                                <p className="text-xs text-muted-foreground mb-3">{plan.description}</p>
+                                <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
                                 
-                                <div className="mb-4">
+                                <div className="mb-6">
                                     <span className="text-4xl font-extrabold">{plan.price}</span>
-                                    <span className="text-xs text-muted-foreground">{plan.priceDetails}</span>
+                                    <span className="text-muted-foreground">{plan.priceDetails}</span>
                                 </div>
 
-                                <ul className="space-y-2 text-xs flex-grow">
+                                <ul className="space-y-3 text-sm flex-grow">
                                     {plan.features.map((feature, i) => (
                                         <li key={i} className="flex items-start gap-2">
                                             <FaCheck className="h-4 w-4 text-green-500 shrink-0 mt-0.5"/>
@@ -132,7 +132,7 @@ const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
                                     ))}
                                 </ul>
 
-                                <div className="mt-auto pt-4">
+                                <div className="mt-auto pt-6">
                                     {plan.button}
                                 </div>
                             </div>
@@ -157,6 +157,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const controls = useAnimation();
     const carouselRef = useRef<HTMLUListElement>(null);
     const [dragConstraints, setDragConstraints] = useState<{left: number, right: number} | null>(null);
+    const x = useMotionValue(0);
 
 
     useEffect(() => {
@@ -270,7 +271,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                              <motion.ul
                                 ref={carouselRef}
                                 className="flex items-center justify-start [&_li]:mx-2"
-                                style={{ x: useMotionValue(0) }}
+                                style={{ x }}
                                 animate={controls}
                                 drag="x"
                                 dragConstraints={dragConstraints}
@@ -324,7 +325,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-            <DialogContent showCloseButton={false} className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+            <DialogContent showCloseButton={false} className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-xl w-screen h-screen max-w-full flex flex-col sm:max-w-lg sm:h-auto sm:max-h-[90vh]" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                 <DialogHeader className="p-4 pb-2 border-b">
                     <DialogTitle>Configura tu Perfil en Hey Manito!</DialogTitle>
                     <DialogDescription>Sigue estos pasos para personalizar tu experiencia.</DialogDescription>
@@ -362,5 +363,6 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 export default BeginSetupDialog;
  
     
+
 
 
