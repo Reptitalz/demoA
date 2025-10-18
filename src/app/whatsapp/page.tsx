@@ -113,7 +113,7 @@ const WhatsAppPage = () => {
                 {features.map((feature, index) => (
                     <div key={index} className="flex items-start gap-4">
                         <div className="flex-shrink-0">
-                            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary">
+                            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-green-500/10 text-green-500">
                                 <feature.icon className="h-6 w-6" />
                             </div>
                         </div>
