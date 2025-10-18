@@ -93,11 +93,11 @@ const DiagonalGradientSeparator = () => {
             
             ctx.strokeStyle = gradient;
             ctx.lineWidth = 40; // A thick line
-            ctx.lineCap = 'round';
+            ctx.lineCap = 'butt'; // Use 'butt' for sharp edges
 
             ctx.beginPath();
-            ctx.moveTo(-20, height + 20);
-            ctx.lineTo(width + 20, -20);
+            ctx.moveTo(0, height);
+            ctx.lineTo(width, 0);
             ctx.stroke();
             
             animationFrameId = requestAnimationFrame(draw);
