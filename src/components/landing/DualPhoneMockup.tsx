@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaWhatsapp, FaUser, FaPaperPlane } from 'react-icons/fa';
 import AppIcon from '../shared/AppIcon';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const Phone = ({ children, className, rotation = 0, animation, style }: { children: React.ReactNode, className?: string, rotation?: number, animation?: any, style?: React.CSSProperties }) => (
@@ -248,4 +248,5 @@ const DualPhoneMockup = () => {
 };
 
 export default DualPhoneMockup;
+
 
