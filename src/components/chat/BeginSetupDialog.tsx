@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from "@/hooks/use-toast";
 import { FaArrowLeft, FaArrowRight, FaSpinner, FaGoogle, FaRobot, FaCreditCard, FaShoppingBag, FaCheck } from 'react-icons/fa';
-import { motion, useAnimation, useMotionValue, AnimationControls } from 'framer-motion';
+import { motion, useAnimation, useMotionValue } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import AppIcon from '../shared/AppIcon';
 import { Card } from '../ui/card';
@@ -25,7 +25,7 @@ interface BeginSetupDialogProps {
 }
 
 const PlanComparison = ({ onUpgrade }: { onUpgrade: () => void }) => {
-    const planControls: AnimationControls = useAnimation();
+    const planControls = useAnimation();
     const planCarouselRef = useRef<HTMLUListElement>(null);
     const [planDragConstraints, setPlanDragConstraints] = useState<null | { left: number; right: number }>(null);
 
@@ -155,9 +155,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
     const totalSteps = 6;
 
     const controls = useAnimation();
-    const carouselRef = useRef<HTMLDivElement>(null);
-    const motionX = useMotionValue(0);
-
+    const carouselRef = useRef<HTMLUListElement>(null);
     const [dragConstraints, setDragConstraints] = useState<{left: number, right: number} | null>(null);
 
 
@@ -176,7 +174,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                 controls.start({
                     x: -carouselWidth,
                     transition: {
-                        duration: (step === 4 ? 40 : 30),
+                        duration: 30, // Slower duration for fewer items
                         ease: "linear",
                         repeat: Infinity,
                         repeatType: "loop",
@@ -184,8 +182,10 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                 });
             }
         };
-        const timer = setTimeout(calculateConstraints, 100);
-        return () => clearTimeout(timer);
+        if (step === 4) {
+            const timer = setTimeout(calculateConstraints, 100);
+            return () => clearTimeout(timer);
+        }
     }, [step, controls]);
 
     const handleNext = () => {
@@ -225,16 +225,14 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
         description: "Muestra tu catálogo y permite que tus bots tomen pedidos.",
       },
     ];
-
-    const handleCardClick = (index: number) => {
+    
+     const handleCardClick = (index: number) => {
+        controls.stop();
         if (carouselRef.current) {
-          const cardWidth = 256; // w-64
-          const gap = 16; // mx-2 (8*2)
-          const targetScroll = (cardWidth + gap) * index - (carouselRef.current.offsetWidth / 2) + (cardWidth / 2);
-          carouselRef.current.scrollTo({
-            left: targetScroll,
-            behavior: 'smooth',
-          });
+            const cardWidth = 256; // w-64
+            const gap = 16; // mx-2 (8*2)
+            const targetScroll = (cardWidth + gap) * index - (carouselRef.current.offsetWidth / 2) + (cardWidth / 2);
+            controls.start({ x: -targetScroll, transition: { type: 'spring', stiffness: 200, damping: 30 } });
         }
     };
 
@@ -265,11 +263,22 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                            <p className="text-sm text-muted-foreground">Hey Manito! te da herramientas para potenciar tu negocio.</p>
                         </div>
                         <motion.div
-                            ref={carouselRef}
-                            className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4"
+                            className="w-full inline-flex flex-nowrap"
+                            onHoverStart={() => controls.stop()}
+                            onHoverEnd={() => { if (carouselRef.current) { controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 30, ease: "linear", repeat: Infinity, repeatType: "loop" } }) } }}
                         >
-                             <ul
+                             <motion.ul
+                                ref={carouselRef}
                                 className="flex items-center justify-start [&_li]:mx-2"
+                                style={{ x: useMotionValue(0) }}
+                                animate={controls}
+                                drag="x"
+                                dragConstraints={dragConstraints}
+                                onDragEnd={() => {
+                                    if (carouselRef.current) {
+                                        controls.start({ x: -carouselRef.current.scrollWidth / 2, transition: { duration: 30, ease: "linear", repeat: Infinity, repeatType: "loop" } });
+                                    }
+                                }}
                             >
                                 {[...features, ...features].map((feature, index) => {
                                     const Icon = feature.icon;
@@ -285,7 +294,7 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
                                         </li>
                                     );
                                 })}
-                            </ul>
+                            </motion.ul>
                         </motion.div>
                    </div>
                 );
@@ -353,4 +362,5 @@ const BeginSetupDialog = ({ isOpen, onOpenChange }: BeginSetupDialogProps) => {
 export default BeginSetupDialog;
  
     
+
 
