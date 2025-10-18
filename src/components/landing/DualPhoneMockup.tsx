@@ -7,16 +7,16 @@ import { FaRobot, FaWhatsapp } from 'react-icons/fa';
 import AppIcon from '../shared/AppIcon';
 import { cn } from '@/lib/utils';
 
-const Phone = ({ children, className, rotation, animationDelay }: { children: React.ReactNode, className?: string, rotation: number, animationDelay: number }) => (
+const Phone = ({ children, className, rotation = 0, animation, style }: { children: React.ReactNode, className?: string, rotation?: number, animation?: any, style?: React.CSSProperties }) => (
     <motion.div
-        className={cn("w-[220px] h-[450px] bg-slate-900 rounded-[30px] border-8 border-slate-800 shadow-2xl overflow-hidden relative", className)}
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1, rotate: rotation }}
-        transition={{ type: 'spring', stiffness: 100, damping: 15, delay: animationDelay }}
+        className={cn("w-[220px] h-[450px] bg-slate-900 rounded-[30px] border-8 border-slate-800 shadow-2xl overflow-hidden absolute md:relative", className)}
+        initial={{ y: 50, opacity: 0, rotate: rotation }}
+        animate={{ y: 0, opacity: 1, rotate: rotation, ...animation }}
+        style={style}
     >
         <motion.div
             animate={{ y: [-2, 2, -2] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: animationDelay }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             className="h-full w-full"
         >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-800 rounded-b-lg z-20" />
@@ -81,13 +81,40 @@ const WhatsAppScreen = () => (
 
 const DualPhoneMockup = () => {
     return (
-        <div className="w-full h-full flex justify-center items-center gap-4">
-            <Phone rotation={-5} animationDelay={0}>
-                <DashboardScreen />
-            </Phone>
-            <Phone rotation={5} animationDelay={0.2}>
-                <WhatsAppScreen />
-            </Phone>
+        <div className="w-full h-full flex justify-center items-center md:gap-4 relative">
+             {/* Desktop layout: Side by side */}
+            <div className="hidden md:flex justify-center items-center gap-4">
+                 <Phone rotation={-5} animationDelay={0}>
+                    <DashboardScreen />
+                </Phone>
+                <Phone rotation={5} animationDelay={0.2}>
+                    <WhatsAppScreen />
+                </Phone>
+            </div>
+
+            {/* Mobile layout: Stacked and animated */}
+            <div className="md:hidden w-full h-full flex justify-center items-center">
+                <Phone 
+                    rotation={-5}
+                    animation={{
+                        y: [-20, 20],
+                        zIndex: [20, 10],
+                    }}
+                    style={{ transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', repeatType: "reverse" } }}
+                >
+                    <DashboardScreen />
+                </Phone>
+                <Phone 
+                    rotation={5}
+                    animation={{
+                        y: [20, -20],
+                        zIndex: [10, 20],
+                    }}
+                    style={{ transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', repeatType: "reverse" } }}
+                >
+                    <WhatsAppScreen />
+                </Phone>
+            </div>
         </div>
     );
 };
