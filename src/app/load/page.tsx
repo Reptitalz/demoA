@@ -98,7 +98,7 @@ const LoadPage = () => {
                     baseX: Math.random() * w,
                     baseY: Math.random() * h,
                     density: (Math.random() * 30) + 1,
-                    color: `hsla(${Math.random() * 50 + 240}, 80%, 60%, ${Math.random() * 0.5 + 0.2})`
+                    color: `hsla(${Math.random() * 50 + 200}, 90%, 70%, ${Math.random() * 0.5 + 0.2})`
                 });
             }
         };
@@ -162,7 +162,7 @@ const LoadPage = () => {
                  </motion.div>
                 <div className="w-full mt-6">
                     <Progress value={progress} className="h-2" />
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                         {status === 'loading' ? 'Verificando sesión...' : 'Cargando aplicación...'}
                     </p>
                 </div>
