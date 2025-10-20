@@ -239,8 +239,6 @@ const NewHomepage = () => {
         </div>
       </section>
       
-      <DiagonalGradientSeparator />
-
       <section className="py-20 bg-background">
         <div className="container max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
