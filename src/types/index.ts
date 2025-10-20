@@ -151,6 +151,7 @@ export interface CreditOffer {
   cardStyle: 'slate' | 'blue' | 'purple' | 'green' | 'custom-color' | 'custom-image';
   customColor?: string;
   cardImageUrl?: string;
+  cardIconUrl?: string;
   assistantId: string; // The assistant that will offer this credit
   requiredDocuments: RequiredDocument[];
 }

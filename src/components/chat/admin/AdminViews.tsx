@@ -324,7 +324,10 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                             >
                                 <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
                                 <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-xs">{assistant?.name || 'Hey Manito!'}</span></div>
+                                    <div className="flex items-center gap-1.5">
+                                        {offer.cardIconUrl ? <Image src={offer.cardIconUrl} alt="Card Icon" width={16} height={16} className="brightness-0 invert"/> : <AppIcon className="h-4 w-4 brightness-0 invert"/>}
+                                        <span className="font-semibold text-xs">{assistant?.name || 'Hey Manito!'}</span>
+                                    </div>
                                     <Banknote className="h-5 w-5 text-yellow-300"/>
                                 </div>
                                 <div className="text-left"><p className="font-mono text-xl tracking-wider">${offer.amount.toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
@@ -384,11 +387,13 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [cardStyle, setCardStyle] = useState('slate');
     const [customColor, setCustomColor] = useState("#000000");
     const [cardImageUrl, setCardImageUrl] = useState<string | null>(null);
+    const [cardIconUrl, setCardIconUrl] = useState<string | null>(null);
     const [assistantId, setAssistantId] = useState<string | undefined>();
     const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([]);
     const [newDocTitle, setNewDocTitle] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const iconInputRef = useRef<HTMLInputElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const assistants = state.userProfile.assistants || [];
@@ -422,6 +427,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             cardStyle: cardStyle,
             customColor: cardStyle === 'custom-color' ? customColor : undefined,
             cardImageUrl: cardStyle === 'custom-image' ? cardImageUrl : undefined,
+            cardIconUrl: cardIconUrl || undefined,
             assistantId: assistantId,
             requiredDocuments: requiredDocuments,
         };
@@ -442,6 +448,36 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                 setCardImageUrl(reader.result as string);
                 setCardStyle('custom-image'); // A special id to know an image is used
             }
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleIconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new window.Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    ctx.drawImage(img, 0, 0);
+                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = imageData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        // set white, but preserve alpha
+                        data[i] = 255;     // red
+                        data[i + 1] = 255; // green
+                        data[i + 2] = 255; // blue
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+                    setCardIconUrl(canvas.toDataURL('image/png'));
+                };
+                img.src = event.target?.result as string;
+            };
             reader.readAsDataURL(file);
         }
     };
@@ -578,7 +614,10 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                         >
                             <motion.div className="absolute -top-1/2 -right-1/3 w-2/3 h-full bg-white/5 rounded-full filter blur-3xl" animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
                             <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-1.5"><AppIcon className="h-4 w-4 brightness-0 invert"/> <span className="font-semibold text-xs">Hey Manito!</span></div>
+                                <div className="flex items-center gap-1.5">
+                                    {cardIconUrl ? <Image src={cardIconUrl} alt="Card Icon" width={16} height={16} className="brightness-0 invert"/> : <AppIcon className="h-4 w-4 brightness-0 invert"/>}
+                                    <span className="font-semibold text-xs">Hey Manito!</span>
+                                </div>
                                 <Banknote className="h-5 w-5 text-yellow-300"/>
                             </div>
                             <div className="text-left"><p className="font-mono text-xl tracking-wider">${parseInt(amount || '0').toLocaleString()}</p> <p className="text-[10px] opacity-70">Línea de Crédito</p></div>
@@ -607,6 +646,10 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                                     <ImageIcon className="h-4 w-4"/>
                                  </Button>
                                  <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => iconInputRef.current?.click()}>
+                                    <AppIcon className="h-4 w-4"/>
+                                 </Button>
+                                 <input type="file" ref={iconInputRef} accept="image/png" className="hidden" onChange={handleIconUpload}/>
                             </div>
                         </div>
                     </div>
