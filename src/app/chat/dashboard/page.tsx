@@ -332,7 +332,7 @@ export default function ChatListPage() {
     }
     
     // Welcome message for new users with no contacts
-    if (sessionStatus === 'authenticated' && chatsToDisplay.length === 0 && !isLoading) {
+    if (chatsToDisplay.length === 0 && !isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-[calc(100vh-350px)] text-center p-4">
                 <AppIcon className="h-20 w-20 mb-4 opacity-70" />
@@ -354,71 +354,67 @@ export default function ChatListPage() {
   return (
     <>
     <div className="flex flex-col h-full bg-background dark:bg-gray-900 font-display pb-16 md:pb-0">
-        {sessionStatus === 'authenticated' && (
-          <header className="bg-background dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 px-4 pt-4 pb-3">
-              <div className="flex items-center justify-between h-10">
-                  <AnimatePresence initial={false}>
-                      {isSearchOpen ? (
-                          <motion.div
-                              key="search-input"
-                              initial={{ opacity: 0, y: -20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 10 }}
-                              transition={{ duration: 0.2, ease: 'easeInOut' }}
-                              className="flex-grow"
-                          >
-                              <Input 
-                                  placeholder="Buscar chats..." 
-                                  value={searchTerm}
-                                  onChange={(e) => setSearchTerm(e.target.value)}
-                                  className="w-full h-10" 
-                                  autoFocus
-                              />
-                          </motion.div>
-                      ) : (
-                          <motion.h1 
-                              key="title"
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.2 }}
-                              className="text-3xl font-bold text-gray-900 dark:text-white"
-                          >
-                              Chats
-                          </motion.h1>
-                      )}
-                  </AnimatePresence>
-                  <button className="text-gray-900 dark:text-white p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                      <FaSearch className="text-xl" />
-                  </button>
-              </div>
-          </header>
-        )}
+        <header className="bg-background dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 px-4 pt-4 pb-3">
+            <div className="flex items-center justify-between h-10">
+                <AnimatePresence initial={false}>
+                    {isSearchOpen ? (
+                        <motion.div
+                            key="search-input"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
+                            className="flex-grow"
+                        >
+                            <Input 
+                                placeholder="Buscar chats..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full h-10" 
+                                autoFocus
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.h1 
+                            key="title"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-3xl font-bold text-gray-900 dark:text-white"
+                        >
+                            Chats
+                        </motion.h1>
+                    )}
+                </AnimatePresence>
+                <button className="text-gray-900 dark:text-white p-2" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+                    <FaSearch className="text-xl" />
+                </button>
+            </div>
+        </header>
 
         <main className="flex-1 overflow-y-auto" onClick={() => setActiveSwipe(null)}>
-            {sessionStatus === 'authenticated' && (
-                <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1 text-center">
-                        {memberButtons.map(btn => (
-                            <MemberSectionButton
-                                key={btn.view}
-                                icon={btn.icon}
-                                label={btn.label}
-                                notificationCount={btn.notificationCount}
-                                onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
-                            />
-                        ))}
-                    </div>
-                    <div className="text-center mt-3">
-                            <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
-                            Plan actual: Gratuito
-                        </Button>
-                    </div>
+            <div className="p-4 bg-muted/50 dark:bg-slate-800/50">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-foreground flex items-center gap-2"><FaUserShield className="text-primary"/> Miembro</h3>
                 </div>
-            )}
+                <div className="grid grid-cols-5 gap-1 text-center">
+                    {memberButtons.map(btn => (
+                        <MemberSectionButton
+                            key={btn.view}
+                            icon={btn.icon}
+                            label={btn.label}
+                            notificationCount={btn.notificationCount}
+                            onClick={() => handleAdminNav(`/chat/admin?view=${btn.view}`)}
+                        />
+                    ))}
+                </div>
+                <div className="text-center mt-3">
+                        <Button size="sm" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={() => setIsPlansOpen(true)}>
+                        Plan actual: Gratuito
+                    </Button>
+                </div>
+            </div>
 
             <div className="divide-y divide-gray-200 dark:divide-slate-700">
                 {renderContent()}
