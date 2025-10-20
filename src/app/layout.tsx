@@ -1,15 +1,14 @@
 
-
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google'; // Using Inter for a more modern feel
+import { Inter } from 'next/font/google';
 import '@/app/globals.css';
 import { AppProvider } from '@/providers/AppProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
-import AppLayout from '@/components/layout/AppLayout';
 import { APP_NAME } from '@/config/appConfig';
 import Script from 'next/script';
 import NextAuthSessionProvider from '@/providers/SessionProvider';
 import { SocketProvider } from '@/providers/SocketProvider';
+import RootLayoutContent from '@/components/layout/RootLayoutContent';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -156,9 +155,9 @@ export default function RootLayout({
             >
             <AppProvider>
               <SocketProvider>
-                <AppLayout>
+                <RootLayoutContent>
                   {children}
-                </AppLayout>
+                </RootLayoutContent>
               </SocketProvider>
             </AppProvider>
             </ThemeProvider>
@@ -167,5 +166,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    
