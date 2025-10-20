@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import { extractAmountFromImage } from '@/ai/flows/extract-amount-flow';
 
-const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (id: number, action: 'authorize' | 'reject', amount?: number) => void }) => {
+const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: any | null, isOpen: boolean, onOpenChange: (open: boolean) => void, onAction?: (action: 'completed' | 'rejected', amount?: number) => void }) => {
     const { toast } = useToast();
     const [isReadingAmount, setIsReadingAmount] = useState(false);
     const [extractedAmount, setExtractedAmount] = useState<number | null>(null);
@@ -25,7 +25,7 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
 
     if (!payment) return null;
 
-    const receiptUrl = payment.receiptUrl || '';
+    const receiptUrl = payment.receiptUrl || payment.imageUrl || '';
     const isVideo = receiptUrl.startsWith('data:video');
     const isAudio = receiptUrl.startsWith('data:audio');
     const isImage = receiptUrl.startsWith('data:image');
@@ -93,8 +93,8 @@ const ReceiptDialog = ({ payment, isOpen, onOpenChange, onAction }: { payment: a
                             )}
                         </div>
                         <div className='flex items-center gap-2 w-full'>
-                            <Button variant="destructive" className="flex-1" onClick={() => onAction(payment.messageId, 'reject')}><XCircle className="mr-2"/> Rechazar</Button>
-                            <Button className="flex-1 bg-green-600 hover:bg-green-700" disabled={extractedAmount === null || extractedAmount <= 0} onClick={() => onAction(payment.messageId, 'authorize', extractedAmount || 0)}>
+                            <Button variant="destructive" className="flex-1" onClick={() => onAction('rejected')}><XCircle className="mr-2"/> Rechazar</Button>
+                            <Button className="flex-1 bg-green-600 hover:bg-green-700" disabled={extractedAmount === null || extractedAmount <= 0} onClick={() => onAction('completed', extractedAmount || 0)}>
                                 <Check className="mr-2"/> Autorizar Monto
                             </Button>
                         </div>

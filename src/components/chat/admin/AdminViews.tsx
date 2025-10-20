@@ -212,7 +212,7 @@ export const BankView = () => {
                 payment={selectedPayment}
                 isOpen={isReceiptOpen}
                 onOpenChange={setIsReceiptOpen}
-                onAction={(...args) => handleAction(selectedPayment.id, selectedPayment.assistantId, ...args)}
+                onAction={(action: 'completed' | 'rejected', amount?: number) => handleAction(selectedPayment.id, selectedPayment.assistantId, action, amount)}
             />
         </>
     );
@@ -676,21 +676,37 @@ export const CreditView = () => {
     const pendingCredits = useMemo(() => userProfile.creditLines?.filter(cl => cl.status === 'pending') || [], [userProfile.creditLines]);
     const activeCredits = useMemo(() => userProfile.creditLines?.filter(cl => cl.status === 'Al Corriente' || cl.status === 'Atrasado') || [], [userProfile.creditLines]);
 
-     const handleUpdateCreditStatus = (creditId: string, newStatus: 'approved' | 'rejected', amount?: number) => {
+     const handleUpdateCreditStatus = async (creditId: string, newStatus: 'approved' | 'rejected', amount?: number) => {
         if (newStatus === 'approved' && (!amount || amount <= 0)) {
             toast({ title: "Monto requerido", description: "Debes especificar un monto para aprobar el crédito.", variant: "destructive" });
             return;
         }
 
-        const updatedCreditLines = userProfile.creditLines?.map(cl => {
-            if (cl.id === creditId) {
-                return { ...cl, status: newStatus === 'approved' ? 'Al Corriente' : 'rejected', amount: amount || cl.amount, updatedAt: new Date().toISOString() };
+        try {
+            const response = await fetch('/api/credit', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ownerId: userProfile._id, creditLineId: creditId, status: newStatus, amount }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al actualizar el estado del crédito');
             }
-            return cl;
-        });
 
-        dispatch({ type: 'UPDATE_USER_PROFILE', payload: { creditLines: updatedCreditLines } });
-        toast({ title: "Estado Actualizado", description: `La solicitud ha sido ${newStatus === 'approved' ? 'aprobada' : 'rechazada'}.` });
+            const updatedCreditLines = userProfile.creditLines?.map(cl => {
+                if (cl.id === creditId) {
+                    return { ...cl, status: newStatus === 'approved' ? 'Al Corriente' : 'rejected', amount: amount || cl.amount, updatedAt: new Date().toISOString() };
+                }
+                return cl;
+            });
+            dispatch({ type: 'UPDATE_USER_PROFILE', payload: { creditLines: updatedCreditLines } });
+            toast({ title: "Estado Actualizado", description: `La solicitud ha sido ${newStatus === 'approved' ? 'aprobada' : 'rechazada'}.` });
+
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+        } finally {
+            setSelectedCredit(null);
+        }
     };
 
     return (
@@ -793,11 +809,10 @@ export const CreditView = () => {
                             </div>
                         </div>
                         <DialogFooter className="grid grid-cols-2 gap-2">
-                            <Button variant="destructive" onClick={() => { handleUpdateCreditStatus(selectedCredit.id, 'rejected'); setSelectedCredit(null); }}>Rechazar</Button>
+                            <Button variant="destructive" onClick={() => { handleUpdateCreditStatus(selectedCredit.id, 'rejected'); }}>Rechazar</Button>
                             <Button onClick={() => { 
                                 const amount = parseFloat((document.getElementById('approval-amount') as HTMLInputElement).value);
                                 handleUpdateCreditStatus(selectedCredit.id, 'approved', amount);
-                                setSelectedCredit(null);
                             }}>Aprobar Crédito</Button>
                         </DialogFooter>
                     </DialogContent>
