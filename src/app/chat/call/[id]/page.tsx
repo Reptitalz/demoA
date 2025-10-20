@@ -80,7 +80,7 @@ const CallPage = () => {
              <div className="absolute inset-0 bg-black/50" />
 
             {/* Main Content */}
-            <div className="relative z-10 flex flex-col items-center justify-between h-full p-8">
+            <div className="relative z-10 flex flex-col items-center h-full p-8">
                 {/* Contact Info */}
                  <motion.div 
                     initial={{ opacity: 0, y: -20 }}
@@ -104,7 +104,7 @@ const CallPage = () => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.4 }}
-                        className="absolute bottom-40 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
+                        className="absolute bottom-40 right-4 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
                     >
                          {isCameraOff ? (
                             <div className="w-full h-full flex items-center justify-center">
@@ -121,7 +121,7 @@ const CallPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.6 }}
-                    className="flex justify-center items-center gap-6"
+                    className="absolute bottom-12 flex justify-center items-center gap-6"
                 >
                      <Button variant="ghost" size="icon" className="h-16 w-16 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm" onClick={() => setIsMuted(!isMuted)}>
                         {isMuted ? <FaMicrophoneSlash size={24} /> : <FaMicrophone size={24}/>}
