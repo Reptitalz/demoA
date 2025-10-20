@@ -1,4 +1,3 @@
-
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -332,6 +331,23 @@ export default function ChatListPage() {
       ));
     }
     
+    // Welcome message for new users with no contacts
+    if (sessionStatus === 'authenticated' && chatsToDisplay.length === 0 && !isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-350px)] text-center p-4">
+                <AppIcon className="h-20 w-20 mb-4 opacity-70" />
+                <h2 className="text-xl font-bold">¡Bienvenido a {APP_NAME}!</h2>
+                <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+                    Este es tu espacio para chatear. Añade tu primer contacto o crea un asistente para empezar.
+                </p>
+                 <Button onClick={() => setIsAddChatOpen(true)} className="mt-6">
+                    <FaPlus className="mr-2" />
+                    Añadir Primer Contacto
+                </Button>
+            </div>
+        );
+    }
+
     return null;
   };
 
