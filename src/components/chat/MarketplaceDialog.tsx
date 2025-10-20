@@ -27,10 +27,6 @@ const demoItems = {
   services: [
     { id: 'serv_1', name: "Clases de Guitarra", price: 300, seller: "Sofía Luna", imageUrl: "https://i.imgur.com/cQ0Dvhv.png", imageHint: 'guitar lesson', location: 'Monterrey', description: "Clases personalizadas de guitarra acústica o eléctrica para todos los niveles. Sesiones de 1 hora." },
     { id: 'serv_2', name: "Mantenimiento de PC", price: 500, seller: "Luis Mendoza", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'pc maintenance', location: 'Ciudad de México', description: "Limpieza física y de software para tu computadora. Optimización de rendimiento y eliminación de virus." },
-  ],
-  credits: [
-    { id: 'credit-1', name: "Crédito Personal Rápido", amount: 1000, interest: "10", term: '6 meses', seller: "Financiera Confianza", imageUrl: "https://i.imgur.com/sM7a2pM.png", imageHint: 'personal loan', location: 'Guadalajara' },
-    { id: 'credit-2', name: "Crédito Pyme Impulsa", amount: 5000, interest: "8", term: '12 meses', seller: "Banco Emprendedor", imageUrl: "https://i.imgur.com/W2yvA5L.png", imageHint: 'business loan', location: 'Ciudad de México' },
   ]
 };
 
@@ -191,7 +187,7 @@ const categoryConfig = {
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
     const { state, dispatch } = useApp();
-    const { isAuthenticated, cart = [] } = state.userProfile;
+    const { isAuthenticated, cart = [], creditOffers = [] } = state.userProfile;
     const [searchTerm, setSearchTerm] = useState('');
     const [currentView, setCurrentView] = useState<View>('categories');
     const { toast } = useToast();
@@ -249,21 +245,23 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
     const filteredItems = useMemo(() => {
         if (currentView === 'categories') return [];
-        let itemsToFilter = [];
+        let itemsToFilter: any[] = [];
 
         if (currentView === 'products') {
             itemsToFilter = allProducts || [];
-        } else if (currentView === 'services' || currentView === 'credits') {
-            itemsToFilter = demoItems[currentView] || [];
+        } else if (currentView === 'services') {
+            itemsToFilter = demoItems.services || [];
+        } else if (currentView === 'credits') {
+            itemsToFilter = creditOffers || [];
         }
         
         return itemsToFilter.filter(item => 
             item.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm, currentView, location, allProducts]);
+    }, [searchTerm, currentView, location, allProducts, creditOffers]);
     
     const handleRequestCredit = (credit: any) => {
-        const assistant = state.userProfile.assistants.find(a => a.name.includes(credit.seller));
+        const assistant = state.userProfile.assistants.find(a => a.id === credit.assistantId);
         if (assistant) {
             setSelectedCreditAssistant(assistant);
             setIsCreditDialogOpen(true);
@@ -402,17 +400,17 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                                             <CardContent className="p-4 space-y-3">
                                                 <div className="flex justify-between items-start">
                                                     <div>
-                                                      <p className="text-xs text-muted-foreground">{item.seller}</p>
+                                                      <p className="text-xs text-muted-foreground">{state.userProfile.assistants.find(a=> a.id === (item as CreditOffer).assistantId)?.name || 'Asistente desconocido'}</p>
                                                       <p className="font-bold text-lg text-primary">{item.name}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-3xl font-extrabold text-foreground">${(item as any).amount?.toLocaleString()}</p>
+                                                        <p className="text-3xl font-extrabold text-foreground">${(item as CreditOffer).amount?.toLocaleString()}</p>
                                                         <p className="text-xs text-muted-foreground">Monto Máximo</p>
                                                     </div>
                                                 </div>
                                                  <div className="flex justify-between text-xs pt-3 border-t">
-                                                    <p>Tasa de interés: <span className="font-semibold">{(item as any).interest}% mensual</span></p>
-                                                    <p>Plazo: <span className="font-semibold">{(item as any).term}</span></p>
+                                                    <p>Tasa de interés: <span className="font-semibold">{(item as CreditOffer).interest}% mensual</span></p>
+                                                    <p>Plazo: <span className="font-semibold">{(item as CreditOffer).term} { { weeks: 'sem.', fortnights: 'quinc.', months: 'meses' }[(item as CreditOffer).termUnit] }</span></p>
                                                 </div>
                                                 <div className="flex gap-2 pt-2">
                                                     <Button size="sm" variant="secondary" className="flex-1">

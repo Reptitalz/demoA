@@ -197,6 +197,7 @@ export interface ContactImage {
 }
 
 export interface Contact {
+  _id?: string;
   chatPath: string;
   name: string;
   imageUrl?: string;
