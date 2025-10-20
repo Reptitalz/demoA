@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import Image from 'next/image';
 import { Input } from '../ui/input';
-import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User, ChevronUp, Plus, Minus, Trash2 } from 'lucide-react';
+import { Search, Sparkles, Store, Briefcase, Landmark, ArrowLeft, ShoppingCart, Wallet, Send, MapPin, Truck, ShoppingBag, TruckIcon, Package, User, ChevronUp, Plus, Minus, Trash2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
