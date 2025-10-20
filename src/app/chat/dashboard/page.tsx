@@ -149,14 +149,15 @@ export default function ChatListPage() {
   const [isBeginSetupOpen, setIsBeginSetupOpen] = useState(false);
   
   useEffect(() => {
-    if (sessionStatus !== 'loading' && contacts) {
+    if (process.env.NODE_ENV === 'production' && sessionStatus !== 'loading' && contacts) {
         setIsLoading(false);
-        // Only show welcome dialog if NOT authenticated and there are no contacts.
         if (sessionStatus !== 'authenticated' && contacts.length === 0) {
             setShowWelcomeDialog(true);
         }
+    } else if (process.env.NODE_ENV !== 'production') {
+        setIsLoading(false);
     }
-}, [sessionStatus, contacts]);
+  }, [sessionStatus, contacts]);
 
 
   useEffect(() => {
@@ -438,7 +439,7 @@ export default function ChatListPage() {
         </AlertDialogContent>
        </AlertDialog>
         <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
-             <AlertDialogContent className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
+             <AlertDialogContent showCloseButton={true} className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
                 <AlertDialogHeader className="text-center">
                     <div className="flex flex-col items-center text-center">
                         <AppIcon className="h-20 w-20 mb-4" />
@@ -456,6 +457,11 @@ export default function ChatListPage() {
                         <FcGoogle className="mr-2 h-4 w-4" />
                         ¿Ya tienes cuenta?
                     </Button>
+                     {process.env.NODE_ENV === 'development' && (
+                        <Button variant="secondary" onClick={() => setShowWelcomeDialog(false)} className="w-full mt-2">
+                          Modo Demo
+                        </Button>
+                    )}
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
