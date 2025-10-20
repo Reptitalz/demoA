@@ -80,13 +80,13 @@ const CallPage = () => {
              <div className="absolute inset-0 bg-black/50" />
 
             {/* Main Content */}
-            <div className="relative z-10 flex flex-col items-center h-full p-8">
+            <div className="relative z-10 flex flex-col justify-around items-center h-full p-8">
                 {/* Contact Info */}
                  <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="flex flex-col items-center text-center mt-16"
+                    className="flex flex-col items-center text-center mt-8"
                 >
                     <Avatar className="h-28 w-28 border-4 border-white/20">
                         <AvatarImage src={contact?.imageUrl} alt={contact?.name} />
@@ -98,43 +98,45 @@ const CallPage = () => {
                     <p className="text-lg text-white/80 mt-1">{callStatus}</p>
                 </motion.div>
                 
-                {/* Local Video Preview (for video calls) */}
-                {callType === 'video' && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        className="absolute bottom-40 right-4 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
-                    >
-                         {isCameraOff ? (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <FaVideoSlash className="text-white/50" size={32}/>
-                            </div>
-                        ) : (
-                            <div className="w-full h-full bg-green-400" /> /* Placeholder for local video */
-                        )}
-                    </motion.div>
-                )}
-                
-                {/* Controls */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.6 }}
-                    className="absolute bottom-12 flex justify-center items-center gap-6"
-                >
-                     <Button variant="ghost" size="icon" className="h-16 w-16 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm" onClick={() => setIsMuted(!isMuted)}>
-                        {isMuted ? <FaMicrophoneSlash size={24} /> : <FaMicrophone size={24}/>}
-                    </Button>
-                     {callType === 'video' && (
-                        <Button variant="ghost" size="icon" className="h-16 w-16 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm" onClick={() => setIsCameraOff(!isCameraOff)}>
-                            {isCameraOff ? <FaVideoSlash size={24} /> : <FaVideo size={24} />}
-                        </Button>
-                    )}
-                     <Button variant="destructive" size="icon" className="h-16 w-16 rounded-full" onClick={handleEndCall}>
-                        <FaPhone size={24} className="transform -rotate-[135deg]" />
-                    </Button>
-                </motion.div>
+                <div className="relative w-full">
+                  {/* Local Video Preview (for video calls) */}
+                  {callType === 'video' && (
+                      <motion.div 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.5, delay: 0.4 }}
+                          className="absolute -top-32 right-0 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
+                      >
+                           {isCameraOff ? (
+                              <div className="w-full h-full flex items-center justify-center">
+                                  <FaVideoSlash className="text-white/50" size={32}/>
+                              </div>
+                          ) : (
+                              <div className="w-full h-full bg-green-400" /> /* Placeholder for local video */
+                          )}
+                      </motion.div>
+                  )}
+
+                  {/* Controls */}
+                  <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                      className="flex justify-center items-center gap-6"
+                  >
+                       <Button variant="ghost" size="icon" className="h-16 w-16 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm" onClick={() => setIsMuted(!isMuted)}>
+                          {isMuted ? <FaMicrophoneSlash size={24} /> : <FaMicrophone size={24}/>}
+                      </Button>
+                       {callType === 'video' && (
+                          <Button variant="ghost" size="icon" className="h-16 w-16 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm" onClick={() => setIsCameraOff(!isCameraOff)}>
+                              {isCameraOff ? <FaVideoSlash size={24} /> : <FaVideo size={24} />}
+                          </Button>
+                      )}
+                       <Button variant="destructive" size="icon" className="h-16 w-16 rounded-full" onClick={handleEndCall}>
+                          <FaPhone size={24} className="transform -rotate-[135deg]" />
+                      </Button>
+                  </motion.div>
+                </div>
             </div>
         </div>
     );
