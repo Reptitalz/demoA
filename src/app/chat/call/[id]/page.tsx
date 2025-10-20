@@ -61,7 +61,7 @@ const CallPage = () => {
     const handleEndCall = () => {
         setCallStatus('Finalizada');
         setTimeout(() => {
-            router.back();
+            router.push('/chat/calls');
         }, 1500);
     };
 
