@@ -35,7 +35,7 @@ const demoItems = {
 };
 
 const demoCart: (Product & { quantity: number })[] = [
-     { id: 'prod_2', name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1, description: '' },
+     { id: 'prod_2', name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1, description: '', catalogId: '', ownerId: '', location: '' },
 ];
 
 
@@ -191,7 +191,7 @@ const categoryConfig = {
 
 const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => {
     const { state, dispatch } = useApp();
-    const { isAuthenticated, cart = [], allProducts } = state.userProfile;
+    const { isAuthenticated, cart = [] } = state.userProfile;
     const [searchTerm, setSearchTerm] = useState('');
     const [currentView, setCurrentView] = useState<View>('categories');
     const { toast } = useToast();
@@ -201,6 +201,8 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     const [isOrdersOpen, setIsOrdersOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [allProducts, setAllProducts] = useState<Product[]>([]);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(false);
 
     const activeDeliveriesCount = useMemo(() => {
         const source = isAuthenticated ? (state.userProfile.deliveries || []) : [];
@@ -215,15 +217,35 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
     useEffect(() => {
         if (isOpen) {
+            // Fetch location
             setTimeout(() => {
                 setLocation("Ciudad de México");
             }, 500);
+
+            // Fetch products
+            if (currentView === 'products' || allProducts.length === 0) {
+              setIsLoadingProducts(true);
+              fetch('/api/products')
+                .then(res => res.json())
+                .then(data => {
+                  if (data.products) {
+                    setAllProducts(data.products);
+                  }
+                })
+                .catch(err => {
+                  console.error("Failed to fetch products", err);
+                  toast({ title: 'Error', description: 'No se pudieron cargar los productos.', variant: 'destructive' });
+                })
+                .finally(() => setIsLoadingProducts(false));
+            }
+            
+            // Reset view
             setTimeout(() => {
                 setCurrentView('categories');
                 setSearchTerm('');
             }, 300);
         }
-    }, [isOpen]);
+    }, [isOpen, currentView]);
 
     const filteredItems = useMemo(() => {
         if (currentView === 'categories') return [];
@@ -237,8 +259,6 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
         
         return itemsToFilter.filter(item => 
             item.name.toLowerCase().includes(searchTerm.toLowerCase())
-            // Location filter is temporarily disabled to show all products
-            // && item.location.toLowerCase() === location.toLowerCase()
         );
     }, [searchTerm, currentView, location, allProducts]);
     
@@ -366,7 +386,9 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
 
                 <ScrollArea className="flex-grow my-4">
                     <div className="px-4 sm:px-6">
-                        {filteredItems.length > 0 ? (
+                        {isLoadingProducts ? (
+                            <div className="flex items-center justify-center h-48"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+                        ) : filteredItems.length > 0 ? (
                             <motion.div
                                 className={cn("grid gap-4", currentView === 'credits' ? 'grid-cols-1' : 'grid-cols-2')}
                                 variants={{ visible: { transition: { staggerChildren: 0.05 } } }}

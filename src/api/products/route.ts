@@ -1,13 +1,25 @@
 // src/app/api/products/route.ts
-// This file is no longer used as product/catalog data is now part of the user profile.
-// The data is fetched via the AppProvider context on the client-side.
-// This file can be safely deleted in a future cleanup.
-
 import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Product } from '@/types';
 
+// This endpoint now fetches all products from the central 'products' collection.
 export async function GET(request: NextRequest) {
-  return NextResponse.json(
-    { message: 'This API endpoint is deprecated. Product data is handled client-side.' },
-    { status: 410 } // 410 Gone
-  );
+  try {
+    const { db } = await connectToDatabase();
+    
+    // In a real application, you might add pagination here.
+    // For now, we fetch all products.
+    const products = await db.collection<Product>('products').find({}).toArray();
+
+    // The 'seller' field can be populated by fetching the user profile who owns the product.
+    // This is an N+1 query problem, so for now we might omit it or handle it differently.
+    // For simplicity, we'll assume the client can handle displaying the product without the seller's name for now.
+    
+    return NextResponse.json({ products });
+
+  } catch (error) {
+    console.error('API Error (GET /api/products):', error);
+    return NextResponse.json({ message: 'Error al obtener los productos' }, { status: 500 });
+  }
 }

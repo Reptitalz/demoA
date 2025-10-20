@@ -25,11 +25,15 @@ export interface AssistantPurpose {
 export type DatabaseSource = "google_sheets" | "smart_db"; 
 
 export interface Product {
+    _id?: ObjectId;
     id: string;
+    catalogId: string;
+    ownerId: string; // ID of the user who owns the product
     name: string;
     description?: string;
     price: number;
     imageUrl?: string;
+    location: string; // e.g., "Ciudad de México"
     seller?: string;
 }
 
@@ -43,7 +47,7 @@ export interface Catalog {
   name: string;
   promoterType: 'user' | 'bot';
   promoterId: string; // userProfile._id or assistant.id
-  products: Product[];
+  products: Product[]; // This will now just hold IDs or be deprecated in favor of a separate collection
 }
 
 export interface DatabaseConfig {
@@ -246,7 +250,6 @@ export interface UserProfile {
   cart?: CartItem[];
   deliveries?: Delivery[];
   credits: number;
-  allProducts?: Product[];
 }
 
 export interface WizardState {
