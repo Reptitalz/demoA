@@ -35,7 +35,7 @@ export async function middleware(req: NextRequest) {
       if (pathname.startsWith('/colaboradores')) {
         loginUrl = new URL('/colaboradores/login', req.url);
       } else if (pathname.startsWith('/chat')) {
-        loginUrl = new URL('/chat', req.url); // Redirect to the new chat landing page
+        loginUrl = new URL('/chat/dashboard', req.url); // Redirect to the new chat landing page
       } else {
         loginUrl = new URL('/login', req.url);
       }
