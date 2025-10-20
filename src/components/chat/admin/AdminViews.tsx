@@ -710,7 +710,7 @@ export const CreditView = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
-                                <CardTitle>Ofertas de Crédito</CardTitle>
+                                <CardTitle className="text-base">Ofertas de Crédito</CardTitle>
                                 <Button size="sm" onClick={() => setIsCreateOfferOpen(true)}><Plus className="mr-2 h-4 w-4"/>Crear Oferta</Button>
                             </div>
                             <CardDescription>Crea y gestiona las ofertas de crédito que tus asistentes pueden ofrecer.</CardDescription>
@@ -722,7 +722,7 @@ export const CreditView = () => {
 
                      <Card>
                         <CardHeader>
-                            <CardTitle>Solicitudes Pendientes ({pendingCredits.length})</CardTitle>
+                            <CardTitle className="text-base">Solicitudes Pendientes ({pendingCredits.length})</CardTitle>
                             <CardDescription>Revisa y aprueba o rechaza nuevas solicitudes de crédito.</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -747,7 +747,7 @@ export const CreditView = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
-                                <CardTitle>Créditos Activos</CardTitle>
+                                <CardTitle className="text-base">Créditos Activos</CardTitle>
                                 <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setIsHistoryOpen(true)}>Ver Historial</Button>
                             </div>
                             <CardDescription>Da seguimiento a las líneas de crédito que has otorgado.</CardDescription>
@@ -1003,7 +1003,7 @@ export const ProductsView = () => {
                             <Package className="mx-auto h-12 w-12 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <CardTitle>Sin Catálogos</CardTitle>
+                            <h3 className="font-semibold text-lg">Sin Catálogos</h3>
                             <CardDescription className="mt-2">Crea tu primer catálogo para empezar a añadir productos.</CardDescription>
                         </CardContent>
                     </Card>
@@ -1013,7 +1013,7 @@ export const ProductsView = () => {
                             <Card key={catalog.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
-                                        <CardTitle>{catalog.name}</CardTitle>
+                                        <h3 className="font-semibold">{catalog.name}</h3>
                                         <Button size="sm" variant="outline" onClick={() => handleAddProduct(catalog.id)}>
                                             <Plus className="mr-2 h-4 w-4"/> Añadir Producto
                                         </Button>
