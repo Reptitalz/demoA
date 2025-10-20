@@ -145,19 +145,15 @@ export default function ChatListPage() {
   
   const [authorizationsCount, setAuthorizationsCount] = useState(0);
   const [creditsCount, setCreditsCount] = useState(0);
-  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [isBeginSetupOpen, setIsBeginSetupOpen] = useState(false);
   
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' && sessionStatus !== 'loading' && contacts) {
-        setIsLoading(false);
-        if (sessionStatus !== 'authenticated' && contacts.length === 0) {
-            setShowWelcomeDialog(true);
-        }
-    } else if (process.env.NODE_ENV !== 'production') {
+    // Simplified loading logic. We just show the list.
+    // The `useContacts` hook handles fetching.
+    if (sessionStatus !== 'loading') {
         setIsLoading(false);
     }
-  }, [sessionStatus, contacts]);
+  }, [sessionStatus]);
 
 
   useEffect(() => {
@@ -245,7 +241,6 @@ export default function ChatListPage() {
   }
   
    const handleStart = () => {
-        setShowWelcomeDialog(false);
         setIsBeginSetupOpen(true);
     };
 
@@ -438,33 +433,7 @@ export default function ChatListPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
        </AlertDialog>
-        <AlertDialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
-             <AlertDialogContent showCloseButton={true} className="w-screen h-screen max-w-full flex flex-col items-center justify-center border-0 bg-background shadow-none text-foreground">
-                <AlertDialogHeader className="text-center">
-                    <div className="flex flex-col items-center text-center">
-                        <AppIcon className="h-20 w-20 mb-4" />
-                        <AlertDialogTitle className="text-foreground text-2xl">¡Bienvenido a {APP_NAME}!</AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm max-w-xs text-muted-foreground">
-                           {APP_NAME} es una red social de chat con superpoderes de IA. Conecta con tus contactos, crea asistentes inteligentes para automatizar tareas y gestiona tu negocio desde un solo lugar.
-                        </AlertDialogDescription>
-                    </div>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col gap-4 w-full max-w-xs sm:max-w-sm">
-                    <AlertDialogAction asChild>
-                         <Button className="w-full" onClick={handleStart}>Empezar</Button>
-                    </AlertDialogAction>
-                     <Button variant="outline" className="w-full mt-2 sm:mt-0" onClick={() => signIn('google', { callbackUrl: '/chat/dashboard' })}>
-                        <FcGoogle className="mr-2 h-4 w-4" />
-                        ¿Ya tienes cuenta?
-                    </Button>
-                     {process.env.NODE_ENV === 'development' && (
-                        <Button variant="secondary" onClick={() => setShowWelcomeDialog(false)} className="w-full mt-2">
-                          Modo Demo
-                        </Button>
-                    )}
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+       
         <BeginSetupDialog isOpen={isBeginSetupOpen} onOpenChange={setIsBeginSetupOpen} />
     </>
   );
