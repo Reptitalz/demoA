@@ -77,7 +77,7 @@ const CallPage = () => {
                     className="blur-2xl scale-110 brightness-50"
                 />
             )}
-             <div className="absolute inset-0 bg-black/50" />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/80" />
 
             {/* Main Content */}
             <div className="relative z-10 flex flex-col justify-between items-center h-full p-8">
@@ -88,10 +88,10 @@ const CallPage = () => {
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className="flex flex-col items-center text-center pt-16"
                 >
-                    <Avatar className="h-28 w-28 border-4 border-white/20">
+                    <Avatar className="h-28 w-28 border-4 border-white/20 bg-black/20">
                         <AvatarImage src={contact?.imageUrl} alt={contact?.name} />
                         <AvatarFallback className="text-4xl bg-slate-700">
-                             {contact?.name ? contact.name.charAt(0) : <FaUser />}
+                             {contact?.name ? contact.name.charAt(0).toUpperCase() : <FaUser />}
                         </AvatarFallback>
                     </Avatar>
                     <h1 className="text-3xl font-bold mt-4">{contact?.name || 'Desconocido'}</h1>
@@ -105,7 +105,7 @@ const CallPage = () => {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.5, delay: 0.4 }}
-                          className="absolute bottom-24 right-4 sm:right-8 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
+                          className="absolute bottom-32 right-4 sm:right-8 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
                       >
                            {isCameraOff ? (
                               <div className="w-full h-full flex items-center justify-center">
