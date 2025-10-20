@@ -1,5 +1,4 @@
 
-
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -152,7 +151,8 @@ export interface CreditOffer {
   customColor?: string;
   cardImageUrl?: string;
   cardIconUrl?: string;
-  assistantId: string; // The assistant that will offer this credit
+  managerType: 'user' | 'assistant';
+  managerId: string; // The user or assistant that will offer and manage this credit
   requiredDocuments: RequiredDocument[];
 }
 

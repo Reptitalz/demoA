@@ -1,3 +1,4 @@
+
 // src/components/chat/admin/AdminViews.tsx
 "use client";
 
@@ -300,11 +301,17 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
         }
     }, []);
 
+    const getManagerName = (managerType: 'user' | 'assistant', managerId: string) => {
+        if (managerType === 'user') {
+            return state.userProfile.firstName || 'Yo';
+        }
+        return state.userProfile.assistants.find(a => a.id === managerId)?.name || 'Asistente';
+    };
+
     return (
         <div className="w-full">
             <div ref={scrollRef} className="flex snap-x snap-mandatory overflow-x-auto scrollbar-hide -m-2 p-2">
                 {creditOffers.map((offer) => {
-                    const assistant = state.userProfile.assistants.find(a => a.id === offer.assistantId);
                     const selectedStyle = cardStyles.find(s => s.id === offer.cardStyle);
                     const cardBgStyle = offer.cardStyle === 'custom-image' && offer.cardImageUrl
                         ? { backgroundImage: `url(${offer.cardImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -326,7 +333,7 @@ const CreditOfferCarousel = ({ onAdd }: { onAdd: () => void }) => {
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-1.5">
                                         {offer.cardIconUrl ? <Image src={offer.cardIconUrl} alt="Card Icon" width={16} height={16} className="brightness-0 invert"/> : <AppIcon className="h-4 w-4 brightness-0 invert"/>}
-                                        <span className="font-semibold text-xs">{assistant?.name || 'Hey Manito!'}</span>
+                                        <span className="font-semibold text-xs">{getManagerName(offer.managerType, offer.managerId)}</span>
                                     </div>
                                     <Banknote className="h-5 w-5 text-yellow-300"/>
                                 </div>
@@ -388,7 +395,8 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const [customColor, setCustomColor] = useState("#000000");
     const [cardImageUrl, setCardImageUrl] = useState<string | null>(null);
     const [cardIconUrl, setCardIconUrl] = useState<string | null>(null);
-    const [assistantId, setAssistantId] = useState<string | undefined>();
+    const [managerType, setManagerType] = useState<'user' | 'assistant'>('user');
+    const [managerId, setManagerId] = useState<string>('');
     const [requiredDocuments, setRequiredDocuments] = useState<RequiredDocument[]>([]);
     const [newDocTitle, setNewDocTitle] = useState('');
 
@@ -399,6 +407,14 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     const assistants = state.userProfile.assistants || [];
     const totalSteps = 7;
 
+    useEffect(() => {
+        if (managerType === 'user') {
+            setManagerId(state.userProfile._id?.toString() || '');
+        } else {
+            setManagerId('');
+        }
+    }, [managerType, state.userProfile._id]);
+    
     const handleNext = () => {
         if (step === 1 && !name) return toast({ title: "Campo requerido", description: "Por favor, ingresa un nombre para la oferta.", variant: "destructive" });
         if (step === 2 && !amount) return toast({ title: "Campo requerido", description: "Por favor, ingresa un monto.", variant: "destructive" });
@@ -406,13 +422,13 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
         if (step === 4 && !term) return toast({ title: "Campo requerido", description: "Por favor, ingresa un plazo.", variant: "destructive" });
         if (step === 5 && requiredDocuments.length === 0) return toast({ title: "Campo requerido", description: "Añade al menos un documento requerido.", variant: "destructive" });
         if (step === 6 && !cardStyle) return toast({ title: "Campo requerido", description: "Por favor, selecciona un estilo.", variant: "destructive" });
-        if (step === 7 && !assistantId) return toast({ title: "Campo requerido", description: "Por favor, selecciona un asistente gestor.", variant: "destructive" });
+        if (step === 7 && !managerId) return toast({ title: "Campo requerido", description: "Por favor, selecciona un gestor.", variant: "destructive" });
         setStep(s => s + 1);
     };
     const handleBack = () => setStep(s => s - 1);
     
     const handleCreate = () => {
-        if (!name || !amount || !interest || !term || !assistantId || requiredDocuments.length === 0) {
+        if (!name || !amount || !interest || !term || !managerId || requiredDocuments.length === 0) {
             toast({ title: "Campos incompletos", description: "Por favor, completa todos los campos para crear la oferta.", variant: "destructive" });
             return;
         }
@@ -428,7 +444,8 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
             customColor: cardStyle === 'custom-color' ? customColor : undefined,
             cardImageUrl: cardStyle === 'custom-image' ? cardImageUrl : undefined,
             cardIconUrl: cardIconUrl || undefined,
-            assistantId: assistantId,
+            managerType: managerType,
+            managerId: managerId,
             requiredDocuments: requiredDocuments,
         };
 
@@ -616,7 +633,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-1.5">
                                     {cardIconUrl ? <Image src={cardIconUrl} alt="Card Icon" width={16} height={16} className="brightness-0 invert"/> : <AppIcon className="h-4 w-4 brightness-0 invert"/>}
-                                    <span className="font-semibold text-xs">Hey Manito!</span>
+                                    <span className="font-semibold text-xs">{getManagerName(managerType, managerId)}</span>
                                 </div>
                                 <Banknote className="h-5 w-5 text-yellow-300"/>
                             </div>
@@ -654,32 +671,56 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
                         </div>
                     </div>
                 );
-            case 7: return (
+            case 7: 
+                return (
                 <div className="space-y-2">
-                    <Label htmlFor="assistant" className="text-base">Asistente Gestor</Label>
-                    <Select onValueChange={setAssistantId} value={assistantId}>
-                        <SelectTrigger id="assistant" className="text-lg py-6">
-                            <SelectValue placeholder="Selecciona un asistente..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {assistants.map(asst => (
-                                <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
-                            ))}
-                            {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
-                        </SelectContent>
-                    </Select>
+                    <Label className="text-base">Gestor del Crédito</Label>
+                    <RadioGroup value={managerType} onValueChange={(v) => setManagerType(v as 'user' | 'assistant')} className="space-y-2">
+                        <Label htmlFor="manager-user" className={cn("flex items-center gap-3 p-3 border rounded-md cursor-pointer", managerType === 'user' && "bg-primary/10 border-primary")}>
+                            <RadioGroupItem value="user" id="manager-user" />
+                            <User className="h-5 w-5" />
+                            <span>Yo mismo</span>
+                        </Label>
+                        <Label htmlFor="manager-assistant" className={cn("flex items-center gap-3 p-3 border rounded-md cursor-pointer", managerType === 'assistant' && "bg-primary/10 border-primary")}>
+                            <RadioGroupItem value="assistant" id="manager-assistant" />
+                            <Bot className="h-5 w-5" />
+                            <span>Un Asistente</span>
+                        </Label>
+                    </RadioGroup>
+                    {managerType === 'assistant' && (
+                        <div className="pt-4 animate-fadeIn space-y-2">
+                            <Label htmlFor="assistant-select">Selecciona el Asistente</Label>
+                            <Select onValueChange={setManagerId} value={managerId}>
+                                <SelectTrigger id="assistant-select" className="py-6">
+                                    <SelectValue placeholder="Elige un asistente..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {assistants.map(asst => (
+                                        <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
+                                    ))}
+                                    {assistants.length === 0 && <SelectItem value="none" disabled>No tienes asistentes</SelectItem>}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                 </div>
             );
             default: return null;
         }
+    };
+    
+    const getManagerName = (type: 'user' | 'assistant', id: string) => {
+        if (type === 'user') return state.userProfile.firstName || 'Yo';
+        return assistants.find(a => a.id === id)?.name || 'Asistente';
     }
+
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-screen h-screen max-w-full flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
                  <DialogHeader className="p-4 border-b">
                     <DialogTitle>Crear Nueva Oferta de Crédito</DialogTitle>
-                    <DialogDescription>Define los términos y asigna un asistente para gestionar esta oferta.</DialogDescription>
+                    <DialogDescription>Define los términos y asigna un gestor para esta oferta.</DialogDescription>
                 </DialogHeader>
                 <div className="px-4 pt-4">
                     <Progress value={(step / totalSteps) * 100} className="w-full h-2" />
@@ -769,10 +810,10 @@ export const CreditView = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
-                                <CardTitle className="text-base">Ofertas de Crédito</CardTitle>
+                                <CardTitle className="text-base font-semibold">Ofertas de Crédito</CardTitle>
                                 <Button size="sm" onClick={() => setIsCreateOfferOpen(true)}><Plus className="mr-2 h-4 w-4"/>Crear Oferta</Button>
                             </div>
-                            <CardDescription>Crea y gestiona las ofertas de crédito que tus asistentes pueden ofrecer.</CardDescription>
+                            <CardDescription className="text-xs">Crea y gestiona las ofertas de crédito que tus asistentes pueden ofrecer.</CardDescription>
                         </CardHeader>
                         <CardContent>
                            <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
@@ -781,8 +822,8 @@ export const CreditView = () => {
 
                      <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">Solicitudes Pendientes ({pendingCredits.length})</CardTitle>
-                            <CardDescription>Revisa y aprueba o rechaza nuevas solicitudes de crédito.</CardDescription>
+                            <CardTitle className="text-base font-semibold">Solicitudes Pendientes ({pendingCredits.length})</CardTitle>
+                            <CardDescription className="text-xs">Revisa y aprueba o rechaza nuevas solicitudes de crédito.</CardDescription>
                         </CardHeader>
                         <CardContent>
                            {pendingCredits.length > 0 ? (
@@ -806,10 +847,10 @@ export const CreditView = () => {
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
-                                <CardTitle className="text-base">Créditos Activos</CardTitle>
-                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setIsHistoryOpen(true)}>Ver Historial</Button>
+                                <CardTitle className="text-base font-semibold">Créditos Activos</CardTitle>
+                                <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsHistoryOpen(true)}>Ver Historial</Button>
                             </div>
-                            <CardDescription>Da seguimiento a las líneas de crédito que has otorgado.</CardDescription>
+                            <CardDescription className="text-xs">Da seguimiento a las líneas de crédito que has otorgado.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {activeCredits.length > 0 ? (
@@ -910,7 +951,7 @@ export const DeliveryView = () => {
                             <Card key={delivery.id} className="glow-card">
                                 <CardHeader className="pb-3">
                                     <div className="flex justify-between items-start">
-                                        <CardTitle className="text-base">{delivery.productName}</CardTitle>
+                                        <CardTitle className="text-base font-semibold">{delivery.productName}</CardTitle>
                                         <Badge variant={delivery.status === 'pending' ? 'destructive' : 'default'}>
                                             {delivery.status === 'pending' ? 'Pendiente' : 'En Ruta'}
                                         </Badge>
@@ -1071,12 +1112,12 @@ export const ProductsView = () => {
                             <Card key={catalog.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
-                                        <h3 className="font-semibold">{catalog.name}</h3>
+                                        <h3 className="text-base font-semibold">{catalog.name}</h3>
                                         <Button size="sm" variant="outline" onClick={() => handleAddProduct(catalog.id)}>
                                             <Plus className="mr-2 h-4 w-4"/> Añadir Producto
                                         </Button>
                                     </div>
-                                    <CardDescription>
+                                    <CardDescription className="text-xs">
                                         Promovido por: {catalog.promoterType === 'user' ? 'Ti mismo' : state.userProfile.assistants.find(a => a.id === catalog.promoterId)?.name || 'Asistente desconocido'}
                                     </CardDescription>
                                 </CardHeader>
