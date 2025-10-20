@@ -80,13 +80,13 @@ const CallPage = () => {
              <div className="absolute inset-0 bg-black/50" />
 
             {/* Main Content */}
-            <div className="relative z-10 flex flex-col justify-around items-center h-full p-8">
+            <div className="relative z-10 flex flex-col justify-between items-center h-full p-8">
                 {/* Contact Info */}
                  <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="flex flex-col items-center text-center mt-8"
+                    className="flex flex-col items-center text-center mt-16"
                 >
                     <Avatar className="h-28 w-28 border-4 border-white/20">
                         <AvatarImage src={contact?.imageUrl} alt={contact?.name} />
@@ -98,14 +98,14 @@ const CallPage = () => {
                     <p className="text-lg text-white/80 mt-1">{callStatus}</p>
                 </motion.div>
                 
-                <div className="relative w-full">
+                <div className="relative w-full mb-8">
                   {/* Local Video Preview (for video calls) */}
                   {callType === 'video' && (
                       <motion.div 
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.5, delay: 0.4 }}
-                          className="absolute -top-32 right-0 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
+                          className="absolute bottom-24 right-0 h-48 w-32 bg-black/50 rounded-xl border-2 border-white/20 overflow-hidden shadow-lg"
                       >
                            {isCameraOff ? (
                               <div className="w-full h-full flex items-center justify-center">
