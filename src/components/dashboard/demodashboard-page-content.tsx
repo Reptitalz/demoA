@@ -26,6 +26,7 @@ import { BookText, CheckSquare, Bell, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 
 const DemoDashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
