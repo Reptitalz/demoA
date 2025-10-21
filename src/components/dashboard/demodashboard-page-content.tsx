@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import type { AssistantMemory, AssistantWithMemory, Authorization } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
 import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
-import { BookText, CheckSquare, Bell, Eye } from 'lucide-react';
+import { BookText, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -41,6 +41,9 @@ const DemoDashboardPageContent = () => {
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
   
   const isDemoMode = true; // This component is always in demo mode
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
 
   const demoProfile = {
       isAuthenticated: false,
@@ -91,6 +94,26 @@ const DemoDashboardPageContent = () => {
   
   const profileToRender = demoProfile;
 
+   useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const scrollLeft = scrollRef.current.scrollLeft;
+        // The width of each card is 80% of the container width plus margin/padding.
+        // A simpler approach is to calculate based on the total scrollable width.
+        const cardWidth = scrollRef.current.scrollWidth / profileToRender.assistants.length;
+        if (cardWidth > 0) {
+            const newIndex = Math.round(scrollLeft / cardWidth);
+            setActiveIndex(newIndex);
+        }
+      }
+    };
+    const scroller = scrollRef.current;
+    if (scroller) {
+      scroller.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scroller.removeEventListener('scroll', handleScroll);
+    }
+  }, [profileToRender.assistants.length]);
+
   const handleActionInDemo = (action: string) => {
     toast({
         title: "Modo de Demostración",
@@ -111,7 +134,7 @@ const DemoDashboardPageContent = () => {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
-                <h3 className="text-base font-semibold flex items-center gap-2"> 
+                <h3 className="text-sm font-semibold flex items-center gap-2"> 
                     <FaRobot size={16} className="text-green-500" /> 
                     Asistentes de Ejemplo
                 </h3>
@@ -120,29 +143,51 @@ const DemoDashboardPageContent = () => {
                     Iniciar Sesión para Crear
                 </Button>
             </div>
-            <div className="flex overflow-x-auto space-x-4 p-2 -m-2 snap-x snap-mandatory scrollbar-hide">
-                {profileToRender.assistants.map((assistant, index) => (
-                    <div key={assistant.id} className="snap-center flex-shrink-0 w-[80%] sm:w-[45%] md:w-[48%] lg:w-[32%]">
-                        <AssistantCard 
-                            assistant={assistant as any} 
-                            onReconfigure={() => handleActionInDemo('Configurar Asistente')}
-                            animationDelay={`${0.4 + index * 0.1}s`}
+            <div>
+              <div ref={scrollRef} className="flex overflow-x-auto space-x-4 p-2 -m-2 snap-x snap-mandatory scrollbar-hide">
+                  {profileToRender.assistants.map((assistant, index) => (
+                      <div key={assistant.id} className="snap-center flex-shrink-0 w-[80%] sm:w-64">
+                          <AssistantCard 
+                              assistant={assistant as any} 
+                              onReconfigure={() => handleActionInDemo('Configurar Asistente')}
+                              animationDelay={`${0.4 + index * 0.1}s`}
+                          />
+                      </div>
+                  ))}
+              </div>
+               <div className="flex justify-center mt-4 space-x-2">
+                    {profileToRender.assistants.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => {
+                                if (scrollRef.current) {
+                                    const cardNode = scrollRef.current.children[index] as HTMLElement;
+                                    if(cardNode) {
+                                        scrollRef.current.scrollTo({ left: cardNode.offsetLeft - scrollRef.current.offsetLeft, behavior: 'smooth' });
+                                    }
+                                }
+                            }}
+                            className={cn(
+                                "h-2 w-2 rounded-full transition-all duration-300",
+                                activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                            )}
+                            aria-label={`Ir al asistente ${index + 1}`}
                         />
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
       );
     }
     
     if (isManagerPage) {
-      const managerButtons = [
-        { title: 'Mensajes', icon: FaComments, action: () => handleActionInDemo('Ver Mensajes') },
-        { title: 'Autorizaciones', icon: CheckSquare, action: () => handleActionInDemo('Ver Autorizaciones') },
-        { title: 'Contactos', icon: FaAddressBook, action: () => handleActionInDemo('Ver Contactos') },
-        { title: 'Base de Datos', icon: FaDatabase, action: () => handleActionInDemo('Ver Base de Datos') },
-      ];
-
+        const managerButtons = [
+            { title: 'Mensajes', icon: FaComments, action: () => handleActionInDemo('Ver Mensajes') },
+            { title: 'Autorizaciones', icon: CheckSquare, action: () => handleActionInDemo('Ver Autorizaciones') },
+            { title: 'Contactos', icon: FaAddressBook, action: () => handleActionInDemo('Ver Contactos') },
+            { title: 'Base de Datos', icon: FaDatabase, action: () => handleActionInDemo('Ver Base de Datos') },
+        ];
+        
       return (
         <div className="animate-fadeIn space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -156,7 +201,7 @@ const DemoDashboardPageContent = () => {
               ))}
             </div>
              <div className="space-y-3">
-              <h3 className="text-base font-semibold">Propósitos Disponibles</h3>
+              <h3 className="text-sm font-semibold">Propósitos Disponibles</h3>
                <div className="space-y-2">
                 {assistantPurposesConfig.map((purpose) => {
                   const Icon = purpose.icon;
@@ -266,3 +311,4 @@ const DemoDashboardPageContent = () => {
 };
 
 export default DemoDashboardPageContent;
+
