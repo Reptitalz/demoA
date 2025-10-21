@@ -14,7 +14,7 @@ import { FaUser } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useContacts } from '@/hooks/useContacts';
 import { useRouter } from 'next/navigation';
-import { AssistantConfig } from '@/types';
+import { AssistantConfig, Contact as ContactType } from '@/types';
 import { useApp } from '@/providers/AppProvider';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -107,7 +107,7 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
   const [mode, setMode] = useState<'options' | 'add' | 'share' | 'scan'>('options');
   const [chatPath, setChatPath] = useState(initialChatPath);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verifiedContact, setVerifiedContact] = useState<AssistantConfig | null>(null);
+  const [verifiedContact, setVerifiedContact] = useState<ContactType | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const [userShareLink, setUserShareLink] = useState('');
@@ -188,19 +188,14 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
     setVerifiedContact(null);
 
     try {
-        // This endpoint should be a public endpoint to find users/assistants by chatPath
-        const response = await fetch(`/api/user-profile/public?chatPath=${encodeURIComponent(trimmedPath)}`);
+        const response = await fetch(`/api/contacts?chatPath=${encodeURIComponent(trimmedPath)}`);
         if (!response.ok) {
-            throw new Error('ID de chat no encontrado.');
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'ID de chat no encontrado.');
         }
         const data = await response.json();
         if (data.profile) {
-            // Adapt the public profile to a `Contact`-like structure
-            setVerifiedContact({
-                name: data.profile.firstName,
-                imageUrl: data.profile.imageUrl,
-                chatPath: data.profile.chatPath,
-            } as AssistantConfig);
+            setVerifiedContact(data.profile);
         } else {
              throw new Error('Perfil no encontrado.');
         }
@@ -223,7 +218,6 @@ const AddChatDialog = ({ isOpen, onOpenChange, initialChatPath = '' }: AddChatDi
             toast({ title: "Código QR Inválido", description: "El código no contiene un enlace de perfil válido.", variant: "destructive" });
         }
     } catch (e) {
-        // If data is not a full URL, maybe it's just the chatPath
         if (typeof data === 'string' && data.length > 5) {
             setChatPath(data);
             setMode('add');

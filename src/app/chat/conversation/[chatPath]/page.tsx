@@ -308,12 +308,10 @@ const DesktopChatPage = () => {
         // 3. If still not found, try fetching public profile
         if (!partner) {
             try {
-                // Use the new API route for public lookups
                 const response = await fetch(`/api/contacts?chatPath=${encodeURIComponent(chatPath)}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.profile) {
-                         // The fetched public profile is treated as a Contact
                          partner = data.profile as Contact;
                     }
                 }
@@ -326,7 +324,6 @@ const DesktopChatPage = () => {
             setChatPartner(partner);
             setError(null);
             
-            // Set up initial message if it's a new chat and it's an assistant
             if (storedMessages.length === 0 && 'prompt' in partner) {
                  const initialMessageContent = `¡Hola! Estás chateando con ${(partner as AssistantConfig).name}. ¿Cómo puedo ayudarte hoy?`;
                 const initialMessage: ChatMessage = {
@@ -433,11 +430,10 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
-    // This logic is now primarily for person-to-person chat via sockets.
     if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath && socket && typeof messageContent === 'string') {
         
         socket.emit("sendMessage", {
-            id: messageId, // Pass the unique message ID
+            id: messageId,
             senderChatPath: userProfile.chatPath,
             recipientChatPath: chatPartner.chatPath,
             content: messageContent,
@@ -446,7 +442,6 @@ const DesktopChatPage = () => {
                 imageUrl: userProfile.imageUrl,
             }
         }, (ack: { delivered: boolean }) => {
-            // This acknowledgement runs when the server receives the message.
             if (ack && ack.delivered) {
                 setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'delivered' } : m));
                 updateMessageStatusInDB(messageId, 'delivered');
@@ -455,9 +450,7 @@ const DesktopChatPage = () => {
         return;
     }
     
-    // Logic for assistant chats remains the same
     if (isAssistantChat && assistant?.chatPath) {
-        // ... (existing assistant logic)
         fetch('/api/chat/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -501,7 +494,6 @@ const DesktopChatPage = () => {
       setCurrentMessage('');
     }
 
-    // Don't show "Escribiendo..." for personal chats, as it's real-time
     if (!isPersonalChat) {
       setIsSending(true);
       setAssistantStatusMessage('Escribiendo...');
@@ -737,15 +729,18 @@ const DesktopChatPage = () => {
     }
 
     if (chatPartner) {
+        const partnerName = (chatPartner as any).name || 'Asistente';
+        const partnerImageUrl = (chatPartner as any).imageUrl;
+
         return (
             <div className="flex items-center gap-3 flex-grow overflow-hidden">
                 <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
-                    <AvatarImage src={chatPartner?.imageUrl} alt={chatPartner?.name} />
-                    <AvatarFallback>{chatPartner?.name ? chatPartner.name.charAt(0) : <FaUser />}</AvatarFallback>
+                    <AvatarImage src={partnerImageUrl} alt={partnerName} />
+                    <AvatarFallback>{partnerName ? partnerName.charAt(0) : <FaUser />}</AvatarFallback>
                 </Avatar>
                 <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{chatPartner?.name || 'Asistente'}</h3>
+                        <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{partnerName}</h3>
                         {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

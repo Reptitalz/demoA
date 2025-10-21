@@ -6,17 +6,41 @@ import { ObjectId } from 'mongodb';
 
 const PROFILES_COLLECTION = 'userProfiles';
 
-// GET all contacts for the logged-in user
+// GET all contacts for the logged-in user OR a single public profile by chatPath
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
-
-  if (!userId || !ObjectId.isValid(userId)) {
-    return NextResponse.json({ message: 'Se requiere un ID de usuario válido' }, { status: 400 });
-  }
+  const chatPath = searchParams.get('chatPath');
 
   try {
     const { db } = await connectToDatabase();
+    
+    // --- Logic to get a single public profile by chatPath ---
+    if (chatPath) {
+        const userProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne(
+            { chatPath: chatPath },
+            { projection: { firstName: 1, lastName: 1, imageUrl: 1, chatPath: 1, accountType: 1 } }
+        );
+
+        if (!userProfile) {
+            return NextResponse.json({ message: 'Perfil no encontrado' }, { status: 404 });
+        }
+        
+        // Return a public-safe version of the profile
+        const publicProfile = {
+            name: `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim(),
+            imageUrl: userProfile.imageUrl,
+            chatPath: userProfile.chatPath,
+            accountType: userProfile.accountType
+        };
+
+        return NextResponse.json({ profile: publicProfile });
+    }
+
+    // --- Original logic to get all contacts for a specific user ---
+    if (!userId || !ObjectId.isValid(userId)) {
+      return NextResponse.json({ message: 'Se requiere un ID de usuario válido' }, { status: 400 });
+    }
     
     const userProfile = await db.collection<UserProfile>(PROFILES_COLLECTION).findOne(
         { _id: new ObjectId(userId) },
@@ -31,7 +55,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('API Error (GET /api/contacts):', error);
-    return NextResponse.json({ message: 'Error al obtener los contactos' }, { status: 500 });
+    return NextResponse.json({ message: 'Error al obtener los datos' }, { status: 500 });
   }
 }
 
@@ -56,7 +80,13 @@ export async function POST(request: NextRequest) {
         if (result.modifiedCount > 0) {
              return NextResponse.json({ success: true, message: 'Contacto añadido exitosamente.', contact: newContact });
         } else {
-             return NextResponse.json({ success: false, message: 'El contacto ya existe o no se pudo añadir.' });
+             // It might not have been modified because the contact already exists.
+             // We can check if the contact is in the user's list.
+             const user = await userProfileCollection.findOne({ _id: new ObjectId(userId), "contacts.chatPath": newContact.chatPath });
+             if (user) {
+                return NextResponse.json({ success: false, message: 'El contacto ya existe.' });
+             }
+             return NextResponse.json({ success: false, message: 'No se pudo añadir el contacto.' }, { status: 500 });
         }
 
     } catch (error) {
