@@ -69,9 +69,9 @@ const SetupProgressBar = () => {
         <p className="text-sm font-medium text-foreground">
           Paso {currentDisplayStep} <span className="text-muted-foreground">de {effectiveMaxSteps}</span>
         </p>
-        <p className="text-sm font-semibold text-primary">{stepTitle}</p>
+        <p className="text-sm font-semibold text-green-600">{stepTitle}</p>
       </div>
-       <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentDisplayStep} de ${effectiveMaxSteps} pasos completados`} className="h-2 [&>div]:bg-brand-gradient" />
+       <Progress value={progressPercentage} aria-label={`Progreso de configuración: ${currentDisplayStep} de ${effectiveMaxSteps} pasos completados`} className="h-2 [&>div]:bg-green-gradient" />
     </div>
   );
 };

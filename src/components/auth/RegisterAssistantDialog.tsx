@@ -294,7 +294,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         3: <Step2AssistantPrompt />,
         4: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
         5: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
-        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
+        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isProcessing} />,
     };
 
     return stepMap[currentStep] || null;
@@ -313,7 +313,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         onInteractOutside={(e) => { if (isFinalizingSetup) e.preventDefault(); }}>
         
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-2xl font-bold text-center text-brand-gradient flex items-center justify-center gap-2">
+          <DialogTitle className="text-2xl font-bold text-center text-green-600 flex items-center justify-center gap-2">
             <UserPlus /> Crear un Nuevo Asistente
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -343,7 +343,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
                     <FaArrowLeft className="mr-2 h-4 w-4" /> Anterior
                 </Button>
 
-                <Button onClick={handleNext} className="bg-brand-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
+                <Button onClick={handleNext} className="bg-green-gradient text-primary-foreground hover:opacity-90 transition-transform transform hover:scale-105" disabled={!isStepValid || isFinalizingSetup}>
                 Siguiente <FaArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </div>

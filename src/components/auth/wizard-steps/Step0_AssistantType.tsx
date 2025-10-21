@@ -42,8 +42,8 @@ const Step0AssistantType = () => {
                             onClick={() => handleTypeSelect(option.id)}
                             className={cn(
                                 "flex items-start space-x-4 p-4 border rounded-lg transition-all duration-200 relative",
-                                'hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-primary/50',
-                                isChecked ? 'border-primary bg-primary/10 shadow-lg' : 'bg-card'
+                                'hover:bg-muted/50 cursor-pointer hover:shadow-md hover:border-green-500/50',
+                                isChecked ? 'border-green-500 bg-green-500/10 shadow-lg' : 'bg-card'
                             )}
                         >
                             {isChecked
@@ -51,7 +51,7 @@ const Step0AssistantType = () => {
                                 : <FaRegCircle className="absolute top-3 right-3 h-5 w-5 text-muted-foreground/50 shrink-0" />
                             }
 
-                            {Icon && <Icon className="h-8 w-8 text-primary mt-1" />}
+                            {Icon && <Icon className="h-8 w-8 text-green-500 mt-1" />}
                             <div className="flex-1 pr-4">
                                 <Label className="font-semibold text-sm cursor-pointer">
                                     {option.name}
