@@ -166,7 +166,7 @@ const AssistantCard = ({
 
   return (
     <>
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col animate-fadeIn relative" style={{animationDelay}}>
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col animate-fadeIn relative h-full" style={{animationDelay}}>
         {statusBadge}
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -184,7 +184,7 @@ const AssistantCard = ({
                 />
               </div>
               <div className="flex-grow">
-                <CardTitle className="text-lg sm:text-xl">{assistant.name}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl truncate">{assistant.name}</CardTitle>
                  <div className="flex items-center gap-2 pt-1">
                   {typeBadge}
                 </div>
