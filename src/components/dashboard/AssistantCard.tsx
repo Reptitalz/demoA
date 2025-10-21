@@ -246,7 +246,7 @@ const AssistantCard = ({
              {isNowActive ? (
                 <>
                     <div className="flex items-center gap-2">
-                         <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105" disabled={assistant.type === 'desktop'}>
+                         <Button asChild size="sm" className="flex-1 bg-green-500 text-white hover:bg-green-600 transition-transform transform hover:scale-105 justify-start" disabled={assistant.type === 'desktop'}>
                             <Link href={shareUrl} target="_blank">
                                 <FaWhatsapp size={14} /> Chatear
                             </Link>
