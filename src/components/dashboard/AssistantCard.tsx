@@ -136,7 +136,7 @@ const AssistantCard = ({
   const statusBadge = (
     <Badge variant={badgeVariant} className={cn(
       "absolute top-4 right-4 text-xs px-1.5 py-0.5 sm:px-2 sm:py-1",
-      (badgeText === "Activo" || badgeText === "Plan Activo") && "bg-brand-gradient text-primary-foreground",
+      (badgeText === "Activo" || badgeText === "Plan Activo") && "bg-green-gradient text-primary-foreground",
       badgeText.startsWith("Activando") && "border-orange-400 text-orange-500 dark:border-orange-500 dark:text-orange-400",
       badgeText.startsWith("Prueba") && "border-blue-400 text-blue-500 dark:border-blue-500 dark:text-blue-400"
     )}>
@@ -201,7 +201,7 @@ const AssistantCard = ({
         <CardContent className="flex-grow space-y-3.5 sm:space-y-4">
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
-                <FaRegCommentDots size={14} className="text-accent" /> Consumo Mensual:
+                <FaRegCommentDots size={14} className="text-green-500" /> Consumo Mensual:
               </h4>
               <div className="mt-1.5 space-y-1">
                 <Progress value={consumptionPercentage} className="h-1.5" />
@@ -214,14 +214,14 @@ const AssistantCard = ({
           <div>
             <div className="flex justify-between items-center mb-1 sm:mb-1.5">
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1 sm:gap-1.5">
-                <FaBolt size={14} className="text-accent" /> Propósitos:
+                <FaBolt size={14} className="text-green-500" /> Propósitos:
               </h4>
               {allPurposes.length > INITIAL_PURPOSES_TO_SHOW && (
                 <Button
                   variant="link"
                   size="sm"
                   onClick={() => setShowAllPurposes(!showAllPurposes)}
-                  className="text-xs p-0 h-auto text-accent hover:text-accent/80"
+                  className="text-xs p-0 h-auto text-green-600 hover:text-green-700"
                 >
                   {showAllPurposes ? "Ver menos" : "Ver más"}
                   {showAllPurposes ? <FaChevronUp className="ml-1 h-3 w-3" /> : <FaChevronDown className="ml-1 h-3 w-3" />}
@@ -234,7 +234,7 @@ const AssistantCard = ({
                 const Icon = purpose.icon || FaCommentDots;
                 return (
                   <Badge key={purpose.id} variant="secondary" className="flex items-center gap-1 sm:gap-1.5 py-0.5 px-1.5 sm:py-1 sm:px-2.5 text-xs">
-                    <Icon size={12} className="text-accent" />
+                    <Icon size={12} className="text-green-500" />
                     {purpose.name}
                   </Badge>
                 );
@@ -294,7 +294,7 @@ const AssistantCard = ({
                         onClick={handleReconfigureClick}
                         className={cn(
                             "w-full text-xs transition-transform transform hover:scale-105",
-                            "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                            "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border"
                         )}
                     >
                         <FaCog size={14} />
@@ -307,7 +307,7 @@ const AssistantCard = ({
                     onClick={() => assistant.type === 'whatsapp' ? setIsPhoneSetupOpen(true) : onReconfigure(assistant.id)}
                     className={cn(
                       "w-full text-xs transition-transform transform hover:scale-105",
-                      "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                      "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border"
                     )}
                 >
                     <FaBolt size={14} />

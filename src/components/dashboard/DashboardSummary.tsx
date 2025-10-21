@@ -55,7 +55,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
   }
 
   const summaryCards = [
-    { id: 'assistants', title: 'Asistentes WA', value: whatsAppAssistants.length, description: 'Total creados', icon: FaRobot, color: 'text-blue-500', action: () => router.push('/dashboard/assistants')},
+    { id: 'assistants', title: 'Asistentes WA', value: whatsAppAssistants.length, description: 'Total creados', icon: FaRobot, color: 'text-green-500', action: () => router.push('/dashboard/assistants')},
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: FaWallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 
@@ -67,7 +67,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
            
            if (card.id === 'credits' || card.id === 'plans') {
              return (
-               <div key={index} className="relative p-0.5 rounded-lg bg-brand-gradient shiny-border cursor-pointer" onClick={card.action}>
+               <div key={index} className="relative p-0.5 rounded-lg bg-green-gradient shiny-border cursor-pointer" onClick={card.action}>
                   <div 
                       className="relative p-2 rounded-[7px] h-full transition-all duration-300 flex flex-col justify-between bg-card hover:bg-card/80"
                   >
