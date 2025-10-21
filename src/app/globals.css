@@ -19,7 +19,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    --primary: 217 91% 60%; /* Vibrant Blue */
+    --primary: 142 76% 36%; /* Vibrant Green */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220 14% 90%;
@@ -28,7 +28,7 @@ body {
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 40%;
 
-    --accent: 202 100% 78%; /* Light Blue */
+    --accent: 142 66% 46%; /* Lighter Green */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -36,7 +36,7 @@ body {
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --ring: 142 76% 36%;
 
     --radius: 0.75rem;
   }

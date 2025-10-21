@@ -1,5 +1,4 @@
 
-// src/components/chat/admin/AdminViews.tsx
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';

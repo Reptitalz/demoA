@@ -1,9 +1,10 @@
+
 "use client";
 
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaRobot, FaDatabase, FaUser, FaSignOutAlt, FaBrain } from 'react-icons/fa';
+import { FaDatabase, FaUser, FaSignOutAlt, FaDownload } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -13,11 +14,12 @@ import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
 import { signOut } from 'next-auth/react';
+import { Bot, GaugeCircle } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
 
 const menuItems = [
-    { path: '/dashboard/assistants', icon: FaRobot, label: 'Asistentes' },
-    { path: '/dashboard/databases', icon: FaBrain, label: 'Cerebro' },
+    { path: '/dashboard/assistants', icon: Bot, label: 'Asistentes' },
+    { path: '/dashboard/manager', icon: GaugeCircle, label: 'Gestor' },
     { path: '/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
 
@@ -37,7 +39,7 @@ export default function DashboardLayout({
 
     React.useEffect(() => {
         // Check if the app is running in standalone mode (as a PWA)
-        if (window.matchMedia('(display-mode: standalone)').matches) {
+        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
             setIsPWA(true);
         }
     }, []);
@@ -103,14 +105,14 @@ export default function DashboardLayout({
         const deltaY = touchEndY.current - touchStartY.current;
 
         // Ensure it's a horizontal swipe and not a vertical scroll
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 75) {
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) { // Increased from 75 to 100
             const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
             if (currentIndex === -1) return;
 
-            if (deltaX < -75) { // Swiped left
+            if (deltaX < -100) { // Swiped left
                 const nextIndex = (currentIndex + 1) % menuItems.length;
                 handleRouteChange(menuItems[nextIndex].path);
-            } else if (deltaX > 75) { // Swiped right
+            } else if (deltaX > 100) { // Swiped right
                 const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
                 handleRouteChange(menuItems[prevIndex].path);
             }
@@ -141,7 +143,7 @@ export default function DashboardLayout({
                         {!isDemoMode && <NotificationsBell />}
                         {!isPWA && (
                             <Button variant="outline" size="sm" onClick={() => router.push('/access')} className="text-xs px-2 py-1">
-                                <FaRobot size={12} className="mr-1" />
+                                <FaDownload size={12} className="mr-1" />
                                 Instalar
                             </Button>
                         )}

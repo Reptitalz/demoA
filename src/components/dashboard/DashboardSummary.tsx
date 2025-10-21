@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import MessagesInfoDialog from "./MessagesInfoDialog";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import PlansDialog from "./PlansDialog";
+import PlansDialog from "./PlansDialog"; // Import the new dialog
 
 interface DashboardSummaryProps {
   currentPath: string;
@@ -23,7 +23,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
   
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
   const [isMessagesInfoOpen, setIsMessagesInfoOpen] = useState(false);
-  const [isPlansOpen, setIsPlansOpen] = useState(false);
+  const [isPlansOpen, setIsPlansOpen] = useState(false); // State for the new dialog
 
   const isDemoMode = !isAuthenticated;
 
@@ -50,12 +50,12 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
     }
   };
   
-  if (currentPath.endsWith('/databases')) {
+  if (currentPath.endsWith('/databases') || currentPath.endsWith('/manager')) {
     return null;
   }
 
   const summaryCards = [
-    { id: 'assistants', title: 'Asistentes WA', value: whatsAppAssistants.length, description: 'Total creados', icon: FaRobot, color: 'text-green-500', action: () => router.push('/dashboard/assistants')},
+    { id: 'assistants', title: 'Asistentes WA', value: whatsAppAssistants.length, description: 'Total creados', icon: FaRobot, color: 'text-primary', action: () => router.push('/dashboard/assistants')},
     { id: 'credits', title: 'Créditos', value: credits || 0, description: 'Clic para recargar', icon: FaWallet, color: 'text-orange-500', action: handleRechargeClick },
   ];
 
@@ -112,7 +112,7 @@ const DashboardSummary = ({ currentPath }: DashboardSummaryProps) => {
             className="relative p-4 rounded-lg transition-all duration-300 flex items-center justify-between cursor-pointer bg-card hover:bg-card/80 glow-card shadow-md"
         >
         <div className="flex items-center gap-3">
-            <FaRegCommentDots className="h-6 w-6 text-green-500" />
+            <FaRegCommentDots className="h-6 w-6 text-primary" />
             <div>
             <h3 className="font-semibold text-sm">Mensajes</h3>
             <p className="text-xs text-muted-foreground">Disponibles (WhatsApp)</p>

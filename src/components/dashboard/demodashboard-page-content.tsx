@@ -137,7 +137,7 @@ const DemoDashboardPageContent = () => {
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
                 <h3 className="text-sm font-semibold flex items-center gap-2"> 
-                    <FaRobot size={16} className="text-green-500" /> 
+                    <FaRobot size={16} className="text-primary" /> 
                     Asistentes de Ejemplo
                 </h3>
                 <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
@@ -266,7 +266,7 @@ const DemoDashboardPageContent = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <FaUser className="h-6 w-6 text-green-500" />
+                  <FaUser className="h-6 w-6 text-primary" />
                   <div>
                     <h3 className="font-semibold">Información Personal</h3>
                     <p className="text-sm text-muted-foreground">Actualiza tus datos personales y de facturación.</p>

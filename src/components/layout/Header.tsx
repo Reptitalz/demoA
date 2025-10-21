@@ -90,7 +90,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                     onClick={createButtonAction}
                     className={cn(
                       "text-primary-foreground hover:opacity-90 shiny-border",
-                      isWhatsAppPage ? "bg-green-gradient" : "bg-brand-gradient"
+                      "bg-green-gradient"
                     )}
                   >
                     {isWhatsAppPage ? <FaWhatsapp className="mr-2 h-4 w-4" /> : <FaRocket className="mr-2 h-4 w-4"/>}
@@ -143,7 +143,7 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                                 onClick={createButtonMobileAction}
                                 className={cn(
                                   "w-full text-primary-foreground hover:opacity-90 shiny-border",
-                                  isWhatsAppPage ? "bg-green-gradient" : "bg-brand-gradient"
+                                  "bg-green-gradient"
                                 )}
                               >
                                 {isWhatsAppPage ? <FaWhatsapp className="mr-2 h-4 w-4" /> : <FaRocket className="mr-2 h-4 w-4"/>}
