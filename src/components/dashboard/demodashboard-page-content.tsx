@@ -109,7 +109,7 @@ const DemoDashboardPageContent = () => {
                     <FaRobot size={18} className="text-primary" /> 
                     Asistentes de Ejemplo
                 </h3>
-                <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
                     <FaStar size={13} className="mr-1" />
                     Iniciar Sesión para Crear
                 </Button>
