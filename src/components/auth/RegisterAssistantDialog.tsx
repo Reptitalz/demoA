@@ -294,7 +294,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
         3: <Step2AssistantPrompt />,
         4: dbNeeded ? <Step2DatabaseConfig /> : <Step5TermsAndConditions />,
         5: dbNeeded ? <Step5TermsAndConditions /> : <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
-        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isProcessing} />,
+        6: <AuthStepContent onFinalize={handleFinalize} isProcessing={isFinalizingSetup} />,
     };
 
     return stepMap[currentStep] || null;
