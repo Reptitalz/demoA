@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaComments, FaAddressBook } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -134,80 +134,25 @@ const DemoDashboardPageContent = () => {
     }
     
     if (isManagerPage) {
-       const allPendingAuthorizations = profileToRender.assistants.flatMap(a => 
-        (a.authorizations || []).filter(auth => auth.status === 'pending').map(auth => ({ ...auth, assistantName: a.name, assistantId: a.id }))
-      );
+      const managerButtons = [
+        { title: 'Mensajes', icon: FaComments, action: () => handleActionInDemo('Ver Mensajes') },
+        { title: 'Autorizaciones', icon: CheckSquare, action: () => handleActionInDemo('Ver Autorizaciones') },
+        { title: 'Contactos', icon: FaAddressBook, action: () => handleActionInDemo('Ver Contactos') },
+        { title: 'Base de Datos', icon: FaDatabase, action: () => handleActionInDemo('Ver Base de Datos') },
+      ];
 
       return (
         <div className="animate-fadeIn">
-            <Tabs defaultValue="instructions" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
-                <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
-                <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
-                </TabsList>
-                <TabsContent value="instructions" className="mt-4">
-                    <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Bandeja de Instrucciones</CardTitle>
-                        <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {profileToRender.assistants.map(asst => (
-                                <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                    <p className="font-medium text-sm">{asst.name}</p>
-                                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleActionInDemo('Editar Instrucciones')}>Editar</Button>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="authorizations" className="mt-4">
-                    <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Bandeja de Autorizaciones</CardTitle>
-                        <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {allPendingAuthorizations.length > 0 ? allPendingAuthorizations.map(payment => (
-                                <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                    <div className="overflow-hidden">
-                                        <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
-                                        <p className="text-xs text-muted-foreground">Recibido: {format(new Date(payment.receivedAt), "dd MMM, h:mm a", { locale: es })}</p>
-                                    </div>
-                                    <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleActionInDemo('Revisar Comprobante')}>
-                                        <Eye className="mr-2 h-3 w-3"/> Revisar
-                                    </Button>
-                                </div>
-                            )) : (
-                                <p className="text-center text-muted-foreground text-sm py-4">No hay autorizaciones pendientes.</p>
-                            )}
-                        </div>
-                    </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="notifier" className="mt-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Bandeja de Notificador</CardTitle>
-                        <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {profileToRender.assistants.map(asst => (
-                                <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                    <p className="font-medium text-sm">{asst.name}</p>
-                                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleActionInDemo('Configurar Notificador')}>Configurar</Button>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {managerButtons.map((btn, index) => (
+                <Card key={index} className="text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={btn.action}>
+                  <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
+                    <btn.icon className="h-6 w-6 text-primary" />
+                    <p className="text-sm font-semibold">{btn.title}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
         </div>
       );
     }
@@ -295,3 +240,5 @@ const DemoDashboardPageContent = () => {
 };
 
 export default DemoDashboardPageContent;
+
+    
