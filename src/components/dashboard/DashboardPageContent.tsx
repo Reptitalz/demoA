@@ -251,7 +251,7 @@ const DashboardPageContent = () => {
   
   const renderContentForRoute = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
-    const isDatabasesPage = pathname.endsWith('/databases');
+    const isManagerPage = pathname.endsWith('/manager');
     const isProfilePage = pathname.endsWith('/profile');
 
     if (isAssistantsPage) {
@@ -294,80 +294,82 @@ const DashboardPageContent = () => {
       );
     }
     
-    if (isDatabasesPage) {
+    if (isManagerPage) {
       const allPendingAuthorizations = profileToRender.assistants.flatMap(a => 
         (a.authorizations || []).filter(auth => auth.status === 'pending').map(auth => ({ ...auth, assistantName: a.name, assistantId: a.id }))
       );
 
       return (
-        <Tabs defaultValue="instructions" className="w-full animate-fadeIn">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
-              <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
-              <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
-            </TabsList>
-            <TabsContent value="instructions" className="mt-4">
+        <div className="animate-fadeIn">
+            <Tabs defaultValue="instructions" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
+                <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
+                <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
+                </TabsList>
+                <TabsContent value="instructions" className="mt-4">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Instrucciones</CardTitle>
+                        <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {profileToRender.assistants.map(asst => (
+                                <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                    <p className="font-medium text-sm">{asst.name}</p>
+                                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenInstructions(asst as any)}>Editar</Button>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="authorizations" className="mt-4">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Autorizaciones</CardTitle>
+                        <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {allPendingAuthorizations.length > 0 ? allPendingAuthorizations.map(payment => (
+                                <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                    <div className="overflow-hidden">
+                                        <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
+                                        <p className="text-xs text-muted-foreground">Recibido: {format(new Date(payment.receivedAt), "dd MMM, h:mm a", { locale: es })}</p>
+                                    </div>
+                                    <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment, payment.assistantName)}>
+                                        <Eye className="mr-2 h-3 w-3"/> Revisar
+                                    </Button>
+                                </div>
+                            )) : (
+                                <p className="text-center text-muted-foreground text-sm py-4">No hay autorizaciones pendientes.</p>
+                            )}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="notifier" className="mt-4">
                 <Card>
-                  <CardHeader>
-                      <CardTitle>Bandeja de Instrucciones</CardTitle>
-                      <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="space-y-2">
-                          {profileToRender.assistants.map(asst => (
-                              <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                  <p className="font-medium text-sm">{asst.name}</p>
-                                  <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenInstructions(asst as any)}>Editar</Button>
-                              </div>
-                          ))}
-                      </div>
-                  </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="authorizations" className="mt-4">
-                <Card>
-                  <CardHeader>
-                      <CardTitle>Bandeja de Autorizaciones</CardTitle>
-                      <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="space-y-2">
-                          {allPendingAuthorizations.length > 0 ? allPendingAuthorizations.map(payment => (
-                              <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                  <div className="overflow-hidden">
-                                      <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
-                                      <p className="text-xs text-muted-foreground">Recibido: {format(new Date(payment.receivedAt), "dd MMM, h:mm a", { locale: es })}</p>
-                                  </div>
-                                  <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleOpenReceipt(payment, payment.assistantName)}>
-                                      <Eye className="mr-2 h-3 w-3"/> Revisar
-                                  </Button>
-                              </div>
-                          )) : (
-                            <p className="text-center text-muted-foreground text-sm py-4">No hay autorizaciones pendientes.</p>
-                          )}
-                      </div>
-                  </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="notifier" className="mt-4">
-               <Card>
-                  <CardHeader>
-                      <CardTitle>Bandeja de Notificador</CardTitle>
-                      <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="space-y-2">
-                          {profileToRender.assistants.map(asst => (
-                              <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                                  <p className="font-medium text-sm">{asst.name}</p>
-                                  <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenNotifier(asst as any)}>Configurar</Button>
-                              </div>
-                          ))}
-                      </div>
-                  </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Notificador</CardTitle>
+                        <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {profileToRender.assistants.map(asst => (
+                                <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                    <p className="font-medium text-sm">{asst.name}</p>
+                                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleOpenNotifier(asst as any)}>Configurar</Button>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+        </div>
       );
     }
     
@@ -463,14 +465,14 @@ const DashboardPageContent = () => {
   
   const getPageTitle = () => {
     if(pathname.endsWith('/assistants')) return 'Panel de Asistentes';
-    if(pathname.endsWith('/databases')) return 'Cerebro';
+    if(pathname.endsWith('/manager')) return 'Gestor';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
     return isDemoMode ? 'Panel de Demostración' : 'Panel Principal';
   }
 
   const getPageDescription = () => {
     if(pathname.endsWith('/assistants')) return isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.';
-    if(pathname.endsWith('/databases')) return isDemoMode ? 'Explora el cerebro de tus asistentes.' : 'Administra el conocimiento y las fuentes de datos de tus asistentes.';
+    if(pathname.endsWith('/manager')) return isDemoMode ? 'Explora las bandejas de gestión.' : 'Administra las instrucciones, autorizaciones y notificaciones de tus asistentes.';
     if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
     return isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.';
   }

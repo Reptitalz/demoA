@@ -12,16 +12,20 @@ import { Button } from '@/components/ui/button';
 import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { AssistantMemory, AssistantWithMemory } from '@/types';
+import type { AssistantMemory, AssistantWithMemory, Authorization } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
 import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
+import { BookText, CheckSquare, Bell, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const DemoDashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -33,8 +37,6 @@ const DemoDashboardPageContent = () => {
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
-  const [assistantsMemory, setAssistantsMemory] = useState<AssistantWithMemory[]>([]);
-  const [isLoadingMemory, setIsLoadingMemory] = useState(false);
   
   const isDemoMode = true; // This component is always in demo mode
 
@@ -49,8 +51,12 @@ const DemoDashboardPageContent = () => {
           phoneLinked: '+15551234567',
           messageCount: 1250,
           monthlyMessageLimit: 5000,
-          purposes: ['import_spreadsheet', 'notify_owner +15551234567'],
-          databaseId: 'demo-db-1'
+          purposes: ['import_spreadsheet', 'notify_owner +15551234567', 'manage_authorizations'],
+          databaseId: 'demo-db-1',
+          authorizations: [
+            { id: 'demo-1', messageId: 999, product: 'Comprobante (imagen)', assistantId: 'demo-asst-1', userName: 'Cliente Demo 1', receiptUrl: 'https://i.imgur.com/8p8Yf9u.png', status: 'pending', amount: 0, receivedAt: new Date().toISOString(), chatPath: '' },
+            { id: 'demo-2', messageId: 998, product: 'Comprobante (documento)', assistantId: 'demo-asst-1', userName: 'Cliente Demo 2', fileName: 'factura_mayo.pdf', receiptUrl: '', status: 'pending', amount: 0, receivedAt: subDays(new Date(), 1).toISOString(), chatPath: '' },
+          ]
       },
       {
           id: 'demo-asst-2',
@@ -82,7 +88,6 @@ const DemoDashboardPageContent = () => {
   };
   
   const profileToRender = demoProfile;
-  const isDatabasesPage = pathname.endsWith('/databases');
 
   const handleActionInDemo = (action: string) => {
     toast({
@@ -95,10 +100,9 @@ const DemoDashboardPageContent = () => {
     router.push('/login');
   };
   
-  const showAddDatabaseButton = false; // Never show in demo
-
   const renderContentForRoute = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
+    const isManagerPage = pathname.endsWith('/manager');
     const isProfilePage = pathname.endsWith('/profile');
 
     if (isAssistantsPage) {
@@ -106,7 +110,7 @@ const DemoDashboardPageContent = () => {
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
                 <h3 className="text-lg font-semibold flex items-center gap-2"> 
-                    <FaRobot size={18} className="text-primary" /> 
+                    <FaRobot size={18} className="text-green-500" /> 
                     Asistentes de Ejemplo
                 </h3>
                 <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
@@ -128,22 +132,81 @@ const DemoDashboardPageContent = () => {
       );
     }
     
-    if (isDatabasesPage) {
+    if (isManagerPage) {
+       const allPendingAuthorizations = profileToRender.assistants.flatMap(a => 
+        (a.authorizations || []).filter(auth => auth.status === 'pending').map(auth => ({ ...auth, assistantName: a.name, assistantId: a.id }))
+      );
+
       return (
-        <div className="space-y-6">
-            <div>
-                <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <FaDatabase size={18} className="text-primary" />
-                        Bases de Datos de Ejemplo
-                    </h3>
-                </div>
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mt-4">
-                    {profileToRender.databases.map((db, index) => (
-                        <DatabaseInfoCard key={db.id} database={db as any} animationDelay={`${0.2 + index * 0.1}s`} />
-                    ))}
-                </div>
-            </div>
+        <div className="animate-fadeIn">
+            <Tabs defaultValue="instructions" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
+                <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
+                <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
+                </TabsList>
+                <TabsContent value="instructions" className="mt-4">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Instrucciones</CardTitle>
+                        <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {profileToRender.assistants.map(asst => (
+                                <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                    <p className="font-medium text-sm">{asst.name}</p>
+                                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleActionInDemo('Editar Instrucciones')}>Editar</Button>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="authorizations" className="mt-4">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Autorizaciones</CardTitle>
+                        <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {allPendingAuthorizations.length > 0 ? allPendingAuthorizations.map(payment => (
+                                <div key={payment.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                    <div className="overflow-hidden">
+                                        <p className="font-medium text-sm truncate">{payment.product} de {payment.userName}</p>
+                                        <p className="text-xs text-muted-foreground">Recibido: {format(new Date(payment.receivedAt), "dd MMM, h:mm a", { locale: es })}</p>
+                                    </div>
+                                    <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => handleActionInDemo('Revisar Comprobante')}>
+                                        <Eye className="mr-2 h-3 w-3"/> Revisar
+                                    </Button>
+                                </div>
+                            )) : (
+                                <p className="text-center text-muted-foreground text-sm py-4">No hay autorizaciones pendientes.</p>
+                            )}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="notifier" className="mt-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Notificador</CardTitle>
+                        <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {profileToRender.assistants.map(asst => (
+                                <div key={asst.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                    <p className="font-medium text-sm">{asst.name}</p>
+                                    <Button variant="outline" size="sm" className="text-xs" onClick={() => handleActionInDemo('Configurar Notificador')}>Configurar</Button>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
       );
     }
@@ -155,7 +218,7 @@ const DemoDashboardPageContent = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <FaUser className="h-6 w-6 text-primary" />
+                  <FaUser className="h-6 w-6 text-green-500" />
                   <div>
                     <h3 className="font-semibold">Información Personal</h3>
                     <p className="text-sm text-muted-foreground">Actualiza tus datos personales y de facturación.</p>
@@ -197,14 +260,14 @@ const DemoDashboardPageContent = () => {
   
   const getPageTitle = () => {
     if(pathname.endsWith('/assistants')) return 'Panel de Asistentes';
-    if(pathname.endsWith('/databases')) return 'Cerebro';
+    if(pathname.endsWith('/manager')) return 'Gestor';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
     return 'Panel de Demostración';
   }
 
   const getPageDescription = () => {
     if(pathname.endsWith('/assistants')) return 'Explora asistentes de ejemplo.';
-    if(pathname.endsWith('/databases')) return 'Explora el cerebro de tus asistentes.';
+    if(pathname.endsWith('/manager')) return 'Explora las bandejas de gestión.';
     if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
     return 'Explora las funciones con datos de ejemplo.';
   }
