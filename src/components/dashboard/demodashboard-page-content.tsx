@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaComments, FaAddressBook } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaComments, FaAddressBook, FaPlus } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { assistantPurposesConfig } from '@/config/appConfig';
 
 const DemoDashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -142,7 +143,7 @@ const DemoDashboardPageContent = () => {
       ];
 
       return (
-        <div className="animate-fadeIn">
+        <div className="animate-fadeIn space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {managerButtons.map((btn, index) => (
                 <Card key={index} className="text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={btn.action}>
@@ -152,6 +153,30 @@ const DemoDashboardPageContent = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold">Propósitos Disponibles</h3>
+               <div className="space-y-2">
+                {assistantPurposesConfig.map((purpose) => {
+                  const Icon = purpose.icon;
+                  return (
+                    <Card key={purpose.id} className="hover:bg-muted/50 transition-colors">
+                      <CardContent className="p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <Icon className="h-5 w-5 text-muted-foreground" />
+                           <div>
+                              <p className="text-sm font-medium">{purpose.name}</p>
+                              <p className="text-xs text-muted-foreground">{purpose.description}</p>
+                           </div>
+                        </div>
+                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleActionInDemo('Añadir Propósito')}>
+                            <FaPlus className="h-4 w-4" />
+                          </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
         </div>
       );
