@@ -184,7 +184,7 @@ const AssistantCard = ({
                 />
               </div>
               <div className="flex-grow">
-                <CardTitle className="text-base font-semibold truncate">{assistant.name}</CardTitle>
+                <CardTitle className="text-sm font-semibold truncate">{assistant.name}</CardTitle>
                  <div className="flex items-center gap-2 pt-1">
                   {typeBadge}
                 </div>
