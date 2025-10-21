@@ -287,7 +287,7 @@ const DemoDashboardPageContent = () => {
             {getPageDescription()}
           </p>
         </div>
-        {!pathname.endsWith('/profile') && <DashboardSummary currentPath={pathname} />}
+        {!pathname.endsWith('/profile') && !pathname.endsWith('/manager') && <DashboardSummary currentPath={pathname} />}
         {renderContentForRoute()}
       </PageContainer>
     </>
