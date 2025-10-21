@@ -110,7 +110,7 @@ const LoginPageContent = () => {
           <Link href="/">
             <AppIcon className="h-14 w-14 mb-3" />
           </Link>
-          <h1 className="text-3xl font-extrabold text-brand-gradient">{APP_NAME}</h1>
+          <h1 className="text-3xl font-extrabold text-green-600">Hey Manito WhatsApp</h1>
           <p className="text-sm text-muted-foreground mt-2">Inicia sesión o crea tu primer asistente inteligente.</p>
         </div>
 
