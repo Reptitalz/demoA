@@ -9,23 +9,18 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
-const Phone = ({ children, className, rotation = 0, animation, style }: { children: React.ReactNode, className?: string, rotation?: number, animation?: any, style?: React.CSSProperties }) => (
+const Phone = ({ children, className, animation, style }: { children: React.ReactNode, className?: string, animation?: any, style?: React.CSSProperties }) => (
     <motion.div
         className={cn("w-[220px] h-[450px] bg-slate-900 rounded-[30px] border-8 border-slate-800 shadow-2xl overflow-hidden absolute md:relative", className)}
-        initial={{ y: 50, opacity: 0, rotate: rotation }}
-        animate={{ y: 0, opacity: 1, rotate: rotation, ...animation }}
         style={style}
+        animate={animation}
     >
-        <motion.div
-            animate={{ y: [-2, 2, -2] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            className="h-full w-full"
-        >
+        <div className="h-full w-full">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-800 rounded-b-lg z-20" />
             <div className="absolute inset-1.5 bg-background rounded-[22px] flex flex-col overflow-hidden">
                 {children}
             </div>
-        </motion.div>
+        </div>
     </motion.div>
 );
 
@@ -206,38 +201,52 @@ const WhatsAppScreen = () => {
 };
 
 const DualPhoneMockup = () => {
+    
+    const animationProps = {
+      transition: {
+        duration: 8, // Total duration for one loop
+        ease: "easeInOut",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
+    };
+
     return (
-        <div className="w-full h-full flex justify-center items-center md:gap-4 relative">
-             {/* Desktop layout: Side by side */}
+        <div className="w-full h-full flex justify-center items-center md:gap-4 relative preserve-3d" style={{ perspective: '1000px' }}>
+            {/* Desktop layout: Side by side, static */}
             <div className="hidden md:flex justify-center items-center gap-4">
-                 <Phone rotation={-5}>
-                    <DashboardScreen />
-                </Phone>
-                <Phone rotation={5}>
-                    <WhatsAppScreen />
-                </Phone>
+                 <motion.div initial={{ rotateY: -15, x: '-15%' }} style={{ transformStyle: "preserve-3d" }}>
+                    <Phone>
+                        <DashboardScreen />
+                    </Phone>
+                </motion.div>
+                <motion.div initial={{ rotateY: 15, x: '15%' }} style={{ transformStyle: "preserve-3d" }}>
+                    <Phone>
+                        <WhatsAppScreen />
+                    </Phone>
+                </motion.div>
             </div>
 
-            {/* Mobile layout: Swapping animation */}
+            {/* Mobile layout: Swapping animation with 3D effect */}
             <div className="md:hidden w-full h-full flex justify-center items-center">
-                <Phone 
-                    rotation={0}
+                <Phone
                     animation={{
-                        x: ['0%', '25%', '0%'],
-                        scale: [1, 0.85, 1],
-                        zIndex: [20, 10, 20],
-                        transition: { duration: 12, repeat: Infinity, repeatType: "yoyo", ease: 'easeInOut' }
+                        x: ['0%', '30%', '-30%', '0%'],
+                        rotateY: [0, 45, 45, 0],
+                        scale: [1, 0.8, 0.8, 1],
+                        zIndex: [20, 10, 10, 20],
+                        ...animationProps
                     }}
                 >
                     <WhatsAppScreen />
                 </Phone>
-                <Phone 
-                    rotation={0}
-                     animation={{
-                        x: ['-25%', '0%', '-25%'],
-                        scale: [0.85, 1, 0.85],
-                        zIndex: [10, 20, 10],
-                        transition: { duration: 12, repeat: Infinity, repeatType: "yoyo", ease: 'easeInOut' }
+                <Phone
+                    animation={{
+                        x: ['-30%', '0%', '0%', '-30%'],
+                        rotateY: [-45, 0, 0, -45],
+                        scale: [0.8, 1, 1, 0.8],
+                        zIndex: [10, 20, 20, 10],
+                        ...animationProps
                     }}
                 >
                     <DashboardScreen />
@@ -248,6 +257,3 @@ const DualPhoneMockup = () => {
 };
 
 export default DualPhoneMockup;
-
-
-
