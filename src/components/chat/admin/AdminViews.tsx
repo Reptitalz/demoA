@@ -1000,8 +1000,21 @@ export const DeliveryView = () => {
 
 export const AssistantsList = () => {
   const router = useRouter();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const assistants = state.userProfile.assistants || [];
+  const { toast } = useToast();
+
+  const handleManageAssistant = (assistantId: string) => {
+    // This could navigate to a more detailed management page or open a dialog
+    router.push(`/dashboard/assistants#${assistantId}`);
+    toast({ title: "Gestionar Asistente", description: "Redirigiendo a la configuración del asistente." });
+  };
+  
+  const handleDeleteAssistant = (assistantId: string) => {
+    // This would likely open a confirmation dialog first
+    dispatch({ type: 'REMOVE_ASSISTANT', payload: assistantId });
+    toast({ title: "Asistente Eliminado", variant: "destructive" });
+  };
 
   return (
     <>
@@ -1012,7 +1025,7 @@ export const AssistantsList = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold">Monitor de Bots</h1>
-            <p className="text-sm text-muted-foreground">Supervisa las conversaciones en tiempo real.</p>
+            <p className="text-sm text-muted-foreground">Supervisa y gestiona tus asistentes.</p>
           </div>
         </div>
       </header>
@@ -1021,8 +1034,7 @@ export const AssistantsList = () => {
           {assistants.map(asst => (
             <Card
               key={asst.id}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => router.push(`/chat/conversation/${asst.chatPath}`)}
+              className="transition-shadow hover:shadow-md"
             >
               <CardContent className="p-3 flex items-center gap-3">
                 <Avatar className="h-10 w-10">
@@ -1033,7 +1045,17 @@ export const AssistantsList = () => {
                   <p className="font-semibold text-sm">{asst.name}</p>
                   <p className="text-xs text-muted-foreground">{asst.isActive ? 'Activo' : 'Inactivo'}</p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => router.push(`/chat/conversation/${asst.chatPath}`)}>
+                        <MessageSquarePlus className="mr-2 h-4 w-4" /> Chatear
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleManageAssistant(asst.id)}>
+                        <Settings className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteAssistant(asst.id)}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
