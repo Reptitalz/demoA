@@ -120,14 +120,15 @@ const DemoDashboardPageContent = () => {
                     Iniciar Sesión para Crear
                 </Button>
             </div>
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"> 
+            <div className="flex overflow-x-auto space-x-4 p-2 -m-2 snap-x snap-mandatory scrollbar-hide">
                 {profileToRender.assistants.map((assistant, index) => (
-                    <AssistantCard 
-                        key={assistant.id} 
-                        assistant={assistant as any} 
-                        onReconfigure={() => handleActionInDemo('Configurar Asistente')}
-                        animationDelay={`${0.4 + index * 0.1}s`}
-                    />
+                    <div key={assistant.id} className="snap-center flex-shrink-0 w-[80%] sm:w-[45%] md:w-[48%] lg:w-[32%]">
+                        <AssistantCard 
+                            assistant={assistant as any} 
+                            onReconfigure={() => handleActionInDemo('Configurar Asistente')}
+                            animationDelay={`${0.4 + index * 0.1}s`}
+                        />
+                    </div>
                 ))}
             </div>
         </div>
@@ -154,7 +155,7 @@ const DemoDashboardPageContent = () => {
                 </Card>
               ))}
             </div>
-            <div className="space-y-3">
+             <div className="space-y-3">
               <h3 className="text-base font-semibold">Propósitos Disponibles</h3>
                <div className="space-y-2">
                 {assistantPurposesConfig.map((purpose) => {
@@ -265,5 +266,3 @@ const DemoDashboardPageContent = () => {
 };
 
 export default DemoDashboardPageContent;
-
-    
