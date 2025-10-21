@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useApp } from '@/providers/AppProvider';
 import PageContainer from '@/components/layout/PageContainer';
@@ -50,6 +50,9 @@ const DashboardPageContent = () => {
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
   
   const isDemoMode = !userProfile.isAuthenticated;
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // This is the single source of truth for demo data.
   const demoProfile = {
@@ -101,6 +104,26 @@ const DashboardPageContent = () => {
   
   const profileToRender = isDemoMode ? demoProfile : userProfile;
   
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const { scrollLeft, children } = scrollRef.current;
+        if (children.length > 0) {
+          const cardWidth = children[0].clientWidth;
+          const newIndex = Math.round(scrollLeft / cardWidth);
+          if (newIndex !== activeIndex) {
+            setActiveIndex(newIndex);
+          }
+        }
+      }
+    };
+    const scroller = scrollRef.current;
+    if (scroller) {
+      scroller.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scroller.removeEventListener('scroll', handleScroll);
+    }
+  }, [activeIndex]);
+
   // Handle session and payment status logic for authenticated users
   useEffect(() => {
     if (loadingStatus.active && !isDemoMode) {
@@ -255,39 +278,62 @@ const DashboardPageContent = () => {
 
     if (isAssistantsPage) {
       return (
-        <div className="space-y-4"> 
-            <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
-            <h3 className="text-lg font-semibold flex items-center gap-2"> 
-                <FaRobot size={18} className="text-green-500" /> 
-                Tus Asistentes
-            </h3>
-            <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
-                <FaStar size={13} className="mr-1" />
-                {isDemoMode ? 'Iniciar Sesión para Crear' : 'Crear Asistente'}
-            </Button>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: "0.3s" }}>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <FaRobot size={18} className="text-green-500" />
+                    Tus Asistentes
+                </h3>
+                <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
+                    <FaStar size={13} className="mr-1" />
+                    {isDemoMode ? 'Iniciar Sesión para Crear' : 'Crear Asistente'}
+                </Button>
             </div>
             {profileToRender.assistants.length > 0 ? (
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"> 
-                {profileToRender.assistants.map((assistant, index) => (
-                <AssistantCard 
-                    key={assistant.id} 
-                    assistant={assistant as any} 
-                    onReconfigure={handleReconfigureAssistant}
-                    animationDelay={`${0.4 + index * 0.1}s`}
-                />
-                ))}
-            </div>
+                <div>
+                    <div ref={scrollRef} className="flex overflow-x-auto space-x-4 p-2 -m-2 snap-x snap-mandatory scrollbar-hide">
+                        {profileToRender.assistants.map((assistant, index) => (
+                            <div key={assistant.id} className="snap-center flex-shrink-0 w-[80%] sm:w-72">
+                                <AssistantCard
+                                    assistant={assistant as any}
+                                    onReconfigure={handleReconfigureAssistant}
+                                    animationDelay={`${0.4 + index * 0.1}s`}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-center mt-4 space-x-2">
+                        {profileToRender.assistants.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => {
+                                    if (scrollRef.current) {
+                                        const cardNode = scrollRef.current.children[index] as HTMLElement;
+                                        if (cardNode) {
+                                            scrollRef.current.scrollTo({ left: cardNode.offsetLeft - scrollRef.current.offsetLeft, behavior: 'smooth' });
+                                        }
+                                    }
+                                }}
+                                className={cn(
+                                    "h-2 w-2 rounded-full transition-all duration-300",
+                                    activeIndex === index ? "w-4 bg-primary" : "bg-muted-foreground/50"
+                                )}
+                                aria-label={`Ir al asistente ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+                </div>
             ) : (
-            <Card className="text-center py-10 animate-fadeIn" style={{animationDelay: "0.4s"}}> 
-                <CardContent className="flex flex-col items-center gap-3"> 
-                <FaRobot size={40} className="text-muted-foreground" /> 
-                <h3 className="text-lg font-semibold">No has creado ningún asistente</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                    Los asistentes son agentes de IA que puedes personalizar para realizar tareas como responder preguntas, agendar citas o gestionar datos.
-                </p>
-                <Button onClick={handleAddNewAssistant} size="sm" className="text-sm px-4 py-2 mt-2">Crear mi Primer Asistente</Button> 
-                </CardContent>
-            </Card>
+                <Card className="text-center py-10 animate-fadeIn" style={{ animationDelay: "0.4s" }}>
+                    <CardContent className="flex flex-col items-center gap-3">
+                        <FaRobot size={40} className="text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">No has creado ningún asistente</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                            Los asistentes son agentes de IA que puedes personalizar para realizar tareas como responder preguntas, agendar citas o gestionar datos.
+                        </p>
+                        <Button onClick={handleAddNewAssistant} size="sm" className="text-sm px-4 py-2 mt-2">Crear mi Primer Asistente</Button>
+                    </CardContent>
+                </Card>
             )}
         </div>
       );
@@ -532,3 +578,5 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
+
+    
