@@ -1,7 +1,7 @@
 // src/app/api/calls/initiate/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getIo, getSocket } from '@/providers/SocketProvider'; // Assuming you have a way to get the socket instance
+import { getIo } from '@/providers/SocketProvider'; // Assuming you have a way to get the socket instance
 
 // THIS API ROUTE IS DEPRECATED AND WILL BE REMOVED.
 // The call initiation logic is now handled directly by the Socket.IO server

@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import ConversationsDialog from '@/components/dashboard/ConversationsDialog';
 
 const pageVariants = {
   initial: { opacity: 0, scale: 0.98 },
@@ -40,6 +41,8 @@ const menuItems = [
 
 const AdminHomePageContent = () => {
     const router = useRouter();
+    const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
+    
     return (
     <>
         <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
@@ -59,7 +62,11 @@ const AdminHomePageContent = () => {
                         >
                             <Card
                                 onClick={() => {
-                                  router.push(`/chat/admin?view=${item.view}`, { scroll: false });
+                                  if (item.view === 'bots') {
+                                    setIsConversationsDialogOpen(true);
+                                  } else {
+                                    router.push(`/chat/admin?view=${item.view}`, { scroll: false });
+                                  }
                                 }}
                                 className={cn(
                                     "h-full w-full flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300",
@@ -68,7 +75,7 @@ const AdminHomePageContent = () => {
                             >
                                 <CardHeader className="p-2">
                                     <div className="p-3 bg-primary/10 rounded-full mx-auto">
-                                        <item.icon className="h-5 w-5 text-primary" />
+                                        <item.icon className="h-5 w-5 text-green-500" />
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-2 pt-0">
@@ -81,6 +88,11 @@ const AdminHomePageContent = () => {
                 </div>
             </div>
         </div>
+        <ConversationsDialog 
+            isOpen={isConversationsDialogOpen}
+            onOpenChange={setIsConversationsDialogOpen}
+            assistants={[]}
+        />
     </>
 )};
 
@@ -97,8 +109,9 @@ export default function AdminHomePage() {
   const { state } = useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = state.userProfile;
+  const { isAuthenticated, assistants } = state.userProfile;
   const [isPlansOpen, setIsPlansOpen] = useState(false);
+  const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
 
   // Initialize with 'home' and update on the client to avoid hydration mismatch
   const [activeView, setActiveView] = useState<AdminView>('home');
@@ -155,6 +168,11 @@ export default function AdminHomePage() {
       </div>
     </div>
     <PlansDialog isOpen={isPlansOpen} onOpenChange={setIsPlansOpen} />
+    <ConversationsDialog
+        isOpen={isConversationsDialogOpen}
+        onOpenChange={setIsConversationsDialogOpen}
+        assistants={assistants}
+    />
     </>
   );
 }

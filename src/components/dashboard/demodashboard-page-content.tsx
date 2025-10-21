@@ -9,7 +9,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary';
 import AssistantCard from '@/components/dashboard/AssistantCard';
 import DatabaseInfoCard from '@/components/dashboard/DatabaseInfoCard';
 import { Button } from '@/components/ui/button';
-import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaComments, FaAddressBook, FaPlus } from 'react-icons/fa';
+import { FaStar, FaKey, FaPalette, FaWhatsapp, FaUser, FaRobot, FaDatabase, FaBrain, FaSpinner, FaRegCommentDots, FaComments, FaAddressBook } from 'react-icons/fa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,16 +19,12 @@ import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { AssistantMemory, AssistantWithMemory, Authorization } from '@/types';
+import type { AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
-import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
-import { BookText, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
-import { assistantPurposesConfig } from '@/config/appConfig';
+import { CheckSquare } from 'lucide-react';
 import { AnimatePresence, motion } from "framer-motion";
+import ConversationsDialog from './ConversationsDialog';
+
 
 const DemoDashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -40,11 +36,11 @@ const DemoDashboardPageContent = () => {
   
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
+  const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
   
   const isDemoMode = true; // This component is always in demo mode
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-
 
   const demoProfile = {
       isAuthenticated: false,
@@ -94,13 +90,11 @@ const DemoDashboardPageContent = () => {
   };
   
   const profileToRender = demoProfile;
-
+  
    useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
         const scrollLeft = scrollRef.current.scrollLeft;
-        // The width of each card is 80% of the container width plus margin/padding.
-        // A simpler approach is to calculate based on the total scrollable width.
         const cardWidth = scrollRef.current.scrollWidth / profileToRender.assistants.length;
         if (cardWidth > 0) {
             const newIndex = Math.round(scrollLeft / cardWidth);
@@ -122,9 +116,15 @@ const DemoDashboardPageContent = () => {
     });
   };
 
+  const handleReconfigureAssistant = (assistantId: string) => {
+      handleActionInDemo('Configurar Asistente');
+  };
+
   const handleAddNewAssistant = () => {
     router.push('/login');
   };
+  
+  const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId);
   
   const renderContentForRoute = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
@@ -135,9 +135,9 @@ const DemoDashboardPageContent = () => {
     if (isAssistantsPage) {
       return (
         <div className="space-y-4"> 
-            <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
+            <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: "0.3s" }}>
                 <h3 className="text-sm font-semibold flex items-center gap-2"> 
-                    <FaRobot size={16} className="text-primary" /> 
+                    <FaRobot size={16} className="text-green-500" /> 
                     Asistentes de Ejemplo
                 </h3>
                 <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
@@ -151,7 +151,7 @@ const DemoDashboardPageContent = () => {
                       <div key={assistant.id} className="snap-center flex-shrink-0 w-[80%] sm:w-64">
                           <AssistantCard 
                               assistant={assistant as any} 
-                              onReconfigure={() => handleActionInDemo('Configurar Asistente')}
+                              onReconfigure={handleReconfigureAssistant}
                               animationDelay={`${0.4 + index * 0.1}s`}
                           />
                       </div>
@@ -184,10 +184,10 @@ const DemoDashboardPageContent = () => {
     
     if (isManagerPage) {
         const managerButtons = [
-            { title: 'Mensajes', icon: FaComments, action: () => handleActionInDemo('Ver Mensajes') },
+            { title: 'Mensajes', icon: FaComments, action: () => setIsConversationsDialogOpen(true) },
             { title: 'Autorizaciones', icon: CheckSquare, action: () => handleActionInDemo('Ver Autorizaciones') },
             { title: 'Contactos', icon: FaAddressBook, action: () => handleActionInDemo('Ver Contactos') },
-            { title: 'Base de Datos', icon: FaDatabase, action: () => handleActionInDemo('Ver Base de Datos') },
+            { title: 'Base de Datos', icon: FaDatabase, action: () => router.push('/dashboard/databases') },
         ];
         
       return (
@@ -196,7 +196,7 @@ const DemoDashboardPageContent = () => {
               {managerButtons.map((btn, index) => (
                 <Card key={index} className="text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={btn.action}>
                   <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
-                    <btn.icon className="h-6 w-6 text-primary" />
+                    <btn.icon className="h-6 w-6 text-green-500" />
                     <p className="text-sm font-semibold">{btn.title}</p>
                   </CardContent>
                 </Card>
@@ -261,47 +261,86 @@ const DemoDashboardPageContent = () => {
     
     if (isProfilePage) {
       return (
-         <Card className="animate-fadeIn transition-all hover:shadow-lg" style={{ animationDelay: '0.1s' }}>
+         <Card
+          className="animate-fadeIn transition-all hover:shadow-lg"
+          style={{ animationDelay: '0.1s' }}
+        >
           <CardContent className="p-0">
             <div className="flex flex-col">
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <FaUser className="h-6 w-6 text-primary" />
+                  <FaUser className="h-6 w-6 text-green-500" />
                   <div>
                     <h3 className="font-semibold">Información Personal</h3>
-                    <p className="text-sm text-muted-foreground">Actualiza tus datos personales y de facturación.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Actualiza tus datos personales y de facturación.
+                    </p>
                   </div>
                 </div>
-                <Button size="sm" onClick={() => router.push('/login')} className="shrink-0">Iniciar Sesión</Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (isDemoMode) {
+                        router.push('/login');
+                        return;
+                    }
+                    setIsPersonalInfoOpen(true)}
+                  }
+                  className="shrink-0"
+                >
+                  {isDemoMode ? 'Iniciar Sesión' : 'Editar'}
+                </Button>
               </div>
               <Separator />
+
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
                   <FaKey className="h-6 w-6 text-destructive" />
                   <div>
                     <h3 className="font-semibold">Seguridad</h3>
-                    <p className="text-sm text-muted-foreground">Inicia sesión para gestionar tu cuenta.</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con tu proveedor."}
+                    </p>
                   </div>
                 </div>
-                <Button size="sm" variant="secondary" disabled>Modo Demo</Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled
+                >
+                 {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
+                </Button>
               </div>
               <Separator />
+
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
                   <FaRegCommentDots className="h-6 w-6 text-green-500" />
                   <div>
                     <h3 className="font-semibold">Soporte Técnico</h3>
-                    <p className="text-sm text-muted-foreground">¿Necesitas ayuda? Contáctanos por WhatsApp.</p>
+                    <p className="text-sm text-muted-foreground">
+                      ¿Necesitas ayuda? Contáctanos por WhatsApp.
+                    </p>
                   </div>
                 </div>
-                <Button asChild size="sm" className="shrink-0 bg-green-500 hover:bg-green-600 text-white">
-                  <Link href="https://wa.me/5213344090167" target="_blank" rel="noopener noreferrer">Contactar</Link>
+                <Button
+                  asChild
+                  size="sm"
+                  className="shrink-0 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Link
+                    href="https://wa.me/5213344090167"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Contactar
+                  </Link>
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      );
+      )
     }
     return null;
   }
@@ -310,14 +349,14 @@ const DemoDashboardPageContent = () => {
     if(pathname.endsWith('/assistants')) return 'Asistentes';
     if(pathname.endsWith('/manager')) return 'Gestor';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
-    return 'Panel de Demostración';
+    return isDemoMode ? 'Panel de Demostración' : 'Panel Principal';
   }
 
   const getPageDescription = () => {
-    if(pathname.endsWith('/assistants')) return 'Explora asistentes de ejemplo.';
-    if(pathname.endsWith('/manager')) return 'Explora las bandejas de gestión.';
+    if(pathname.endsWith('/assistants')) return isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.';
+    if(pathname.endsWith('/manager')) return isDemoMode ? 'Explora las bandejas de gestión.' : 'Administra las instrucciones, autorizaciones y notificaciones de tus asistentes.';
     if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
-    return 'Explora las funciones con datos de ejemplo.';
+    return isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.';
   }
 
   return (
@@ -328,15 +367,32 @@ const DemoDashboardPageContent = () => {
             <h2 className="text-xl font-bold tracking-tight text-foreground">
               {getPageTitle()}
             </h2>
-            <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
+            {isDemoMode && (
+                <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {getPageDescription()}
           </p>
         </div>
-        {!pathname.endsWith('/profile') && !pathname.endsWith('/manager') && <DashboardSummary currentPath={pathname} />}
+        {!pathname.endsWith('/profile') && <DashboardSummary currentPath={pathname} />}
+
         {renderContentForRoute()}
       </PageContainer>
+      
+      <AddDatabaseDialog 
+          isOpen={isAddDatabaseDialogOpen} 
+          onOpenChange={setIsAddDatabaseDialogOpen} 
+      />
+       <PersonalInfoDialog
+        isOpen={isPersonalInfoOpen}
+        onOpenChange={setIsPersonalInfoOpen}
+      />
+      <ConversationsDialog
+        isOpen={isConversationsDialogOpen}
+        onOpenChange={setIsConversationsDialogOpen}
+        assistants={profileToRender.assistants as any[]}
+      />
     </>
   );
 };

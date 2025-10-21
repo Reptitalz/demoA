@@ -1,8 +1,7 @@
-
 // src/components/dashboard/ConversationsDialog.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -15,12 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
-
-interface ConversationsDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  assistant: AssistantConfig;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ChatBubble = ({ message, assistant }: { message: ChatMessage; assistant: AssistantConfig }) => {
   const isUser = message.role === 'user';
@@ -38,7 +32,7 @@ const ChatBubble = ({ message, assistant }: { message: ChatMessage; assistant: A
           className={cn(
             "rounded-2xl px-4 py-2 text-sm",
             isUser
-              ? "bg-[#dcf8c6] dark:bg-[#054740] rounded-br-none"
+              ? "bg-green-100 dark:bg-green-900 rounded-br-none"
               : "bg-white dark:bg-slate-700 rounded-bl-none"
           )}
         >
@@ -54,77 +48,58 @@ const ChatBubble = ({ message, assistant }: { message: ChatMessage; assistant: A
   );
 };
 
-const ConversationDetailDialog = ({ open, onOpenChange, conversationId, assistant }: { open: boolean, onOpenChange: (open: boolean) => void, conversationId: string | null, assistant: AssistantConfig }) => {
-    const { state } = useApp();
-    const { toast } = useToast();
-    const [conversation, setConversation] = useState<Conversation | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        if (open && conversationId && state.userProfile._id) {
-            setIsLoading(true);
-            setConversation(null); // Clear previous conversation
-            fetch('/api/assistants/conversations', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ conversationId, userId: state.userProfile._id.toString() }),
-            })
-            .then(async (res) => {
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.message || 'Failed to load conversation details.');
-                }
-                return res.json();
-            })
-            .then(setConversation)
-            .catch(err => toast({ title: "Error", description: err.message, variant: "destructive" }))
-            .finally(() => setIsLoading(false));
-        }
-    }, [open, conversationId, state.userProfile._id, toast]);
+const ConversationDetailView = ({ conversation, assistant, onBack }: { conversation: Conversation | null, assistant: AssistantConfig, onBack: () => void }) => {
+    if (!conversation) {
+        return (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p>Selecciona una conversación para ver los detalles.</p>
+            </div>
+        )
+    }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-xl max-h-[80vh] flex flex-col">
-                 <DialogHeader>
-                    <DialogTitle>Historial de Chat</DialogTitle>
-                    <DialogDescription>
-                        Viendo la conversación con {conversation?.userIdentifier || 'un usuario'}.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex-grow bg-slate-200 dark:bg-slate-800 rounded-md overflow-hidden relative">
-                   <div className="absolute inset-0 chat-background opacity-50" />
-                   <ScrollArea className="h-full relative">
-                        <div className="p-4">
-                        {isLoading ? (
-                            <div className="flex justify-center items-center h-48"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
-                        ) : conversation ? (
-                            <div className="space-y-2">
-                                {conversation.history.map((msg, index) => (
-                                    <ChatBubble key={index} message={msg} assistant={assistant} />
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-center p-4">No se pudo cargar la conversación.</p>
-                        )}
-                        </div>
-                   </ScrollArea>
+        <div className="flex flex-col h-full">
+            <div className="p-4 border-b">
+                <Button variant="ghost" size="sm" onClick={onBack}>&larr; Volver</Button>
+                <h4 className="font-semibold mt-2">Chat con {conversation.userIdentifier}</h4>
+                <p className="text-xs text-muted-foreground">
+                    Última actividad: {formatDistanceToNow(new Date(conversation.updatedAt), { addSuffix: true, locale: es })}
+                </p>
+            </div>
+            <ScrollArea className="flex-grow bg-slate-100 dark:bg-slate-900">
+                 <div className="p-4 space-y-2">
+                    {conversation.history.map((msg, index) => (
+                        <ChatBubble key={index} message={msg} assistant={assistant} />
+                    ))}
                 </div>
-            </DialogContent>
-        </Dialog>
+            </ScrollArea>
+        </div>
     )
 }
 
-const ConversationsDialog = ({ isOpen, onOpenChange, assistant }: ConversationsDialogProps) => {
+interface ConversationsDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  assistants: AssistantConfig[];
+}
+
+const ConversationsDialog = ({ isOpen, onOpenChange, assistants }: ConversationsDialogProps) => {
   const { state } = useApp();
   const { toast } = useToast();
+  const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+
+  const selectedAssistant = useMemo(() => {
+    return assistants.find(a => a.id === selectedAssistantId) || null;
+  }, [selectedAssistantId, assistants]);
 
   useEffect(() => {
-    if (isOpen && state.userProfile._id) {
+    if (isOpen && selectedAssistantId && state.userProfile._id) {
       setIsLoading(true);
-      fetch(`/api/assistants/conversations?assistantId=${assistant.id}&userId=${state.userProfile._id.toString()}`)
+      setSelectedConversation(null); // Reset detail view
+      fetch(`/api/assistants/conversations?assistantId=${selectedAssistantId}&userId=${state.userProfile._id.toString()}`)
         .then(async res => {
           if (!res.ok) {
             const errorData = await res.json();
@@ -135,75 +110,93 @@ const ConversationsDialog = ({ isOpen, onOpenChange, assistant }: ConversationsD
         .then(data => setConversations(data))
         .catch(err => toast({ title: 'Error', description: err.message, variant: 'destructive' }))
         .finally(() => setIsLoading(false));
+    } else {
+        setConversations([]);
     }
-  }, [isOpen, assistant.id, state.userProfile._id, toast]);
+  }, [isOpen, selectedAssistantId, state.userProfile._id, toast]);
   
-  const handleViewConversation = (convoId: string) => {
-      setSelectedConversationId(convoId);
-  }
+  useEffect(() => {
+    if (isOpen && assistants.length > 0 && !selectedAssistantId) {
+        setSelectedAssistantId(assistants[0].id);
+    }
+  }, [isOpen, assistants, selectedAssistantId]);
 
   return (
-    <>
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] flex flex-col">
-            <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-                <FaComments /> Conversaciones de "{assistant.name}"
-            </DialogTitle>
-            <DialogDescription>
-                Revisa los historiales de chat que tu asistente ha tenido.
-            </DialogDescription>
-            </DialogHeader>
-            <div className="flex-grow border rounded-md overflow-hidden">
-                <ScrollArea className="h-full">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="w-full h-full max-w-none sm:max-w-4xl sm:h-auto sm:max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => { e.preventDefault(); }}>
+        <DialogHeader className="p-6 pb-4 border-b">
+          <DialogTitle className="flex items-center gap-2">
+            <FaComments /> Monitor de Conversaciones
+          </DialogTitle>
+          <DialogDescription>
+            Revisa los chats que tus asistentes han tenido.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid md:grid-cols-[300px_1fr] flex-grow min-h-0">
+            <div className="border-r flex flex-col">
+                <div className="p-4 border-b">
+                    <Select value={selectedAssistantId || ''} onValueChange={setSelectedAssistantId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un asistente..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {assistants.map(asst => (
+                                <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <ScrollArea className="flex-grow">
                     <div className="p-2">
-                    {isLoading ? (
-                        <div className="flex justify-center items-center h-48">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
-                    ) : conversations.length === 0 ? (
-                        <p className="text-center text-muted-foreground p-8">Este asistente aún no tiene conversaciones.</p>
-                    ) : (
-                        <div className="space-y-2">
-                        {conversations.map(convo => (
-                            <div
-                                key={convo._id}
-                                className="flex items-center gap-3 p-2.5 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted"
-                                onClick={() => handleViewConversation(convo._id)}
-                            >
-                                <div className="flex-grow overflow-hidden">
-                                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                        <FaUser className="text-primary" />
-                                        <span>{convo.userIdentifier}</span>
-                                    </p>
-                                    <p className="text-xs text-muted-foreground truncate italic">
-                                        "{typeof convo.lastMessage === 'string' ? convo.lastMessage : '[Mensaje no textual]'}"
-                                    </p>
-                                </div>
-                                <div className="text-right text-xs text-muted-foreground shrink-0">
-                                    <p>Última act.</p>
-                                    <p>{formatDistanceToNow(new Date(convo.updatedAt), { addSuffix: true, locale: es })}</p>
-                                </div>
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-48">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
-                        ))}
-                        </div>
-                    )}
+                        ) : conversations.length === 0 ? (
+                            <p className="text-center text-sm text-muted-foreground p-4">No hay conversaciones para este asistente.</p>
+                        ) : (
+                            <div className="space-y-1">
+                                {conversations.map(convo => (
+                                    <div
+                                        key={convo._id}
+                                        onClick={() => setSelectedConversation(convo)}
+                                        className={cn(
+                                            "p-3 rounded-md cursor-pointer hover:bg-muted",
+                                            selectedConversation?._id === convo._id && "bg-muted"
+                                        )}
+                                    >
+                                        <p className="font-semibold text-sm truncate">{convo.userIdentifier}</p>
+                                        <p className="text-xs text-muted-foreground truncate italic">
+                                            "{typeof convo.lastMessage === 'string' ? convo.lastMessage : '[Mensaje no textual]'}"
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </ScrollArea>
             </div>
-            <DialogFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
-            </DialogFooter>
-        </DialogContent>
-        </Dialog>
-        
-        <ConversationDetailDialog
-            open={!!selectedConversationId}
-            onOpenChange={(open) => !open && setSelectedConversationId(null)}
-            conversationId={selectedConversationId}
-            assistant={assistant}
-        />
-    </>
+            <div className="hidden md:flex flex-col bg-slate-50 dark:bg-slate-900/50">
+                 {selectedAssistant ? (
+                    <ConversationDetailView 
+                        conversation={selectedConversation} 
+                        assistant={selectedAssistant}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                     <div className="flex items-center justify-center h-full text-muted-foreground">
+                        <p>Selecciona un asistente para empezar.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        <DialogFooter className="p-6 border-t mt-auto">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

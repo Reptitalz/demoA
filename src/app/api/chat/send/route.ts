@@ -2,7 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// This endpoint now acts as a secure backend proxy to the external webhook.
+// This endpoint is DEPRECATED and now acts as a secure backend proxy to the external webhook.
+// The primary communication should happen via WebSockets.
 export async function POST(request: NextRequest) {
   try {
     // 1. Get all necessary data from the client's request

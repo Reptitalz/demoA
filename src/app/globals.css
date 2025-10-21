@@ -263,7 +263,7 @@ body {
       background-image: url('/whatsapp_bg.png');
       background-repeat: repeat;
       background-position: center;
-      opacity: 1;
+      opacity: 0.05;
   }
 
   .scrollbar-hide::-webkit-scrollbar {

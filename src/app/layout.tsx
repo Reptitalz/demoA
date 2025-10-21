@@ -154,11 +154,9 @@ export default function RootLayout({
               forcedTheme="light"
             >
             <AppProvider>
-              <SocketProvider>
-                <RootLayoutContent>
-                  {children}
-                </RootLayoutContent>
-              </SocketProvider>
+              <RootLayoutContent>
+                {children}
+              </RootLayoutContent>
             </AppProvider>
             </ThemeProvider>
         </NextAuthSessionProvider>
