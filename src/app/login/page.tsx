@@ -165,7 +165,7 @@ const LoginPageContent = () => {
             onClick={() => setIsRegisterDialogOpen(true)}
             className={cn(
                 "w-full font-semibold py-3 rounded-lg transition-all duration-300 flex justify-center items-center gap-2",
-                "bg-brand-gradient text-primary-foreground hover:opacity-90",
+                "bg-green-gradient text-primary-foreground hover:opacity-90",
                 "shiny-border"
             )}
             >
