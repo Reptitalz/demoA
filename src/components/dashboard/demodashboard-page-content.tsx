@@ -110,8 +110,8 @@ const DemoDashboardPageContent = () => {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{animationDelay: "0.3s"}}>
-                <h3 className="text-lg font-semibold flex items-center gap-2"> 
-                    <FaRobot size={18} className="text-green-500" /> 
+                <h3 className="text-base font-semibold flex items-center gap-2"> 
+                    <FaRobot size={16} className="text-green-500" /> 
                     Asistentes de Ejemplo
                 </h3>
                 <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
@@ -149,7 +149,7 @@ const DemoDashboardPageContent = () => {
                 <TabsContent value="instructions" className="mt-4">
                     <Card>
                     <CardHeader>
-                        <CardTitle>Bandeja de Instrucciones</CardTitle>
+                        <CardTitle className="text-base">Bandeja de Instrucciones</CardTitle>
                         <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -167,7 +167,7 @@ const DemoDashboardPageContent = () => {
                 <TabsContent value="authorizations" className="mt-4">
                     <Card>
                     <CardHeader>
-                        <CardTitle>Bandeja de Autorizaciones</CardTitle>
+                        <CardTitle className="text-base">Bandeja de Autorizaciones</CardTitle>
                         <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -192,7 +192,7 @@ const DemoDashboardPageContent = () => {
                 <TabsContent value="notifier" className="mt-4">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Bandeja de Notificador</CardTitle>
+                        <CardTitle className="text-base">Bandeja de Notificador</CardTitle>
                         <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
                     </CardHeader>
                     <CardContent>
