@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -111,7 +112,7 @@ const CollaboratorLoginPage = () => {
                   <Button
                     type="submit"
                     disabled={isLoggingIn}
-                    className="w-full font-semibold py-3 rounded-lg shadow-md transition-all duration-300 disabled:opacity-50"
+                    className="w-full font-semibold py-3 rounded-lg shadow-md transition-all duration-300 disabled:opacity-50 bg-green-gradient text-primary-foreground"
                   >
                     {isLoggingIn ? <FaSpinner className="animate-spin h-5 w-5" /> : 'Iniciar Sesión'}
                   </Button>
