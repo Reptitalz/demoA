@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -9,14 +10,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
-import { Bot, Brain } from 'lucide-react';
+import { Bot, GaugeCircle } from 'lucide-react';
 import NotificationsBell from '@/components/notifications/NotificationsBell'; // Re-using real component
 import { signOut } from 'next-auth/react'; // Re-using real function
 import AppIcon from '@/components/shared/AppIcon';
 
 const menuItems = [
     { path: '/dashboarddemo/assistants', icon: Bot, label: 'Asistentes' },
-    { path: '/dashboarddemo/databases', icon: Brain, label: 'Cerebro' },
+    { path: '/dashboarddemo/manager', icon: GaugeCircle, label: 'Gestor' },
     { path: '/dashboarddemo/profile', icon: FaUser, label: 'Perfil' },
 ];
 

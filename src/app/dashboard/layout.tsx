@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -13,12 +14,12 @@ import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
 import NotificationsBell from '@/components/notifications/NotificationsBell';
 import { signOut } from 'next-auth/react';
-import { Bot, Brain } from 'lucide-react';
+import { Bot, GaugeCircle } from 'lucide-react';
 import AppIcon from '@/components/shared/AppIcon';
 
 const menuItems = [
     { path: '/dashboard/assistants', icon: Bot, label: 'Asistentes' },
-    { path: '/dashboard/databases', icon: Brain, label: 'Cerebro' },
+    { path: '/dashboard/manager', icon: GaugeCircle, label: 'Gestor' },
     { path: '/dashboard/profile', icon: FaUser, label: 'Perfil' },
 ];
 
