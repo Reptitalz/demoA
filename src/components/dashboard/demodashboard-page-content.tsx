@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { assistantPurposesConfig } from '@/config/appConfig';
+import { AnimatePresence, motion } from "framer-motion";
 
 const DemoDashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -129,6 +130,7 @@ const DemoDashboardPageContent = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
     const isManagerPage = pathname.endsWith('/manager');
     const isProfilePage = pathname.endsWith('/profile');
+    const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
 
     if (isAssistantsPage) {
       return (
@@ -203,23 +205,52 @@ const DemoDashboardPageContent = () => {
              <div className="space-y-3">
               <h3 className="text-sm font-semibold">Propósitos Disponibles</h3>
                <div className="space-y-2">
-                {assistantPurposesConfig.map((purpose) => {
+                {assistantPurposesConfig.filter(p => p.id.startsWith('notify') || p.id.startsWith('manage')).map((purpose) => {
                   const Icon = purpose.icon;
+                  const isSelected = selectedPurpose === purpose.id;
                   return (
-                    <Card key={purpose.id} className="hover:bg-muted/50 transition-colors">
-                      <CardContent className="p-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                           <Icon className="h-5 w-5 text-muted-foreground" />
-                           <div>
-                              <p className="text-sm font-medium">{purpose.name}</p>
-                              <p className="text-xs text-muted-foreground">{purpose.description}</p>
-                           </div>
-                        </div>
-                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleActionInDemo('Añadir Propósito')}>
-                            <FaPlus className="h-4 w-4" />
-                          </Button>
-                      </CardContent>
-                    </Card>
+                    <div key={purpose.id}>
+                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setSelectedPurpose(pId => pId === purpose.id ? null : purpose.id)}>
+                          <CardContent className="p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                               <Icon className="h-5 w-5 text-muted-foreground" />
+                               <div>
+                                  <p className="text-sm font-medium">{purpose.name}</p>
+                                  <p className="text-xs text-muted-foreground">{purpose.description}</p>
+                               </div>
+                            </div>
+                             <Button variant="outline" size="icon" className="h-8 w-8">
+                                <FaPlus className="h-4 w-4" />
+                              </Button>
+                          </CardContent>
+                        </Card>
+                        <AnimatePresence>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: 'easeInOut' }}
+                              className="overflow-hidden"
+                            >
+                              <div className="py-2">
+                                <div className="flex overflow-x-auto space-x-3 p-2 -m-2 snap-x snap-mandatory scrollbar-hide bg-muted/50 rounded-lg">
+                                  {profileToRender.assistants.filter(a => a.type === 'whatsapp').map(assistant => (
+                                    <div key={assistant.id} className="snap-center flex-shrink-0 w-40">
+                                      <Card className="text-center p-2">
+                                        <CardContent className="p-1 flex flex-col items-center gap-1">
+                                          <p className="text-xs font-semibold truncate w-full">{assistant.name}</p>
+                                          <Button size="xs" variant="ghost" className="w-full h-7 text-xs" onClick={() => handleActionInDemo('Añadir Propósito')}>Añadir</Button>
+                                        </CardContent>
+                                      </Card>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                    </div>
                   );
                 })}
               </div>
@@ -276,7 +307,7 @@ const DemoDashboardPageContent = () => {
   }
   
   const getPageTitle = () => {
-    if(pathname.endsWith('/assistants')) return 'Panel de Asistentes';
+    if(pathname.endsWith('/assistants')) return 'Asistentes';
     if(pathname.endsWith('/manager')) return 'Gestor';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
     return 'Panel de Demostración';
@@ -311,4 +342,3 @@ const DemoDashboardPageContent = () => {
 };
 
 export default DemoDashboardPageContent;
-
