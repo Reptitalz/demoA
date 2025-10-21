@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -24,6 +23,7 @@ import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
 import { CheckSquare } from 'lucide-react';
 import { AnimatePresence, motion } from "framer-motion";
 import ConversationsDialog from './ConversationsDialog';
+import { assistantPurposesConfig } from '@/config/appConfig';
 
 
 const DemoDashboardPageContent = () => {
