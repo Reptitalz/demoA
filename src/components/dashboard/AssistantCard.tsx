@@ -293,8 +293,8 @@ const AssistantCard = ({
                         size="sm"
                         onClick={handleReconfigureClick}
                         className={cn(
-                            "w-full text-xs transition-transform transform hover:scale-105",
-                            "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border"
+                            "w-full text-xs transition-transform transform hover:scale-105 justify-start",
+                            "bg-brand-gradient text-primary-foreground hover:opacity-90 shiny-border"
                         )}
                     >
                         <FaCog size={14} />
