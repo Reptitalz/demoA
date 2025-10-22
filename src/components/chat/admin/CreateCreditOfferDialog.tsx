@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft, ArrowRight, Trash2, Palette } from 'lucide-react';
+import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft, ArrowRight, Trash2, Palette, TrendingUp, LandmarkIcon } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { CreditOffer, RequiredDocument, AssistantConfig } from '@/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
+import { Card, CardContent } from '../card';
 
 interface CreateCreditOfferDialogProps {
   isOpen: boolean;
@@ -129,7 +130,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
   const validateStep = (currentStep: number) => {
     switch(currentStep) {
         case 1: return !!offer.name?.trim();
-        case 2: return true; // Color is always set
+        case 2: return true;
         case 3: return !!(offer.amount && offer.amount > 0);
         case 4: return !!(offer.interest && offer.profitPerPayment);
         case 5: return !!(offer.term && offer.termUnit);
@@ -193,6 +194,24 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
     "Requisitos",
     "Gestor del Crédito"
   ];
+  
+  const { totalToPay, totalProfit } = useMemo(() => {
+    const amount = offer.amount || 0;
+    const interest = (offer.interest || 0) / 100;
+    const profitPerPayment = offer.profitPerPayment || 0;
+    const term = offer.term || 0;
+
+    if (amount <= 0 || interest < 0 || profitPerPayment < 0 || term <= 0) {
+      return { totalToPay: 0, totalProfit: 0 };
+    }
+
+    const totalInterest = amount * interest;
+    const totalToPay = amount + totalInterest;
+    const totalProfit = profitPerPayment * term;
+    
+    return { totalToPay, totalProfit };
+
+  }, [offer.amount, offer.interest, offer.profitPerPayment, offer.term]);
 
   const renderStepContent = () => {
       switch(step) {
@@ -225,15 +244,30 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
             </div>
           );
           case 4: return (
-             <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="offer-interest">Interés Mensual (%)</Label>
-                    <Input id="offer-interest" type="number" value={offer.interest || ''} onChange={(e) => handleInputChange('interest', Number(e.target.value))} placeholder="Ej: 10" />
+            <div className="space-y-6">
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="offer-interest">Interés Mensual (%)</Label>
+                        <Input id="offer-interest" type="number" value={offer.interest || ''} onChange={(e) => handleInputChange('interest', Number(e.target.value))} placeholder="Ej: 10" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="offer-profit">Comisión por Pago ($)</Label>
+                        <Input id="offer-profit" type="number" value={offer.profitPerPayment || ''} onChange={(e) => handleInputChange('profitPerPayment', Number(e.target.value))} placeholder="Ej: 25" />
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="offer-profit">Ganancia por Pago</Label>
-                    <Input id="offer-profit" type="number" value={offer.profitPerPayment || ''} onChange={(e) => handleInputChange('profitPerPayment', Number(e.target.value))} placeholder="Ej: 25" />
-                </div>
+                <Card className="bg-muted/50 border-dashed">
+                  <CardContent className="p-4 grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Total a pagar por el cliente</p>
+                      <p className="text-xl font-bold">${totalToPay.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+                    </div>
+                    <div className="relative">
+                       <p className="text-xs text-muted-foreground">Tu ganancia total estimada</p>
+                       <p className="text-xl font-bold text-green-500">${totalProfit.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+                       <TrendingUp className="absolute -top-2 -right-2 h-5 w-5 text-green-500/30" />
+                    </div>
+                  </CardContent>
+                </Card>
             </div>
           );
            case 5: return (
@@ -336,7 +370,6 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
         </DialogHeader>
         
         <div className="flex flex-col flex-grow min-h-0">
-          {/* Card Preview at the top */}
           <div className="p-6 pt-4 flex flex-col items-center justify-center bg-muted/30" style={{ perspective: '1000px' }}>
               <motion.div 
                 className="w-full max-w-xs mx-auto"
@@ -351,7 +384,6 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
                   <CreditCardPreview offer={offer}/>
               </motion.div>
           </div>
-          {/* Form Content below */}
           <ScrollArea className="flex-grow">
             <div className="p-6">
                 {renderStepContent()}
