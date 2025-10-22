@@ -295,7 +295,7 @@ export const AssistantsList = () => {
             <div className="p-4 text-center">
                  <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4"/>
-                    Crear Asistente de Escritorio
+                    Crear Bot inteligente
                 </Button>
             </div>
 
@@ -673,5 +673,7 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
 
 
 
+
+    
 
     
