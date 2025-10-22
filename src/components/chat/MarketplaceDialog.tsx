@@ -167,7 +167,6 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
                     )}
                 </div>
             </DialogContent>
-        </Dialog>
     )
 };
 
@@ -325,7 +324,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
             
              <div className="grid grid-cols-2 gap-4">
                  <div className="relative w-full">
-                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center w-full" onClick={() => setIsOrdersOpen(true)}>
+                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center w-full" onClick={(e) => {e.stopPropagation(); setIsOrdersOpen(true);}}>
                         <Truck className="h-6 w-6" />
                         <span className="text-xs">Mis Pedidos</span>
                     </Button>
@@ -337,7 +336,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 </div>
 
                 <div className="relative w-full">
-                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center w-full" onClick={() => setIsCartOpen(true)}>
+                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center w-full" onClick={(e) => {e.stopPropagation(); setIsCartOpen(true);}}>
                         <ShoppingCart className="h-6 w-6" />
                         <span className="text-xs">Carrito</span>
                     </Button>
