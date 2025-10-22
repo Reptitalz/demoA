@@ -18,7 +18,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '../card';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface CreateCreditOfferDialogProps {
   isOpen: boolean;
@@ -420,4 +420,3 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 
 export default CreateCreditOfferDialog;
 
-    
