@@ -27,14 +27,12 @@ export type DatabaseSource = "google_sheets" | "smart_db";
 export interface Product {
     _id?: ObjectId;
     id: string;
-    catalogId: string;
-    ownerId: string; // ID of the user who owns the product
     name: string;
     description?: string;
     price: number;
     imageUrl?: string;
-    location: string; // e.g., "Ciudad de México"
-    seller?: string;
+    seller: string;
+    location: string;
 }
 
 export interface CartItem extends Product {
@@ -47,7 +45,7 @@ export interface Catalog {
   name: string;
   promoterType: 'user' | 'bot';
   promoterId: string; // userProfile._id or assistant.id
-  products: Product[]; // This will now just hold IDs or be deprecated in favor of a separate collection
+  products: Product[];
 }
 
 export interface DatabaseConfig {
@@ -144,6 +142,7 @@ export interface RequiredDocument {
 /**
  * Representa una plantilla o "tipo" de crédito que ofreces.
  * Esto define los términos generales de un crédito que tus asistentes pueden ofrecer.
+ * SE GUARDA EN: userProfile.creditOffers
  */
 export interface CreditOffer {
   id: string; // ID único para la oferta de crédito
@@ -179,6 +178,7 @@ export interface CollaboratorProfile {
 /**
  * Representa una solicitud de crédito individual de un cliente.
  * Se crea cuando un cliente aplica a una de tus `CreditOffer`.
+ * SE GUARDA EN: userProfile.creditLines
  */
 export interface CreditLine {
   id: string; // ID único para esta solicitud específica
