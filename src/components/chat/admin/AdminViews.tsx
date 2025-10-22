@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -194,16 +195,18 @@ export const BankView = () => {
                          <Card key={payment.id} className="glow-card">
                             <CardContent className="p-3">
                                 <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 overflow-hidden">
                                         <div className="p-2 bg-muted rounded-full">
                                             {getFileIcon(payment.receiptUrl)}
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-sm">{payment.product || 'Sin producto'}</p>
-                                            <p className="text-xs text-muted-foreground">{payment.userName} a {payment.assistantName}</p>
+                                        <div className="space-y-1 flex-1 overflow-hidden">
+                                            <p className="font-semibold text-sm truncate">{payment.product || 'Sin producto'}</p>
+                                            <p className="text-xs text-muted-foreground truncate">
+                                                {payment.userName} a {payment.assistantName}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-right shrink-0 ml-2">
                                         {payment.amount > 0 && <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>}
                                         <p className="text-xs text-muted-foreground">{new Date(payment.receivedAt).toLocaleString()}</p>
                                     </div>
@@ -251,7 +254,7 @@ export const AssistantsList = () => {
 
     return (
         <>
-        <header className="p-4 border-b bg-card/80 backdrop-blur-sm flex justify-between items-center">
+        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
             <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                     <Bot className="h-6 w-6 text-green-500" />
@@ -261,12 +264,16 @@ export const AssistantsList = () => {
                     <p className="text-sm text-muted-foreground">Supervisa las conversaciones de tus asistentes.</p>
                 </div>
             </div>
-            <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+        </header>
+
+        <div className="p-4 text-center">
+            <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4"/>
                 Crear Asistente de Escritorio
             </Button>
-        </header>
-        <ScrollArea className="flex-grow p-4">
+        </div>
+
+        <ScrollArea className="flex-grow p-4 pt-0">
             <div className="space-y-4">
                 {desktopAssistants.map(assistant => (
                     <Card key={assistant.id}>
@@ -289,6 +296,9 @@ export const AssistantsList = () => {
                         </CardContent>
                     </Card>
                 ))}
+                 {desktopAssistants.length === 0 && (
+                    <p className="text-sm text-center text-muted-foreground py-8">No tienes asistentes de escritorio.</p>
+                )}
             </div>
         </ScrollArea>
         {selectedAssistant && (
@@ -505,7 +515,7 @@ export const CreditView = () => {
             
             <div className="px-4 space-y-4">
                 <h3 className="font-semibold text-base">Ofertas de Crédito</h3>
-                <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+                {/* <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} /> */}
             </div>
 
             <div className="p-4 mt-4">
@@ -544,12 +554,13 @@ export const CreditView = () => {
                     {filteredLines.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No hay solicitudes en esta categoría.</p>}
                 </div>
             </ScrollArea>
-             <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen}/>
+             {/* <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen}/> */}
              <CreditHistoryDialog credit={selectedCredit} isOpen={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)} />
-             <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} />
+             {/* <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} /> */}
         </>
     );
 };
+
 
 export const DeliveryView = () => (
     <div className="flex flex-col h-full bg-transparent">
