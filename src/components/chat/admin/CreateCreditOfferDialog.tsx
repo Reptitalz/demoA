@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { motion } from 'framer-motion';
 
 interface CreateCreditOfferDialogProps {
   isOpen: boolean;
@@ -341,10 +342,21 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
             </div>
           </ScrollArea>
           
-          <div className="p-6 space-y-4 flex flex-col justify-center bg-muted/30" style={{ perspective: '1000px' }}>
-            <div className="w-full max-w-xs mx-auto" style={{ transformStyle: 'preserve-3d' }}>
+          <div className="p-6 pt-12 flex flex-col items-center bg-muted/30" style={{ perspective: '1000px' }}>
+            <motion.div 
+              className="w-full max-w-xs mx-auto"
+              style={{ transformStyle: 'preserve-3d' }}
+              animate={{
+                rotateX: 5,
+                rotateY: -10,
+                y: [-5, 5, -5],
+              }}
+              transition={{
+                y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+              }}
+            >
                 <CreditCardPreview offer={offer}/>
-            </div>
+            </motion.div>
           </div>
         </div>
         
@@ -376,5 +388,3 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 };
 
 export default CreateCreditOfferDialog;
-
-    
