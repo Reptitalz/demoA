@@ -141,19 +141,23 @@ export interface RequiredDocument {
   title: string;
 }
 
+/**
+ * Representa una plantilla o "tipo" de crédito que ofreces.
+ * Esto define los términos generales de un crédito que tus asistentes pueden ofrecer.
+ */
 export interface CreditOffer {
-  id: string;
-  name: string;
-  amount: number;
-  interest: number; // e.g., 10 for 10%
-  profitPerPayment: number; // New field for profit per payment
-  term: number; // e.g. 12
-  termUnit: 'weeks' | 'fortnights' | 'months';
-  customColor?: string;
-  cardIconUrl?: string;
-  managerType: 'user' | 'assistant';
-  managerId: string; // The user or assistant that will offer and manage this credit
-  requiredDocuments: RequiredDocument[];
+  id: string; // ID único para la oferta de crédito
+  name: string; // Nombre descriptivo, ej: "Crédito Emprendedor"
+  amount: number; // Monto máximo a ofrecer
+  interest: number; // Tasa de interés mensual (ej: 10 para 10%)
+  profitPerPayment: number; // Ganancia que obtienes por cada pago recibido
+  term: number; // Duración del crédito (ej: 12)
+  termUnit: 'weeks' | 'fortnights' | 'months'; // Unidad del plazo
+  customColor?: string; // Color para la tarjeta de previsualización
+  cardIconUrl?: string; // URL del logo para la tarjeta
+  managerType: 'user' | 'assistant'; // Quién gestiona la cobranza
+  managerId: string; // ID del usuario o asistente gestor
+  requiredDocuments: RequiredDocument[]; // Documentos que el cliente debe subir
 }
 
 export interface CollaboratorProfile {
@@ -172,18 +176,22 @@ export interface CollaboratorProfile {
   bankInfo?: CollaboratorBankInfo;
 }
 
+/**
+ * Representa una solicitud de crédito individual de un cliente.
+ * Se crea cuando un cliente aplica a una de tus `CreditOffer`.
+ */
 export interface CreditLine {
-  id: string;
-  amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'active' | 'completed' | 'Al Corriente' | 'Atrasado';
-  applicantIdentifier: string; // The userProfile.chatPath of the person applying
-  assistantId: string; // The assistant that processed the application
-  documents: {
-    ineFront: string; // Data URL
-    ineBack: string; // Data URL
-    proofOfAddress: string; // Data URL
+  id: string; // ID único para esta solicitud específica
+  amount: number; // Monto final aprobado
+  status: 'pending' | 'approved' | 'rejected' | 'active' | 'completed' | 'Al Corriente' | 'Atrasado'; // Estado de la solicitud
+  applicantIdentifier: string; // Identificador del cliente (ej: userProfile.chatPath)
+  assistantId: string; // Asistente que procesó la solicitud
+  documents: { // Documentos subidos por el cliente
+    ineFront: string; // Data URL de la imagen
+    ineBack: string; // Data URL de la imagen
+    proofOfAddress: string; // Data URL de la imagen
   };
-  paymentFrequency: 'weekly' | 'biweekly' | 'monthly';
+  paymentFrequency: 'weekly' | 'biweekly' | 'monthly'; // Frecuencia de pago acordada
   createdAt: string;
   updatedAt: string;
 }
@@ -225,7 +233,10 @@ export interface Delivery {
     assistantId?: string; // ID of the assistant that created the delivery
 }
 
-
+/**
+ * El objeto principal que se guarda en la colección `userProfiles` de MongoDB.
+ * Contiene toda la información y configuración de un usuario.
+ */
 export interface UserProfile {
   _id?: ObjectId;
   firebaseUid: string; // This will now hold the user's unique ID from next-auth
@@ -247,8 +258,13 @@ export interface UserProfile {
   ownerPhoneNumberForNotifications?: string;
   purchasedUnlimitedPlans?: number;
   accountType?: 'personal' | 'business';
-  creditLines?: CreditLine[];
-  creditOffers?: CreditOffer[];
+  
+  // AQUÍ SE GUARDAN LOS CRÉDITOS:
+  // Este arreglo almacena las plantillas de crédito que tú creas y ofreces.
+  creditOffers?: CreditOffer[]; 
+  // Este arreglo almacena las solicitudes de crédito individuales de tus clientes.
+  creditLines?: CreditLine[]; 
+
   cart?: CartItem[];
   deliveries?: Delivery[];
   credits: number;
