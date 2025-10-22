@@ -503,8 +503,8 @@ export const CreditView = () => {
 
             <Tabs value={activeSubView} onValueChange={(value) => setActiveSubView(value as any)} className="flex-grow flex flex-col">
                 <TabsList className="grid w-full grid-cols-2 mt-4 mx-4">
-                    <TabsTrigger value="requests">Solicitudes de Clientes</TabsTrigger>
-                    <TabsTrigger value="offers">Mis Ofertas de Crédito</TabsTrigger>
+                    <TabsTrigger value="requests"><FileText className="mr-2 h-4 w-4"/>Solicitudes</TabsTrigger>
+                    <TabsTrigger value="offers"><Landmark className="mr-2 h-4 w-4"/>Mis Ofertas</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="requests" className="flex-grow flex flex-col">
@@ -610,5 +610,7 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
         </div>
     </div>
 );
+
+    
 
     
