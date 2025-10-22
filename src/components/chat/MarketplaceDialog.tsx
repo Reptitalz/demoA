@@ -110,7 +110,7 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
     const handleClearCart = () => {
         if (!isAuthenticated) return;
         dispatch({ type: 'CLEAR_CART' });
-    }
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -162,7 +162,8 @@ const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (
                     )}
                 </div>
             </DialogContent>
-    )
+        </Dialog>
+    );
 };
 
 
