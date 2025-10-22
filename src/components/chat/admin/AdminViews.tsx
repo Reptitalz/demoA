@@ -44,6 +44,7 @@ import { Badge } from '@/components/ui/badge';
 import AddProductDialog from './AddProductDialog';
 import CreateCatalogDialog from './CreateCatalogDialog';
 import ConversationsDialog from '@/components/dashboard/ConversationsDialog';
+import CreditHistoryDialog from './CreditHistoryDialog';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
@@ -749,6 +750,117 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     );
 };
 
+export const CreditView = () => {
+    const { state, dispatch } = useApp();
+    const { userProfile } = state;
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [selectedCredit, setSelectedCredit] = useState<CreditLine | null>(null);
+
+    const creditLines = userProfile.creditLines || [];
+
+    const handleUpdateStatus = async (creditLineId: string, status: 'approved' | 'rejected', amount?: number) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/credit', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ownerId: userProfile._id,
+                    creditLineId,
+                    status,
+                    amount,
+                }),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'No se pudo actualizar el estado.');
+            }
+
+            const updatedCreditLines = creditLines.map(cl =>
+                cl.id === creditLineId ? { ...cl, status: status === 'approved' ? 'Al Corriente' : status, amount: amount || cl.amount } : cl
+            );
+            
+            dispatch({ type: 'UPDATE_USER_PROFILE', payload: { creditLines: updatedCreditLines } });
+            toast({ title: 'Estado Actualizado', description: `La solicitud ha sido ${status === 'approved' ? 'aprobada' : 'rechazada'}.` });
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const pendingCredits = creditLines.filter(cl => cl.status === 'pending');
+    const activeCredits = creditLines.filter(cl => ['Al Corriente', 'Atrasado'].includes(cl.status));
+
+    return (
+        <>
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <DollarSign className="h-6 w-6 text-green-500" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">Gestión de Crédito</h1>
+                    </div>
+                </div>
+            </header>
+             <ScrollArea className="flex-grow p-4 min-h-0">
+                <div className="space-y-6">
+                    <div>
+                        <h3 className="font-semibold mb-2">Ofertas de Crédito</h3>
+                        <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+                    </div>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex justify-between items-center">
+                                <span>Solicitudes Pendientes</span>
+                                <Badge variant="destructive">{pendingCredits.length}</Badge>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                             {pendingCredits.length > 0 ? pendingCredits.map(credit => (
+                                <div key={credit.id} className="p-3 bg-muted/50 rounded-lg">
+                                    <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
+                                    <div className="flex gap-2 mt-2">
+                                        <Button size="sm" className="flex-1" onClick={() => handleUpdateStatus(credit.id, 'approved', 5000)}>Aprobar $5000</Button>
+                                        <Button size="sm" variant="destructive" className="flex-1" onClick={() => handleUpdateStatus(credit.id, 'rejected')}>Rechazar</Button>
+                                    </div>
+                                </div>
+                             )) : <p className="text-center text-muted-foreground text-sm py-4">No hay solicitudes pendientes.</p>}
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                             <CardTitle className="flex justify-between items-center">
+                                <span>Créditos Activos</span>
+                                <Button variant="ghost" size="sm" className="text-xs" onClick={() => setIsHistoryOpen(true)}>
+                                    <History className="mr-2 h-4 w-4"/> Ver Historial
+                                </Button>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            {activeCredits.length > 0 ? activeCredits.map(credit => (
+                                <div key={credit.id} className="p-3 bg-muted/50 rounded-lg flex justify-between items-center" onClick={() => setSelectedCredit(credit)}>
+                                    <p className="font-semibold text-sm">{credit.applicantIdentifier}</p>
+                                    <div className="text-right">
+                                        <p className="font-bold text-lg">${credit.amount.toFixed(2)}</p>
+                                        <Badge variant={credit.status === 'Atrasado' ? 'destructive' : 'default'}>{credit.status}</Badge>
+                                    </div>
+                                </div>
+                            )) : <p className="text-center text-muted-foreground text-sm py-4">No hay créditos activos.</p>}
+                        </CardContent>
+                    </Card>
+                </div>
+             </ScrollArea>
+             <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen}/>
+             <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} />
+             <CreditHistoryDialog isOpen={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)} credit={selectedCredit} />
+        </>
+    )
+}
 
 
 export const DeliveryView = () => {
