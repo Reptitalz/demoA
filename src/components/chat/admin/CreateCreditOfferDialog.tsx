@@ -317,7 +317,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+      <DialogContent className="w-screen h-screen max-w-full flex flex-col p-0 sm:rounded-none" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
         <DialogHeader className="p-6 pb-2 border-b">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <CreditCardIcon /> {offerToEdit ? 'Editar Oferta de Crédito' : 'Crear Nueva Oferta de Crédito'}
@@ -334,7 +334,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
           </div>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-2 gap-8 flex-grow min-h-0">
+        <div className="grid md:grid-cols-2 flex-grow min-h-0">
           <ScrollArea className="md:border-r">
             <div className="p-6">
                 {renderStepContent()}
@@ -375,3 +375,5 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 };
 
 export default CreateCreditOfferDialog;
+
+    
