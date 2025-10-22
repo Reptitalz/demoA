@@ -342,32 +342,31 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
           </ScrollArea>
           
           <div className="p-6 space-y-4 flex flex-col justify-center bg-muted/30" style={{ perspective: '1000px' }}>
-            <div className="w-full max-w-xs mx-auto" style={{ transform: 'rotateY(-15deg) rotateX(10deg)', transformStyle: 'preserve-3d' }}>
+            <div className="w-full max-w-xs mx-auto" style={{ transformStyle: 'preserve-3d' }}>
                 <CreditCardPreview offer={offer}/>
             </div>
           </div>
         </div>
         
-        <DialogFooter className="p-6 flex justify-between w-full border-t">
-            <div>
-                {step > 1 && (
-                    <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
-                    </Button>
-                )}
-            </div>
-            <div>
-                {step < totalSteps ? (
-                    <Button onClick={handleNext} disabled={!validateStep(step)}>
-                        Siguiente <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                ) : (
-                    <Button onClick={handleSave} disabled={isProcessing || !validateStep(step)}>
-                        {isProcessing && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
-                        {offerToEdit ? 'Guardar Cambios' : 'Crear Oferta'}
-                    </Button>
-                )}
-            </div>
+        <DialogFooter className="fixed bottom-0 left-0 right-0 p-4 flex justify-between w-full bg-background/80 backdrop-blur-sm border-t">
+            {step > 1 ? (
+                <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+                </Button>
+            ) : (
+                <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isProcessing}>Cancelar</Button>
+            )}
+            
+            {step < totalSteps ? (
+                <Button onClick={handleNext} disabled={!validateStep(step)}>
+                    Siguiente <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            ) : (
+                <Button onClick={handleSave} disabled={isProcessing || !validateStep(step)}>
+                    {isProcessing && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                    {offerToEdit ? 'Guardar Cambios' : 'Crear Oferta'}
+                </Button>
+            )}
         </DialogFooter>
 
         <input type="file" ref={cardIconInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'cardIconUrl')} />
@@ -377,3 +376,5 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 };
 
 export default CreateCreditOfferDialog;
+
+    
