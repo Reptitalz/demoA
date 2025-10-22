@@ -263,7 +263,7 @@ export const AssistantsList = () => {
                     </div>
                     <div>
                         <h1 className="text-xl font-bold">Monitor de Bots</h1>
-                        <p className="text-sm text-muted-foreground">Supervisa las conversaciones de tus asistentes.</p>
+                        <p className="text-sm text-muted-foreground">Supervisa las conversaciones de tus asistentes de escritorio.</p>
                     </div>
                 </div>
             </header>
@@ -502,9 +502,15 @@ export const CreditView = () => {
             </header>
 
             <Tabs value={activeSubView} onValueChange={(value) => setActiveSubView(value as any)} className="flex-grow flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 mt-4 mx-4">
-                    <TabsTrigger value="requests"><FileText className="mr-2 h-4 w-4"/>Solicitudes</TabsTrigger>
-                    <TabsTrigger value="offers"><Landmark className="mr-2 h-4 w-4"/>Mis Ofertas</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mt-4 mx-4 h-auto p-1">
+                    <TabsTrigger value="requests" className="flex flex-col gap-1 p-2 h-auto">
+                        <FileText className="h-5 w-5"/>
+                        <span className="text-xs">Solicitudes</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="offers" className="flex flex-col gap-1 p-2 h-auto">
+                        <Landmark className="h-5 w-5"/>
+                        <span className="text-xs">Mis Ofertas</span>
+                    </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="requests" className="flex-grow flex flex-col">
@@ -614,3 +620,4 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
     
 
     
+
