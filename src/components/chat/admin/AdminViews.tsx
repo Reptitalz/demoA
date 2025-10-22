@@ -46,6 +46,7 @@ import CreateCatalogDialog from './CreateCatalogDialog';
 import ConversationsDialog from '@/components/dashboard/ConversationsDialog';
 import CreditHistoryDialog from './CreditHistoryDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CreateCreditOfferDialog from './CreateCreditOfferDialog';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
@@ -146,7 +147,7 @@ export const BankView = () => {
                     </div>
                     <div>
                         <h1 className="text-xl font-bold">Bandeja de Autorizaciones</h1>
-                        <p className="text-sm text-muted-foreground">Aquí puedes ver lo que el asistente recibe en imágenes</p>
+                        <p className="text-sm text-muted-foreground">Revisa lo que el asistente recibe en imágenes aquí</p>
                     </div>
                 </div>
             </header>
@@ -268,7 +269,7 @@ export const AssistantsList = () => {
             </header>
 
             <div className="p-4 text-center">
-                <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+                 <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4"/>
                     Crear Asistente de Escritorio
                 </Button>
@@ -502,8 +503,8 @@ export const CreditView = () => {
 
             <Tabs value={activeSubView} onValueChange={(value) => setActiveSubView(value as any)} className="flex-grow flex flex-col">
                 <TabsList className="grid w-full grid-cols-2 mt-4 mx-4">
-                    <TabsTrigger value="requests">Solicitudes</TabsTrigger>
-                    <TabsTrigger value="offers">Mis Ofertas</TabsTrigger>
+                    <TabsTrigger value="requests">Solicitudes de Clientes</TabsTrigger>
+                    <TabsTrigger value="offers">Mis Ofertas de Crédito</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="requests" className="flex-grow flex flex-col">
@@ -579,6 +580,7 @@ export const CreditView = () => {
                 </TabsContent>
             </Tabs>
              <CreditHistoryDialog credit={selectedCredit} isOpen={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)} />
+             <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen} />
         </>
     );
 };
