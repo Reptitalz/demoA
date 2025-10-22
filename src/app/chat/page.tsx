@@ -15,6 +15,7 @@ const ChatLandingPage = () => {
     const router = useRouter();
 
     const handleGoogleSignIn = () => {
+        // The callback URL for the chat app is /chat/dashboard
         signIn('google', { callbackUrl: '/chat/dashboard' }).catch(() => {
             toast({
                 title: 'Error de Inicio de Sesión',
@@ -24,8 +25,9 @@ const ChatLandingPage = () => {
         });
     };
     
+    // The "Empezar" button now also uses the Google sign-in flow for a unified experience
     const handleStart = () => {
-        router.push('/chat/begin');
+       handleGoogleSignIn();
     };
 
     return (
@@ -33,10 +35,10 @@ const ChatLandingPage = () => {
             <div className="flex-grow flex flex-col items-center justify-center">
                 <AppIcon className="h-20 w-20 mb-4" />
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
-                    Bienvenido a <span className="text-brand-gradient">Hey Manito! Chat</span>
+                    Bienvenido a <span className="text-brand-gradient">Hey Manito! App</span>
                 </h1>
                 <p className="mt-3 max-w-lg mx-auto text-muted-foreground">
-                    Tu centro de mando para conversaciones inteligentes. Inicia sesión para acceder a tus asistentes o empieza a crear uno nuevo.
+                    Tu nueva red social para chatear y conectar. Inicia sesión o regístrate para empezar.
                 </p>
             </div>
             

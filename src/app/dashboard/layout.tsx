@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaDatabase, FaUser, FaSignOutAlt, FaDownload } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaDownload } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -38,9 +38,10 @@ export default function DashboardLayout({
     const [isPWA, setIsPWA] = React.useState(false);
 
     React.useEffect(() => {
-        // Check if the app is running in standalone mode (as a PWA)
-        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
-            setIsPWA(true);
+        if (typeof window !== 'undefined') {
+            if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+                setIsPWA(true);
+            }
         }
     }, []);
     

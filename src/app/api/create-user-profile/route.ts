@@ -2,7 +2,8 @@
 // src/app/api/create-user-profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
-import type { UserProfile } from '@/types';
+import type { UserProfile, AssistantConfig } from '@/types';
+import { DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 
 function generateChatPath(name: string): string {
   if (!name) return `user-${Date.now()}`;
@@ -13,7 +14,7 @@ function generateChatPath(name: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const profileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = await request.json();
+    const profileData: Partial<Omit<UserProfile, '_id' | 'isAuthenticated'>> & { firebaseUid: string; email: string; firstName?: string; imageUrl?: string } = await request.json();
 
     if (!profileData || !profileData.firebaseUid || !profileData.email) {
       return NextResponse.json({ message: 'Datos de perfil inválidos.' }, { status: 400 });
@@ -25,25 +26,54 @@ export async function POST(request: NextRequest) {
     // Check if user already exists to prevent duplicates
     const existingUser = await userCollection.findOne({ email: profileData.email });
     if (existingUser) {
-        // This case can happen in a race condition or if user retries.
-        // Return the existing profile.
         return NextResponse.json({ userProfile: existingUser, message: "El usuario ya existe." }, { status: 200 });
     }
+    
+    const userName = profileData.firstName || profileData.email.split('@')[0];
 
-    // Ensure chatPath exists
-    if (!profileData.chatPath) {
-      const nameForPath = profileData.firstName || profileData.email.split('@')[0];
-      profileData.chatPath = generateChatPath(nameForPath);
-    }
+    // This flow is for the "Hey Manito App" (chat), so we create a 'desktop' assistant
+    // which represents the user's own chat profile.
+    const personalChatAssistant: AssistantConfig = {
+      id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      name: userName,
+      type: 'desktop',
+      prompt: "Este es un perfil de usuario, no un bot. No respondas automáticamente.",
+      purposes: [],
+      isActive: true,
+      numberReady: true,
+      messageCount: 0,
+      monthlyMessageLimit: 10000,
+      imageUrl: profileData.imageUrl || DEFAULT_ASSISTANT_IMAGE_URL,
+      chatPath: generateChatPath(userName),
+      isFirstDesktopAssistant: true,
+      trialStartDate: new Date().toISOString(),
+      accountType: 'personal',
+    };
 
-    const insertResult = await userCollection.insertOne(profileData as UserProfile);
+    const finalProfileData: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
+      firebaseUid: profileData.firebaseUid,
+      email: profileData.email,
+      firstName: userName,
+      lastName: profileData.lastName || '',
+      imageUrl: profileData.imageUrl,
+      chatPath: generateChatPath(`user-${userName}`),
+      assistants: [personalChatAssistant],
+      databases: [],
+      catalogs: [],
+      credits: 0,
+      purchasedUnlimitedPlans: 0,
+      authProvider: 'google',
+      accountType: 'personal',
+    };
+
+    const insertResult = await userCollection.insertOne(finalProfileData as UserProfile);
 
     if (!insertResult.insertedId) {
       throw new Error("No se pudo insertar el perfil de usuario en la base de datos.");
     }
     
     const createdProfile: UserProfile = {
-        ...profileData,
+        ...finalProfileData,
         _id: insertResult.insertedId,
         isAuthenticated: true,
     };

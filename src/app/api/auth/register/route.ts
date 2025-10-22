@@ -1,3 +1,4 @@
+
 // src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -46,20 +47,18 @@ export async function POST(request: NextRequest) {
     const assistantName = `Asistente de ${firstName}`;
     const userName = `${firstName} ${lastName}`;
 
+    // This registration flow is for Hey Manito! WhatsApp, so create a WhatsApp assistant
     const newAssistant: AssistantConfig = {
         id: `asst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: assistantName,
-        type: 'desktop', // Always create a desktop assistant
+        type: 'whatsapp', // Default to WhatsApp for this flow
         prompt: "Eres un asistente amigable y servicial. Tu objetivo es responder preguntas de manera clara y concisa.",
         purposes: [],
-        isActive: true, // Active for free trial
-        numberReady: true, // Ready for free trial
+        isActive: false, // Inactive until a number is linked
+        numberReady: false,
         messageCount: 0,
-        monthlyMessageLimit: 10000, // High limit for trial
+        monthlyMessageLimit: 0, // No messages until credits are assigned
         imageUrl: DEFAULT_ASSISTANT_IMAGE_URL,
-        chatPath: generateChatPath(assistantName),
-        isFirstDesktopAssistant: true, // This is their first one
-        trialStartDate: new Date().toISOString(),
     };
     
     const newUserProfile: Omit<UserProfile, '_id' | 'isAuthenticated'> = {
@@ -69,10 +68,10 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       firstName,
       lastName,
-      chatPath: generateChatPath(userName), // Generate personal chat path
+      chatPath: generateChatPath(userName), // Personal chatPath
       assistants: [newAssistant],
       databases: [],
-      credits: 0, // No credits given on signup
+      credits: 0,
       accountType: 'personal',
     };
 

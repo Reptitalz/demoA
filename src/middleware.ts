@@ -13,51 +13,39 @@ export async function middleware(req: NextRequest) {
   }
 
   // Define protected routes that STRICTLY require authentication
-  const isProtectedRoute = 
-      pathname.startsWith('/app') || // The assistant setup/reconfiguration process
-      pathname.startsWith('/dashboard') ||
-      pathname.startsWith('/chat/admin') || // The new admin section in chat
-      pathname.startsWith('/chat/dashboard') || // The new chat dashboard
-      pathname.startsWith('/colaboradores/dashboard'); // The collaborator dashboard
+  const isDashboardRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/app');
+  const isChatRoute = pathname.startsWith('/chat/dashboard') || pathname.startsWith('/chat/admin') || pathname.startsWith('/chat/conversation');
 
-  // The base /chat route should be public, but it's caught by the matcher.
-  // We explicitly exclude it from the protected check.
-  if (pathname === '/chat') {
-    return NextResponse.next();
-  }
-
-  if (isProtectedRoute) {
+  if (isDashboardRoute) {
     const token = await getToken({ req, secret, raw: true });
-
     if (!token) {
-      // If no token, redirect to the relevant login page
-      let loginUrl;
-      if (pathname.startsWith('/colaboradores')) {
-        loginUrl = new URL('/colaboradores/login', req.url);
-      } else if (pathname.startsWith('/chat')) {
-        loginUrl = new URL('/chat/dashboard', req.url); // Redirect to the new chat landing page
-      } else {
-        loginUrl = new URL('/login', req.url);
-      }
-        
+      const loginUrl = new URL('/login', req.url);
       loginUrl.searchParams.set('callbackUrl', req.url);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  // Allow access to other pages like the base /chat for unauthenticated users,
-  // the pages themselves will handle showing demo content or login prompts.
+  if (isChatRoute) {
+    const token = await getToken({ req, secret, raw: true });
+    if (!token) {
+      const loginUrl = new URL('/chat', req.url); // The landing/login for chat app is /chat
+      loginUrl.searchParams.set('callbackUrl', req.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Allow access to other pages like marketing, /chat itself, etc.
   return NextResponse.next();
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
-    // We still match all dashboard and chat routes to run the middleware, 
-    // but the logic inside decides what to do.
     '/dashboard/:path*', 
-    '/chat/:path*',
     '/app/:path*',
-    '/colaboradores/dashboard/:path*'
+    '/chat/dashboard/:path*',
+    '/chat/admin/:path*',
+    '/chat/conversation/:path*',
+    '/colaboradores/dashboard/:path*' // Collaborator routes remain the same
 ],
 };
