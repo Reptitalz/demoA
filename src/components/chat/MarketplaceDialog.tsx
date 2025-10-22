@@ -30,11 +30,6 @@ const demoItems = {
   ]
 };
 
-const demoCart: (Product & { quantity: number })[] = [
-     { id: 'prod_2', name: "Diseño de Logotipo", price: 1200, seller: "Ana Gómez", imageUrl: "https://i.imgur.com/a2gGAlJ.png", quantity: 1, description: '', catalogId: '', ownerId: '', location: '' },
-];
-
-
 const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
     const { deliveries, assistants, isAuthenticated } = state.userProfile;
@@ -95,7 +90,7 @@ const OrdersDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange:
 const CartDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state, dispatch } = useApp();
     const { isAuthenticated, cart = [] } = state.userProfile;
-    const items = isAuthenticated ? cart : demoCart;
+    const items = cart; // Always use the cart from the state
 
     const total = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
 
@@ -205,7 +200,7 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
     }, [state.userProfile.deliveries, isAuthenticated]);
     
     const cartItemCount = useMemo(() => {
-        const source = isAuthenticated ? cart : demoCart;
+        const source = isAuthenticated ? cart : [];
         return source.reduce((sum, item) => sum + item.quantity, 0);
     }, [cart, isAuthenticated]);
 
