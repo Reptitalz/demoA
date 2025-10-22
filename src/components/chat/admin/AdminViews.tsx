@@ -233,6 +233,65 @@ export const BankView = () => {
     );
 }
 
+export const AssistantsList = () => {
+    const { state } = useApp();
+    const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
+    const [selectedAssistant, setSelectedAssistant] = useState<AssistantConfig | null>(null);
+
+    const handleOpenConversations = (assistant: AssistantConfig) => {
+        setSelectedAssistant(assistant);
+        setIsConversationsDialogOpen(true);
+    };
+
+    return (
+        <>
+        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                    <Bot className="h-6 w-6 text-green-500" />
+                </div>
+                <div>
+                    <h1 className="text-xl font-bold">Monitor de Bots</h1>
+                    <p className="text-sm text-muted-foreground">Supervisa las conversaciones de tus asistentes.</p>
+                </div>
+            </div>
+        </header>
+        <ScrollArea className="flex-grow p-4">
+            <div className="space-y-4">
+                {state.userProfile.assistants.map(assistant => (
+                    <Card key={assistant.id}>
+                        <CardContent className="p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                    <AvatarImage src={assistant.imageUrl} />
+                                    <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold text-sm">{assistant.name}</p>
+                                    <Badge variant={assistant.isActive ? 'default' : 'secondary'}>
+                                        {assistant.isActive ? 'Activo' : 'Inactivo'}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => handleOpenConversations(assistant)}>
+                                <MessageSquarePlus className="mr-2 h-4 w-4"/> Ver Chats
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </ScrollArea>
+        {selectedAssistant && (
+            <ConversationsDialog
+                isOpen={isConversationsDialogOpen}
+                onOpenChange={setIsConversationsDialogOpen}
+                assistants={[selectedAssistant]}
+            />
+        )}
+        </>
+    );
+};
+
 const CompletedCreditsDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const { state } = useApp();
     const { userProfile } = state;
@@ -763,6 +822,141 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, on
     );
 };
 
+export const CreditView = () => {
+    const { state, dispatch } = useApp();
+    const { userProfile, loadingStatus } = state;
+    const { toast } = useToast();
+    const [filter, setFilter] = useState<'pending' | 'active' | 'other'>('active');
+    const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [selectedCredit, setSelectedCredit] = useState<CreditLine | null>(null);
+
+    const creditLines = userProfile.creditLines || [];
+
+    const filteredLines = useMemo(() => {
+        if (filter === 'active') {
+            return creditLines.filter(cl => cl.status === 'Al Corriente' || cl.status === 'Atrasado');
+        }
+        if (filter === 'pending') {
+            return creditLines.filter(cl => cl.status === 'pending');
+        }
+        return creditLines.filter(cl => !['Al Corriente', 'Atrasado', 'pending'].includes(cl.status));
+    }, [filter, creditLines]);
+
+    const handleAction = async (creditLineId: string, status: 'approved' | 'rejected', amount?: number) => {
+        try {
+            const response = await fetch('/api/credit', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ownerId: userProfile._id?.toString(),
+                    creditLineId,
+                    status,
+                    amount,
+                }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al actualizar el estado del crédito');
+            }
+
+            // Optimistic update
+            const updatedLines = creditLines.map(cl => {
+                if (cl.id === creditLineId) {
+                    return { ...cl, status: status === 'approved' ? 'Al Corriente' : 'rejected', amount: status === 'approved' ? amount || cl.amount : cl.amount, updatedAt: new Date().toISOString() };
+                }
+                return cl;
+            });
+
+            dispatch({ type: 'UPDATE_USER_PROFILE', payload: { creditLines: updatedLines } });
+            toast({ title: 'Éxito', description: `La solicitud ha sido ${status === 'approved' ? 'aprobada' : 'rechazada'}.` });
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        }
+    };
+    
+     const totalApprovedAmount = useMemo(() => {
+        return creditLines.filter(cl => cl.status !== 'rejected' && cl.status !== 'pending').reduce((sum, cl) => sum + cl.amount, 0);
+    }, [creditLines]);
+
+    return (
+        <>
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <DollarSign className="h-6 w-6 text-green-500" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">Gestión de Créditos</h1>
+                        <p className="text-sm text-muted-foreground">Administra tus ofertas y solicitudes de crédito.</p>
+                    </div>
+                </div>
+            </header>
+
+             <div className="p-4">
+                 <Card className="shadow-lg relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+                    <CardContent className="p-6 relative z-10">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="font-semibold text-sm opacity-80">Crédito Activo Total</p>
+                                <p className="text-3xl font-extrabold mt-1">${totalApprovedAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
+                            </div>
+                            <Button size="icon" variant="ghost" className="bg-white/10 hover:bg-white/20" onClick={() => setIsHistoryOpen(true)}>
+                                <History />
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <div className="px-4 space-y-4">
+                <h3 className="font-semibold text-base">Ofertas de Crédito</h3>
+                <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} />
+            </div>
+
+            <div className="p-4 mt-4">
+                <h3 className="font-semibold text-base mb-2">Solicitudes de Clientes</h3>
+                <div className="flex gap-2">
+                    <Button variant={filter === 'active' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('active')}>Activos</Button>
+                    <Button variant={filter === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('pending')}>Pendientes ({creditLines.filter(cl => cl.status === 'pending').length})</Button>
+                </div>
+            </div>
+
+            <ScrollArea className="flex-grow p-4 pt-0">
+                <div className="space-y-3">
+                    {filteredLines.map(line => (
+                        <Card key={line.id} className={line.status === 'Atrasado' ? 'border-destructive' : ''}>
+                            <CardContent className="p-3">
+                                 <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold">{line.applicantIdentifier}</p>
+                                        <Badge variant={line.status === 'Atrasado' ? 'destructive' : 'secondary'} className="text-xs">{line.status}</Badge>
+                                    </div>
+                                    <div className="text-right">
+                                         {line.amount > 0 && <p className="font-bold text-lg">${line.amount.toFixed(2)}</p>}
+                                    </div>
+                                </div>
+                                {line.status === 'pending' ? (
+                                    <div className="flex gap-2 mt-2 pt-2 border-t">
+                                        <Button size="sm" variant="destructive" onClick={() => handleAction(line.id, 'rejected')}>Rechazar</Button>
+                                        <Button size="sm" onClick={() => handleAction(line.id, 'approved', 5000)}>Aprobar (Ej: $5000)</Button>
+                                    </div>
+                                ) : (
+                                    <Button size="sm" variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setSelectedCredit(line)}>Ver Historial</Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))}
+                    {filteredLines.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No hay solicitudes en esta categoría.</p>}
+                </div>
+            </ScrollArea>
+             <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen}/>
+             <CreditHistoryDialog credit={selectedCredit} isOpen={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)} />
+             <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} />
+        </>
+    );
+};
+
 export const ProductsView = () => {
     const { state, dispatch } = useApp();
     const { toast } = useToast();
@@ -872,6 +1066,19 @@ export const ProductsView = () => {
         </>
     );
 };
+
+export const DeliveryView = () => (
+    <div className="flex flex-col h-full bg-transparent">
+        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+             <h1 className="text-xl font-bold">Gestión de Repartidores</h1>
+             <p className="text-sm text-muted-foreground">Esta sección estará disponible próximamente.</p>
+        </header>
+        <div className="flex-grow flex items-center justify-center">
+            <p className="text-muted-foreground">Próximamente...</p>
+        </div>
+    </div>
+);
+
 
 export const OtherView = ({ viewName }: { viewName: string }) => (
     <div className="flex flex-col h-full bg-transparent">
