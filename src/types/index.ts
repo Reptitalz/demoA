@@ -1,4 +1,5 @@
 
+
 import { ObjectId } from 'mongodb';
 import type { DefaultSession } from 'next-auth';
 
@@ -145,11 +146,10 @@ export interface CreditOffer {
   name: string;
   amount: number;
   interest: number; // e.g., 10 for 10%
+  profitPerPayment: number; // New field for profit per payment
   term: number; // e.g. 12
   termUnit: 'weeks' | 'fortnights' | 'months';
-  cardStyle: 'slate' | 'blue' | 'purple' | 'green' | 'custom-color' | 'custom-image';
   customColor?: string;
-  cardImageUrl?: string;
   cardIconUrl?: string;
   managerType: 'user' | 'assistant';
   managerId: string; // The user or assistant that will offer and manage this credit

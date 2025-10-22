@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft } from 'lucide-react';
+import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { CreditOffer, RequiredDocument, AssistantConfig } from '@/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -49,11 +49,9 @@ const CreditCardPreview = ({ offer }: { offer: Partial<CreditOffer> }) => {
   );
 };
 
-
-const availableDocuments: RequiredDocument[] = [
+const defaultRequiredDocuments: RequiredDocument[] = [
   { id: 'doc_ine', title: 'INE/IFE (Frontal y Trasero)' },
   { id: 'doc_proof_address', title: 'Comprobante de Domicilio' },
-  { id: 'doc_proof_income', title: 'Comprobante de Ingresos' },
 ];
 
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCreditOfferDialogProps) => {
@@ -64,6 +62,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
   const [step, setStep] = useState(1);
   const [offer, setOffer] = useState<Partial<CreditOffer>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [customDocName, setCustomDocName] = useState('');
   const cardIconInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,9 +73,10 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
         name: '',
         amount: 5000,
         interest: 10,
+        profitPerPayment: 15,
         term: 12,
         termUnit: 'weeks',
-        customColor: '#3b82f6', // default to blue
+        customColor: '#3b82f6',
         managerType: 'user',
         managerId: userProfile._id?.toString(),
         requiredDocuments: [{id: 'doc_ine', title: 'INE/IFE (Frontal y Trasero)'}],
@@ -99,39 +99,55 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
     }
   }
   
-  const handleDocumentToggle = (docId: string) => {
+  const handleDocumentToggle = (docId: string, isCustom: boolean = false) => {
     const currentDocs = offer.requiredDocuments || [];
     const docIndex = currentDocs.findIndex(d => d.id === docId);
+
     if (docIndex > -1) {
-        handleInputChange('requiredDocuments', currentDocs.filter(d => d.id !== docId));
+      handleInputChange('requiredDocuments', currentDocs.filter(d => d.id !== docId));
     } else {
-        const docToAdd = availableDocuments.find(d => d.id === docId);
-        if (docToAdd) {
-            handleInputChange('requiredDocuments', [...currentDocs, docToAdd]);
-        }
+      const docToAdd = (isCustom ? { id: docId, title: docId } : defaultRequiredDocuments.find(d => d.id === docId));
+      if (docToAdd) {
+        handleInputChange('requiredDocuments', [...currentDocs, docToAdd]);
+      }
     }
-  }
+  };
+
+  const handleAddCustomDoc = () => {
+    if (!customDocName.trim()) return;
+    const docId = `doc_custom_${Date.now()}`;
+    const newDoc: RequiredDocument = { id: docId, title: customDocName };
+    handleInputChange('requiredDocuments', [...(offer.requiredDocuments || []), newDoc]);
+    setCustomDocName('');
+  };
+  
+  const handleRemoveCustomDoc = (docId: string) => {
+    handleInputChange('requiredDocuments', (offer.requiredDocuments || []).filter(d => d.id !== docId));
+  };
   
   const validateStep = (currentStep: number) => {
     switch(currentStep) {
-        case 1:
-            return !!offer.name?.trim();
-        case 2:
-            return !!(offer.amount && offer.interest && offer.term && offer.termUnit);
-        case 3:
-             return !!(offer.managerType && offer.managerId);
-        default:
-            return false;
+        case 1: return !!offer.name?.trim();
+        case 2: return true; // Color is always set
+        case 3: return !!(offer.amount && offer.amount > 0);
+        case 4: return !!(offer.interest && offer.profitPerPayment);
+        case 5: return !!(offer.term && offer.termUnit);
+        case 6: return (offer.requiredDocuments || []).length > 0;
+        case 7: return !!(offer.managerType && offer.managerId);
+        default: return false;
     }
   }
 
-  const handleNext = () => setStep(prev => prev + 1);
-  const handleBack = () => setStep(prev => prev - 1);
+  const handleNext = () => setStep(prev => prev < totalSteps ? prev + 1 : prev);
+  const handleBack = () => setStep(prev => prev > 1 ? prev - 1 : prev);
 
   const handleSave = () => {
-    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
-        toast({ title: 'Campos Incompletos', description: 'Por favor, completa todos los campos antes de guardar.', variant: 'destructive' });
-        return;
+    for (let i = 1; i <= totalSteps; i++) {
+        if (!validateStep(i)) {
+            toast({ title: 'Campos Incompletos', description: `Por favor, completa la información del paso ${i}.`, variant: 'destructive' });
+            setStep(i);
+            return;
+        }
     }
     
     setIsProcessing(true);
@@ -141,13 +157,14 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
       name: offer.name!,
       amount: offer.amount!,
       interest: offer.interest!,
+      profitPerPayment: offer.profitPerPayment!,
       term: offer.term!,
       termUnit: offer.termUnit!,
       customColor: offer.customColor,
       cardIconUrl: offer.cardIconUrl,
       managerType: offer.managerType!,
       managerId: offer.managerId!,
-      requiredDocuments: offer.requiredDocuments || [],
+      requiredDocuments: offer.requiredDocuments!,
     };
     
     const existingOffers = userProfile.creditOffers || [];
@@ -163,100 +180,135 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
   };
   
   const assistants = userProfile.assistants || [];
-  const totalSteps = 3;
+  const totalSteps = 7;
   const progress = (step / totalSteps) * 100;
+  
+  const stepTitles = [
+    "Nombre del Crédito",
+    "Diseño de Tarjeta",
+    "Monto",
+    "Intereses y Ganancias",
+    "Frecuencia de Pagos",
+    "Requisitos",
+    "Gestor del Crédito"
+  ];
 
   const renderStepContent = () => {
       switch(step) {
           case 1: return (
-            <div className="space-y-6">
-                <div className="space-y-2">
-                    <Label htmlFor="offer-name">Nombre de la Oferta</Label>
-                    <Input id="offer-name" value={offer.name || ''} onChange={(e) => handleInputChange('name', e.target.value)} placeholder="Ej: Crédito Express" />
-                </div>
-                <div className="flex items-center justify-between">
-                     <div className="space-y-2">
-                        <Label htmlFor="custom-color">Color de la Tarjeta</Label>
-                        <div 
-                            className="w-12 h-12 rounded-full border-2 border-muted cursor-pointer" 
-                            style={{ backgroundColor: offer.customColor || '#000000' }}
-                            onClick={() => colorInputRef.current?.click()}
-                        />
-                        <Input ref={colorInputRef} id="custom-color" type="color" value={offer.customColor || '#3b82f6'} onChange={(e) => handleInputChange('customColor', e.target.value)} className="sr-only"/>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => cardIconInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4"/>Subir Icono (Logo)
-                    </Button>
-                </div>
+            <div className="space-y-2">
+                <Label htmlFor="offer-name">Nombre de la Oferta</Label>
+                <Input id="offer-name" value={offer.name || ''} onChange={(e) => handleInputChange('name', e.target.value)} placeholder="Ej: Crédito Express" />
             </div>
           );
           case 2: return (
-             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="offer-amount">Monto Máximo</Label>
-                        <Input id="offer-amount" type="number" value={offer.amount || ''} onChange={(e) => handleInputChange('amount', Number(e.target.value))} placeholder="Ej: 5000" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="offer-interest">Interés Mensual (%)</Label>
-                        <Input id="offer-interest" type="number" value={offer.interest || ''} onChange={(e) => handleInputChange('interest', Number(e.target.value))} placeholder="Ej: 10" />
+             <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                    <Label>Color Principal</Label>
+                    <div 
+                        className="w-12 h-12 rounded-full border-2 border-muted cursor-pointer" 
+                        style={{ backgroundColor: offer.customColor || '#000000' }}
+                        onClick={() => colorInputRef.current?.click()}
+                    />
+                    <Input ref={colorInputRef} id="custom-color" type="color" value={offer.customColor || '#3b82f6'} onChange={(e) => handleInputChange('customColor', e.target.value)} className="sr-only"/>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => cardIconInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4"/>Subir Icono
+                </Button>
+            </div>
+          );
+          case 3: return (
+            <div className="space-y-2">
+                <Label htmlFor="offer-amount">Monto Máximo del Crédito</Label>
+                <Input id="offer-amount" type="number" value={offer.amount || ''} onChange={(e) => handleInputChange('amount', Number(e.target.value))} placeholder="Ej: 5000" />
+            </div>
+          );
+          case 4: return (
+             <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="offer-interest">Interés Mensual (%)</Label>
+                    <Input id="offer-interest" type="number" value={offer.interest || ''} onChange={(e) => handleInputChange('interest', Number(e.target.value))} placeholder="Ej: 10" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="offer-profit">Ganancia por Pago</Label>
+                    <Input id="offer-profit" type="number" value={offer.profitPerPayment || ''} onChange={(e) => handleInputChange('profitPerPayment', Number(e.target.value))} placeholder="Ej: 25" />
+                </div>
+            </div>
+          );
+           case 5: return (
+             <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="offer-term">Plazo</Label>
+                    <Input id="offer-term" type="number" value={offer.term || ''} onChange={(e) => handleInputChange('term', Number(e.target.value))} placeholder="Ej: 12" />
+                </div>
+                 <div className="space-y-2">
+                     <Label htmlFor="offer-term-unit">Frecuencia de Pago</Label>
+                    <Select value={offer.termUnit} onValueChange={(v) => handleInputChange('termUnit', v as CreditOffer['termUnit'])}>
+                        <SelectTrigger id="offer-term-unit"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="weeks">Semanas</SelectItem>
+                            <SelectItem value="fortnights">Quincenas</SelectItem>
+                            <SelectItem value="months">Meses</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
+            </div>
+          );
+          case 6: return (
+             <div className="space-y-4">
+                <div>
+                    <Label>Documentos Requeridos (Estándar)</Label>
+                    <div className="space-y-2 mt-2">
+                        {defaultRequiredDocuments.map(doc => (
+                            <div key={doc.id} className="flex items-center space-x-2">
+                                <Checkbox 
+                                    id={`doc-${doc.id}`} 
+                                    checked={offer.requiredDocuments?.some(d => d.id === doc.id)}
+                                    onCheckedChange={() => handleDocumentToggle(doc.id)}
+                                />
+                                <Label htmlFor={`doc-${doc.id}`} className="font-normal">{doc.title}</Label>
+                            </div>
+                        ))}
                     </div>
                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="offer-term">Plazo</Label>
-                        <Input id="offer-term" type="number" value={offer.term || ''} onChange={(e) => handleInputChange('term', Number(e.target.value))} placeholder="Ej: 12" />
-                    </div>
-                     <div className="space-y-2">
-                         <Label htmlFor="offer-term-unit">Unidad de Plazo</Label>
-                        <Select value={offer.termUnit} onValueChange={(v) => handleInputChange('termUnit', v as CreditOffer['termUnit'])}>
-                            <SelectTrigger id="offer-term-unit"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="weeks">Semanas</SelectItem>
-                                <SelectItem value="fortnights">Quincenas</SelectItem>
-                                <SelectItem value="months">Meses</SelectItem>
-                            </SelectContent>
-                        </Select>
+                 <div>
+                    <Label>Documentos Personalizados</Label>
+                     <div className="flex gap-2 mt-2">
+                         <Input value={customDocName} onChange={(e) => setCustomDocName(e.target.value)} placeholder="Ej: Foto del Negocio" />
+                         <Button onClick={handleAddCustomDoc} size="sm"><Plus className="h-4 w-4"/></Button>
+                     </div>
+                     <div className="space-y-1 mt-2">
+                        {(offer.requiredDocuments || []).filter(d => d.id.startsWith('doc_custom_')).map(doc => (
+                            <div key={doc.id} className="flex items-center justify-between text-sm bg-muted/50 p-2 rounded-md">
+                                <span>{doc.title}</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => handleRemoveCustomDoc(doc.id)}><Trash2 className="h-4 w-4"/></Button>
+                            </div>
+                        ))}
                      </div>
                 </div>
             </div>
           );
-          case 3: return (
-             <div className="space-y-6">
-                 <div className="space-y-3">
-                    <Label>Gestor del Crédito</Label>
-                    <RadioGroup value={offer.managerType} onValueChange={(v) => handleInputChange('managerType', v as CreditOffer['managerType'])} className="flex gap-4">
-                        <div className="flex items-center space-x-2">
-                           <RadioGroupItem value="user" id="manager-user" />
-                           <Label htmlFor="manager-user" className="flex items-center gap-2"><User/>Tú mismo</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                           <RadioGroupItem value="assistant" id="manager-assistant" />
-                           <Label htmlFor="manager-assistant" className="flex items-center gap-2"><Bot/>Un Asistente</Label>
-                        </div>
-                    </RadioGroup>
-                    {offer.managerType === 'assistant' && (
-                         <Select value={offer.managerId} onValueChange={(v) => handleInputChange('managerId', v)}>
-                            <SelectTrigger><SelectValue placeholder="Selecciona un asistente..." /></SelectTrigger>
-                            <SelectContent>
-                                {assistants.map(asst => <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    )}
-                </div>
-                <div className="space-y-3">
-                    <Label>Documentos Requeridos</Label>
-                    {availableDocuments.map(doc => (
-                        <div key={doc.id} className="flex items-center space-x-2">
-                            <Checkbox 
-                                id={`doc-${doc.id}`} 
-                                checked={offer.requiredDocuments?.some(d => d.id === doc.id)}
-                                onCheckedChange={() => handleDocumentToggle(doc.id)}
-                            />
-                            <Label htmlFor={`doc-${doc.id}`} className="font-normal">{doc.title}</Label>
-                        </div>
-                    ))}
-                </div>
+          case 7: return (
+            <div className="space-y-3">
+                <Label>Gestor del Crédito</Label>
+                <RadioGroup value={offer.managerType} onValueChange={(v) => handleInputChange('managerType', v as CreditOffer['managerType'])} className="flex gap-4">
+                    <div className="flex items-center space-x-2">
+                       <RadioGroupItem value="user" id="manager-user" />
+                       <Label htmlFor="manager-user" className="flex items-center gap-2"><User/>Tú mismo</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                       <RadioGroupItem value="assistant" id="manager-assistant" />
+                       <Label htmlFor="manager-assistant" className="flex items-center gap-2"><Bot/>Un Asistente</Label>
+                    </div>
+                </RadioGroup>
+                {offer.managerType === 'assistant' && (
+                     <Select value={offer.managerId} onValueChange={(v) => handleInputChange('managerId', v)}>
+                        <SelectTrigger><SelectValue placeholder="Selecciona un asistente..." /></SelectTrigger>
+                        <SelectContent>
+                            {assistants.map(asst => <SelectItem key={asst.id} value={asst.id}>{asst.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                )}
             </div>
           );
           default: return null;
@@ -265,30 +317,36 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+        <DialogHeader className="p-6 pb-2 border-b">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             <CreditCardIcon /> {offerToEdit ? 'Editar Oferta de Crédito' : 'Crear Nueva Oferta de Crédito'}
           </DialogTitle>
           <DialogDescription>
             Diseña y configura tu producto de crédito para que tus asistentes lo ofrezcan.
           </DialogDescription>
-           <Progress value={progress} className="mt-2 h-1.5" />
+           <div className="space-y-1.5 pt-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Paso {step} de {totalSteps}</span>
+                  <span className="font-semibold">{stepTitles[step - 1]}</span>
+              </div>
+              <Progress value={progress} className="h-1.5" />
+          </div>
         </DialogHeader>
         
         <div className="grid md:grid-cols-2 gap-8 flex-grow min-h-0">
-          {/* Left Side - Form */}
-          <ScrollArea className="pr-4 -mr-4">
-            {renderStepContent()}
+          <ScrollArea className="md:border-r">
+            <div className="p-6">
+                {renderStepContent()}
+            </div>
           </ScrollArea>
           
-          {/* Right Side - Preview */}
-          <div className="space-y-4 flex flex-col justify-center">
+          <div className="p-6 space-y-4 flex flex-col justify-center bg-muted/30">
              <CreditCardPreview offer={offer}/>
           </div>
         </div>
         
-        <DialogFooter className="flex justify-between w-full">
+        <DialogFooter className="p-6 flex justify-between w-full border-t">
             <div>
                 {step > 1 && (
                     <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
@@ -298,7 +356,9 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
             </div>
             <div>
                 {step < totalSteps ? (
-                    <Button onClick={handleNext} disabled={!validateStep(step)}>Siguiente</Button>
+                    <Button onClick={handleNext} disabled={!validateStep(step)}>
+                        Siguiente <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                 ) : (
                     <Button onClick={handleSave} disabled={isProcessing || !validateStep(step)}>
                         {isProcessing && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
