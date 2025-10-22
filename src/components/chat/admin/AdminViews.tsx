@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase, Landmark, MapPin } from 'lucide-react';
+import { Search, Settings, User, Trash2, XCircle, HardDrive, Bot, Plus, MessageSquarePlus, Banknote, Eye, Check, FileText, Package, Upload, DollarSign, Crown, Database, BookText, Percent, Calendar, Edit, ArrowRight, ArrowLeft, Truck, Store, Wallet, Send, Building, CheckCircle, Loader2, CheckSquare, History, Radio, Palette, Image as ImageIcon, Briefcase, Landmark, MapPin, Video, FileAudio } from 'lucide-react';
 import { APP_NAME, DEFAULT_ASSISTANT_IMAGE_URL } from '@/config/appConfig';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -72,7 +72,7 @@ export const BankView = () => {
         const authorizations = (assistants || []).flatMap(a => 
             (a.authorizations || []).map(auth => ({ ...auth, assistantName: a.name, assistantId: a.id }))
         );
-        setAllAuthorizations(authorizations);
+        setAllAuthorizations(authorizations.sort((a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime()));
         setIsLoading(false);
     }, [assistants]);
 
@@ -127,6 +127,12 @@ export const BankView = () => {
           setIsReceiptOpen(false);
       }
     };
+    
+    const getFileIcon = (receiptUrl: string) => {
+        if (receiptUrl.startsWith('data:video')) return <Video className="h-5 w-5 text-muted-foreground"/>;
+        if (receiptUrl.startsWith('data:audio')) return <FileAudio className="h-5 w-5 text-muted-foreground"/>;
+        return <ImageIcon className="h-5 w-5 text-muted-foreground"/>;
+    }
 
 
     return (
@@ -187,12 +193,19 @@ export const BankView = () => {
                          <Card key={payment.id} className="glow-card">
                             <CardContent className="p-3">
                                 <div className="flex justify-between items-start">
-                                    <div className="space-y-1">
-                                        <p className="font-semibold text-sm">{payment.product}</p>
-                                        <p className="text-xs text-muted-foreground">Asistente: {payment.assistantName}</p>
-                                        <p className="text-xs text-muted-foreground">De: {payment.userName}</p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-muted rounded-full">
+                                            {getFileIcon(payment.receiptUrl)}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-sm">{payment.userName}</p>
+                                            <p className="text-xs text-muted-foreground">{payment.assistantName}</p>
+                                        </div>
                                     </div>
-                                    {payment.amount > 0 && <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>}
+                                    <div className="text-right">
+                                        {payment.amount > 0 && <p className="font-bold text-green-500">${payment.amount.toFixed(2)}</p>}
+                                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(payment.receivedAt), { addSuffix: true, locale: es })}</p>
+                                    </div>
                                 </div>
                                 {payment.status === 'pending' && (
                                     <div className="flex gap-2 mt-3 pt-3 border-t">
@@ -1143,3 +1156,5 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
         </div>
     </div>
 );
+
+    
