@@ -213,8 +213,8 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 setLocation("Ciudad de México");
             }, 500);
 
-            // Fetch products
-            if (currentView === 'products' || allProducts.length === 0) {
+            // Fetch all products once when the dialog opens
+            if (allProducts.length === 0) {
               setIsLoadingProducts(true);
               fetch('/api/products')
                 .then(res => res.json())
@@ -230,13 +230,11 @@ const MarketplaceDialog = ({ isOpen, onOpenChange }: MarketplaceDialogProps) => 
                 .finally(() => setIsLoadingProducts(false));
             }
             
-            // Reset view
-            setTimeout(() => {
-                setCurrentView('categories');
-                setSearchTerm('');
-            }, 300);
+            // Reset view to categories when dialog is re-opened
+            setCurrentView('categories');
+            setSearchTerm('');
         }
-    }, [isOpen, currentView]);
+    }, [isOpen]);
 
     const filteredItems = useMemo(() => {
         if (currentView === 'categories') return [];
