@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload } from 'lucide-react';
+import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { CreditOffer, RequiredDocument, AssistantConfig } from '@/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -16,7 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { Slider } from '@/components/ui/slider';
+import { Progress } from '@/components/ui/progress';
 
 interface CreateCreditOfferDialogProps {
   isOpen: boolean;
@@ -24,14 +24,31 @@ interface CreateCreditOfferDialogProps {
   offerToEdit?: CreditOffer;
 }
 
-const cardStyles = [
-  { id: 'slate', name: 'Pizarra', className: 'bg-slate-800 text-white' },
-  { id: 'blue', name: 'Azul', className: 'bg-blue-600 text-white' },
-  { id: 'purple', name: 'Púrpura', className: 'bg-purple-600 text-white' },
-  { id: 'green', name: 'Verde', className: 'bg-green-600 text-white' },
-  { id: 'custom-color', name: 'Personalizado', className: '' },
-  { id: 'custom-image', name: 'Imagen', className: '' },
-];
+const CreditCardPreview = ({ offer }: { offer: Partial<CreditOffer> }) => {
+  const gradientStyle = {
+    background: `linear-gradient(45deg, rgba(0,0,0,0.7), rgba(0,0,0,0.4)), ${offer.customColor || '#1f2937'}`
+  };
+    
+  return (
+    <div 
+      className="w-full aspect-[1.586] rounded-xl p-4 flex flex-col justify-between text-white shadow-lg transition-all duration-300"
+      style={gradientStyle}
+    >
+      <div className="flex justify-between items-start">
+        <p className="font-semibold text-lg opacity-90">{offer.name || 'Nombre del Crédito'}</p>
+        {offer.cardIconUrl ? 
+            <Image src={offer.cardIconUrl} alt="logo" width={40} height={40} className="rounded-md object-contain" />
+            : <CreditCardIcon className="w-8 h-8 opacity-50" />
+        }
+      </div>
+      <div className="text-right">
+        <p className="text-sm opacity-80">Monto Máximo</p>
+        <p className="text-2xl font-bold">${(offer.amount || 0).toLocaleString()}</p>
+      </div>
+    </div>
+  );
+};
+
 
 const availableDocuments: RequiredDocument[] = [
   { id: 'doc_ine', title: 'INE/IFE (Frontal y Trasero)' },
@@ -39,53 +56,26 @@ const availableDocuments: RequiredDocument[] = [
   { id: 'doc_proof_income', title: 'Comprobante de Ingresos' },
 ];
 
-const CreditCardPreview = ({ offer }: { offer: Partial<CreditOffer> }) => {
-    const style = cardStyles.find(s => s.id === offer.cardStyle);
-    
-    return (
-        <div 
-            className={cn(
-                "w-full aspect-[1.586] rounded-xl p-4 flex flex-col justify-between text-white shadow-lg",
-                style?.className
-            )}
-            style={{
-                backgroundColor: offer.cardStyle === 'custom-color' ? offer.customColor : undefined,
-                backgroundImage: offer.cardStyle === 'custom-image' ? `url(${offer.cardImageUrl})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
-        >
-             <div className="flex justify-between items-start">
-                <p className="font-semibold text-lg opacity-90">{offer.name || 'Nombre del Crédito'}</p>
-                {offer.cardIconUrl && <Image src={offer.cardIconUrl} alt="logo" width={40} height={40} className="rounded-md" />}
-            </div>
-            <div className="text-right">
-                <p className="text-sm opacity-80">Monto Máximo</p>
-                <p className="text-2xl font-bold">${(offer.amount || 0).toLocaleString()}</p>
-            </div>
-        </div>
-    )
-}
-
 const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCreditOfferDialogProps) => {
   const { state, dispatch } = useApp();
   const { userProfile } = state;
   const { toast } = useToast();
   
+  const [step, setStep] = useState(1);
   const [offer, setOffer] = useState<Partial<CreditOffer>>({});
   const [isProcessing, setIsProcessing] = useState(false);
-  const cardImageInputRef = useRef<HTMLInputElement>(null);
   const cardIconInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
+      setStep(1);
       setOffer(offerToEdit || {
         name: '',
         amount: 5000,
         interest: 10,
         term: 12,
         termUnit: 'weeks',
-        cardStyle: 'slate',
+        customColor: '#3b82f6', // default to blue
         managerType: 'user',
         managerId: userProfile._id?.toString(),
         requiredDocuments: [{id: 'doc_ine', title: 'INE/IFE (Frontal y Trasero)'}],
@@ -97,7 +87,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
     setOffer(prev => ({...prev, [field]: value}));
   };
   
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'cardImageUrl' | 'cardIconUrl') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'cardIconUrl') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -120,11 +110,26 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
         }
     }
   }
+  
+  const validateStep = (currentStep: number) => {
+    switch(currentStep) {
+        case 1:
+            return !!offer.name?.trim();
+        case 2:
+            return !!(offer.amount && offer.interest && offer.term && offer.termUnit);
+        case 3:
+             return !!(offer.managerType && offer.managerId);
+        default:
+            return false;
+    }
+  }
+
+  const handleNext = () => setStep(prev => prev + 1);
+  const handleBack = () => setStep(prev => prev - 1);
 
   const handleSave = () => {
-    // Validation
-    if (!offer.name || !offer.amount || !offer.interest || !offer.term || !offer.termUnit) {
-        toast({ title: 'Campos Incompletos', description: 'Por favor, llena todos los campos principales.', variant: 'destructive' });
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+        toast({ title: 'Campos Incompletos', description: 'Por favor, completa todos los campos antes de guardar.', variant: 'destructive' });
         return;
     }
     
@@ -132,17 +137,15 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 
     const finalOffer: CreditOffer = {
       id: offerToEdit?.id || `offer_${Date.now()}`,
-      name: offer.name,
-      amount: offer.amount,
-      interest: offer.interest,
-      term: offer.term,
-      termUnit: offer.termUnit,
-      cardStyle: offer.cardStyle || 'slate',
+      name: offer.name!,
+      amount: offer.amount!,
+      interest: offer.interest!,
+      term: offer.term!,
+      termUnit: offer.termUnit!,
       customColor: offer.customColor,
-      cardImageUrl: offer.cardImageUrl,
       cardIconUrl: offer.cardIconUrl,
-      managerType: offer.managerType || 'user',
-      managerId: offer.managerId || userProfile._id!.toString(),
+      managerType: offer.managerType!,
+      managerId: offer.managerId!,
       requiredDocuments: offer.requiredDocuments || [],
     };
     
@@ -159,27 +162,28 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
   };
   
   const assistants = userProfile.assistants || [];
+  const totalSteps = 3;
+  const progress = (step / totalSteps) * 100;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CreditCardIcon /> {offerToEdit ? 'Editar Oferta de Crédito' : 'Crear Nueva Oferta de Crédito'}
-          </DialogTitle>
-          <DialogDescription>
-            Diseña y configura tu producto de crédito para que tus asistentes lo ofrezcan.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="grid md:grid-cols-2 gap-8 flex-grow min-h-0">
-          {/* Left Side - Form */}
-          <ScrollArea className="pr-4 -mr-4">
+  const renderStepContent = () => {
+      switch(step) {
+          case 1: return (
             <div className="space-y-6">
-               <div className="space-y-2">
+                <div className="space-y-2">
                     <Label htmlFor="offer-name">Nombre de la Oferta</Label>
                     <Input id="offer-name" value={offer.name || ''} onChange={(e) => handleInputChange('name', e.target.value)} placeholder="Ej: Crédito Express" />
                 </div>
+                <div className="space-y-2">
+                    <Label htmlFor="custom-color">Color de la Tarjeta</Label>
+                    <Input id="custom-color" type="color" value={offer.customColor || '#3b82f6'} onChange={(e) => handleInputChange('customColor', e.target.value)} className="h-12"/>
+                </div>
+                 <Button variant="outline" size="sm" onClick={() => cardIconInputRef.current?.click()}>
+                     <Upload className="mr-2 h-4 w-4"/>Subir Icono (Logo)
+                </Button>
+            </div>
+          );
+          case 2: return (
+             <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                      <div className="space-y-2">
                         <Label htmlFor="offer-amount">Monto Máximo</Label>
@@ -207,7 +211,10 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
                         </Select>
                      </div>
                 </div>
-                
+            </div>
+          );
+          case 3: return (
+             <div className="space-y-6">
                  <div className="space-y-3">
                     <Label>Gestor del Crédito</Label>
                     <RadioGroup value={offer.managerType} onValueChange={(v) => handleInputChange('managerType', v as CreditOffer['managerType'])} className="flex gap-4">
@@ -229,7 +236,6 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
                         </Select>
                     )}
                 </div>
-
                 <div className="space-y-3">
                     <Label>Documentos Requeridos</Label>
                     {availableDocuments.map(doc => (
@@ -243,54 +249,58 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
                         </div>
                     ))}
                 </div>
-
             </div>
+          );
+          default: return null;
+      }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col" onInteractOutside={(e) => { if (isProcessing) e.preventDefault(); }}>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CreditCardIcon /> {offerToEdit ? 'Editar Oferta de Crédito' : 'Crear Nueva Oferta de Crédito'}
+          </DialogTitle>
+          <DialogDescription>
+            Diseña y configura tu producto de crédito para que tus asistentes lo ofrezcan.
+          </DialogDescription>
+           <Progress value={progress} className="mt-2 h-1.5" />
+        </DialogHeader>
+        
+        <div className="grid md:grid-cols-2 gap-8 flex-grow min-h-0">
+          {/* Left Side - Form */}
+          <ScrollArea className="pr-4 -mr-4">
+            {renderStepContent()}
           </ScrollArea>
           
           {/* Right Side - Preview */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col justify-center">
              <CreditCardPreview offer={offer}/>
-             <div className="space-y-4">
-                <h4 className="font-semibold text-sm">Personalizar Tarjeta</h4>
-                <div className="space-y-3">
-                    <Label>Estilo de Fondo</Label>
-                    <RadioGroup value={offer.cardStyle} onValueChange={(v) => handleInputChange('cardStyle', v)} className="grid grid-cols-3 gap-2">
-                        {cardStyles.map(s => (
-                            <Label key={s.id} htmlFor={`style-${s.id}`} className={cn("h-10 rounded-md border flex items-center justify-center cursor-pointer text-xs", s.className, offer.cardStyle === s.id && "ring-2 ring-primary ring-offset-2")}>
-                                <RadioGroupItem value={s.id} id={`style-${s.id}`} className="sr-only"/>
-                                {s.name}
-                            </Label>
-                        ))}
-                    </RadioGroup>
-                </div>
-                 {offer.cardStyle === 'custom-color' && (
-                    <div className="space-y-2 animate-fadeIn">
-                       <Label htmlFor="custom-color">Color Personalizado</Label>
-                       <Input id="custom-color" type="color" value={offer.customColor || '#000000'} onChange={(e) => handleInputChange('customColor', e.target.value)} />
-                    </div>
-                )}
-                 {offer.cardStyle === 'custom-image' && (
-                    <Button variant="outline" size="sm" onClick={() => cardImageInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4"/>Subir Imagen de Fondo
-                    </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={() => cardIconInputRef.current?.click()}>
-                     <Upload className="mr-2 h-4 w-4"/>Subir Icono (Logo)
-                </Button>
-
-                <input type="file" ref={cardImageInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'cardImageUrl')} />
-                <input type="file" ref={cardIconInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'cardIconUrl')} />
-             </div>
           </div>
         </div>
         
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={isProcessing}>
-            {isProcessing && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
-            {offerToEdit ? 'Guardar Cambios' : 'Crear Oferta'}
-          </Button>
+        <DialogFooter className="flex justify-between w-full">
+            <div>
+                {step > 1 && (
+                    <Button variant="outline" onClick={handleBack} disabled={isProcessing}>
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+                    </Button>
+                )}
+            </div>
+            <div>
+                {step < totalSteps ? (
+                    <Button onClick={handleNext} disabled={!validateStep(step)}>Siguiente</Button>
+                ) : (
+                    <Button onClick={handleSave} disabled={isProcessing || !validateStep(step)}>
+                        {isProcessing && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                        {offerToEdit ? 'Guardar Cambios' : 'Crear Oferta'}
+                    </Button>
+                )}
+            </div>
         </DialogFooter>
+
+        <input type="file" ref={cardIconInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'cardIconUrl')} />
       </DialogContent>
     </Dialog>
   );
