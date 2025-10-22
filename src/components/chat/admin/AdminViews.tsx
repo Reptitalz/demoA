@@ -202,9 +202,9 @@ export const BankView = () => {
                                             {getFileIcon(payment.receiptUrl)}
                                         </div>
                                         <div className="space-y-1 flex-1 overflow-hidden">
-                                            <p className="font-semibold text-sm truncate">{payment.product || 'Sin producto'}</p>
+                                            <p className="font-semibold text-sm truncate">{payment.product || 'Sin producto'} de {payment.userName}</p>
                                             <p className="text-xs text-muted-foreground truncate">
-                                                De {payment.userName} a {payment.assistantName}
+                                                a {payment.assistantName}
                                             </p>
                                         </div>
                                     </div>
@@ -502,16 +502,18 @@ export const CreditView = () => {
             </header>
 
             <Tabs value={activeSubView} onValueChange={(value) => setActiveSubView(value as any)} className="flex-grow flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 mt-4 mx-4 h-auto p-1">
-                    <TabsTrigger value="requests" className="flex flex-col gap-1 p-2 h-auto">
-                        <FileText className="h-5 w-5"/>
-                        <span className="text-xs">Solicitudes</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="offers" className="flex flex-col gap-1 p-2 h-auto">
-                        <Landmark className="h-5 w-5"/>
-                        <span className="text-xs">Mis Ofertas</span>
-                    </TabsTrigger>
-                </TabsList>
+                <div className="px-4 mt-4">
+                  <TabsList className="grid w-full grid-cols-2 h-auto p-1 max-w-xs mx-auto">
+                      <TabsTrigger value="requests" className="flex flex-col gap-1 p-2 h-auto">
+                          <FileText className="h-5 w-5"/>
+                          <span className="text-xs">Solicitudes</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="offers" className="flex flex-col gap-1 p-2 h-auto">
+                          <Landmark className="h-5 w-5"/>
+                          <span className="text-xs">Mis Ofertas</span>
+                      </TabsTrigger>
+                  </TabsList>
+                </div>
                 
                 <TabsContent value="requests" className="flex-grow flex flex-col">
                     <div className="p-4">
@@ -620,4 +622,5 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
     
 
     
+
 
