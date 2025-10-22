@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
+import { Loader2, Plus, CreditCard as CreditCardIcon, User, Bot, Upload, ArrowLeft, ArrowRight, Trash2, Palette } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { CreditOffer, RequiredDocument, AssistantConfig } from '@/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -341,8 +341,10 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
             </div>
           </ScrollArea>
           
-          <div className="p-6 space-y-4 flex flex-col justify-center bg-muted/30">
-             <CreditCardPreview offer={offer}/>
+          <div className="p-6 space-y-4 flex flex-col justify-center bg-muted/30" style={{ perspective: '1000px' }}>
+            <div className="w-full max-w-xs mx-auto" style={{ transform: 'rotateY(-15deg) rotateX(10deg)', transformStyle: 'preserve-3d' }}>
+                <CreditCardPreview offer={offer}/>
+            </div>
           </div>
         </div>
         
@@ -375,5 +377,3 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 };
 
 export default CreateCreditOfferDialog;
-
-    
