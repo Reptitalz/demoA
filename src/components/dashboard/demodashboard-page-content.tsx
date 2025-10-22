@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -24,6 +25,7 @@ import { BookOpen, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from "framer-motion";
 import ConversationsDialog from './ConversationsDialog';
 import { assistantPurposesConfig } from '@/config/appConfig';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 
 const DemoDashboardPageContent = () => {
@@ -183,80 +185,54 @@ const DemoDashboardPageContent = () => {
     }
     
     if (isManagerPage) {
-        const managerButtons = [
-            { title: 'Mensajes', icon: FaComments, action: () => setIsConversationsDialogOpen(true) },
-            { title: 'Autorizaciones', icon: CheckSquare, action: () => handleActionInDemo('Ver Autorizaciones') },
-            { title: 'Contactos', icon: FaAddressBook, action: () => handleActionInDemo('Ver Contactos') },
-            { title: 'Base de Datos', icon: FaDatabase, action: () => router.push('/dashboard/databases') },
-        ];
-        
-      return (
-        <div className="animate-fadeIn space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {managerButtons.map((btn, index) => (
-                <Card key={index} className="text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={btn.action}>
-                  <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
-                    <btn.icon className="h-6 w-6 text-green-500" />
-                    <p className="text-sm font-semibold">{btn.title}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Propósitos Disponibles</h3>
-               <div className="space-y-2">
-                {assistantPurposesConfig.filter(p => p.id.startsWith('notify') || p.id.startsWith('manage')).map((purpose) => {
-                  const Icon = purpose.icon;
-                  const isSelected = selectedPurpose === purpose.id;
-                  return (
-                    <div key={purpose.id}>
-                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setSelectedPurpose(pId => pId === purpose.id ? null : purpose.id)}>
-                          <CardContent className="p-3 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                               <Icon className="h-5 w-5 text-muted-foreground" />
-                               <div>
-                                  <p className="text-sm font-medium">{purpose.name}</p>
-                                  <p className="text-xs text-muted-foreground">{purpose.description}</p>
-                               </div>
-                            </div>
-                             <Button variant="outline" size="icon" className="h-8 w-8">
-                                <FaPlus className="h-4 w-4" />
-                              </Button>
-                          </CardContent>
+        const allPendingAuthorizations = profileToRender.assistants.flatMap(a =>
+            (a.authorizations || []).filter(auth => auth.status === 'pending')
+        );
+
+        return (
+            <div className="animate-fadeIn">
+                <Tabs defaultValue="instructions" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="instructions"><BookOpen className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
+                        <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
+                        <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="instructions" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Bandeja de Instrucciones</CardTitle>
+                                <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-center text-muted-foreground py-4">Inicia sesión para gestionar las instrucciones de tus asistentes.</p>
+                            </CardContent>
                         </Card>
-                        <AnimatePresence>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3, ease: 'easeInOut' }}
-                              className="overflow-hidden"
-                            >
-                              <div className="py-2">
-                                <div className="flex overflow-x-auto space-x-3 p-2 -m-2 snap-x snap-mandatory scrollbar-hide bg-muted/50 rounded-lg">
-                                  {profileToRender.assistants.filter(a => a.type === 'whatsapp').map(assistant => (
-                                    <div key={assistant.id} className="snap-center flex-shrink-0 w-40">
-                                      <Card className="text-center p-2">
-                                        <CardContent className="p-1 flex flex-col items-center gap-1">
-                                          <p className="text-xs font-semibold truncate w-full">{assistant.name}</p>
-                                          <Button size="xs" variant="ghost" className="w-full h-7 text-xs" onClick={() => handleActionInDemo('Añadir Propósito')}>Añadir</Button>
-                                        </CardContent>
-                                      </Card>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                    </div>
-                  );
-                })}
-              </div>
+                    </TabsContent>
+                    <TabsContent value="authorizations" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Bandeja de Autorizaciones</CardTitle>
+                                <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
+                            </CardHeader>
+                             <CardContent>
+                                <p className="text-sm text-center text-muted-foreground py-4">Inicia sesión para gestionar las autorizaciones.</p>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="notifier" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Bandeja de Notificador</CardTitle>
+                                <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-center text-muted-foreground py-4">Inicia sesión para enviar notificaciones.</p>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
-        </div>
-      );
+        );
     }
     
     if (isProfilePage) {

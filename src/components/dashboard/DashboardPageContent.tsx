@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import type { Authorization, AssistantConfig, AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
 import ConversationsDialog from './ConversationsDialog'; // Import at top level if needed elsewhere
-import { BookText, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
+import { BookOpen, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
 import InstructionsDialog from '../chat/admin/InstructionsDialog';
 import ReceiptDialog from '../chat/admin/ReceiptDialog';
 import NotifierDialog from './NotifierDialog';
@@ -348,7 +348,7 @@ const DashboardPageContent = () => {
         <div className="animate-fadeIn">
             <Tabs defaultValue="instructions" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="instructions"><BookText className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
+                <TabsTrigger value="instructions"><BookOpen className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
                 <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
                 <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
                 </TabsList>
@@ -429,7 +429,7 @@ const DashboardPageContent = () => {
               {/* Personal Info Section */}
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <FaUser className="h-6 w-6 text-primary" />
+                  <FaUser className="h-6 w-6 text-green-500" />
                   <div>
                     <h3 className="font-semibold">Información Personal</h3>
                     <p className="text-sm text-muted-foreground">
@@ -578,5 +578,3 @@ const DashboardPageContent = () => {
 };
 
 export default DashboardPageContent;
-
-    
