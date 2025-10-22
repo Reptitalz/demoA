@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { AssistantConfig, ChatMessage, Product, UserProfile, Contact } from '@/types';
+import { AssistantConfig, ChatMessage, Product, UserProfile, Contact, Authorization } from '@/types';
 import Link from 'next/link';
 import { APP_NAME } from '@/config/appConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -163,7 +163,7 @@ const DesktopChatPage = () => {
   const params = useParams();
   const chatPath = params.chatPath as string;
   const router = useRouter();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const { userProfile, contacts } = state;
   const { socket } = useSocket();
   const { toast } = useToast();
@@ -450,25 +450,78 @@ const DesktopChatPage = () => {
         return;
     }
     
-    if (isAssistantChat && assistant?.chatPath) {
-        fetch('/api/chat/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                assistantId: assistant.id,
-                message: messageContent,
-                destination: sessionId,
-                chatPath: assistant.chatPath,
-            })
-        }).then(response => {
-            if (assistant.type === 'desktop' && typeof messageContent === 'string') {
-                pollForResponse();
+    if (isAssistantChat && assistant) {
+        // If message is an image, treat it as an authorization
+        if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'video' || messageContent.type === 'audio' || messageContent.type === 'document')) {
+            const authPayload: Omit<Authorization, 'id' | 'status' | 'receivedAt'> = {
+                messageId: parseInt(messageId),
+                product: `Comprobante (${messageContent.type})`,
+                userName: userProfile.firstName || 'Usuario',
+                chatPath: sessionId,
+                amount: 0,
+                receiptUrl: messageContent.url,
+                fileName: messageContent.name
+            };
+
+            try {
+                const response = await fetch('/api/authorizations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assistantId: assistant.id, authorization: authPayload }),
+                });
+
+                if (!response.ok) throw new Error('No se pudo guardar la autorización.');
+                
+                const result = await response.json();
+                dispatch({ type: 'UPDATE_ASSISTANT', payload: { ...assistant, authorizations: [...(assistant.authorizations || []), result.authorization]} });
+
+                // Send a confirmation message back to the user
+                const confirmationMessage: ChatMessage = {
+                    id: `conf_${Date.now()}`,
+                    role: 'model',
+                    content: "He recibido tu archivo, lo revisaré pronto.",
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    status: 'delivered'
+                };
+                setMessages(prev => [...prev, confirmationMessage]);
+                await saveMessageToDB(confirmationMessage, sessionId);
+                
+            } catch (err: any) {
+                console.error("Error creating authorization:", err);
+                toast({ title: 'Error', description: 'No se pudo enviar el archivo.', variant: 'destructive'});
+                 // Let the user know something went wrong
+                const errorMessage: ChatMessage = {
+                    id: `err_${Date.now()}`,
+                    role: 'model',
+                    content: "Hubo un error al recibir tu archivo. Por favor, inténtalo de nuevo.",
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    status: 'delivered'
+                };
+                setMessages(prev => [...prev, errorMessage]);
+                await saveMessageToDB(errorMessage, sessionId);
             }
-        }).catch(err => {
-            console.error("Error sending message to proxy:", err);
-        });
+
+        } else if (typeof messageContent === 'string') {
+            // It's a text message for the assistant
+            fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    assistantId: assistant.id,
+                    message: messageContent,
+                    destination: sessionId,
+                    chatPath: assistant.chatPath,
+                })
+            }).then(response => {
+                if (assistant.type === 'desktop' && typeof messageContent === 'string') {
+                    pollForResponse();
+                }
+            }).catch(err => {
+                console.error("Error sending message to proxy:", err);
+            });
+        }
     }
-}, [isPersonalChat, isAssistantChat, assistant, chatPartner, userProfile, socket, sessionId, pollForResponse]);
+}, [isPersonalChat, isAssistantChat, assistant, chatPartner, userProfile, socket, sessionId, pollForResponse, dispatch, toast]);
 
 
   const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
@@ -502,7 +555,7 @@ const DesktopChatPage = () => {
     sendMessageToServer(messageToSend, messageId);
   };
   
- const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+ const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -550,8 +603,7 @@ const DesktopChatPage = () => {
             setMessages(prev => [...prev, userMessage]);
             await saveMessageToDB(userMessage, sessionId);
             
-            setIsSending(false); // Do not show spinner for images
-            
+            // This now handles sending to the right endpoint (auth or regular chat)
             sendMessageToServer(imageMessageContent, messageId);
         };
         img.src = e.target?.result as string;
