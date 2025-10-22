@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -46,6 +45,7 @@ import AddProductDialog from './AddProductDialog';
 import CreateCatalogDialog from './CreateCatalogDialog';
 import ConversationsDialog from '@/components/dashboard/ConversationsDialog';
 import CreditHistoryDialog from './CreditHistoryDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 // --- IndexedDB Helper Functions (replicated for this component) ---
@@ -146,6 +146,7 @@ export const BankView = () => {
                     </div>
                     <div>
                         <h1 className="text-xl font-bold">Bandeja de Autorizaciones</h1>
+                        <p className="text-sm text-muted-foreground">Aquí puedes ver lo que el asistente recibe en imágenes</p>
                     </div>
                 </div>
             </header>
@@ -202,7 +203,7 @@ export const BankView = () => {
                                         <div className="space-y-1 flex-1 overflow-hidden">
                                             <p className="font-semibold text-sm truncate">{payment.product || 'Sin producto'}</p>
                                             <p className="text-xs text-muted-foreground truncate">
-                                                {payment.userName} a {payment.assistantName}
+                                                De {payment.userName} a {payment.assistantName}
                                             </p>
                                         </div>
                                     </div>
@@ -254,67 +255,68 @@ export const AssistantsList = () => {
 
     return (
         <>
-        <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                    <Bot className="h-6 w-6 text-green-500" />
+            <header className="p-4 border-b bg-card/80 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Bot className="h-6 w-6 text-green-500" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">Monitor de Bots</h1>
+                        <p className="text-sm text-muted-foreground">Supervisa las conversaciones de tus asistentes.</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-xl font-bold">Monitor de Bots</h1>
-                    <p className="text-sm text-muted-foreground">Supervisa las conversaciones de tus asistentes.</p>
-                </div>
+            </header>
+
+            <div className="p-4 text-center">
+                <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4"/>
+                    Crear Asistente de Escritorio
+                </Button>
             </div>
-        </header>
 
-        <div className="p-4 text-center">
-            <Button variant="outline" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4"/>
-                Crear Asistente de Escritorio
-            </Button>
-        </div>
-
-        <ScrollArea className="flex-grow p-4 pt-0">
-            <div className="space-y-4">
-                {desktopAssistants.map(assistant => (
-                    <Card key={assistant.id}>
-                        <CardContent className="p-3 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage src={assistant.imageUrl} />
-                                    <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-semibold text-sm">{assistant.name}</p>
-                                    <Badge variant={assistant.isActive ? 'default' : 'secondary'}>
-                                        {assistant.isActive ? 'Activo' : 'Inactivo'}
-                                    </Badge>
+            <ScrollArea className="flex-grow p-4 pt-0">
+                <div className="space-y-4">
+                    {desktopAssistants.map(assistant => (
+                        <Card key={assistant.id}>
+                            <CardContent className="p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={assistant.imageUrl} />
+                                        <AvatarFallback>{assistant.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold text-sm">{assistant.name}</p>
+                                        <Badge variant={assistant.isActive ? 'default' : 'secondary'}>
+                                            {assistant.isActive ? 'Activo' : 'Inactivo'}
+                                        </Badge>
+                                    </div>
                                 </div>
-                            </div>
-                            <Button size="sm" variant="outline" onClick={() => handleOpenConversations(assistant)}>
-                                <MessageSquarePlus className="mr-2 h-4 w-4"/> Ver Chats
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))}
-                 {desktopAssistants.length === 0 && (
-                    <p className="text-sm text-center text-muted-foreground py-8">No tienes asistentes de escritorio.</p>
-                )}
-            </div>
-        </ScrollArea>
-        {selectedAssistant && (
-            <ConversationsDialog
-                isOpen={isConversationsDialogOpen}
-                onOpenChange={setIsConversationsDialogOpen}
-                assistants={[selectedAssistant]}
+                                <Button size="sm" variant="outline" onClick={() => handleOpenConversations(assistant)}>
+                                    <MessageSquarePlus className="mr-2 h-4 w-4"/> Ver Chats
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    {desktopAssistants.length === 0 && (
+                        <p className="text-sm text-center text-muted-foreground py-8">No tienes asistentes de escritorio.</p>
+                    )}
+                </div>
+            </ScrollArea>
+            {selectedAssistant && (
+                <ConversationsDialog
+                    isOpen={isConversationsDialogOpen}
+                    onOpenChange={setIsConversationsDialogOpen}
+                    assistants={[selectedAssistant]}
+                />
+            )}
+            <CreateAssistantDialog 
+                isOpen={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
             />
-        )}
-        <CreateAssistantDialog 
-            isOpen={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-        />
         </>
     );
 };
+
 
 export const ProductsView = () => {
     const { state, dispatch } = useApp();
@@ -430,12 +432,14 @@ export const CreditView = () => {
     const { state, dispatch } = useApp();
     const { userProfile, loadingStatus } = state;
     const { toast } = useToast();
+    const [activeSubView, setActiveSubView] = useState<'requests' | 'offers'>('requests');
     const [filter, setFilter] = useState<'pending' | 'active' | 'other'>('active');
     const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [selectedCredit, setSelectedCredit] = useState<CreditLine | null>(null);
 
     const creditLines = userProfile.creditLines || [];
+    const creditOffers = userProfile.creditOffers || [];
 
     const filteredLines = useMemo(() => {
         if (filter === 'active') {
@@ -464,7 +468,6 @@ export const CreditView = () => {
                 throw new Error(errorData.message || 'Error al actualizar el estado del crédito');
             }
 
-            // Optimistic update
             const updatedLines = creditLines.map(cl => {
                 if (cl.id === creditLineId) {
                     return { ...cl, status: status === 'approved' ? 'Al Corriente' : 'rejected', amount: status === 'approved' ? amount || cl.amount : cl.amount, updatedAt: new Date().toISOString() };
@@ -479,7 +482,7 @@ export const CreditView = () => {
         }
     };
     
-     const totalApprovedAmount = useMemo(() => {
+    const totalApprovedAmount = useMemo(() => {
         return creditLines.filter(cl => cl.status !== 'rejected' && cl.status !== 'pending').reduce((sum, cl) => sum + cl.amount, 0);
     }, [creditLines]);
 
@@ -497,66 +500,85 @@ export const CreditView = () => {
                 </div>
             </header>
 
-             <div className="p-4">
-                 <Card className="shadow-lg relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-                    <CardContent className="p-6 relative z-10">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <p className="font-semibold text-sm opacity-80">Crédito Activo Total</p>
-                                <p className="text-3xl font-extrabold mt-1">${totalApprovedAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
-                            </div>
-                            <Button size="icon" variant="ghost" className="bg-white/10 hover:bg-white/20" onClick={() => setIsHistoryOpen(true)}>
-                                <History />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            
-            <div className="px-4 space-y-4">
-                <h3 className="font-semibold text-base">Ofertas de Crédito</h3>
-                {/* <CreditOfferCarousel onAdd={() => setIsCreateOfferOpen(true)} /> */}
-            </div>
-
-            <div className="p-4 mt-4">
-                <h3 className="font-semibold text-base mb-2">Solicitudes de Clientes</h3>
-                <div className="flex gap-2">
-                    <Button variant={filter === 'active' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('active')}>Activos</Button>
-                    <Button variant={filter === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('pending')}>Pendientes ({creditLines.filter(cl => cl.status === 'pending').length})</Button>
-                </div>
-            </div>
-
-            <ScrollArea className="flex-grow p-4 pt-0">
-                <div className="space-y-3">
-                    {filteredLines.map(line => (
-                        <Card key={line.id} className={line.status === 'Atrasado' ? 'border-destructive' : ''}>
-                            <CardContent className="p-3">
-                                 <div className="flex items-center justify-between">
+            <Tabs value={activeSubView} onValueChange={(value) => setActiveSubView(value as any)} className="flex-grow flex flex-col">
+                <TabsList className="grid w-full grid-cols-2 mt-4 mx-4">
+                    <TabsTrigger value="requests">Solicitudes</TabsTrigger>
+                    <TabsTrigger value="offers">Mis Ofertas</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="requests" className="flex-grow flex flex-col">
+                    <div className="p-4">
+                        <Card className="shadow-lg relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+                            <CardContent className="p-6 relative z-10">
+                                <div className="flex justify-between items-center">
                                     <div>
-                                        <p className="font-semibold">{line.applicantIdentifier}</p>
-                                        <Badge variant={line.status === 'Atrasado' ? 'destructive' : 'secondary'} className="text-xs">{line.status}</Badge>
+                                        <p className="font-semibold text-sm opacity-80">Crédito Activo Total</p>
+                                        <p className="text-3xl font-extrabold mt-1">${totalApprovedAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</p>
                                     </div>
-                                    <div className="text-right">
-                                         {line.amount > 0 && <p className="font-bold text-lg">${line.amount.toFixed(2)}</p>}
-                                    </div>
+                                    <Button size="icon" variant="ghost" className="bg-white/10 hover:bg-white/20" onClick={() => setIsHistoryOpen(true)}>
+                                        <History />
+                                    </Button>
                                 </div>
-                                {line.status === 'pending' ? (
-                                    <div className="flex gap-2 mt-2 pt-2 border-t">
-                                        <Button size="sm" variant="destructive" onClick={() => handleAction(line.id, 'rejected')}>Rechazar</Button>
-                                        <Button size="sm" onClick={() => handleAction(line.id, 'approved', 5000)}>Aprobar (Ej: $5000)</Button>
-                                    </div>
-                                ) : (
-                                    <Button size="sm" variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setSelectedCredit(line)}>Ver Historial</Button>
-                                )}
                             </CardContent>
                         </Card>
-                    ))}
-                    {filteredLines.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No hay solicitudes en esta categoría.</p>}
-                </div>
-            </ScrollArea>
-             {/* <CreateCreditOfferDialog isOpen={isCreateOfferOpen} onOpenChange={setIsCreateOfferOpen}/> */}
+                    </div>
+                    <div className="px-4 pb-4">
+                        <div className="flex gap-2">
+                            <Button variant={filter === 'active' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('active')}>Activos</Button>
+                            <Button variant={filter === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('pending')}>Pendientes ({creditLines.filter(cl => cl.status === 'pending').length})</Button>
+                        </div>
+                    </div>
+                    <ScrollArea className="flex-grow p-4 pt-0">
+                        <div className="space-y-3">
+                            {filteredLines.map(line => (
+                                <Card key={line.id} className={line.status === 'Atrasado' ? 'border-destructive' : ''}>
+                                    <CardContent className="p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="font-semibold">{line.applicantIdentifier}</p>
+                                                <Badge variant={line.status === 'Atrasado' ? 'destructive' : 'secondary'} className="text-xs">{line.status}</Badge>
+                                            </div>
+                                            <div className="text-right">
+                                                {line.amount > 0 && <p className="font-bold text-lg">${line.amount.toFixed(2)}</p>}
+                                            </div>
+                                        </div>
+                                        {line.status === 'pending' ? (
+                                            <div className="flex gap-2 mt-2 pt-2 border-t">
+                                                <Button size="sm" variant="destructive" onClick={() => handleAction(line.id, 'rejected')}>Rechazar</Button>
+                                                <Button size="sm" onClick={() => handleAction(line.id, 'approved', 5000)}>Aprobar (Ej: $5000)</Button>
+                                            </div>
+                                        ) : (
+                                            <Button size="sm" variant="link" className="p-0 h-auto text-xs mt-1" onClick={() => setSelectedCredit(line)}>Ver Historial</Button>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            {filteredLines.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No hay solicitudes en esta categoría.</p>}
+                        </div>
+                    </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent value="offers" className="flex-grow flex flex-col p-4">
+                    <div className="flex justify-end mb-4">
+                         <Button size="sm" onClick={() => setIsCreateOfferOpen(true)}><Plus className="mr-2 h-4 w-4"/> Crear Oferta de Crédito</Button>
+                    </div>
+                    <ScrollArea className="flex-grow">
+                        <div className="space-y-3">
+                             {creditOffers.length > 0 ? creditOffers.map(offer => (
+                                <Card key={offer.id}>
+                                    <CardContent className="p-3">
+                                        <p className="font-semibold">{offer.name}</p>
+                                        <p className="text-sm text-muted-foreground">${offer.amount.toLocaleString()} @ {offer.interest}%</p>
+                                    </CardContent>
+                                </Card>
+                            )) : (
+                                <p className="text-sm text-center text-muted-foreground py-8">No has creado ninguna oferta de crédito.</p>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </TabsContent>
+            </Tabs>
              <CreditHistoryDialog credit={selectedCredit} isOpen={!!selectedCredit} onOpenChange={() => setSelectedCredit(null)} />
-             {/* <CompletedCreditsDialog isOpen={isHistoryOpen} onOpenChange={setIsHistoryOpen} /> */}
         </>
     );
 };
