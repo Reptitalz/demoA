@@ -335,29 +335,28 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
           </div>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-2 flex-grow min-h-0">
-          <ScrollArea className="md:border-r">
+        <div className="flex flex-col flex-grow min-h-0">
+          {/* Card Preview at the top */}
+          <div className="p-6 pt-4 flex flex-col items-center justify-center bg-muted/30" style={{ perspective: '1000px' }}>
+              <motion.div 
+                className="w-full max-w-xs mx-auto"
+                style={{ transformStyle: 'preserve-3d' }}
+                animate={{
+                  y: [-5, 5, -5],
+                }}
+                transition={{
+                  y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                }}
+              >
+                  <CreditCardPreview offer={offer}/>
+              </motion.div>
+          </div>
+          {/* Form Content below */}
+          <ScrollArea className="flex-grow">
             <div className="p-6">
                 {renderStepContent()}
             </div>
           </ScrollArea>
-          
-          <div className="p-6 pt-12 flex flex-col items-center bg-muted/30" style={{ perspective: '1000px' }}>
-            <motion.div 
-              className="w-full max-w-xs mx-auto"
-              style={{ transformStyle: 'preserve-3d' }}
-              animate={{
-                rotateX: 5,
-                rotateY: -10,
-                y: [-5, 5, -5],
-              }}
-              transition={{
-                y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
-              }}
-            >
-                <CreditCardPreview offer={offer}/>
-            </motion.div>
-          </div>
         </div>
         
         <DialogFooter className="fixed bottom-0 left-0 right-0 p-4 flex justify-between w-full bg-background/80 backdrop-blur-sm border-t">
@@ -388,3 +387,5 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
 };
 
 export default CreateCreditOfferDialog;
+
+    
