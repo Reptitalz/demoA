@@ -240,14 +240,38 @@ export const BankView = () => {
 }
 
 export const AssistantsList = () => {
-    const { state } = useApp();
+    const { state, dispatch } = useApp();
+    const router = useRouter();
+    const { toast } = useToast();
     const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
     const [selectedAssistant, setSelectedAssistant] = useState<AssistantConfig | null>(null);
+    const [assistantToDelete, setAssistantToDelete] = useState<AssistantConfig | null>(null);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const handleOpenConversations = (assistant: AssistantConfig) => {
         setSelectedAssistant(assistant);
         setIsConversationsDialogOpen(true);
+    };
+
+    const handleConfigureAssistant = (assistant: AssistantConfig) => {
+        dispatch({ type: 'SET_EDITING_ASSISTANT_ID', payload: assistant.id });
+        dispatch({ type: 'SET_IS_RECONFIGURING', payload: true });
+        dispatch({ type: 'UPDATE_ASSISTANT_NAME', payload: assistant.name });
+        dispatch({ type: 'UPDATE_ASSISTANT_PROMPT', payload: assistant.prompt || '' });
+        // You might need to populate other wizard states here if reconfiguring from scratch
+        router.push('/app');
+    };
+
+    const handleDeleteAssistant = (assistant: AssistantConfig) => {
+        setAssistantToDelete(assistant);
+    };
+
+    const confirmDelete = () => {
+        if (assistantToDelete) {
+            dispatch({ type: 'REMOVE_ASSISTANT', payload: assistantToDelete.id });
+            toast({ title: "Asistente Eliminado", description: `El asistente "${assistantToDelete.name}" ha sido eliminado.` });
+            setAssistantToDelete(null);
+        }
     };
 
     const desktopAssistants = useMemo(() => {
@@ -292,9 +316,17 @@ export const AssistantsList = () => {
                                         </Badge>
                                     </div>
                                 </div>
-                                <Button size="sm" variant="outline" onClick={() => handleOpenConversations(assistant)}>
-                                    <MessageSquarePlus className="mr-2 h-4 w-4"/> Ver Chats
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                    <Button size="sm" variant="outline" onClick={() => handleOpenConversations(assistant)}>
+                                        <MessageSquarePlus className="mr-2 h-4 w-4"/> Ver Chats
+                                    </Button>
+                                    <Button size="icon" variant="ghost" onClick={() => handleConfigureAssistant(assistant)}>
+                                        <Settings className="h-4 w-4"/>
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDeleteAssistant(assistant)}>
+                                        <Trash2 className="h-4 w-4"/>
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     ))}
@@ -314,6 +346,22 @@ export const AssistantsList = () => {
                 isOpen={isCreateDialogOpen}
                 onOpenChange={setIsCreateDialogOpen}
             />
+            <AlertDialog open={!!assistantToDelete} onOpenChange={() => setAssistantToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción eliminará permanentemente al asistente "{assistantToDelete?.name}". No se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };
@@ -624,3 +672,6 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
     
 
 
+
+
+    
