@@ -65,6 +65,7 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
   const [offer, setOffer] = useState<Partial<CreditOffer>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const cardIconInputRef = useRef<HTMLInputElement>(null);
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -173,13 +174,20 @@ const CreateCreditOfferDialog = ({ isOpen, onOpenChange, offerToEdit }: CreateCr
                     <Label htmlFor="offer-name">Nombre de la Oferta</Label>
                     <Input id="offer-name" value={offer.name || ''} onChange={(e) => handleInputChange('name', e.target.value)} placeholder="Ej: Crédito Express" />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="custom-color">Color de la Tarjeta</Label>
-                    <Input id="custom-color" type="color" value={offer.customColor || '#3b82f6'} onChange={(e) => handleInputChange('customColor', e.target.value)} className="h-12"/>
+                <div className="flex items-center justify-between">
+                     <div className="space-y-2">
+                        <Label htmlFor="custom-color">Color de la Tarjeta</Label>
+                        <div 
+                            className="w-12 h-12 rounded-full border-2 border-muted cursor-pointer" 
+                            style={{ backgroundColor: offer.customColor || '#000000' }}
+                            onClick={() => colorInputRef.current?.click()}
+                        />
+                        <Input ref={colorInputRef} id="custom-color" type="color" value={offer.customColor || '#3b82f6'} onChange={(e) => handleInputChange('customColor', e.target.value)} className="sr-only"/>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => cardIconInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4"/>Subir Icono (Logo)
+                    </Button>
                 </div>
-                 <Button variant="outline" size="sm" onClick={() => cardIconInputRef.current?.click()}>
-                     <Upload className="mr-2 h-4 w-4"/>Subir Icono (Logo)
-                </Button>
             </div>
           );
           case 2: return (
