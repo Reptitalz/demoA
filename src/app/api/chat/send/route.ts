@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
     // 3. Define el webhook externo del asistente de IA.
     const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${chatPath}`;
 
-    // 4. Construct the precise payload the external server expects
+    // 4. Construct the precise payload the external server expects.
+    // Este payload NO tiene un objeto "payload" anidado como en el ejemplo del curl del usuario.
+    // La estructura es plana y contiene los campos que necesita el webhook de IA.
     const payload = {
       assistantId,
       message,
