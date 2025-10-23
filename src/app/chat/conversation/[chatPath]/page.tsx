@@ -816,12 +816,12 @@ const DesktopChatPage = () => {
         const partnerImageUrl = (chatPartner as any).imageUrl;
 
         return (
-            <div className="flex items-center gap-3 flex-grow overflow-hidden">
+            <div className="flex items-center gap-3 flex-grow">
                 <Avatar className="h-10 w-10 border-2 border-primary/50 cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                     <AvatarImage src={partnerImageUrl} alt={partnerName} />
                     <AvatarFallback>{partnerName ? partnerName.charAt(0) : <FaUser />}</AvatarFallback>
                 </Avatar>
-                <div className="overflow-hidden cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                <div className="cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                      <div className="flex items-center gap-1.5">
                         <h3 className="font-semibold text-base text-foreground">{partnerName}</h3>
                         {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
@@ -841,7 +841,7 @@ const DesktopChatPage = () => {
                        {isAssistantChat ? assistantStatusMessage : (contactIsOnline ? 'en línea' : 'desconectado')}
                     </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 ml-auto">
                     {isPersonalChat && (
                         <>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => router.push(`/chat/call/${chatPath}?type=video`)}>
@@ -930,20 +930,20 @@ const DesktopChatPage = () => {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="mb-2 bg-card/95 backdrop-blur-sm shadow-xl border-border/50">
-              <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
-                <FaImage className="mr-2 text-purple-500" />
+              <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="text-purple-500 focus:bg-purple-100 focus:text-purple-600">
+                <FaImage className="mr-2" />
                 Enviar Imagen
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => videoInputRef.current?.click()}>
-                <FaVideo className="mr-2 text-red-500" />
+              <DropdownMenuItem onSelect={() => videoInputRef.current?.click()} className="text-red-500 focus:bg-red-100 focus:text-red-600">
+                <FaVideo className="mr-2" />
                 Enviar Video
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => documentInputRef.current?.click()}>
-                <FaFileAlt className="mr-2 text-blue-500" />
+              <DropdownMenuItem onSelect={() => documentInputRef.current?.click()} className="text-blue-500 focus:bg-blue-100 focus:text-blue-600">
+                <FaFileAlt className="mr-2" />
                 Enviar Documento
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleSendLocation}>
-                <FaMapMarkerAlt className="mr-2 text-green-500" />
+              <DropdownMenuItem onSelect={handleSendLocation} className="text-green-500 focus:bg-green-100 focus:text-green-600">
+                <FaMapMarkerAlt className="mr-2" />
                 Enviar Ubicación
               </DropdownMenuItem>
             </DropdownMenuContent>
