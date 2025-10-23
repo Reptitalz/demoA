@@ -1,3 +1,4 @@
+
 // src/app/chat/dashboard/page.tsx
 "use client";
 
@@ -9,7 +10,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
-import type { AssistantConfig, Contact, CreditLine, UserProfile } from '@/types';
+import type { AssistantConfig, Contact, CreditLine, UserProfile, Authorization } from '@/types';
 import { cn, formatBytes } from '@/lib/utils';
 import { APP_NAME } from '@/config/appConfig';
 import { useRouter } from 'next/navigation';
@@ -156,33 +157,19 @@ export default function ChatListPage() {
 
 
   useEffect(() => {
-    const fetchNotificationCounts = async () => {
-        if (!state.userProfile.isAuthenticated) return;
-        try {
-            const db = await openDB();
-            
-            const pendingTx = db.transaction(MESSAGES_STORE_NAME, 'readonly');
-            const pendingStore = pendingTx.objectStore(MESSAGES_STORE_NAME);
-            const allMessages: StoredMessage[] = await pendingStore.getAll();
-            const pendingAuthorizations = allMessages.filter(msg => 
-                msg.role === 'user' && 
-                typeof msg.content === 'object' && 
-                ['image', 'video', 'audio', 'document'].includes(msg.content.type)
-            );
-            setAuthorizationsCount(pendingAuthorizations.length);
+    if (!state.userProfile.isAuthenticated) return;
+    
+    // Correctly count pending authorizations from the userProfile state
+    const pendingAuths = (state.userProfile.assistants || [])
+        .flatMap(a => a.authorizations || [])
+        .filter(auth => auth.status === 'pending');
+    setAuthorizationsCount(pendingAuths.length);
 
-            if (state.userProfile.creditLines) {
-              const pendingCredits = state.userProfile.creditLines.filter(cl => cl.status === 'pending');
-              setCreditsCount(pendingCredits.length);
-            }
+    // Correctly count pending credit line requests
+    const pendingCredits = (state.userProfile.creditLines || []).filter(cl => cl.status === 'pending');
+    setCreditsCount(pendingCredits.length);
 
-        } catch (error) {
-            console.error("Failed to fetch notification counts from IndexedDB:", error);
-        }
-    };
-
-    fetchNotificationCounts();
-  }, [state.userProfile.isAuthenticated, state.userProfile.creditLines]);
+  }, [state.userProfile.isAuthenticated, state.userProfile.assistants, state.userProfile.creditLines]);
 
 
   const chatsToDisplay = useMemo(() => {
