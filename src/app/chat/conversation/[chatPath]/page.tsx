@@ -442,8 +442,8 @@ const DesktopChatPage = () => {
    * Esta función decide a dónde enviar un mensaje.
    * 1.  Para chats de persona a persona, utiliza WebSockets para una comunicación en tiempo real.
    * 2.  Para chats con asistentes de IA, envía el mensaje a un endpoint de API que actúa como proxy.
-   *     - Este proxy luego reenvía el mensaje al webhook principal que procesa la lógica de la IA.
-   *     - La respuesta de la IA no se recibe directamente, sino a través de la función `pollForResponse`.
+   *     - Este proxy luego reenvía el mensaje al webhook principal que procesa la lógica de la IA (`https://control.reptitalz.cloud/api/webhook/[chatPath]`).
+   *     - La respuesta de la IA no se recibe directamente, sino a través de la función `pollForResponse` que consulta un endpoint de eventos.
    */
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
     // Escenario 1: Chat de persona a persona (usa WebSockets)
@@ -917,21 +917,21 @@ const DesktopChatPage = () => {
                     <FaPaperclip className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="mb-2">
+            <DropdownMenuContent align="start" className="mb-2 bg-card/95 backdrop-blur-sm shadow-xl border-border/50">
               <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
-                <FaImage className="mr-2" />
+                <FaImage className="mr-2 text-purple-500" />
                 Enviar Imagen
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => videoInputRef.current?.click()}>
-                <FaVideo className="mr-2" />
+                <FaVideo className="mr-2 text-red-500" />
                 Enviar Video
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => documentInputRef.current?.click()}>
-                <FaFileAlt className="mr-2" />
+                <FaFileAlt className="mr-2 text-blue-500" />
                 Enviar Documento
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={handleSendLocation}>
-                <FaMapMarkerAlt className="mr-2" />
+                <FaMapMarkerAlt className="mr-2 text-green-500" />
                 Enviar Ubicación
               </DropdownMenuItem>
             </DropdownMenuContent>
