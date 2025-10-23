@@ -71,7 +71,7 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       
       onOpenChange(false);
       // Redirect to the collaborator dashboard
-      router.push('/chat/dashboard');
+      router.push('/colaboradores/dashboard');
       
     } catch (error: any) {
       console.error("Collaborator registration error:", error);

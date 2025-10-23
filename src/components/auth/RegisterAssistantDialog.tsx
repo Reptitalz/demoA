@@ -247,7 +247,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
           
         toast({ title: "¡Asistente Creado!", description: `Tu nuevo asistente está listo.` });
         onOpenChange(false);
-        router.push('/chat/dashboard');
+        router.push('/dashboard');
 
       } catch (error: any) {
           console.error("Profile creation error:", error);
@@ -268,7 +268,7 @@ const RegisterAssistantDialog = ({ isOpen, onOpenChange }: RegisterAssistantDial
   const handleFinalize = useCallback(async (authProvider: 'google' | 'email') => {
     if (authProvider === 'google') {
        signIn('google', {
-         callbackUrl: `/chat/dashboard`
+         callbackUrl: `/dashboard`
        });
     }
   }, []);

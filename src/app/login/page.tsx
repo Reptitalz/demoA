@@ -37,7 +37,7 @@ const LoginPageContent = () => {
   
   useEffect(() => {
     if (status === 'authenticated' && state.userProfile.isAuthenticated) {
-      router.replace('/chat/dashboard');
+      router.replace('/dashboard');
     }
   }, [status, state.userProfile.isAuthenticated, router]);
   
@@ -58,8 +58,8 @@ const LoginPageContent = () => {
   const handleLogin = async (provider: 'google' | 'credentials') => {
     setIsLoggingIn(true);
     
-    // Default callback for chat dashboard login
-    const callbackUrl = searchParams.get('callbackUrl') || '/chat/dashboard';
+    // Default callback for assistant dashboard login
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
     
     let result;
     if (provider === 'credentials') {
