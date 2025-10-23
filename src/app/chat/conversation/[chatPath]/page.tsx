@@ -520,18 +520,21 @@ const DesktopChatPage = () => {
                 await saveMessageToDB(errorMessage, sessionId);
             }
         } else if (typeof messageContent === 'string') {
-          // CORRECCIÓN: Esta es la lógica que faltaba.
           // Es un mensaje de texto para el asistente. Usa el endpoint proxy /api/chat/send.
           // Este endpoint luego envía al webhook principal del bot.
-          fetch('/api/chat/send', {
+          const url = '/api/chat/send';
+          const payload = {
+              assistantId: assistant.id,
+              message: messageContent,
+              destination: sessionId,
+              chatPath: assistant.chatPath,
+          };
+          console.log("Enviando a:", url, "con payload:", JSON.stringify(payload, null, 2));
+
+          fetch(url, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  assistantId: assistant.id,
-                  message: messageContent,
-                  destination: sessionId,
-                  chatPath: assistant.chatPath,
-              })
+              body: JSON.stringify(payload)
           }).then(response => {
               if (response.ok) {
                   // Si el bot es de escritorio (que responde en el chat), iniciamos el sondeo
