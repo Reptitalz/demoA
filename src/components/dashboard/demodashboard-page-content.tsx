@@ -30,48 +30,23 @@ import { Badge } from '@/components/ui/badge';
 
 const AnimatedGridCard = ({ icon, title, description, badge, onClick }: { icon: React.ElementType, title: string, description: string, badge?: number, onClick: () => void }) => {
     const Icon = icon;
-    const ref = useRef<HTMLDivElement>(null);
-    const [mousePosition, setMousePosition] = useState({ x: "-100%", y: "-100%" });
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            setMousePosition({ x: `${x}px`, y: `${y}px` });
-        }
-    };
-
+    
     return (
         <div
-            ref={ref}
-            onMouseMove={handleMouseMove}
             onClick={onClick}
-            className="relative w-full h-40 rounded-xl p-4 overflow-hidden border bg-card/50 backdrop-blur-sm cursor-pointer group transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10"
+            className="relative w-full rounded-xl p-4 border bg-card/80 cursor-pointer group transition-all duration-300 hover:bg-muted"
         >
-            {/* Animated Grid */}
-            <div className="absolute inset-0 z-0 opacity-20 transition-opacity duration-500 group-hover:opacity-30" style={{
-                backgroundSize: '30px 30px',
-                backgroundImage: 'linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)'
-            }} />
-
-            {/* Mouse Glow */}
-            <div className="absolute inset-0 z-10" style={{
-                background: `radial-gradient(300px circle at ${mousePosition.x} ${mousePosition.y}, hsla(var(--primary) / 0.15), transparent 80%)`,
-                transition: 'background 0.2s ease-out',
-            }} />
-            
-            <div className="relative z-20 flex flex-col h-full">
-                <div className="flex items-start justify-between">
-                    <div className="p-3 bg-primary/10 rounded-full">
-                         <Icon className="h-6 w-6 text-primary" />
+            <div className="flex flex-col h-full">
+                 <div className="flex items-start justify-between">
+                    <div className="p-3 bg-muted rounded-lg">
+                         <Icon className="h-5 w-5 text-primary" />
                     </div>
                     {badge && badge > 0 && (
                         <Badge variant="destructive">{badge}</Badge>
                     )}
                 </div>
-                <div className="mt-auto">
-                    <h3 className="font-bold text-foreground">{title}</h3>
+                <div className="mt-auto pt-3">
+                    <h3 className="font-bold text-foreground text-sm">{title}</h3>
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </div>
             </div>
@@ -444,4 +419,5 @@ const DemoDashboardPageContent = () => {
 };
 
 export default DemoDashboardPageContent;
+
 
