@@ -17,9 +17,10 @@ import AddDatabaseDialog from '@/components/dashboard/AddDatabaseDialog';
 import PersonalInfoDialog from '@/components/dashboard/PersonalInfoDialog';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import { subDays } from 'date-fns';
+import { subDays, format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import type { AssistantMemory, AssistantWithMemory } from '@/types';
+import type { Authorization, AssistantConfig, AssistantMemory, AssistantWithMemory } from '@/types';
 import AssistantMemoryCard from '@/components/dashboard/AssistantMemoryCard';
 import { BookOpen, CheckSquare, Bell, Eye, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from "framer-motion";
@@ -27,14 +28,19 @@ import ConversationsDialog from './ConversationsDialog';
 import { assistantPurposesConfig } from '@/config/appConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import InstructionsDialog from '../chat/admin/InstructionsDialog';
+import ReceiptDialog from '../chat/admin/ReceiptDialog';
+import NotifierDialog from './NotifierDialog';
+import ContactsDialog from './ContactsDialog';
 
 const AnimatedGridCard = ({ icon, title, description, badge, onClick }: { icon: React.ElementType, title: string, description: string, badge?: number, onClick: () => void }) => {
     const Icon = icon;
     
     return (
-        <div
+        <motion.div
+            variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1 } }}
             onClick={onClick}
-            className="relative w-full rounded-xl p-4 border bg-card/80 cursor-pointer group transition-all duration-300 hover:bg-muted"
+            className="relative w-full rounded-xl p-4 border bg-card/80 cursor-pointer group transition-all duration-300 hover:shadow-primary/10 glow-card"
         >
             <div className="flex flex-col h-full">
                  <div className="flex items-start justify-between">
@@ -50,7 +56,7 @@ const AnimatedGridCard = ({ icon, title, description, badge, onClick }: { icon: 
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
@@ -66,6 +72,14 @@ const DemoDashboardPageContent = () => {
   const [isAddDatabaseDialogOpen, setIsAddDatabaseDialogOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
   const [isConversationsDialogOpen, setIsConversationsDialogOpen] = useState(false);
+  
+  // States for new dialogs
+  const [isInstructionsDialogOpen, setIsInstructionsDialogOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [isNotifierDialogOpen, setIsNotifierDialogOpen] = useState(false);
+  const [isContactsDialogOpen, setIsContactsDialogOpen] = useState(false);
+  const [selectedAssistant, setSelectedAssistant] = useState<AssistantConfig | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
   
   const isDemoMode = true; // This component is always in demo mode
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -123,11 +137,13 @@ const DemoDashboardPageContent = () => {
    useEffect(() => {
     const handleScroll = () => {
       if (scrollRef.current) {
-        const scrollLeft = scrollRef.current.scrollLeft;
-        const cardWidth = scrollRef.current.scrollWidth / profileToRender.assistants.length;
-        if (cardWidth > 0) {
-            const newIndex = Math.round(scrollLeft / cardWidth);
+        const { scrollLeft, children } = scrollRef.current;
+        if (children.length > 0) {
+          const cardWidth = children[0].clientWidth;
+          const newIndex = Math.round(scrollLeft / cardWidth);
+          if (newIndex !== activeIndex) {
             setActiveIndex(newIndex);
+          }
         }
       }
     };
@@ -136,7 +152,7 @@ const DemoDashboardPageContent = () => {
       scroller.addEventListener('scroll', handleScroll, { passive: true });
       return () => scroller.removeEventListener('scroll', handleScroll);
     }
-  }, [profileToRender.assistants.length]);
+  }, [activeIndex, profileToRender.assistants.length]);
 
   const handleActionInDemo = (action: string) => {
     toast({
@@ -155,22 +171,47 @@ const DemoDashboardPageContent = () => {
   
   const showAddDatabaseButton = !isDemoMode && userProfile.assistants.some(a => !a.databaseId);
   
+  const handleOpenInstructions = () => {
+    setSelectedAssistant(profileToRender.assistants[0] as any);
+    setIsInstructionsDialogOpen(true);
+  };
+  
+  const handleOpenReceipt = (payment: any) => {
+    setSelectedPayment({...payment});
+    setIsReceiptDialogOpen(true);
+  }
+
+  const handleOpenNotifier = () => {
+    setSelectedAssistant(profileToRender.assistants[0] as any);
+    setIsNotifierDialogOpen(true);
+  }
+
+   const handleOpenContacts = () => {
+    setSelectedAssistant(profileToRender.assistants[0] as any);
+    setIsContactsDialogOpen(true);
+  }
+  
+  const handleReceiptAction = async (authId: string, assistantId: string, action: 'completed' | 'rejected', amount?: number) => {
+    toast({ title: 'Acción de Demostración', description: `Se ${action === 'completed' ? 'aprobaría' : 'rechazaría'} el comprobante.` });
+    setIsReceiptDialogOpen(false);
+  };
+
+
   const renderContentForRoute = () => {
     const isAssistantsPage = pathname.endsWith('/assistants');
     const isManagerPage = pathname.endsWith('/manager');
     const isProfilePage = pathname.endsWith('/profile');
-    const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
 
     if (isAssistantsPage) {
       return (
         <div className="space-y-4"> 
             <div className="flex justify-between items-center animate-fadeIn" style={{ animationDelay: "0.3s" }}>
                 <h3 className="text-sm font-semibold flex items-center gap-2"> 
-                    <FaRobot size={16} className="text-green-500" /> 
+                    <FaRobot size={16} className="text-primary" /> 
                     Asistentes de Ejemplo
                 </h3>
                 <Button onClick={handleAddNewAssistant} size="sm" className={cn("transition-transform transform hover:scale-105 text-xs px-2 py-1", "bg-green-gradient text-primary-foreground hover:opacity-90 shiny-border")}>
-                    <FaRobot size={13} className="mr-1" />
+                    <FaPlus size={13} className="mr-1" />
                     Iniciar Sesión para Crear
                 </Button>
             </div>
@@ -219,10 +260,10 @@ const DemoDashboardPageContent = () => {
         const allPurposes = Array.from(new Set(profileToRender.assistants.flatMap(a => a.purposes.map(p => p.split(' ')[0]))));
 
         const managerButtons = [
-            { id: 'instructions', label: 'Instrucciones', description: 'Edita personalidades y reglas.', icon: BookOpen },
-            { id: 'authorizations', label: 'Autorizaciones', description: 'Revisa comprobantes y documentos.', icon: CheckSquare, count: allPendingAuthorizations.length },
-            { id: 'notifier', label: 'Notificador', description: 'Envía mensajes masivos.', icon: Bell },
-            { id: 'contacts', label: 'Contactos', description: 'Gestiona tu lista de contactos.', icon: FaAddressBook },
+            { id: 'instructions', label: 'Instrucciones', description: 'Edita personalidades y reglas.', icon: BookOpen, action: handleOpenInstructions },
+            { id: 'authorizations', label: 'Autorizaciones', description: 'Revisa comprobantes y documentos.', icon: CheckSquare, count: allPendingAuthorizations.length, action: () => handleOpenReceipt(allPendingAuthorizations[0]) },
+            { id: 'notifier', label: 'Notificador', description: 'Envía mensajes masivos.', icon: Bell, action: handleOpenNotifier },
+            { id: 'contacts', label: 'Contactos', description: 'Gestiona tu lista de contactos.', icon: FaAddressBook, action: handleOpenContacts },
         ];
 
         return (
@@ -246,7 +287,7 @@ const DemoDashboardPageContent = () => {
                                 title={btn.label}
                                 description={btn.description}
                                 badge={btn.count}
-                                onClick={() => handleActionInDemo(btn.label)}
+                                onClick={btn.action}
                             />
                         )
                     })}
@@ -290,7 +331,7 @@ const DemoDashboardPageContent = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between p-4 sm:p-6">
                 <div className="flex items-center gap-4">
-                  <FaUser className="h-6 w-6 text-green-500" />
+                  <FaUser className="h-6 w-6 text-primary" />
                   <div>
                     <h3 className="font-semibold">Información Personal</h3>
                     <p className="text-sm text-muted-foreground">
@@ -300,16 +341,10 @@ const DemoDashboardPageContent = () => {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => {
-                    if (isDemoMode) {
-                        router.push('/login');
-                        return;
-                    }
-                    setIsPersonalInfoOpen(true)}
-                  }
+                  onClick={() => router.push('/login')}
                   className="shrink-0"
                 >
-                  {isDemoMode ? 'Iniciar Sesión' : 'Editar'}
+                  Iniciar Sesión
                 </Button>
               </div>
               <Separator />
@@ -320,7 +355,7 @@ const DemoDashboardPageContent = () => {
                   <div>
                     <h3 className="font-semibold">Seguridad</h3>
                     <p className="text-sm text-muted-foreground">
-                      {isDemoMode ? "Inicia sesión para gestionar tu cuenta." : "Tu cuenta está segura con tu proveedor."}
+                      Inicia sesión para gestionar tu cuenta.
                     </p>
                   </div>
                 </div>
@@ -329,7 +364,7 @@ const DemoDashboardPageContent = () => {
                   variant="secondary"
                   disabled
                 >
-                 {isDemoMode ? "Modo Demo" : `Gestionado por ${userProfile.authProvider}`}
+                 Modo Demo
                 </Button>
               </div>
               <Separator />
@@ -370,14 +405,14 @@ const DemoDashboardPageContent = () => {
     if(pathname.endsWith('/assistants')) return 'Asistentes';
     if(pathname.endsWith('/manager')) return 'Gestor';
     if(pathname.endsWith('/profile')) return 'Perfil y Soporte';
-    return isDemoMode ? 'Panel de Demostración' : 'Panel Principal';
+    return 'Panel de Demostración';
   }
 
   const getPageDescription = () => {
-    if(pathname.endsWith('/assistants')) return isDemoMode ? 'Explora asistentes de ejemplo.' : 'Gestiona todos tus asistentes de IA desde aquí.';
-    if(pathname.endsWith('/manager')) return isDemoMode ? 'Explora las bandejas de gestión.' : 'Administra las instrucciones, autorizaciones y notificaciones de tus asistentes.';
+    if(pathname.endsWith('/assistants')) return 'Explora asistentes de ejemplo.';
+    if(pathname.endsWith('/manager')) return 'Explora las bandejas de gestión.';
     if(pathname.endsWith('/profile')) return 'Administra tu información, apariencia y obtén ayuda.';
-    return isDemoMode ? 'Explora las funciones con datos de ejemplo.' : 'Bienvenido a tu panel de control.';
+    return 'Explora las funciones con datos de ejemplo.';
   }
 
   return (
@@ -388,9 +423,7 @@ const DemoDashboardPageContent = () => {
             <h2 className="text-xl font-bold tracking-tight text-foreground">
               {getPageTitle()}
             </h2>
-            {isDemoMode && (
-                <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
-            )}
+            <Button onClick={() => router.push('/login')} size="sm">Iniciar Sesión / Registrarse</Button>
           </div>
           <p className="text-xs text-muted-foreground">
             {getPageDescription()}
@@ -414,10 +447,33 @@ const DemoDashboardPageContent = () => {
         onOpenChange={setIsConversationsDialogOpen}
         assistants={profileToRender.assistants as any[]}
       />
+      {selectedAssistant && (
+          <>
+            <InstructionsDialog 
+              isOpen={isInstructionsDialogOpen}
+              onOpenChange={setIsInstructionsDialogOpen}
+              assistant={selectedAssistant}
+            />
+            <NotifierDialog
+                isOpen={isNotifierDialogOpen}
+                onOpenChange={setIsNotifierDialogOpen}
+                assistant={selectedAssistant}
+            />
+            <ContactsDialog
+                isOpen={isContactsDialogOpen}
+                onOpenChange={setIsContactsDialogOpen}
+                assistant={selectedAssistant}
+            />
+          </>
+      )}
+       <ReceiptDialog
+            payment={selectedPayment}
+            isOpen={isReceiptDialogOpen}
+            onOpenChange={setIsReceiptDialogOpen}
+            onAction={handleReceiptAction as any}
+        />
     </>
   );
 };
 
 export default DemoDashboardPageContent;
-
-
