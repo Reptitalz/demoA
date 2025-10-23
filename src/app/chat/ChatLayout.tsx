@@ -30,7 +30,7 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
     setIsClient(true);
   }, []);
 
-  const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin';
+  const showNavBar = menuItems.some(item => pathname.startsWith(item.path)) || pathname === '/chat/admin' || pathname === '/chat';
 
   const handleRouteChange = useCallback((newPath: string) => {
     if (pathname === newPath) return;
