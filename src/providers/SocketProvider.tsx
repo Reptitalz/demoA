@@ -27,6 +27,11 @@ const SocketContext = createContext<ISocketContext>({ socket: null });
 
 export const useSocket = () => useContext(SocketContext);
 
+/**
+ * La URL del servidor de WebSockets.
+ * Este servidor maneja la comunicación en tiempo real para el chat de persona a persona.
+ * @url https://heymanito-servidor.urzoqm.easypanel.host/
+ */
 const SOCKET_SERVER_URL = "https://heymanito-servidor.urzoqm.easypanel.host/";
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {

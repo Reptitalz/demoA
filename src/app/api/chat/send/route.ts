@@ -2,9 +2,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// Este endpoint es DEPRECADO y ahora actúa como un secure backend proxy
-// al webhook externo que procesa los mensajes de los asistentes de IA.
-// La comunicación principal de chat entre usuarios se maneja vía WebSockets.
+/**
+ * Este endpoint es DEPRECADO y ahora actúa como un proxy seguro
+ * al webhook externo que procesa los mensajes de los asistentes de IA.
+ * La comunicación principal de chat entre usuarios se maneja vía WebSockets.
+ * 
+ * @webhook_url https://control.reptitalz.cloud/api/webhook/[chatPath]
+ */
 export async function POST(request: NextRequest) {
   try {
     // 1. Get all necessary data from the client's request

@@ -353,6 +353,15 @@ const DesktopChatPage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  /**
+   * Esta función sondea (hace polling) un endpoint de eventos para recibir las respuestas del asistente de IA.
+   * En lugar de esperar una respuesta directa a la solicitud POST, la aplicación cliente
+   * consulta periódicamente este endpoint para ver si hay nuevos mensajes listos para la sesión de chat actual.
+   *
+   * @endpoint `https://control.reptitalz.cloud/api/events?destination=${sessionId}`
+   * @method GET
+   * @param {string} sessionId - El ID único de la conversación actual.
+   */
   const pollForResponse = useCallback(() => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
@@ -429,7 +438,13 @@ const DesktopChatPage = () => {
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [assistant?.id, processedEventIds, sessionId]);
   
-  // Esta función decide a dónde enviar el mensaje.
+  /**
+   * Esta función decide a dónde enviar un mensaje.
+   * 1.  Para chats de persona a persona, utiliza WebSockets para una comunicación en tiempo real.
+   * 2.  Para chats con asistentes de IA, envía el mensaje a un endpoint de API que actúa como proxy.
+   *     - Este proxy luego reenvía el mensaje al webhook principal que procesa la lógica de la IA.
+   *     - La respuesta de la IA no se recibe directamente, sino a través de la función `pollForResponse`.
+   */
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
     // Escenario 1: Chat de persona a persona (usa WebSockets)
     if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath && socket && typeof messageContent === 'string') {
