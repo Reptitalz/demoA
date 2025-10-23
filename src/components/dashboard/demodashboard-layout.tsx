@@ -1,22 +1,23 @@
+
 "use client";
 
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaChartBar, FaUser, FaSignInAlt, FaUserFriends, FaNewspaper, FaRobot, FaBrain } from 'react-icons/fa';
+import { FaDatabase, FaUser, FaSignInAlt } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { APP_NAME } from '@/config/appConfig';
+import { Bot, GaugeCircle } from 'lucide-react';
+import NotificationsBell from '@/components/notifications/NotificationsBell'; // Re-using real component
+import { signOut } from 'next-auth/react'; // Re-using real function
 import AppIcon from '@/components/shared/AppIcon';
-// Re-using real components/functions where applicable
-import NotificationsBell from '@/components/notifications/NotificationsBell'; 
-import { signOut } from 'next-auth/react'; 
 
 const menuItems = [
-    { path: '/dashboarddemo/assistants', icon: FaRobot, label: 'Asistentes' },
-    { path: '/dashboarddemo/databases', icon: FaBrain, label: 'Cerebro' },
+    { path: '/dashboarddemo/assistants', icon: Bot, label: 'Asistentes' },
+    { path: '/dashboarddemo/manager', icon: GaugeCircle, label: 'Gestor' },
     { path: '/dashboarddemo/profile', icon: FaUser, label: 'Perfil' },
 ];
 
@@ -32,8 +33,12 @@ export default function DashboardDemoLayout({
         <div className="flex flex-col h-screen bg-muted/30">
              <header className="flex h-14 items-center justify-between border-b bg-background/95 backdrop-blur-sm px-4 shrink-0 sticky top-0 z-20">
                     <Link href="/dashboarddemo/assistants" className="flex items-center gap-2 font-semibold">
-                         <AppIcon className="h-6 w-6" />
-                        <span className="font-bold text-lg">{APP_NAME} (Demo)</span>
+                         <AppIcon className="h-8 w-8" />
+                         <div className="flex flex-col -space-y-1.5">
+                            <span className="font-extrabold text-foreground text-base leading-none">Hey</span>
+                            <span className="font-semibold text-muted-foreground text-base leading-none">Manito!</span>
+                        </div>
+                        <span className="text-sm font-normal text-muted-foreground ml-1">(Demo)</span>
                     </Link>
                     <div className="flex items-center gap-1.5">
                         {/* Demo does not need real notifications, but you could show a fake one if desired */}
