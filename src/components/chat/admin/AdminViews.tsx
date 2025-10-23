@@ -249,8 +249,15 @@ export const AssistantsList = () => {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const handleOpenConversations = (assistant: AssistantConfig) => {
-        setSelectedAssistant(assistant);
-        setIsConversationsDialogOpen(true);
+        if (assistant.chatPath) {
+            router.push(`/chat/conversation/${assistant.chatPath}`);
+        } else {
+            toast({
+                title: "No se puede abrir el chat",
+                description: "Este asistente no tiene una ruta de chat configurada.",
+                variant: "destructive"
+            });
+        }
     };
 
     const handleConfigureAssistant = (assistant: AssistantConfig) => {
@@ -557,7 +564,7 @@ export const CreditView = () => {
                           <span className="text-xs">Solicitudes</span>
                       </TabsTrigger>
                       <TabsTrigger value="offers" className="flex flex-col gap-1 p-2 h-auto">
-                          <Landmark className="h-5 w-5"/>
+                          <LandmarkIcon className="h-5 w-5"/>
                           <span className="text-xs">Mis Ofertas</span>
                       </TabsTrigger>
                   </TabsList>
@@ -673,6 +680,8 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
 
 
 
+
+    
 
     
 
