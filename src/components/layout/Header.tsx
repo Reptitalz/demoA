@@ -53,7 +53,10 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
       <div className="container mx-auto px-6 py-3 flex items-center justify-between max-w-7xl">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <AppIcon className="h-8 w-8" />
-            <h1 className="font-bold text-foreground text-lg">{APP_NAME}</h1>
+            <div className="flex flex-col -space-y-1">
+              <span className="font-extrabold text-foreground text-lg leading-none">Hey</span>
+              <span className="font-semibold text-muted-foreground text-lg leading-none">Manito!</span>
+            </div>
         </Link>
         
         {/* Desktop Navigation */}
@@ -112,7 +115,10 @@ const Header = ({ fullWidth = false }: HeaderProps) => {
                         <div className="p-4 border-b">
                              <Link href="/" className="flex items-center gap-3" onClick={() => setIsSheetOpen(false)}>
                                 <AppIcon className="h-8 w-8" />
-                                <h1 className="font-bold text-foreground text-lg">{APP_NAME}</h1>
+                                <div className="flex flex-col -space-y-1">
+                                  <span className="font-extrabold text-foreground text-lg leading-none">Hey</span>
+                                  <span className="font-semibold text-muted-foreground text-lg leading-none">Manito!</span>
+                                </div>
                             </Link>
                         </div>
                         <nav className="flex flex-col gap-2 p-4">
