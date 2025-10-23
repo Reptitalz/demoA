@@ -1,3 +1,4 @@
+
 // src/app/chat/conversation/[chatPath]/page.tsx
 "use client";
 
@@ -518,27 +519,36 @@ const DesktopChatPage = () => {
                 setMessages(prev => [...prev, errorMessage]);
                 await saveMessageToDB(errorMessage, sessionId);
             }
-
         } else if (typeof messageContent === 'string') {
-            // Es un mensaje de texto para el asistente. Usa el endpoint proxy /api/chat/send.
-            // Este endpoint luego envía al webhook principal del bot.
-            fetch('/api/chat/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    assistantId: assistant.id,
-                    message: messageContent,
-                    destination: sessionId,
-                    chatPath: assistant.chatPath,
-                })
-            }).then(response => {
-                if (assistant.type === 'desktop' && typeof messageContent === 'string') {
-                    pollForResponse();
-                }
-            }).catch(err => {
-                console.error("Error sending message to proxy:", err);
-            });
-        }
+          // CORRECCIÓN: Esta es la lógica que faltaba.
+          // Es un mensaje de texto para el asistente. Usa el endpoint proxy /api/chat/send.
+          // Este endpoint luego envía al webhook principal del bot.
+          fetch('/api/chat/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  assistantId: assistant.id,
+                  message: messageContent,
+                  destination: sessionId,
+                  chatPath: assistant.chatPath,
+              })
+          }).then(response => {
+              if (response.ok) {
+                  // Si el bot es de escritorio (que responde en el chat), iniciamos el sondeo
+                  if (assistant.type === 'desktop') {
+                      pollForResponse();
+                  }
+              } else {
+                  console.error("Error sending message to proxy:", response.statusText);
+                  toast({ title: "Error de Envío", description: "No se pudo enviar el mensaje al asistente.", variant: "destructive" });
+                  setIsSending(false);
+              }
+          }).catch(err => {
+              console.error("Fetch Error sending message to proxy:", err);
+              toast({ title: "Error de Red", description: "No se pudo conectar con el servidor para enviar el mensaje.", variant: "destructive" });
+              setIsSending(false);
+          });
+      }
     }
 }, [isPersonalChat, isAssistantChat, assistant, chatPartner, userProfile, socket, sessionId, pollForResponse, dispatch, toast]);
 
