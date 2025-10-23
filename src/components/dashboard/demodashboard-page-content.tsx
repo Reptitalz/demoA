@@ -28,6 +28,57 @@ import { assistantPurposesConfig } from '@/config/appConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
+const AnimatedGridCard = ({ icon, title, description, badge, onClick }: { icon: React.ElementType, title: string, description: string, badge?: number, onClick: () => void }) => {
+    const Icon = icon;
+    const ref = useRef<HTMLDivElement>(null);
+    const [mousePosition, setMousePosition] = useState({ x: "-100%", y: "-100%" });
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            setMousePosition({ x: `${x}px`, y: `${y}px` });
+        }
+    };
+
+    return (
+        <div
+            ref={ref}
+            onMouseMove={handleMouseMove}
+            onClick={onClick}
+            className="relative w-full h-40 rounded-xl p-4 overflow-hidden border bg-card/50 backdrop-blur-sm cursor-pointer group transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10"
+        >
+            {/* Animated Grid */}
+            <div className="absolute inset-0 z-0 opacity-20 transition-opacity duration-500 group-hover:opacity-30" style={{
+                backgroundSize: '30px 30px',
+                backgroundImage: 'linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)'
+            }} />
+
+            {/* Mouse Glow */}
+            <div className="absolute inset-0 z-10" style={{
+                background: `radial-gradient(300px circle at ${mousePosition.x} ${mousePosition.y}, hsla(var(--primary) / 0.15), transparent 80%)`,
+                transition: 'background 0.2s ease-out',
+            }} />
+            
+            <div className="relative z-20 flex flex-col h-full">
+                <div className="flex items-start justify-between">
+                    <div className="p-3 bg-primary/10 rounded-full">
+                         <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    {badge && badge > 0 && (
+                        <Badge variant="destructive">{badge}</Badge>
+                    )}
+                </div>
+                <div className="mt-auto">
+                    <h3 className="font-bold text-foreground">{title}</h3>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const DemoDashboardPageContent = () => {
   const { state, dispatch, fetchProfileCallback } = useApp();
@@ -193,56 +244,64 @@ const DemoDashboardPageContent = () => {
         const allPurposes = Array.from(new Set(profileToRender.assistants.flatMap(a => a.purposes.map(p => p.split(' ')[0]))));
 
         const managerButtons = [
-            { id: 'instructions', label: 'Instrucciones', icon: BookOpen },
-            { id: 'authorizations', label: 'Autorizaciones', icon: CheckSquare, count: allPendingAuthorizations.length },
-            { id: 'notifier', label: 'Notificador', icon: Bell },
-            { id: 'contacts', label: 'Contactos', icon: FaAddressBook },
+            { id: 'instructions', label: 'Instrucciones', description: 'Edita personalidades y reglas.', icon: BookOpen },
+            { id: 'authorizations', label: 'Autorizaciones', description: 'Revisa comprobantes y documentos.', icon: CheckSquare, count: allPendingAuthorizations.length },
+            { id: 'notifier', label: 'Notificador', description: 'Envía mensajes masivos.', icon: Bell },
+            { id: 'contacts', label: 'Contactos', description: 'Gestiona tu lista de contactos.', icon: FaAddressBook },
         ];
 
         return (
-            <div className="space-y-6 animate-fadeIn">
-                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <motion.div 
+              className="space-y-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: { transition: { staggerChildren: 0.1 } }
+              }}
+            >
+                 <motion.div 
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                    className="grid grid-cols-2 gap-4"
+                >
                     {managerButtons.map(btn => {
-                        const Icon = btn.icon;
                         return (
-                            <div key={btn.id} className="relative">
-                                <Button
-                                    variant="outline"
-                                    className="w-full h-20 flex flex-col gap-1 items-center justify-center text-xs"
-                                    onClick={() => handleActionInDemo(btn.label)}
-                                >
-                                    <Icon className="h-6 w-6 text-primary" />
-                                    <span>{btn.label}</span>
-                                </Button>
-                                {btn.count && btn.count > 0 && (
-                                     <Badge variant="destructive" className="absolute -top-1 -right-1">{btn.count}</Badge>
-                                )}
-                            </div>
+                            <AnimatedGridCard
+                                key={btn.id}
+                                icon={btn.icon}
+                                title={btn.label}
+                                description={btn.description}
+                                badge={btn.count}
+                                onClick={() => handleActionInDemo(btn.label)}
+                            />
                         )
                     })}
-                </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Bandeja de Propósitos</CardTitle>
-                        <CardDescription>Visualiza los propósitos activos en todos tus asistentes.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {allPurposes.map(purposeId => {
-                                const purposeConfig = assistantPurposesConfig.find(p => p.id === purposeId);
-                                if (!purposeConfig) return null;
-                                const Icon = purposeConfig.icon;
-                                return (
-                                    <div key={purposeId} className="flex items-center p-2 bg-muted/50 rounded-lg">
-                                        <Icon className="mr-3 h-5 w-5 text-primary" />
-                                        <span className="text-sm font-medium">{purposeConfig.name}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                </motion.div>
+                 <motion.div
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                 >
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Bandeja de Propósitos</CardTitle>
+                            <CardDescription>Visualiza los propósitos activos en todos tus asistentes.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {allPurposes.map(purposeId => {
+                                    const purposeConfig = assistantPurposesConfig.find(p => p.id === purposeId);
+                                    if (!purposeConfig) return null;
+                                    const Icon = purposeConfig.icon;
+                                    return (
+                                        <div key={purposeId} className="flex items-center p-2 bg-muted/50 rounded-lg">
+                                            <Icon className="mr-3 h-5 w-5 text-primary" />
+                                            <span className="text-sm font-medium">{purposeConfig.name}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </motion.div>
         );
     }
     
@@ -385,3 +444,4 @@ const DemoDashboardPageContent = () => {
 };
 
 export default DemoDashboardPageContent;
+
