@@ -1,4 +1,3 @@
-
 // src/app/chat/conversation/[chatPath]/page.tsx
 "use client";
 
@@ -371,7 +370,7 @@ const DesktopChatPage = () => {
 
     const EVENTS_API_URL = `https://control.reptitalz.cloud/api/events?destination=${sessionId}`;
     
-    console.log("Polling for response at:", EVENTS_API_URL);
+    console.log("Sondeando en busca de respuestas en:", EVENTS_API_URL);
 
     const poll = async () => {
       try {
@@ -379,7 +378,7 @@ const DesktopChatPage = () => {
 
         if (response.ok) {
           const events = await response.json();
-          console.log("Received data from events API:", events);
+          console.log("Datos recibidos de la API de eventos:", events);
 
           let foundFinalResponse = false;
           const newProcessedIds = new Set(processedEventIds);
@@ -421,14 +420,14 @@ const DesktopChatPage = () => {
               }
           }
         } else {
-          console.error('Polling request failed with status:', response.status);
+          console.error('La solicitud de sondeo falló con el estado:', response.status);
            if (pollIntervalRef.current) {
               clearInterval(pollIntervalRef.current);
               pollIntervalRef.current = null;
             }
         }
       } catch (err) {
-        console.error('Polling error:', err);
+        console.error('Error de sondeo:', err);
         if (pollIntervalRef.current) {
           clearInterval(pollIntervalRef.current);
           pollIntervalRef.current = null;
@@ -529,7 +528,7 @@ const DesktopChatPage = () => {
               destination: sessionId,
               chatPath: assistant.chatPath,
           };
-          console.log("Enviando a:", url, "con payload:", JSON.stringify(payload, null, 2));
+          console.log("Enviando POST a:", url, "con payload:", JSON.stringify(payload, null, 2));
 
           fetch(url, {
               method: 'POST',
@@ -542,12 +541,12 @@ const DesktopChatPage = () => {
                       pollForResponse();
                   }
               } else {
-                  console.error("Error sending message to proxy:", response.statusText);
+                  console.error("Error al enviar mensaje al proxy:", response.statusText);
                   toast({ title: "Error de Envío", description: "No se pudo enviar el mensaje al asistente.", variant: "destructive" });
                   setIsSending(false);
               }
           }).catch(err => {
-              console.error("Fetch Error sending message to proxy:", err);
+              console.error("Error de Fetch al enviar mensaje al proxy:", err);
               toast({ title: "Error de Red", description: "No se pudo conectar con el servidor para enviar el mensaje.", variant: "destructive" });
               setIsSending(false);
           });
@@ -555,37 +554,37 @@ const DesktopChatPage = () => {
     }
 }, [isPersonalChat, isAssistantChat, assistant, chatPartner, userProfile, socket, sessionId, pollForResponse, dispatch, toast]);
 
+    const handleSendLogic = async () => {
+        const messageToSend = currentMessage;
+        if (!messageToSend.trim()) return;
 
-  const handleSendMessage = async (e?: React.FormEvent, messageOverride?: string) => {
-    if (e) e.preventDefault();
-    const messageToSend = messageOverride || currentMessage;
-    
-    if (!messageToSend.trim()) return;
-    
-    const messageId = `${Date.now()}_${Math.random()}`;
+        const messageId = `${Date.now()}_${Math.random()}`;
 
-    const userMessage: ChatMessage = {
-      id: messageId,
-      role: 'user',
-      content: messageToSend,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: 'sent'
+        const userMessage: ChatMessage = {
+            id: messageId,
+            role: 'user',
+            content: messageToSend,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'sent'
+        };
+
+        setMessages(prev => [...prev, userMessage]);
+        await saveMessageToDB(userMessage, sessionId);
+        
+        setCurrentMessage('');
+
+        if (!isPersonalChat) {
+            setIsSending(true);
+            setAssistantStatusMessage('Escribiendo...');
+        }
+
+        sendMessageToServer(messageToSend, messageId);
+    }
+  
+    const handleSendMessage = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        handleSendLogic();
     };
-
-    setMessages(prev => [...prev, userMessage]);
-    await saveMessageToDB(userMessage, sessionId);
-    
-    if (!messageOverride) {
-      setCurrentMessage('');
-    }
-
-    if (!isPersonalChat) {
-      setIsSending(true);
-      setAssistantStatusMessage('Escribiendo...');
-    }
-
-    sendMessageToServer(messageToSend, messageId);
-  };
   
  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -988,11 +987,19 @@ const DesktopChatPage = () => {
                  <Button 
                     type="button" 
                     size="icon" 
-                    className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11" 
+                    className="rounded-full bg-primary hover:bg-primary/90 h-11 w-11"
+                    onClick={() => { if(currentMessage.trim()) { handleSendLogic(); } }}
                     onMouseDown={startRecording}
                     onMouseUp={stopRecordingAndSend}
                     onTouchStart={startRecording}
-                    onTouchEnd={stopRecordingAndSend}
+                    onTouchEnd={(e) => {
+                        e.preventDefault(); // Prevent click event from firing on touch devices
+                        if(currentMessage.trim()){
+                            handleSendLogic();
+                        } else {
+                            stopRecordingAndSend();
+                        }
+                    }}
                 >
                     <FaMicrophone className="h-5 w-5" />
                 </Button>
