@@ -564,7 +564,7 @@ export const CreditView = () => {
                           <span className="text-xs">Solicitudes</span>
                       </TabsTrigger>
                       <TabsTrigger value="offers" className="flex flex-col gap-1 p-2 h-auto">
-                          <LandmarkIcon className="h-5 w-5"/>
+                          <Landmark className="h-5 w-5"/>
                           <span className="text-xs">Mis Ofertas</span>
                       </TabsTrigger>
                   </TabsList>
@@ -680,6 +680,8 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
 
 
 
+
+    
 
     
 
