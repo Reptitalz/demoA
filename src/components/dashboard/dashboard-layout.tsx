@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaDatabase, FaUser, FaSignOutAlt, FaDownload } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaDownload } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/providers/AppProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -38,19 +38,13 @@ export default function DashboardLayout({
     const [isPWA, setIsPWA] = React.useState(false);
 
     React.useEffect(() => {
-        // Check if the app is running in standalone mode (as a PWA)
-        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
-            setIsPWA(true);
+        if (typeof window !== 'undefined') {
+            if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+                setIsPWA(true);
+            }
         }
     }, []);
     
-    // State for swipe navigation
-    const touchStartX = React.useRef(0);
-    const touchEndX = React.useRef(0);
-    const touchStartY = React.useRef(0);
-    const touchEndY = React.useRef(0);
-    const swipeHandled = React.useRef(false);
-
     // State for page transition animation
     const [animationClass, setAnimationClass] = React.useState('animate-page-in-right');
 
@@ -85,41 +79,6 @@ export default function DashboardLayout({
         const timer = setTimeout(() => setAnimationClass(''), 200);
         return () => clearTimeout(timer);
     }, [pathname]);
-
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartX.current = e.targetTouches[0].clientX;
-        touchStartY.current = e.targetTouches[0].clientY;
-        swipeHandled.current = false;
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-        touchEndX.current = e.targetTouches[0].clientX;
-        touchEndY.current = e.targetTouches[0].clientY;
-    };
-
-    const handleTouchEnd = () => {
-        if (swipeHandled.current) return;
-
-        const deltaX = touchEndX.current - touchStartX.current;
-        const deltaY = touchEndY.current - touchStartY.current;
-
-        // Ensure it's a horizontal swipe and not a vertical scroll
-        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 100) { // Increased from 75 to 100
-            const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.path));
-            if (currentIndex === -1) return;
-
-            if (deltaX < -100) { // Swiped left
-                const nextIndex = (currentIndex + 1) % menuItems.length;
-                handleRouteChange(menuItems[nextIndex].path);
-            } else if (deltaX > 100) { // Swiped right
-                const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
-                handleRouteChange(menuItems[prevIndex].path);
-            }
-            swipeHandled.current = true;
-        }
-    };
-
 
     const handleLogout = async () => {
         try {
@@ -158,9 +117,6 @@ export default function DashboardLayout({
                     "flex-grow overflow-y-auto pb-20",
                     animationClass
                 )}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
             >
                 {children}
             </main>
