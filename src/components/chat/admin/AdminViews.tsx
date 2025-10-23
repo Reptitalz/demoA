@@ -324,8 +324,8 @@ export const AssistantsList = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <Button size="sm" variant="outline" onClick={() => handleOpenConversations(assistant)}>
-                                        <MessageSquarePlus className="mr-2 h-4 w-4"/> Ver Chats
+                                    <Button size="icon" variant="ghost" onClick={() => handleOpenConversations(assistant)}>
+                                        <MessageSquarePlus className="h-4 w-4"/>
                                     </Button>
                                     <Button size="icon" variant="ghost" onClick={() => handleConfigureAssistant(assistant)}>
                                         <Settings className="h-4 w-4"/>
@@ -680,6 +680,8 @@ export const OtherView = ({ viewName }: { viewName: string }) => (
 
 
 
+
+    
 
     
 
