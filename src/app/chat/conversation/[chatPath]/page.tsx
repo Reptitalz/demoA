@@ -355,13 +355,13 @@ const DesktopChatPage = () => {
   }, [messages]);
 
   /**
-   * Esta función sondea (hace polling) un endpoint de eventos para recibir las respuestas del asistente de IA.
-   * En lugar de esperar una respuesta directa a la solicitud POST, la aplicación cliente
-   * consulta periódicamente este endpoint para ver si hay nuevos mensajes listos para la sesión de chat actual.
+   * This function polls an event endpoint to receive responses from the AI assistant.
+   * Instead of waiting for a direct response to the POST request, the client application
+   * periodically queries this endpoint to see if new messages are ready for the current chat session.
    *
    * @endpoint `https://control.reptitalz.cloud/api/events?destination=${sessionId}`
    * @method GET
-   * @param {string} sessionId - El ID único de la conversación actual.
+   * @param {string} sessionId - The unique ID of the current conversation.
    */
   const pollForResponse = useCallback(() => {
     if (pollIntervalRef.current) {
@@ -440,14 +440,14 @@ const DesktopChatPage = () => {
   }, [assistant?.id, processedEventIds, sessionId]);
   
   /**
-   * Esta función decide a dónde enviar un mensaje.
-   * 1.  Para chats de persona a persona, utiliza WebSockets para una comunicación en tiempo real.
-   * 2.  Para chats con asistentes de IA, envía el mensaje a un endpoint de API que actúa como proxy.
-   *     - Este proxy luego reenvía el mensaje al webhook principal que procesa la lógica de la IA (`https://control.reptitalz.cloud/api/webhook/[chatPath]`).
-   *     - La respuesta de la IA no se recibe directamente, sino a través de la función `pollForResponse` que consulta un endpoint de eventos.
+   * This function decides where to send a message.
+   * 1.  For person-to-person chats, it uses WebSockets for real-time communication.
+   * 2.  For chats with AI assistants, it sends the message to a proxy API endpoint.
+   *     - This proxy then forwards the message to the main webhook that processes the AI logic (`https://control.reptitalz.cloud/api/webhook/[chatPath]`).
+   *     - The AI's response is not received directly, but through the `pollForResponse` function that queries an event endpoint.
    */
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
-    // Escenario 1: Chat de persona a persona (usa WebSockets)
+    // Scenario 1: Person-to-person chat (uses WebSockets)
     if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath && socket && typeof messageContent === 'string') {
         
         socket.emit("sendMessage", {
@@ -468,9 +468,9 @@ const DesktopChatPage = () => {
         return;
     }
     
-    // Escenario 2: Chat con un asistente de IA (usa el API de proxy)
+    // Scenario 2: Chat with an AI assistant (uses the proxy API)
     if (isAssistantChat && assistant) {
-        // Si el mensaje es un archivo, se trata como una autorización.
+        // If the message is a file, it is treated as an authorization.
         if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'video' || messageContent.type === 'audio' || messageContent.type === 'document')) {
             const authPayload: Omit<Authorization, 'id' | 'status' | 'receivedAt'> = {
                 messageId: parseInt(messageId),
@@ -520,8 +520,8 @@ const DesktopChatPage = () => {
                 await saveMessageToDB(errorMessage, sessionId);
             }
         } else if (typeof messageContent === 'string') {
-          // Es un mensaje de texto para el asistente. Usa el endpoint proxy /api/chat/send.
-          // Este endpoint luego envía al webhook principal del bot.
+          // This is a text message for the assistant. Use the proxy endpoint /api/chat/send.
+          // This endpoint then sends to the main bot webhook.
           const url = '/api/chat/send';
           const payload = {
               assistantId: assistant.id,
@@ -537,7 +537,7 @@ const DesktopChatPage = () => {
               body: JSON.stringify(payload)
           }).then(response => {
               if (response.ok) {
-                  // Si el bot es de escritorio (que responde en el chat), iniciamos el sondeo
+                  // If the bot is a desktop type (which responds in the chat), start polling.
                   if (assistant.type === 'desktop') {
                       pollForResponse();
                   }
@@ -822,7 +822,7 @@ const DesktopChatPage = () => {
                     <AvatarImage src={partnerImageUrl} alt={partnerName} />
                     <AvatarFallback>{partnerName ? partnerName.charAt(0) : <FaUser />}</AvatarFallback>
                 </Avatar>
-                <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
+                <div className="overflow-hidden cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                      <div className="flex items-center gap-1.5">
                         <h3 className="font-semibold text-base text-foreground">{partnerName}</h3>
                         {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (

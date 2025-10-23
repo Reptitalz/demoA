@@ -23,14 +23,15 @@ export async function POST(request: NextRequest) {
     const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${chatPath}`;
 
     // 4. Construct the precise payload the external server expects.
-    // Este payload NO tiene un objeto "payload" anidado como en el ejemplo del curl del usuario.
-    // La estructura es plana y contiene los campos que necesita el webhook de IA.
+    // This payload does NOT have a nested "payload" object like in the user's curl example.
+    // The structure is flat and contains the fields needed by the AI webhook.
     const payload = {
       assistantId,
       message,
       destination,
     };
 
+    // Log the request for debugging purposes
     console.log(`Forwarding message to external webhook: ${CHAT_WEBHOOK_URL} with payload:`, JSON.stringify(payload, null, 2));
 
     // 5. Make the server-to-server request
