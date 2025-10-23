@@ -70,7 +70,8 @@ const RegisterCollaboratorDialog = ({ isOpen, onOpenChange }: RegisterCollaborat
       });
       
       onOpenChange(false);
-      // The app provider will handle the redirect after fetching the profile.
+      // Redirect to the collaborator dashboard
+      router.push('/chat/dashboard');
       
     } catch (error: any) {
       console.error("Collaborator registration error:", error);

@@ -19,7 +19,7 @@ function DashboardRouter() {
             // If the user is authenticated, they should be on a specific dashboard page.
             // If they land on the root /dashboard, redirect them to the default view.
             if (userProfile.isAuthenticated) {
-                router.replace('/dashboard/assistants');
+                router.replace('/chat/dashboard');
             } else {
             // If the user is NOT authenticated, show the demo dashboard.
                 router.replace('/dashboarddemo/assistants');
