@@ -17,9 +17,9 @@ function DashboardRouter() {
         // This effect runs once the initial loading is complete.
         if (!loadingStatus.active) {
             // If the user is authenticated, they should be on a specific dashboard page.
-            // If they land on the root /dashboard, redirect them to the default view.
+            // If they land on the root /dashboard, redirect them to the default view for the WA manager.
             if (userProfile.isAuthenticated) {
-                router.replace('/chat/dashboard');
+                router.replace('/dashboard/assistants');
             } else {
             // If the user is NOT authenticated, show the demo dashboard.
                 router.replace('/dashboarddemo/assistants');
