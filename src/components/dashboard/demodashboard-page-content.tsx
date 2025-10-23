@@ -190,48 +190,58 @@ const DemoDashboardPageContent = () => {
             (a.authorizations || []).filter(auth => auth.status === 'pending')
         );
 
+        const allPurposes = Array.from(new Set(profileToRender.assistants.flatMap(a => a.purposes.map(p => p.split(' ')[0]))));
+
+        const managerButtons = [
+            { id: 'instructions', label: 'Instrucciones', icon: BookOpen },
+            { id: 'authorizations', label: 'Autorizaciones', icon: CheckSquare, count: allPendingAuthorizations.length },
+            { id: 'notifier', label: 'Notificador', icon: Bell },
+            { id: 'contacts', label: 'Contactos', icon: FaAddressBook },
+        ];
+
         return (
-            <div className="animate-fadeIn">
-                <Tabs defaultValue="instructions" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="instructions"><BookOpen className="mr-2 h-4 w-4"/>Instrucciones</TabsTrigger>
-                        <TabsTrigger value="authorizations"><CheckSquare className="mr-2 h-4 w-4"/>Autorizaciones <Badge variant="destructive" className="ml-2">{allPendingAuthorizations.length}</Badge></TabsTrigger>
-                        <TabsTrigger value="notifier"><Bell className="mr-2 h-4 w-4"/>Notificador</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="instructions" className="mt-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Bandeja de Instrucciones</CardTitle>
-                                <CardDescription>Edita las personalidades y reglas de tus asistentes.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-center text-muted-foreground py-4">Inicia sesión para gestionar las instrucciones de tus asistentes.</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="authorizations" className="mt-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Bandeja de Autorizaciones</CardTitle>
-                                <CardDescription>Revisa y aprueba los comprobantes de pago recibidos.</CardDescription>
-                            </CardHeader>
-                             <CardContent>
-                                <p className="text-sm text-center text-muted-foreground py-4">Inicia sesión para gestionar las autorizaciones.</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="notifier" className="mt-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Bandeja de Notificador</CardTitle>
-                                <CardDescription>Envía notificaciones masivas a los contactos de un asistente.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-center text-muted-foreground py-4">Inicia sesión para enviar notificaciones.</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+            <div className="space-y-6 animate-fadeIn">
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {managerButtons.map(btn => {
+                        const Icon = btn.icon;
+                        return (
+                            <div key={btn.id} className="relative">
+                                <Button
+                                    variant="outline"
+                                    className="w-full h-20 flex flex-col gap-1 items-center justify-center text-xs"
+                                    onClick={() => handleActionInDemo(btn.label)}
+                                >
+                                    <Icon className="h-6 w-6 text-primary" />
+                                    <span>{btn.label}</span>
+                                </Button>
+                                {btn.count && btn.count > 0 && (
+                                     <Badge variant="destructive" className="absolute -top-1 -right-1">{btn.count}</Badge>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Bandeja de Propósitos</CardTitle>
+                        <CardDescription>Visualiza los propósitos activos en todos tus asistentes.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {allPurposes.map(purposeId => {
+                                const purposeConfig = assistantPurposesConfig.find(p => p.id === purposeId);
+                                if (!purposeConfig) return null;
+                                const Icon = purposeConfig.icon;
+                                return (
+                                    <div key={purposeId} className="flex items-center p-2 bg-muted/50 rounded-lg">
+                                        <Icon className="mr-3 h-5 w-5 text-primary" />
+                                        <span className="text-sm font-medium">{purposeConfig.name}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
