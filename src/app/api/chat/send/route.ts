@@ -2,8 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// This endpoint is DEPRECATED and now acts as a secure backend proxy to the external webhook.
-// The primary communication should happen via WebSockets.
+// Este endpoint es DEPRECADO y ahora actúa como un secure backend proxy
+// al webhook externo que procesa los mensajes de los asistentes de IA.
+// La comunicación principal de chat entre usuarios se maneja vía WebSockets.
 export async function POST(request: NextRequest) {
   try {
     // 1. Get all necessary data from the client's request
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Faltan parámetros requeridos (assistantId, chatPath, message, destination).' }, { status: 400 });
     }
     
-    // 3. Define the external webhook URL
+    // 3. Define el webhook externo del asistente de IA.
     const CHAT_WEBHOOK_URL = `https://control.reptitalz.cloud/api/webhook/${chatPath}`;
 
     // 4. Construct the precise payload the external server expects

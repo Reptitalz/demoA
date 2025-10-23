@@ -429,7 +429,9 @@ const DesktopChatPage = () => {
     pollIntervalRef.current = setInterval(poll, 3000);
   }, [assistant?.id, processedEventIds, sessionId]);
   
+  // Esta función decide a dónde enviar el mensaje.
   const sendMessageToServer = useCallback(async (messageContent: string | { type: 'image' | 'audio' | 'video' | 'document'; url: string, name?: string }, messageId: string) => {
+    // Escenario 1: Chat de persona a persona (usa WebSockets)
     if (isPersonalChat && userProfile.chatPath && chatPartner?.chatPath && socket && typeof messageContent === 'string') {
         
         socket.emit("sendMessage", {
@@ -450,8 +452,9 @@ const DesktopChatPage = () => {
         return;
     }
     
+    // Escenario 2: Chat con un asistente de IA (usa el API de proxy)
     if (isAssistantChat && assistant) {
-        // If message is an image, treat it as an authorization
+        // Si el mensaje es un archivo, se trata como una autorización.
         if (typeof messageContent !== 'string' && (messageContent.type === 'image' || messageContent.type === 'video' || messageContent.type === 'audio' || messageContent.type === 'document')) {
             const authPayload: Omit<Authorization, 'id' | 'status' | 'receivedAt'> = {
                 messageId: parseInt(messageId),
@@ -502,7 +505,8 @@ const DesktopChatPage = () => {
             }
 
         } else if (typeof messageContent === 'string') {
-            // It's a text message for the assistant
+            // Es un mensaje de texto para el asistente. Usa el endpoint proxy /api/chat/send.
+            // Este endpoint luego envía al webhook principal del bot.
             fetch('/api/chat/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
