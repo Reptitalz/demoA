@@ -137,7 +137,7 @@ export default function AdminHomePage() {
   };
   
   const handleBackToAdminHome = () => {
-    router.push('/chat/dashboard', { scroll: false });
+    router.push('/chat/admin', { scroll: false });
   }
   
   const ActiveComponent = views[activeView] || views.home;
