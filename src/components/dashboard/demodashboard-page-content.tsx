@@ -26,6 +26,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import ConversationsDialog from './ConversationsDialog';
 import { assistantPurposesConfig } from '@/config/appConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
 
 const DemoDashboardPageContent = () => {
