@@ -811,7 +811,7 @@ const DesktopChatPage = () => {
                 </Avatar>
                 <div className="overflow-hidden flex-grow cursor-pointer" onClick={() => assistant && setIsInfoSheetOpen(true)}>
                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-base truncate text-foreground flex-shrink-0">{partnerName}</h3>
+                        <h3 className="font-semibold text-base text-foreground">{partnerName}</h3>
                         {chatPartner && 'accountType' in chatPartner && chatPartner.accountType === 'business' && (
                             <Badge variant="default" className="bg-blue-500 hover:bg-blue-600 !p-0 !w-4 !h-4 flex items-center justify-center shrink-0">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
